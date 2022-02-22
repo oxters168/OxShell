@@ -4,16 +4,22 @@ import android.annotation.SuppressLint;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 
 import android.os.Build;
 import android.content.Intent;
 import android.provider.Settings;
 import android.content.pm.ResolveInfo;
+import android.widget.LinearLayout;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import com.OxGames.OxShell.databinding.ActivityFullscreenBinding;
@@ -101,34 +107,6 @@ public class FullscreenActivity extends AppCompatActivity {
             return false;
         }
     };
-    private ActivityFullscreenBinding binding;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        binding = ActivityFullscreenBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        mVisible = true;
-        mControlsView = binding.fullscreenContentControls;
-        mContentView = binding.fullscreenContent;
-
-        // Set up the user interaction to manually show or hide the system UI.
-        mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggle();
-            }
-        });
-
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-        binding.overlayButton.setOnTouchListener(mDelayHideTouchListener);
-        binding.launchButton.setOnTouchListener(mDelayHideTouchListener);
-    }
-
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -181,6 +159,38 @@ public class FullscreenActivity extends AppCompatActivity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
+    private ActivityFullscreenBinding binding;
+    private ArrayAdapter<String> intentsAdapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        binding = ActivityFullscreenBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        mVisible = true;
+        mControlsView = binding.fullscreenContentControls;
+        mContentView = binding.fullscreenContent;
+
+        // Set up the user interaction to manually show or hide the system UI.
+        mContentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggle();
+            }
+        });
+
+        // Upon interacting with UI controls, delay any scheduled hide()
+        // operations to prevent the jarring behavior of controls going away
+        // while interacting with the UI.
+//        binding.overlayButton.setOnTouchListener(mDelayHideTouchListener);
+//        binding.findAllIntents.setOnTouchListener(mDelayHideTouchListener);
+
+//        intentsAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, new String[] { "Okie", "Ox", "Oxters", "Oxulates", "Oxford" });
+//        binding.intentsList.setAdapter(intentsAdapter);
+    }
+
     public void getOverlayPermissionBtn(View view) {
         // Check if Android M or higher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -191,12 +201,70 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     }
 
-    public void launchWindowBtn(View view) {
+    public void listAllIntentsBtn(View view) {
+
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+//        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+//        mainIntent.addCategory(Intent.CATEGORY_ALTERNATIVE);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_BROWSER);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_CALCULATOR);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_CALENDAR);
+//        mainIntent.addCategory(Intent.CATEGORY_ACCESSIBILITY_SHORTCUT_TARGET);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_CONTACTS);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_EMAIL);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_FILES);
+        List<ResolveInfo> pkgAppsList = this.getPackageManager().queryIntentActivities( mainIntent, 0);
+        System.out.println("Found " + pkgAppsList.size() + " pkgs with given intent");
+        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
+//        ArrayList<View> buttons = new ArrayList<>();
+        ArrayList<String> intentNames = new ArrayList<>();
+        for (int i = 0; i < pkgAppsList.size(); i++) {
+//            Button btnTag = new Button(this);
+//            btnTag.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//            btnTag.setText("Button");
+//            btnTag.setId(i);
+//            buttons.add(btnTag);
+            String activityName = pkgAppsList.get(i).activityInfo.packageName;//.name;
+            if (activityName != null)
+            intentNames.add(activityName);
+        }
+        intentsAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, intentNames);
+        binding.intentsList.setAdapter(intentsAdapter);
+
+//        Intent i = new Intent(Intent.ACTION_MAIN);
+//        i.addCategory(Intent.CATEGORY_LAUNCHER);
+//        mainIntent.setPackage("com.otherapp.package");
+//        startActivity(mainIntent);
+    }
+    public void listLauncherIntentsBtn(View view) {
 
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+//        mainIntent.addCategory(Intent.CATEGORY_ALTERNATIVE);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_BROWSER);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_CALCULATOR);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_CALENDAR);
+//        mainIntent.addCategory(Intent.CATEGORY_ACCESSIBILITY_SHORTCUT_TARGET);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_CONTACTS);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_EMAIL);
+//        mainIntent.addCategory(Intent.CATEGORY_APP_FILES);
         List<ResolveInfo> pkgAppsList = this.getPackageManager().queryIntentActivities( mainIntent, 0);
-//        binding.appsList.data
+        System.out.println("Found " + pkgAppsList.size() + " pkgs with given intent");
+        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
+//        ArrayList<View> buttons = new ArrayList<>();
+        ArrayList<String> intentNames = new ArrayList<>();
+        for (int i = 0; i < pkgAppsList.size(); i++) {
+//            Button btnTag = new Button(this);
+//            btnTag.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+//            btnTag.setText("Button");
+//            btnTag.setId(i);
+//            buttons.add(btnTag);
+            String activityName = pkgAppsList.get(i).activityInfo.packageName;//.name;
+            if (activityName != null)
+            intentNames.add(activityName);
+        }
+        intentsAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, intentNames);
+        binding.intentsList.setAdapter(intentsAdapter);
 
 //        Intent i = new Intent(Intent.ACTION_MAIN);
 //        i.addCategory(Intent.CATEGORY_LAUNCHER);

@@ -31,48 +31,66 @@
             android:id="@+id/fullscreen_content_controls"
             style="@style/Widget.Theme.OxShell.ButtonBar.Fullscreen"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="bottom|center_horizontal"
             android:orientation="horizontal"
             tools:ignore="UselessParent">
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/find_all_intents"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:onClick="listAllIntentsBtn"
+                android:text="List All Apps"
+                android:textColor="#80D8FF" />
+
+            <Button
+                android:id="@+id/find_launcher_intents"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="listLauncherIntentsBtn"
+                android:text="List Apps" />
 
             <Button
                 android:id="@+id/overlay_button"
                 style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:onClick="getOverlayPermissionBtn"
                 android:text="Get Overlay Permission"
                 android:textColor="#80D8FF" />
-
-            <Button
-                android:id="@+id/launch_button"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="launchWindowBtn"
-                android:text="Launch Window"
-                android:textColor="#80D8FF" />
-
         </LinearLayout>
 
-        <ScrollView
+        <TextView
+            android:id="@+id/output_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <ListView
+            android:id="@+id/intents_list"
             android:layout_width="match_parent"
-            android:layout_height="671dp">
+            android:layout_height="match_parent">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+        </ListView>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/appsList"
-                    android:layout_width="match_parent"
-                    android:layout_height="674dp" />
-            </LinearLayout>
-        </ScrollView>
-    </FrameLayout>
+    </LinearLayout>
 
 </FrameLayout>
