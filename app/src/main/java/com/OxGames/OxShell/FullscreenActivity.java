@@ -1,15 +1,27 @@
 package com.OxGames.OxShell;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 
@@ -19,6 +31,7 @@ import android.provider.Settings;
 import android.content.pm.ResolveInfo;
 import android.widget.LinearLayout;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +41,7 @@ import com.OxGames.OxShell.databinding.ActivityFullscreenBinding;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class FullscreenActivity extends AppCompatActivity {
+public class FullscreenActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemSelectedListener {
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -161,6 +174,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     private ActivityFullscreenBinding binding;
     private ArrayAdapter<String> intentsAdapter;
+    private ExplorerBehaviour explorerBehaviour;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,12 +188,12 @@ public class FullscreenActivity extends AppCompatActivity {
         mContentView = binding.fullscreenContent;
 
         // Set up the user interaction to manually show or hide the system UI.
-        mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggle();
-            }
-        });
+//        mContentView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                toggle();
+//            }
+//        });
 
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
@@ -187,8 +201,71 @@ public class FullscreenActivity extends AppCompatActivity {
 //        binding.overlayButton.setOnTouchListener(mDelayHideTouchListener);
 //        binding.findAllIntents.setOnTouchListener(mDelayHideTouchListener);
 
-//        intentsAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, new String[] { "Okie", "Ox", "Oxters", "Oxulates", "Oxford" });
-//        binding.intentsList.setAdapter(intentsAdapter);
+        binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
+//        binding.explorerList.setSelection(0);
+//        binding.explorerList.setFocusedByDefault(true);
+        binding.explorerList.setOnItemClickListener(this);
+        binding.explorerList.setOnItemSelectedListener(this);
+//        binding.explorerList.setEmptyView(binding.emptyView);
+        explorerBehaviour = new ExplorerBehaviour(this);
+        RefreshExplorerList();
+    }
+
+//    private int explorerSelection = 0;
+
+    private void RefreshExplorerList() {
+        ArrayList<ExplorerItem> arrayList = new ArrayList<>();
+        File[] files = explorerBehaviour.ListContents();
+        boolean isEmpty = files == null || files.length <= 0;
+        boolean hasParent = explorerBehaviour.HasParent();
+        if (!isEmpty || hasParent) {
+            if (hasParent)
+                arrayList.add(new ExplorerItem(explorerBehaviour.GetParent(), "..", true));
+            if (!isEmpty) {
+                for (int i = 0; i < files.length; i++) {
+                    arrayList.add(new ExplorerItem(files[i].getAbsolutePath(), files[i].getName(), files[i].isDirectory()));
+                }
+            }
+            ExplorerAdapter customAdapter = new ExplorerAdapter(this, arrayList);
+            binding.explorerList.setAdapter(customAdapter);
+        }
+
+        binding.emptyView.setVisibility((isEmpty && !hasParent) ? View.VISIBLE : View.GONE);
+        binding.explorerList.setVisibility((isEmpty && !hasParent) ? View.GONE : View.VISIBLE);
+    }
+    @Override
+    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+        Log.d("Input", key_code + " " + key_event);
+        if (key_code == KeyEvent.KEYCODE_BACK) {
+//            super.onKeyDown(key_code, key_event);
+            explorerBehaviour.GoUp();
+            RefreshExplorerList();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+    {
+        Log.d("Explorer", "Item " + position + " selected");
+//        explorerSelection = position;
+    }
+    @Override
+    public void onNothingSelected(AdapterView<?> parent)
+    {
+        Log.d("Explorer", "Nothing selected");
+//        binding.explorerList.setSelection(explorerSelection);
+    }
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+    {
+        Log.d("Explorer", "Item " + position + " clicked");
+        ExplorerItem clickedItem = (ExplorerItem)binding.explorerList.getSelectedItem();
+        if (clickedItem.isDir) {
+            explorerBehaviour.SetDirectory(clickedItem.absolutePath);
+            RefreshExplorerList();
+        }
     }
 
     public void getOverlayPermissionBtn(View view) {

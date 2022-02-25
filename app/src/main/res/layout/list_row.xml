@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48px"
+    android:orientation="vertical"
+    android:padding="8px">
+
+    <ImageView
+        android:id="@+id/typeIcon"
+        android:layout_width="32px"
+        android:layout_height="32px"
+        android:layout_alignParentLeft="true"
+        android:background="@android:color/white" />
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="40px"
+        android:textSize="24px"
+        android:textColor="@android:color/black" />
+    <TextView
+        android:id="@+id/isDir"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:text="&lt;dir&gt;"
+        android:textSize="24px"
+        android:textColor="@android:color/black" />
+
+</RelativeLayout>
