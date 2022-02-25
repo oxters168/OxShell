@@ -265,6 +265,7 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
             if (itemDir.equalsIgnoreCase(previousDir)) {
                 binding.explorerList.requestFocusFromTouch();
                 binding.explorerList.setSelection(i);
+                break;
             }
         }
     }
