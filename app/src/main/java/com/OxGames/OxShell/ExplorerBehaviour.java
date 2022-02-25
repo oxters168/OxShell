@@ -10,15 +10,20 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
+import java.util.LinkedList;
 
 public class ExplorerBehaviour {
 
+    private LinkedList<String> history;
+    private int maxHistory = 100;
     private Activity context;
     private final int READ_EXTERNAL_STORAGE = 100;
     private File current;
 
     public ExplorerBehaviour(Activity _context) {
         context = _context;
+        history = new LinkedList<>();
+
         String startPath = Environment.getExternalStorageDirectory().toString();
         SetDirectory(startPath);
     }
@@ -43,6 +48,8 @@ public class ExplorerBehaviour {
         Log.d("Files", "Path: " + path);
         try {
             current = new File(path);
+            AppendHistory(path);
+
             if (!current.canRead())
                 Log.e("Files", "Cannot read contents of directory");
             if (!current.exists())
@@ -58,6 +65,15 @@ public class ExplorerBehaviour {
     }
     public File[] ListRoots() {
         return File.listRoots();
+    }
+
+    public String GetLastItemInHistory() {
+        return history.get(history.size() - 2);
+    }
+    private void AppendHistory(String path) {
+        history.add(path);
+        while (history.size() > maxHistory)
+            history.removeFirst();
     }
 
     public void GrantStoragePermission() {

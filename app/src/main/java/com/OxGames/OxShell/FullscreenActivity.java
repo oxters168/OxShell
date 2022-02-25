@@ -1,35 +1,23 @@
 package com.OxGames.OxShell;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 
 import android.os.Build;
 import android.content.Intent;
 import android.provider.Settings;
 import android.content.pm.ResolveInfo;
-import android.widget.LinearLayout;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -203,10 +191,8 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
 
         binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
 //        binding.explorerList.setSelection(0);
-//        binding.explorerList.setFocusedByDefault(true);
         binding.explorerList.setOnItemClickListener(this);
         binding.explorerList.setOnItemSelectedListener(this);
-//        binding.explorerList.setEmptyView(binding.emptyView);
         explorerBehaviour = new ExplorerBehaviour(this);
         RefreshExplorerList();
     }
@@ -240,6 +226,7 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
 //            super.onKeyDown(key_code, key_event);
             explorerBehaviour.GoUp();
             RefreshExplorerList();
+            TryHighlightPrevDir();
             return true;
         }
         return false;
@@ -255,7 +242,8 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
     public void onNothingSelected(AdapterView<?> parent)
     {
         Log.d("Explorer", "Nothing selected");
-//        binding.explorerList.setSelection(explorerSelection);
+//        binding.explorerList.requestFocusFromTouch();
+//        binding.explorerList.setSelection(0);
     }
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
@@ -265,6 +253,19 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
         if (clickedItem.isDir) {
             explorerBehaviour.SetDirectory(clickedItem.absolutePath);
             RefreshExplorerList();
+            TryHighlightPrevDir();
+        }
+    }
+
+    private void TryHighlightPrevDir() {
+        String previousDir = explorerBehaviour.GetLastItemInHistory();
+        for (int i = 0; i < binding.explorerList.getCount(); i++) {
+            String itemDir = ((ExplorerItem)binding.explorerList.getItemAtPosition(i)).absolutePath;
+            Log.d("Explorer", previousDir + " ?= " + itemDir);
+            if (itemDir.equalsIgnoreCase(previousDir)) {
+                binding.explorerList.requestFocusFromTouch();
+                binding.explorerList.setSelection(i);
+            }
         }
     }
 
