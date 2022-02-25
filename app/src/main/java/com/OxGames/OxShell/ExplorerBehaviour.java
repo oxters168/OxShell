@@ -59,6 +59,9 @@ public class ExplorerBehaviour {
             Log.e("Files", e.toString());
         }
     }
+    public String GetDirectory() {
+        return current.getAbsolutePath();
+    }
     public File[] ListContents() {
         GrantStoragePermission();
         return current.listFiles();

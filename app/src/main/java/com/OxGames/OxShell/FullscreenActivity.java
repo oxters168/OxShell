@@ -5,6 +5,8 @@ import android.annotation.SuppressLint;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ComponentName;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -207,6 +209,8 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
         if (!isEmpty || hasParent) {
             if (hasParent)
                 arrayList.add(new ExplorerItem(explorerBehaviour.GetParent(), "..", true));
+            if (explorerBehaviour.GetDirectory().equalsIgnoreCase("/storage/emulated"))
+                arrayList.add(new ExplorerItem("/storage/emulated/0", "0", true));
             if (!isEmpty) {
                 for (int i = 0; i < files.length; i++) {
                     arrayList.add(new ExplorerItem(files[i].getAbsolutePath(), files[i].getName(), files[i].isDirectory()));
@@ -254,6 +258,14 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
             explorerBehaviour.SetDirectory(clickedItem.absolutePath);
             RefreshExplorerList();
             TryHighlightPrevDir();
+        }
+        else {
+            //Cheat sheet: http://p.cweiske.de/221
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_VIEW);
+            intent.setComponent(new ComponentName("com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity"));
+            intent.putExtra("GAMEPATH", clickedItem.absolutePath);
+            startActivity(intent);
         }
     }
 
