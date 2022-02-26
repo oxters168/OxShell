@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.OxGames.OxShell.databinding.ActivityFullscreenBinding;
+import com.google.gson.Gson;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -165,6 +166,7 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
     private ActivityFullscreenBinding binding;
     private ArrayAdapter<String> intentsAdapter;
     private ExplorerBehaviour explorerBehaviour;
+    private ArrayList<IntentLaunchData> launchIntents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,6 +192,17 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
         // while interacting with the UI.
 //        binding.overlayButton.setOnTouchListener(mDelayHideTouchListener);
 //        binding.findAllIntents.setOnTouchListener(mDelayHideTouchListener);
+        launchIntents = new ArrayList<>();
+        IntentLaunchData gbaLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
+        gbaLaunchIntent.SetDataType(IntentLaunchData.IntentType.AbsolutePath);
+        //            Gson gson = new Gson();
+        //            String gbaJSON = gson.toJson(gbaLaunchIntent);
+        //            Log.d("Intent", gbaJSON);
+        //            gbaLaunchIntent = gson.fromJson(gbaJSON, IntentLaunchData.class);
+        launchIntents.add(gbaLaunchIntent);
+        IntentLaunchData ndsLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" });
+        ndsLaunchIntent.AddExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.IntentType.AbsolutePath));
+        launchIntents.add(ndsLaunchIntent);
 
         binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
 //        binding.explorerList.setSelection(0);
@@ -260,20 +273,53 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
             TryHighlightPrevDir();
         }
         else {
-            //Cheat sheet: http://p.cweiske.de/221
-            Intent intent = new Intent();
-            intent.setAction(Intent.ACTION_VIEW);
-            intent.setComponent(new ComponentName("com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity"));
-            intent.putExtra("GAMEPATH", clickedItem.absolutePath);
-            startActivity(intent);
+            LaunchIntent(clickedItem);
         }
+    }
+
+    private void LaunchIntent(ExplorerItem clickedItem) {
+        //Cheat sheet: http://p.cweiske.de/221
+//            IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
+//            launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
+        if (clickedItem.absolutePath.contains(".")) {
+            String extension = clickedItem.absolutePath.substring(clickedItem.absolutePath.lastIndexOf(".") + 1);
+
+            IntentLaunchData fileLaunchIntent = null;
+            for (int i = 0; i < launchIntents.size(); i++) {
+                IntentLaunchData currentLaunchIntent = launchIntents.get(i);
+                if (currentLaunchIntent.ContainsExtension(extension)) {
+                    fileLaunchIntent = currentLaunchIntent;
+                    break;
+                }
+            }
+
+            if (fileLaunchIntent != null) {
+                IntentLaunchData.IntentType dataType = fileLaunchIntent.GetDataType();
+                String data = null;
+                if (dataType == IntentLaunchData.IntentType.AbsolutePath)
+                    data = clickedItem.absolutePath;
+
+                IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
+                String[] extrasValues = null;
+                if (extras != null && extras.length > 0) {
+                    extrasValues = new String[extras.length];
+                    for (int i = 0; i < extras.length; i++)
+                        if (extras[i].GetExtraType() == IntentLaunchData.IntentType.AbsolutePath)
+                            extrasValues[i] = clickedItem.absolutePath;
+                }
+                startActivity(fileLaunchIntent.BuildIntent(data, extrasValues));
+            }
+            else
+                Log.e("Explorer", "No launch intent associated with extension " + extension);
+        }
+        else
+            Log.e("Explorer", "Missing extension, could not identify file");
     }
 
     private void TryHighlightPrevDir() {
         String previousDir = explorerBehaviour.GetLastItemInHistory();
         for (int i = 0; i < binding.explorerList.getCount(); i++) {
             String itemDir = ((ExplorerItem)binding.explorerList.getItemAtPosition(i)).absolutePath;
-            Log.d("Explorer", previousDir + " ?= " + itemDir);
             if (itemDir.equalsIgnoreCase(previousDir)) {
                 binding.explorerList.requestFocusFromTouch();
                 binding.explorerList.setSelection(i);
