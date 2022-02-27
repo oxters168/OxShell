@@ -3,6 +3,7 @@ package com.OxGames.OxShell;
 import static androidx.core.content.ContextCompat.startActivity;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -17,7 +18,7 @@ import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.util.ArrayList;
 
-public class ExplorerView extends ListView {
+public class ExplorerView extends ListView implements PermissionsListener {
 
     private ExplorerBehaviour explorerBehaviour;
     float startTouchY = 0;
@@ -32,20 +33,43 @@ public class ExplorerView extends ListView {
 
     public ExplorerView(Context context) {
         super(context);
-        explorerBehaviour = new ExplorerBehaviour(context);
+        FullscreenActivity.instance.AddPermissionListener(this);
+        explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        explorerBehaviour = new ExplorerBehaviour(context);
+        FullscreenActivity.instance.AddPermissionListener(this);
+        explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        explorerBehaviour = new ExplorerBehaviour(context);
+        FullscreenActivity.instance.AddPermissionListener(this);
+        explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
+    }
+
+    @Override
+    public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == ExplorerBehaviour.READ_EXTERNAL_STORAGE) {
+            // If request is cancelled, the result arrays are empty.
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission is granted. Continue the action or workflow
+                // in your app.
+                Log.d("Explorer", "Storage permission granted");
+                RefreshExplorerList();
+            }  else {
+                // Explain to the user that the feature is unavailable because
+                // the features requires a permission that the user has denied.
+                // At the same time, respect the user's decision. Don't link to
+                // system settings in an effort to convince the user to change
+                // their decision.
+                Log.d("Explorer", "Storage permission denied");
+            }
+        }
     }
 
     @Override

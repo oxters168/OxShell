@@ -1,8 +1,6 @@
 package com.OxGames.OxShell;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.util.Log;
@@ -14,15 +12,12 @@ import java.io.File;
 import java.util.LinkedList;
 
 public class ExplorerBehaviour {
-
+    public static final int READ_EXTERNAL_STORAGE = 100;
     private LinkedList<String> history;
     private int maxHistory = 100;
-    private Context context;
-    private final int READ_EXTERNAL_STORAGE = 100;
     private File current;
 
-    public ExplorerBehaviour(Context _context) {
-        context = _context;
+    public ExplorerBehaviour() {
         history = new LinkedList<>();
 
         String startPath = Environment.getExternalStorageDirectory().toString();
@@ -67,9 +62,6 @@ public class ExplorerBehaviour {
         GrantStoragePermission();
         return current.listFiles();
     }
-    public File[] ListRoots() {
-        return File.listRoots();
-    }
 
     public String GetLastItemInHistory() {
         return history.get(history.size() - 2);
@@ -88,11 +80,7 @@ public class ExplorerBehaviour {
     }
 
     public void GrantStoragePermission() {
-        /*---------------------------- GRANT PERMISSIONS START-------------------------*/
-        // Main part to grant permission. Handle other cases of permission denied
-        //   yourself.
-        if(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions((Activity)context, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
-        /*---------------------------- GRANT PERMISSIONS OVER-------------------------*/
+        if(ContextCompat.checkSelfPermission(FullscreenActivity.instance, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(FullscreenActivity.instance, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
     }
 }

@@ -73,15 +73,13 @@
         android:id="@+id/explorer_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbarStyle="insideInset" />
+        android:scrollbarStyle="insideInset" >
+    </com.OxGames.OxShell.ExplorerView>
 
-    <TextView
-        android:id="@+id/empty_view"
+    <com.OxGames.OxShell.HomeView
+        android:id="@+id/home_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="Nothing to show"
-        android:textAlignment="center"
-        android:visibility="gone" />
+        android:layout_height="match_parent" >
+    </com.OxGames.OxShell.HomeView>
 
 </FrameLayout>

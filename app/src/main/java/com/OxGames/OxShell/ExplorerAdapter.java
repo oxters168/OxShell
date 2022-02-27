@@ -2,18 +2,13 @@ package com.OxGames.OxShell;
 
 import android.content.Context;
 import android.database.DataSetObserver;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -56,11 +51,10 @@ public class ExplorerAdapter implements ListAdapter {
     @Override
     public View getView(int position, View view, ViewGroup parent) {
         ExplorerItem explorerItem = arrayList.get(position);
-//        int properPosition = ((ExplorerView)parent).properPosition;
         if(view == null) {
             //I think this is when the view is being initialized for the first time
             LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = layoutInflater.inflate(R.layout.list_row, null);
+            view = layoutInflater.inflate(R.layout.explorer_row, null);
             explorerItem.view = view;
             TextView title = view.findViewById(R.id.title);
             TextView isDirText = view.findViewById(R.id.isDir);
@@ -72,11 +66,6 @@ public class ExplorerAdapter implements ListAdapter {
             typeIcon.setImageDrawable(explorerItem.GetIcon());
             typeIcon.setVisibility(explorerItem.HasIcon() ? View.VISIBLE : View.GONE);
         }
-//        view.setBackgroundResource((position == properPosition) ? R.color.scheme1 : R.color.light_blue_400);
-//        if (position == properPosition) {
-//            int top = (convertView == null) ? 0 : convertView.getTop();
-//            ((ExplorerView)parent).setSelectionFromTop(position, top);
-//        }
 
         return view;
     }

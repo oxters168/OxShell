@@ -1,15 +1,9 @@
 package com.OxGames.OxShell;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.app.Activity;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 
 import android.os.Build;
@@ -17,20 +11,26 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.content.pm.ResolveInfo;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.OxGames.OxShell.databinding.ActivityFullscreenBinding;
 
-public class FullscreenActivity extends Activity {// implements AdapterView.OnItemClickListener, AdapterView.OnItemSelectedListener {
+public class FullscreenActivity extends Activity {
+    public static FullscreenActivity instance;
     private ActivityFullscreenBinding binding;
     private ArrayAdapter<String> intentsAdapter;
     public static DisplayMetrics displayMetrics;
+    private List<PermissionsListener> permissionListeners = new ArrayList<>();
+
+    public void AddPermissionListener(PermissionsListener listener) {
+        permissionListeners.add(listener);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance = this;
 
         binding = ActivityFullscreenBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -38,11 +38,17 @@ public class FullscreenActivity extends Activity {// implements AdapterView.OnIt
         PackagesCache.SetContext(this);
         PackagesCache.PrepareDefaultLaunchIntents();
 
-        binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
+//        binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
         displayMetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//        Log.d("Window", displayMetrics.widthPixels + ", " + displayMetrics.heightPixels);
     }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        for (PermissionsListener pl : permissionListeners) {
+            pl.onPermissionResponse(requestCode, permissions, grantResults);
+        }
+    }
+
 
     public void getOverlayPermissionBtn(View view) {
         // Check if Android M or higher
