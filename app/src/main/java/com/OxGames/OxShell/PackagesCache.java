@@ -1,17 +1,16 @@
 package com.OxGames.OxShell;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class PackagesCache {
-    private static AppCompatActivity context;
+    private static Activity context;
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
 //    private static Hashtable<String, String> packageExtensionAssociations = new Hashtable<>();
 
@@ -39,7 +38,7 @@ public class PackagesCache {
         return null;
     }
 
-    public static void SetContext(AppCompatActivity _context) {
+    public static void SetContext(Activity _context) {
         context = _context;
     }
     public static Drawable GetPackageIcon(String packageName) {
