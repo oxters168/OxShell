@@ -25,6 +25,7 @@ public class ExplorerView extends ListView {
     float prevTouchY = 0;
     boolean moved = false;
     int properPosition = 0;
+    float deadzone = 0.2f;
 
     int framesPassed = 0;
     int framesPerScroll = 24;
@@ -54,20 +55,24 @@ public class ExplorerView extends ListView {
 //        requestFocusFromTouch();
         if (moved) {
             float diff = currentTouchY - startTouchY;
-            float percentScroll = Math.abs(diff / ((float)FullscreenActivity.displayMetrics.heightPixels / 2f));
+            float percentScroll = Math.abs(diff / ((float)FullscreenActivity.displayMetrics.heightPixels / 5f));
             if (percentScroll > 1)
                 percentScroll = 1;
+            if (percentScroll < deadzone)
+                percentScroll = 0;
+            else
+                percentScroll = (percentScroll - deadzone) / (1 - deadzone);
 
-            Log.d("Touch", diff + " / " + FullscreenActivity.displayMetrics.heightPixels + " = " + percentScroll);
+//            Log.d("Touch", diff + " / " + FullscreenActivity.displayMetrics.heightPixels + " = " + percentScroll);
 
             float stretchedFramesPerScroll = (1 - percentScroll) * framesPerScroll;
-            if (diff > 0) {
+            if (percentScroll > 0 && diff > 0) {
                 //Go down
                 if (framesPassed > stretchedFramesPerScroll) {
                     framesPassed = 0;
                     SelectNextItem();
                 }
-            } else if (diff < 0) {
+            } else if (percentScroll > 0 && diff < 0) {
                 //Go up
                 if (framesPassed > stretchedFramesPerScroll) {
                     framesPassed = 0;
