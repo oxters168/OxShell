@@ -19,8 +19,8 @@ public class ExplorerAdapter implements ListAdapter {
     ArrayList<ExplorerItem> arrayList;
     Context context;
     public ExplorerAdapter(Context context, ArrayList<ExplorerItem> arrayList) {
-        this.arrayList=arrayList;
-        this.context=context;
+        this.arrayList = arrayList;
+        this.context = context;
     }
 
     @Override
@@ -32,11 +32,9 @@ public class ExplorerAdapter implements ListAdapter {
         return true;
     }
     @Override
-    public void registerDataSetObserver(DataSetObserver observer) {
-    }
+    public void registerDataSetObserver(DataSetObserver observer) { }
     @Override
-    public void unregisterDataSetObserver(DataSetObserver observer) {
-    }
+    public void unregisterDataSetObserver(DataSetObserver observer) { }
     @Override
     public int getCount() {
         return arrayList.size();
@@ -54,30 +52,30 @@ public class ExplorerAdapter implements ListAdapter {
         return false;
     }
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ExplorerItem subjectData=arrayList.get(position);
-        if(convertView==null) {
+    public View getView(int position, View view, ViewGroup parent) {
+        ExplorerItem explorerItem = arrayList.get(position);
+        int properPosition = ((ExplorerView)parent).properPosition;
+        if(view == null) {
+            //I think this is when the view is being initialized for the first time
             LayoutInflater layoutInflater = LayoutInflater.from(context);
-            convertView=layoutInflater.inflate(R.layout.list_row, null);
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                }
-            });
-            TextView title = convertView.findViewById(R.id.title);
-            TextView isDirText = convertView.findViewById(R.id.isDir);
-            ImageView typeIcon = convertView.findViewById(R.id.typeIcon);
-            title.setText(subjectData.name);
+            view = layoutInflater.inflate(R.layout.list_row, null);
+            TextView title = view.findViewById(R.id.title);
+            TextView isDirText = view.findViewById(R.id.isDir);
+            ImageView typeIcon = view.findViewById(R.id.typeIcon);
+            title.setText(explorerItem.name);
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)title.getLayoutParams();
-            params.setMargins(subjectData.HasIcon() ? 40 : 0, 0, 0, 0);
-            isDirText.setVisibility(subjectData.isDir ? View.VISIBLE : View.INVISIBLE);
-            typeIcon.setImageDrawable(subjectData.GetIcon());
-            typeIcon.setVisibility(subjectData.HasIcon() ? View.VISIBLE : View.GONE);
-//            Picasso.with(context)
-//                    .load(subjectData.Image)
-//                    .into(imag);
+            params.setMargins(explorerItem.HasIcon() ? 40 : 0, 0, 0, 0);
+            isDirText.setVisibility(explorerItem.isDir ? View.VISIBLE : View.INVISIBLE);
+            typeIcon.setImageDrawable(explorerItem.GetIcon());
+            typeIcon.setVisibility(explorerItem.HasIcon() ? View.VISIBLE : View.GONE);
         }
-        return convertView;
+        view.setBackgroundResource((position == properPosition) ? R.color.scheme1 : R.color.light_blue_400);
+//        if (position == properPosition) {
+//            int top = (convertView == null) ? 0 : convertView.getTop();
+//            ((ExplorerView)parent).setSelectionFromTop(position, top);
+//        }
+
+        return view;
     }
     @Override
     public int getItemViewType(int position) {

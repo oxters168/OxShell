@@ -2,6 +2,7 @@ package com.OxGames.OxShell;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.util.Log;
@@ -16,11 +17,11 @@ public class ExplorerBehaviour {
 
     private LinkedList<String> history;
     private int maxHistory = 100;
-    private Activity context;
+    private Context context;
     private final int READ_EXTERNAL_STORAGE = 100;
     private File current;
 
-    public ExplorerBehaviour(Activity _context) {
+    public ExplorerBehaviour(Context _context) {
         context = _context;
         history = new LinkedList<>();
 
@@ -79,12 +80,19 @@ public class ExplorerBehaviour {
             history.removeFirst();
     }
 
+    public static String GetExtension(String path) {
+        String extension = null;
+        if (path.contains("."))
+            extension = path.substring(path.lastIndexOf(".") + 1);
+        return extension;
+    }
+
     public void GrantStoragePermission() {
         /*---------------------------- GRANT PERMISSIONS START-------------------------*/
         // Main part to grant permission. Handle other cases of permission denied
         //   yourself.
         if(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(context, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+            ActivityCompat.requestPermissions((Activity)context, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
         /*---------------------------- GRANT PERMISSIONS OVER-------------------------*/
     }
 }

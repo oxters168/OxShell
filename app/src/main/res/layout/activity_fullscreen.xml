@@ -69,10 +69,11 @@
 
     </LinearLayout>
 
-    <ListView
+    <com.OxGames.OxShell.ExplorerView
         android:id="@+id/explorer_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:scrollbarStyle="insideInset" />
 
     <TextView
         android:id="@+id/empty_view"
@@ -80,6 +81,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:text="Nothing to show"
-        android:textAlignment="center" />
+        android:textAlignment="center"
+        android:visibility="gone" />
 
 </FrameLayout>

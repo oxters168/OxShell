@@ -1,10 +1,11 @@
 package com.OxGames.OxShell;
 
-import androidx.core.content.ContextCompat;
+import static androidx.core.content.ContextCompat.startActivity;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -22,10 +23,10 @@ import java.util.List;
 
 import com.OxGames.OxShell.databinding.ActivityFullscreenBinding;
 
-public class FullscreenActivity extends Activity implements AdapterView.OnItemClickListener, AdapterView.OnItemSelectedListener {
+public class FullscreenActivity extends Activity {// implements AdapterView.OnItemClickListener, AdapterView.OnItemSelectedListener {
     private ActivityFullscreenBinding binding;
     private ArrayAdapter<String> intentsAdapter;
-    private ExplorerBehaviour explorerBehaviour;
+    public static DisplayMetrics displayMetrics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,134 +39,9 @@ public class FullscreenActivity extends Activity implements AdapterView.OnItemCl
         PackagesCache.PrepareDefaultLaunchIntents();
 
         binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
-        binding.explorerList.setOnItemClickListener(this);
-        binding.explorerList.setOnItemSelectedListener(this);
-        explorerBehaviour = new ExplorerBehaviour(this);
-        RefreshExplorerList();
-    }
-
-    private void RefreshExplorerList() {
-        ArrayList<ExplorerItem> arrayList = new ArrayList<>();
-        File[] files = explorerBehaviour.ListContents();
-        boolean isEmpty = files == null || files.length <= 0;
-        boolean hasParent = explorerBehaviour.HasParent();
-        if (!isEmpty || hasParent) {
-            if (hasParent)
-                arrayList.add(new ExplorerItem(ContextCompat.getDrawable(this, R.drawable.ic_baseline_folder_24), explorerBehaviour.GetParent(), "..", true));
-            if (explorerBehaviour.GetDirectory().equalsIgnoreCase("/storage/emulated"))
-                arrayList.add(new ExplorerItem(ContextCompat.getDrawable(this, R.drawable.ic_baseline_folder_24), "/storage/emulated/0", "0", true));
-            if (!isEmpty) {
-                for (int i = 0; i < files.length; i++) {
-                    String absolutePath = files[i].getAbsolutePath();
-                    Drawable icon = null;
-                    if (!files[i].isDirectory()) {
-                        String extension = GetExtension(absolutePath);
-                        if (extension != null) {
-                            String packageName = PackagesCache.GetPackageNameForExtension(extension);
-                            if (packageName != null)
-                                icon = PackagesCache.GetPackageIcon(packageName);
-                        }
-                    }
-                    else
-                        icon = ContextCompat.getDrawable(this, R.drawable.ic_baseline_folder_24);
-
-                    arrayList.add(new ExplorerItem(icon, absolutePath, files[i].getName(), files[i].isDirectory()));
-                }
-            }
-            ExplorerAdapter customAdapter = new ExplorerAdapter(this, arrayList);
-            binding.explorerList.setAdapter(customAdapter);
-        }
-
-        binding.emptyView.setVisibility((isEmpty && !hasParent) ? View.VISIBLE : View.GONE);
-        binding.explorerList.setVisibility((isEmpty && !hasParent) ? View.GONE : View.VISIBLE);
-    }
-    @Override
-    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        Log.d("Input", key_code + " " + key_event);
-        if (key_code == KeyEvent.KEYCODE_BACK) {
-//            super.onKeyDown(key_code, key_event);
-            explorerBehaviour.GoUp();
-            RefreshExplorerList();
-            TryHighlightPrevDir();
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
-    {
-        Log.d("Explorer", "Item " + position + " selected");
-    }
-    @Override
-    public void onNothingSelected(AdapterView<?> parent)
-    {
-        Log.d("Explorer", "Nothing selected");
-    }
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-    {
-        Log.d("Explorer", "Item " + position + " clicked");
-        ExplorerItem clickedItem = (ExplorerItem)binding.explorerList.getSelectedItem();
-        if (clickedItem.isDir) {
-            explorerBehaviour.SetDirectory(clickedItem.absolutePath);
-            RefreshExplorerList();
-            TryHighlightPrevDir();
-        }
-        else {
-            LaunchIntent(clickedItem);
-        }
-    }
-
-    public static String GetExtension(String path) {
-        String extension = null;
-        if (path.contains("."))
-            extension = path.substring(path.lastIndexOf(".") + 1);
-        return extension;
-    }
-
-    private void LaunchIntent(ExplorerItem clickedItem) {
-        //Cheat sheet: http://p.cweiske.de/221
-//            IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
-//            launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
-        if (clickedItem.absolutePath.contains(".")) {
-            String extension = GetExtension(clickedItem.absolutePath);
-
-            IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
-
-            if (fileLaunchIntent != null) {
-                IntentLaunchData.IntentType dataType = fileLaunchIntent.GetDataType();
-                String data = null;
-                if (dataType == IntentLaunchData.IntentType.AbsolutePath)
-                    data = clickedItem.absolutePath;
-
-                IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
-                String[] extrasValues = null;
-                if (extras != null && extras.length > 0) {
-                    extrasValues = new String[extras.length];
-                    for (int i = 0; i < extras.length; i++)
-                        if (extras[i].GetExtraType() == IntentLaunchData.IntentType.AbsolutePath)
-                            extrasValues[i] = clickedItem.absolutePath;
-                }
-                startActivity(fileLaunchIntent.BuildIntent(data, extrasValues));
-            }
-            else
-                Log.e("Explorer", "No launch intent associated with extension " + extension);
-        }
-        else
-            Log.e("Explorer", "Missing extension, could not identify file");
-    }
-
-    private void TryHighlightPrevDir() {
-        String previousDir = explorerBehaviour.GetLastItemInHistory();
-        for (int i = 0; i < binding.explorerList.getCount(); i++) {
-            String itemDir = ((ExplorerItem)binding.explorerList.getItemAtPosition(i)).absolutePath;
-            if (itemDir.equalsIgnoreCase(previousDir)) {
-                binding.explorerList.requestFocusFromTouch();
-                binding.explorerList.setSelection(i);
-                break;
-            }
-        }
+        displayMetrics = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//        Log.d("Window", displayMetrics.widthPixels + ", " + displayMetrics.heightPixels);
     }
 
     public void getOverlayPermissionBtn(View view) {
@@ -238,7 +114,7 @@ public class FullscreenActivity extends Activity implements AdapterView.OnItemCl
 //            buttons.add(btnTag);
             String activityName = pkgAppsList.get(i).activityInfo.packageName;//.name;
             if (activityName != null)
-            intentNames.add(activityName);
+                intentNames.add(activityName);
         }
         intentsAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, intentNames);
         binding.intentsList.setAdapter(intentsAdapter);
