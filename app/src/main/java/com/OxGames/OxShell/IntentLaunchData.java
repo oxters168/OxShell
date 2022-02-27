@@ -33,6 +33,16 @@ public class IntentLaunchData {
 //            Collections.addAll(associatedExtensions, extensions);
     }
 
+    public String GetAction() {
+        return action;
+    }
+    public String GetPackageName() {
+        return packageName;
+    }
+    public String GetClassName() {
+        return className;
+    }
+
     public Intent BuildIntent(String[] extrasValues) {
         return BuildIntent(null, extrasValues);
     }

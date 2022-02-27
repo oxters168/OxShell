@@ -4,8 +4,11 @@ import android.annotation.SuppressLint;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.content.ComponentName;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -166,7 +169,7 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
     private ActivityFullscreenBinding binding;
     private ArrayAdapter<String> intentsAdapter;
     private ExplorerBehaviour explorerBehaviour;
-    private ArrayList<IntentLaunchData> launchIntents;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,27 +195,15 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
         // while interacting with the UI.
 //        binding.overlayButton.setOnTouchListener(mDelayHideTouchListener);
 //        binding.findAllIntents.setOnTouchListener(mDelayHideTouchListener);
-        launchIntents = new ArrayList<>();
-        IntentLaunchData gbaLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
-        gbaLaunchIntent.SetDataType(IntentLaunchData.IntentType.AbsolutePath);
-        //            Gson gson = new Gson();
-        //            String gbaJSON = gson.toJson(gbaLaunchIntent);
-        //            Log.d("Intent", gbaJSON);
-        //            gbaLaunchIntent = gson.fromJson(gbaJSON, IntentLaunchData.class);
-        launchIntents.add(gbaLaunchIntent);
-        IntentLaunchData ndsLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" });
-        ndsLaunchIntent.AddExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.IntentType.AbsolutePath));
-        launchIntents.add(ndsLaunchIntent);
+        PackagesCache.SetContext(this);
+        PackagesCache.PrepareDefaultLaunchIntents();
 
         binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
-//        binding.explorerList.setSelection(0);
         binding.explorerList.setOnItemClickListener(this);
         binding.explorerList.setOnItemSelectedListener(this);
         explorerBehaviour = new ExplorerBehaviour(this);
         RefreshExplorerList();
     }
-
-//    private int explorerSelection = 0;
 
     private void RefreshExplorerList() {
         ArrayList<ExplorerItem> arrayList = new ArrayList<>();
@@ -221,12 +212,25 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
         boolean hasParent = explorerBehaviour.HasParent();
         if (!isEmpty || hasParent) {
             if (hasParent)
-                arrayList.add(new ExplorerItem(explorerBehaviour.GetParent(), "..", true));
+                arrayList.add(new ExplorerItem(ContextCompat.getDrawable(this, R.drawable.ic_baseline_folder_24), explorerBehaviour.GetParent(), "..", true));
             if (explorerBehaviour.GetDirectory().equalsIgnoreCase("/storage/emulated"))
-                arrayList.add(new ExplorerItem("/storage/emulated/0", "0", true));
+                arrayList.add(new ExplorerItem(ContextCompat.getDrawable(this, R.drawable.ic_baseline_folder_24), "/storage/emulated/0", "0", true));
             if (!isEmpty) {
                 for (int i = 0; i < files.length; i++) {
-                    arrayList.add(new ExplorerItem(files[i].getAbsolutePath(), files[i].getName(), files[i].isDirectory()));
+                    String absolutePath = files[i].getAbsolutePath();
+                    Drawable icon = null;
+                    if (!files[i].isDirectory()) {
+                        String extension = GetExtension(absolutePath);
+                        if (extension != null) {
+                            String packageName = PackagesCache.GetPackageNameForExtension(extension);
+                            if (packageName != null)
+                                icon = PackagesCache.GetPackageIcon(packageName);
+                        }
+                    }
+                    else
+                        icon = ContextCompat.getDrawable(this, R.drawable.ic_baseline_folder_24);
+
+                    arrayList.add(new ExplorerItem(icon, absolutePath, files[i].getName(), files[i].isDirectory()));
                 }
             }
             ExplorerAdapter customAdapter = new ExplorerAdapter(this, arrayList);
@@ -253,14 +257,11 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
     {
         Log.d("Explorer", "Item " + position + " selected");
-//        explorerSelection = position;
     }
     @Override
     public void onNothingSelected(AdapterView<?> parent)
     {
         Log.d("Explorer", "Nothing selected");
-//        binding.explorerList.requestFocusFromTouch();
-//        binding.explorerList.setSelection(0);
     }
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
@@ -277,21 +278,21 @@ public class FullscreenActivity extends AppCompatActivity implements AdapterView
         }
     }
 
+    public static String GetExtension(String path) {
+        String extension = null;
+        if (path.contains("."))
+            extension = path.substring(path.lastIndexOf(".") + 1);
+        return extension;
+    }
+
     private void LaunchIntent(ExplorerItem clickedItem) {
         //Cheat sheet: http://p.cweiske.de/221
 //            IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
 //            launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
         if (clickedItem.absolutePath.contains(".")) {
-            String extension = clickedItem.absolutePath.substring(clickedItem.absolutePath.lastIndexOf(".") + 1);
+            String extension = GetExtension(clickedItem.absolutePath);
 
-            IntentLaunchData fileLaunchIntent = null;
-            for (int i = 0; i < launchIntents.size(); i++) {
-                IntentLaunchData currentLaunchIntent = launchIntents.get(i);
-                if (currentLaunchIntent.ContainsExtension(extension)) {
-                    fileLaunchIntent = currentLaunchIntent;
-                    break;
-                }
-            }
+            IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
                 IntentLaunchData.IntentType dataType = fileLaunchIntent.GetDataType();

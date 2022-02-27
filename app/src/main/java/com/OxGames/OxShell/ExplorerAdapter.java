@@ -71,6 +71,7 @@ public class ExplorerAdapter implements ListAdapter {
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)title.getLayoutParams();
             params.setMargins(subjectData.HasIcon() ? 40 : 0, 0, 0, 0);
             isDirText.setVisibility(subjectData.isDir ? View.VISIBLE : View.INVISIBLE);
+            typeIcon.setImageDrawable(subjectData.GetIcon());
             typeIcon.setVisibility(subjectData.HasIcon() ? View.VISIBLE : View.GONE);
 //            Picasso.with(context)
 //                    .load(subjectData.Image)

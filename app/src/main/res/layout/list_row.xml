@@ -9,8 +9,7 @@
         android:id="@+id/typeIcon"
         android:layout_width="32px"
         android:layout_height="32px"
-        android:layout_alignParentLeft="true"
-        android:background="@android:color/white" />
+        android:layout_alignParentLeft="true" />
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
