@@ -1,6 +1,7 @@
 package com.OxGames.OxShell;
 
 import android.graphics.drawable.Drawable;
+import android.view.View;
 
 public class ExplorerItem {
 
@@ -8,6 +9,7 @@ public class ExplorerItem {
     String name;
     boolean isDir;
     Drawable icon;
+    View view;
 
     public ExplorerItem(Drawable _icon, String _absolutePath, String _name, boolean _isDir) {
         icon = _icon;

@@ -2,17 +2,14 @@ package com.OxGames.OxShell;
 
 import static androidx.core.content.ContextCompat.startActivity;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import androidx.core.content.ContextCompat;
@@ -20,7 +17,7 @@ import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.util.ArrayList;
 
-public class ExplorerView extends ListView implements AdapterView.OnItemSelectedListener {
+public class ExplorerView extends ListView {
 
     private ExplorerBehaviour explorerBehaviour;
     float startTouchY = 0;
@@ -31,28 +28,21 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
 
     int framesPassed = 0;
     int framesPerScroll = 24;
-//    DisplayMetrics displayMetrics;
 
     public ExplorerView(Context context) {
         super(context);
-//        displayMetrics = new DisplayMetrics();
-//        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         explorerBehaviour = new ExplorerBehaviour(context);
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-//        displayMetrics = new DisplayMetrics();
-//        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         explorerBehaviour = new ExplorerBehaviour(context);
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-//        displayMetrics = new DisplayMetrics();
-//        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         explorerBehaviour = new ExplorerBehaviour(context);
         RefreshExplorerList();
     }
@@ -61,11 +51,8 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        requestFocusFromTouch();
+//        requestFocusFromTouch();
         if (moved) {
-//            DisplayMetrics displayMetrics = new DisplayMetrics();
-//            ((Activity)getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//            int height = displayMetrics.heightPixels;
             float diff = currentTouchY - startTouchY;
             float percentScroll = Math.abs(diff / ((float)FullscreenActivity.displayMetrics.heightPixels / 2f));
             if (percentScroll > 1)
@@ -90,6 +77,8 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
             framesPassed++;
             invalidate();
         }
+
+        HighlightSelection();
     }
 
     @Override
@@ -112,16 +101,6 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
             return false;
         }
         return true;
-    }
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
-    {
-        Log.d("Explorer", "Item " + position + " selected");
-    }
-    @Override
-    public void onNothingSelected(AdapterView<?> parent)
-    {
-        Log.d("Explorer", "Nothing selected");
     }
 
     @Override
@@ -162,6 +141,13 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
         return true;
     }
 
+    private void HighlightSelection() {
+        for (int i = 0; i < getCount(); i++) {
+            View view = ((ExplorerItem)getItemAtPosition(i)).view;
+            if (view != null)
+                view.setBackgroundResource((i == properPosition) ? R.color.scheme1 : R.color.light_blue_400);
+        }
+    }
     public void SelectNextItem() {
         int total = getCount();
         int nextIndex = properPosition + 1;
@@ -180,7 +166,7 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
         if (clickedItem.isDir) {
             explorerBehaviour.SetDirectory(clickedItem.absolutePath);
             RefreshExplorerList();
-            SetProperPosition(0);
+//            SetProperPosition(0);
             TryHighlightPrevDir();
         }
         else {
@@ -190,7 +176,7 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
     public void GoUp() {
         explorerBehaviour.GoUp();
         RefreshExplorerList();
-        SetProperPosition(0);
+//        SetProperPosition(0);
         TryHighlightPrevDir();
     }
     private void TryHighlightPrevDir() {
@@ -207,8 +193,9 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
     public void SetProperPosition(int pos) {
 //        Log.d("Explorer", "Setting position to " + pos);
         properPosition = pos;
-//        setSelectionFromTop(pos, 0);
-        setSelection(pos);
+        setSelectionFromTop(pos, FullscreenActivity.displayMetrics != null ? (int)(FullscreenActivity.displayMetrics.heightPixels * 0.5) : 0);
+//        setSelection(pos);
+//        HighlightSelection();
     }
 
     private void RefreshExplorerList() {
@@ -242,9 +229,10 @@ public class ExplorerView extends ListView implements AdapterView.OnItemSelected
             ExplorerAdapter customAdapter = new ExplorerAdapter(getContext(), arrayList);
             setAdapter(customAdapter);
         }
+        SetProperPosition(0);
 
 //        binding.emptyView.setVisibility((isEmpty && !hasParent) ? View.VISIBLE : View.GONE);
-        setVisibility((isEmpty && !hasParent) ? View.GONE : View.VISIBLE);
+//        setVisibility((isEmpty && !hasParent) ? View.GONE : View.VISIBLE);
     }
 
     private void LaunchIntent(ExplorerItem clickedItem) {
