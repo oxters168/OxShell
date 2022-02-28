@@ -33,21 +33,21 @@ public class ExplorerView extends ListView implements PermissionsListener {
 
     public ExplorerView(Context context) {
         super(context);
-        FullscreenActivity.instance.AddPermissionListener(this);
+        ExplorerActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        FullscreenActivity.instance.AddPermissionListener(this);
+        ExplorerActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        FullscreenActivity.instance.AddPermissionListener(this);
+        ExplorerActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
@@ -79,7 +79,7 @@ public class ExplorerView extends ListView implements PermissionsListener {
 //        requestFocusFromTouch();
         if (moved) {
             float diff = currentTouchY - startTouchY;
-            float percentScroll = Math.abs(diff / ((float)FullscreenActivity.displayMetrics.heightPixels / 5f));
+            float percentScroll = Math.abs(diff / ((float) HomeActivity.displayMetrics.heightPixels / 5f));
             if (percentScroll > 1)
                 percentScroll = 1;
             if (percentScroll < deadzone)
@@ -222,7 +222,7 @@ public class ExplorerView extends ListView implements PermissionsListener {
     public void SetProperPosition(int pos) {
 //        Log.d("Explorer", "Setting position to " + pos);
         properPosition = pos;
-        setSelectionFromTop(pos, FullscreenActivity.displayMetrics != null ? (int)(FullscreenActivity.displayMetrics.heightPixels * 0.5) : 0);
+        setSelectionFromTop(pos, HomeActivity.displayMetrics != null ? (int)(HomeActivity.displayMetrics.heightPixels * 0.5) : 0);
 //        setSelection(pos);
 //        HighlightSelection();
     }

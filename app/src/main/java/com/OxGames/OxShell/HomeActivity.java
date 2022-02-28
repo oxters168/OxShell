@@ -10,30 +10,27 @@ import android.os.Build;
 import android.content.Intent;
 import android.provider.Settings;
 import android.content.pm.ResolveInfo;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.OxGames.OxShell.databinding.ActivityFullscreenBinding;
-
-public class FullscreenActivity extends Activity {
-    public static FullscreenActivity instance;
-    private ActivityFullscreenBinding binding;
+public class HomeActivity extends Activity {
+    private static HomeActivity instance;
+//    private ActivityFullscreenBinding binding;
     private ArrayAdapter<String> intentsAdapter;
     public static DisplayMetrics displayMetrics;
     private List<PermissionsListener> permissionListeners = new ArrayList<>();
-
-    public void AddPermissionListener(PermissionsListener listener) {
-        permissionListeners.add(listener);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         instance = this;
 
-        binding = ActivityFullscreenBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+//        binding = ActivityFullscreenBinding.inflate(getLayoutInflater());
+//        setContentView(binding.getRoot());
+        setContentView(R.layout.activity_home);
 
         PackagesCache.SetContext(this);
         PackagesCache.PrepareDefaultLaunchIntents();
@@ -49,6 +46,13 @@ public class FullscreenActivity extends Activity {
         }
     }
 
+    public static HomeActivity GetInstance() {
+        return instance;
+    }
+
+    public void AddPermissionListener(PermissionsListener listener) {
+        permissionListeners.add(listener);
+    }
 
     public void getOverlayPermissionBtn(View view) {
         // Check if Android M or higher
@@ -74,7 +78,9 @@ public class FullscreenActivity extends Activity {
 //        mainIntent.addCategory(Intent.CATEGORY_APP_FILES);
         List<ResolveInfo> pkgAppsList = this.getPackageManager().queryIntentActivities( mainIntent, 0);
         System.out.println("Found " + pkgAppsList.size() + " pkgs with given intent");
-        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
+//        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
+        TextView outputText = findViewById(R.id.output_text);
+        outputText.setText("Found " + pkgAppsList.size() + " pkgs");
 //        ArrayList<View> buttons = new ArrayList<>();
         ArrayList<String> intentNames = new ArrayList<>();
         for (int i = 0; i < pkgAppsList.size(); i++) {
@@ -88,7 +94,9 @@ public class FullscreenActivity extends Activity {
             intentNames.add(activityName);
         }
         intentsAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, intentNames);
-        binding.intentsList.setAdapter(intentsAdapter);
+//        binding.intentsList.setAdapter(intentsAdapter);
+        ListView intentsList = findViewById(R.id.intents_list);
+        intentsList.setAdapter(intentsAdapter);
 
 //        Intent i = new Intent(Intent.ACTION_MAIN);
 //        i.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -109,7 +117,9 @@ public class FullscreenActivity extends Activity {
 //        mainIntent.addCategory(Intent.CATEGORY_APP_FILES);
         List<ResolveInfo> pkgAppsList = this.getPackageManager().queryIntentActivities( mainIntent, 0);
         System.out.println("Found " + pkgAppsList.size() + " pkgs with given intent");
-        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
+//        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
+        TextView outputText = findViewById(R.id.output_text);
+        outputText.setText("Found " + pkgAppsList.size() + " pkgs");
 //        ArrayList<View> buttons = new ArrayList<>();
         ArrayList<String> intentNames = new ArrayList<>();
         for (int i = 0; i < pkgAppsList.size(); i++) {
@@ -123,7 +133,9 @@ public class FullscreenActivity extends Activity {
                 intentNames.add(activityName);
         }
         intentsAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, intentNames);
-        binding.intentsList.setAdapter(intentsAdapter);
+//        binding.intentsList.setAdapter(intentsAdapter);
+        ListView intentsList = findViewById(R.id.intents_list);
+        intentsList.setAdapter(intentsAdapter);
 
 //        Intent i = new Intent(Intent.ACTION_MAIN);
 //        i.addCategory(Intent.CATEGORY_LAUNCHER);

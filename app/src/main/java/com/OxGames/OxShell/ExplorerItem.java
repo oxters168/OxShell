@@ -4,7 +4,6 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 public class ExplorerItem {
-
     String absolutePath;
     String name;
     boolean isDir;

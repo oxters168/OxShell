@@ -80,7 +80,7 @@ public class ExplorerBehaviour {
     }
 
     public void GrantStoragePermission() {
-        if(ContextCompat.checkSelfPermission(FullscreenActivity.instance, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(FullscreenActivity.instance, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+        if(ContextCompat.checkSelfPermission(ExplorerActivity.GetInstance(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(ExplorerActivity.GetInstance(), new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
     }
 }

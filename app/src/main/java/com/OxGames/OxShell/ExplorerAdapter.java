@@ -51,21 +51,25 @@ public class ExplorerAdapter implements ListAdapter {
     @Override
     public View getView(int position, View view, ViewGroup parent) {
         ExplorerItem explorerItem = arrayList.get(position);
-        if(view == null) {
-            //I think this is when the view is being initialized for the first time
-            LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = layoutInflater.inflate(R.layout.explorer_row, null);
-            explorerItem.view = view;
-            TextView title = view.findViewById(R.id.title);
-            TextView isDirText = view.findViewById(R.id.isDir);
-            ImageView typeIcon = view.findViewById(R.id.typeIcon);
-            title.setText(explorerItem.name);
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)title.getLayoutParams();
-            params.setMargins(explorerItem.HasIcon() ? 40 : 0, 0, 0, 0);
-            isDirText.setVisibility(explorerItem.isDir ? View.VISIBLE : View.INVISIBLE);
-            typeIcon.setImageDrawable(explorerItem.GetIcon());
-            typeIcon.setVisibility(explorerItem.HasIcon() ? View.VISIBLE : View.GONE);
-        }
+//        if(view == null) {
+        //I think this is when the view is being initialized for the first time
+        LayoutInflater layoutInflater = LayoutInflater.from(context);
+        view = layoutInflater.inflate(R.layout.explorer_row, null);
+        explorerItem.view = view;
+
+        TextView title = view.findViewById(R.id.title);
+        title.setText(explorerItem.name);
+
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams)title.getLayoutParams();
+        params.setMargins(explorerItem.HasIcon() ? 40 : 0, 0, 0, 0);
+
+        TextView isDirText = view.findViewById(R.id.isDir);
+        isDirText.setVisibility(explorerItem.isDir ? View.VISIBLE : View.INVISIBLE);
+
+        ImageView typeIcon = view.findViewById(R.id.typeIcon);
+        typeIcon.setImageDrawable(explorerItem.GetIcon());
+        typeIcon.setVisibility(explorerItem.HasIcon() ? View.VISIBLE : View.GONE);
+//        }
 
         return view;
     }

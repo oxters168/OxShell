@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/fullscreenBackgroundColor"
+    android:theme="@style/ThemeOverlay.OxShell.FullscreenContainer"
+    tools:context=".ExplorerActivity">
+
+    <com.OxGames.OxShell.ExplorerView
+        android:id="@+id/explorer_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbarStyle="insideInset">
+    </com.OxGames.OxShell.ExplorerView>
+</FrameLayout>

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="?attr/fullscreenBackgroundColor"
     android:theme="@style/ThemeOverlay.OxShell.FullscreenContainer"
-    tools:context=".FullscreenActivity">
+    tools:context=".HomeActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
@@ -69,17 +69,15 @@
 
     </LinearLayout>
 
-    <com.OxGames.OxShell.ExplorerView
-        android:id="@+id/explorer_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbarStyle="insideInset" >
-    </com.OxGames.OxShell.ExplorerView>
-
     <com.OxGames.OxShell.HomeView
         android:id="@+id/home_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:columnWidth="256px"
+        android:horizontalSpacing="16px"
+        android:numColumns="auto_fit"
+        android:padding="16px"
+        android:verticalSpacing="16px">
     </com.OxGames.OxShell.HomeView>
 
 </FrameLayout>
