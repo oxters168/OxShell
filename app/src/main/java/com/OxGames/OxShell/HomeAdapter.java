@@ -38,6 +38,7 @@ public class HomeAdapter extends BaseAdapter {
 
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         view = layoutInflater.inflate(R.layout.home_cell, null);
+        homeItem.view = view;
 
         TextView title = view.findViewById(R.id.title);
         title.setText(homeItems[position].packageName);

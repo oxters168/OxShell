@@ -1,6 +1,7 @@
 package com.OxGames.OxShell;
 
 import android.graphics.drawable.Drawable;
+import android.view.View;
 
 import androidx.core.content.ContextCompat;
 
@@ -8,6 +9,7 @@ public class HomeItem {
     public enum Type { none, explorer, app, }
     Type type;
     String packageName;
+    View view;
 
     public HomeItem(Type _type, String _packageName) {
         type = _type;

@@ -78,8 +78,6 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-//        requestFocusFromTouch();
-
         return true;
     }
     @Override

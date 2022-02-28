@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 
 import android.os.Build;
@@ -18,7 +19,6 @@ import java.util.List;
 
 public class HomeActivity extends Activity {
     private static HomeActivity instance;
-//    private ActivityFullscreenBinding binding;
     private ArrayAdapter<String> intentsAdapter;
     public static DisplayMetrics displayMetrics;
     private List<PermissionsListener> permissionListeners = new ArrayList<>();
@@ -28,14 +28,13 @@ public class HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         instance = this;
 
-//        binding = ActivityFullscreenBinding.inflate(getLayoutInflater());
-//        setContentView(binding.getRoot());
         setContentView(R.layout.activity_home);
+
+//        ((HomeView)instance.findViewById(R.id.home_view)).setChoiceMode(AbsListView.CHOICE_MODE_NONE);
 
         PackagesCache.SetContext(this);
         PackagesCache.PrepareDefaultLaunchIntents();
 
-//        binding.explorerList.setChoiceMode(binding.explorerList.CHOICE_MODE_SINGLE);
         displayMetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
     }
