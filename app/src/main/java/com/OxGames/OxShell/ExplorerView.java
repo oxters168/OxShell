@@ -18,21 +18,15 @@ import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.util.ArrayList;
 
-public class ExplorerView extends ListView implements PermissionsListener {
+public class ExplorerView extends ListView implements PermissionsListener, SlideTouchListener {
 
     private ExplorerBehaviour explorerBehaviour;
-    float startTouchY = 0;
-    float currentTouchY = 0;
-    float prevTouchY = 0;
-    boolean moved = false;
+    private SlideTouchHandler slideTouch = new SlideTouchHandler();
     int properPosition = 0;
-    float deadzone = 0.2f;
-
-    int framesPassed = 0;
-    int framesPerScroll = 24;
 
     public ExplorerView(Context context) {
         super(context);
+        slideTouch.AddListener(this);
         ExplorerActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
@@ -40,6 +34,7 @@ public class ExplorerView extends ListView implements PermissionsListener {
 
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        slideTouch.AddListener(this);
         ExplorerActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
@@ -47,6 +42,7 @@ public class ExplorerView extends ListView implements PermissionsListener {
 
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        slideTouch.AddListener(this);
         ExplorerActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
@@ -67,7 +63,7 @@ public class ExplorerView extends ListView implements PermissionsListener {
                 // At the same time, respect the user's decision. Don't link to
                 // system settings in an effort to convince the user to change
                 // their decision.
-                Log.d("Explorer", "Storage permission denied");
+                Log.e("Explorer", "Storage permission denied");
             }
         }
     }
@@ -76,39 +72,47 @@ public class ExplorerView extends ListView implements PermissionsListener {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-//        requestFocusFromTouch();
-        if (moved) {
-            float diff = currentTouchY - startTouchY;
-            float percentScroll = Math.abs(diff / ((float) HomeActivity.displayMetrics.heightPixels / 5f));
-            if (percentScroll > 1)
-                percentScroll = 1;
-            if (percentScroll < deadzone)
-                percentScroll = 0;
-            else
-                percentScroll = (percentScroll - deadzone) / (1 - deadzone);
-
-//            Log.d("Touch", diff + " / " + FullscreenActivity.displayMetrics.heightPixels + " = " + percentScroll);
-
-            float stretchedFramesPerScroll = (1 - percentScroll) * framesPerScroll;
-            if (percentScroll > 0 && diff > 0) {
-                //Go down
-                if (framesPassed > stretchedFramesPerScroll) {
-                    framesPassed = 0;
-                    SelectNextItem();
-                }
-            } else if (percentScroll > 0 && diff < 0) {
-                //Go up
-                if (framesPassed > stretchedFramesPerScroll) {
-                    framesPassed = 0;
-                    SelectPrevItem();
-                }
-            }
-            framesPassed++;
-            invalidate();
-        }
-
+        slideTouch.CheckForEvents();
         HighlightSelection();
     }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+//        requestFocusFromTouch();
+
+        return true;
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        slideTouch.Update(ev);
+        return true;
+    }
+
+    @Override
+    public void onRequestInvalidate() {
+        invalidate();
+    }
+    @Override
+    public void onClick() {
+        MakeSelection();
+    }
+    @Override
+    public void onSwipeUp() {
+        SelectPrevItem();
+    }
+    @Override
+    public void onSwipeDown() {
+        SelectNextItem();
+    }
+    @Override
+    public void onSwipeRight() {
+
+    }
+    @Override
+    public void onSwipeLeft() {
+
+    }
+
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
@@ -131,45 +135,6 @@ public class ExplorerView extends ListView implements PermissionsListener {
         }
         return true;
     }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-//        requestFocusFromTouch();
-
-        return true;
-    }
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        currentTouchY = ev.getY();
-
-        final int action = ev.getAction();
-        switch (action) {
-            case MotionEvent.ACTION_MOVE:
-                moved = true;
-                invalidate();
-//                Log.d("Touch", "Diff = " + diff);
-//                Log.d("Touch", "Action_Move (" + ev.getX() + ", " + ev.getY() + ")");
-                break;
-            case MotionEvent.ACTION_DOWN:
-                moved = false;
-                startTouchY = currentTouchY;
-//                Log.d("Touch", "Action_Down (" + ev.getX() + ", " + ev.getY() + ")");
-                break;
-            case MotionEvent.ACTION_UP:
-                if (!moved) {
-                    //Click
-//                    Log.d("Touch", "Clicked");
-                    MakeSelection();
-                }
-                moved = false;
-//                Log.d("Touch", "Action_Up (" + ev.getX() + ", " + ev.getY() + ")");
-                break;
-        }
-
-        prevTouchY = currentTouchY;
-        return true;
-    }
-
     private void HighlightSelection() {
         for (int i = 0; i < getCount(); i++) {
             View view = ((ExplorerItem)getItemAtPosition(i)).view;

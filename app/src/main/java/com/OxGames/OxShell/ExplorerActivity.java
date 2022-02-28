@@ -8,7 +8,7 @@ import java.util.List;
 
 public class ExplorerActivity extends Activity {
     private static ExplorerActivity instance;
-    private List<PermissionsListener> permissionListeners = new ArrayList<>();
+    private ArrayList<PermissionsListener> permissionListeners = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

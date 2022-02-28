@@ -2,30 +2,34 @@ package com.OxGames.OxShell;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.GridView;
 
-public class HomeView extends GridView {
-    private float currentTouchX;
-    private float currentTouchY;
-    private float prevTouchX;
-    private float prevTouchY;
-    private float startTouchX;
-    private float startTouchY;
-    private boolean moved;
+public class HomeView extends GridView implements SlideTouchListener {
+    SlideTouchHandler slideTouch = new SlideTouchHandler();
 
     public HomeView(Context context) {
         super(context);
+        slideTouch.AddListener(this);
         RefreshShownItems();
     }
     public HomeView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        slideTouch.AddListener(this);
         RefreshShownItems();
     }
     public HomeView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        slideTouch.AddListener(this);
         RefreshShownItems();
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        slideTouch.CheckForEvents();
     }
 
     @Override
@@ -36,46 +40,38 @@ public class HomeView extends GridView {
     }
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        currentTouchX = ev.getX();
-        currentTouchY = ev.getY();
-
-        final int action = ev.getAction();
-        switch (action) {
-            case MotionEvent.ACTION_MOVE:
-                moved = true;
-                invalidate();
-//                Log.d("Touch", "Diff = " + diff);
-//                Log.d("Touch", "Action_Move (" + ev.getX() + ", " + ev.getY() + ")");
-                break;
-            case MotionEvent.ACTION_DOWN:
-                moved = false;
-                startTouchX = currentTouchX;
-                startTouchY = currentTouchY;
-//                Log.d("Touch", "Action_Down (" + ev.getX() + ", " + ev.getY() + ")");
-                break;
-            case MotionEvent.ACTION_UP:
-                if (!moved) {
-                    //Click
-//                    Log.d("Touch", "Clicked");
-//                    MakeSelection();
-                    Intent intent = new Intent(HomeActivity.GetInstance(), ExplorerActivity.class);
-//                    EditText editText = (EditText) findViewById(R.id.editTextTextPersonName);
-//                    String message = editText.getText().toString();
-//                    intent.putExtra(EXTRA_MESSAGE, message);
-                    HomeActivity.GetInstance().startActivity(intent);
-                }
-                moved = false;
-//                Log.d("Touch", "Action_Up (" + ev.getX() + ", " + ev.getY() + ")");
-                break;
-        }
-
-        prevTouchX = currentTouchX;
-        prevTouchY = currentTouchY;
+        slideTouch.Update(ev);
         return true;
     }
     @Override
     public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, widthMeasureSpec); // This is the key that will make the height equivalent to its width
+    }
+
+    @Override
+    public void onRequestInvalidate() {
+        invalidate();
+    }
+    @Override
+    public void onClick() {
+        Intent intent = new Intent(HomeActivity.GetInstance(), ExplorerActivity.class);
+        HomeActivity.GetInstance().startActivity(intent);
+    }
+    @Override
+    public void onSwipeDown() {
+
+    }
+    @Override
+    public void onSwipeLeft() {
+
+    }
+    @Override
+    public void onSwipeRight() {
+
+    }
+    @Override
+    public void onSwipeUp() {
+
     }
 
     public void RefreshShownItems() {
