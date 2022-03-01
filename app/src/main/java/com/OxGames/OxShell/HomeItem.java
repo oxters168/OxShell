@@ -6,7 +6,7 @@ import android.view.View;
 import androidx.core.content.ContextCompat;
 
 public class HomeItem {
-    public enum Type { none, explorer, app, add, }
+    public enum Type { explorer, app, add, }
     Type type;
     String title;
     View view;

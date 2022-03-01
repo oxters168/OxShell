@@ -1,9 +1,6 @@
 package com.OxGames.OxShell;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
@@ -117,7 +114,7 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
         Log.d("ExplorerView", key_code + " " + key_event);
         if (key_code == KeyEvent.KEYCODE_BUTTON_START || key_code == KeyEvent.KEYCODE_BACK) {
-            GoHome();
+            ActivityManager.GoTo(ActivityManager.Page.home);
             return false;
         }
 
@@ -168,14 +165,10 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
             TryHighlightPrevDir();
         }
         else {
-            LaunchIntent(clickedItem);
+            TryRun(clickedItem);
         }
     }
 
-    private void GoHome() {
-        Intent intent = new Intent(ExplorerActivity.GetInstance(), HomeActivity.class);
-        ExplorerActivity.GetInstance().startActivity(intent);
-    }
     public void GoUp() {
         explorerBehaviour.GoUp();
         RefreshExplorerList();
@@ -238,30 +231,14 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
 //        setVisibility((isEmpty && !hasParent) ? View.GONE : View.VISIBLE);
     }
 
-    private void LaunchIntent(ExplorerItem clickedItem) {
-        //Cheat sheet: http://p.cweiske.de/221
-//            IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
-//            launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
+    private void TryRun(ExplorerItem clickedItem) {
         if (clickedItem.absolutePath.contains(".")) {
             String extension = ExplorerBehaviour.GetExtension(clickedItem.absolutePath);
 
             IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
-                IntentLaunchData.DataType dataType = fileLaunchIntent.GetDataType();
-                String data = null;
-                if (dataType == IntentLaunchData.DataType.AbsolutePath)
-                    data = clickedItem.absolutePath;
-
-                IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
-                String[] extrasValues = null;
-                if (extras != null && extras.length > 0) {
-                    extrasValues = new String[extras.length];
-                    for (int i = 0; i < extras.length; i++)
-                        if (extras[i].GetExtraType() == IntentLaunchData.DataType.AbsolutePath)
-                            extrasValues[i] = clickedItem.absolutePath;
-                }
-                startActivity(getContext(), fileLaunchIntent.BuildIntent(data, extrasValues), null);
+                fileLaunchIntent.Launch(clickedItem.absolutePath);
             }
             else
                 Log.e("Explorer", "No launch intent associated with extension " + extension);
@@ -269,4 +246,35 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
         else
             Log.e("Explorer", "Missing extension, could not identify file");
     }
+//    private void LaunchIntent(ExplorerItem clickedItem) {
+//        //Cheat sheet: http://p.cweiske.de/221
+////            IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
+////            launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
+//        if (clickedItem.absolutePath.contains(".")) {
+//            String extension = ExplorerBehaviour.GetExtension(clickedItem.absolutePath);
+//
+//            IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
+//
+//            if (fileLaunchIntent != null) {
+//                IntentLaunchData.DataType dataType = fileLaunchIntent.GetDataType();
+//                String data = null;
+//                if (dataType == IntentLaunchData.DataType.AbsolutePath)
+//                    data = clickedItem.absolutePath;
+//
+//                IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
+//                String[] extrasValues = null;
+//                if (extras != null && extras.length > 0) {
+//                    extrasValues = new String[extras.length];
+//                    for (int i = 0; i < extras.length; i++)
+//                        if (extras[i].GetExtraType() == IntentLaunchData.DataType.AbsolutePath)
+//                            extrasValues[i] = clickedItem.absolutePath;
+//                }
+//                startActivity(getContext(), fileLaunchIntent.BuildIntent(data, extrasValues), null);
+//            }
+//            else
+//                Log.e("Explorer", "No launch intent associated with extension " + extension);
+//        }
+//        else
+//            Log.e("Explorer", "Missing extension, could not identify file");
+//    }
 }

@@ -17,6 +17,7 @@ public class PackagesCache {
     private static ArrayList<IntentLaunchData> launchIntents = new ArrayList<>();
 
     public static void PrepareDefaultLaunchIntents() {
+        //Cheat sheet: http://p.cweiske.de/221
         IntentLaunchData gbaLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
         gbaLaunchIntent.SetDataType(IntentLaunchData.DataType.AbsolutePath);
         //            Gson gson = new Gson();

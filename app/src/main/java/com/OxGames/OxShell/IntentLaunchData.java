@@ -1,8 +1,11 @@
 package com.OxGames.OxShell;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -92,5 +95,27 @@ public class IntentLaunchData {
     }
     public boolean ContainsExtension(String extension) {
         return associatedExtensions.contains(extension.toLowerCase());
+    }
+
+    public void Launch(String data, String[] extrasValues) {
+        //IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
+        //launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
+        startActivity(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), BuildIntent(data, extrasValues), null);
+    }
+    public void Launch(String data) {
+        String dataEntry = null;
+        if (dataType != DataType.None)
+            dataEntry = data;
+
+        String[] extrasValues = null;
+        if (extras != null && extras.size() > 0) {
+            extrasValues = new String[extras.size()];
+            for (int i = 0; i < extras.size(); i++)
+                extrasValues[i] = data;
+        }
+        Launch(dataEntry, extrasValues);
+    }
+    public void Launch() {
+        Launch(null, null);
     }
 }

@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
@@ -33,10 +34,10 @@ public class HomeView extends GridView implements SlideTouchListener {
         RefreshShownItems();
     }
 
-    private void OpenExplorer() {
-        Intent intent = new Intent(HomeActivity.GetInstance(), ExplorerActivity.class);
-        HomeActivity.GetInstance().startActivity(intent);
-    }
+//    private void OpenExplorer() {
+//        Intent intent = new Intent(HomeActivity.GetInstance(), ExplorerActivity.class);
+//        HomeActivity.GetInstance().startActivity(intent);
+//    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -165,7 +166,7 @@ public class HomeView extends GridView implements SlideTouchListener {
     public void MakeSelection() {
         HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
         if (selectedItem.type == HomeItem.Type.explorer)
-            OpenExplorer();
+            ActivityManager.GoTo(ActivityManager.Page.explorer);
     }
     public void SetProperPosition(int pos) {
         properPosition = pos;
