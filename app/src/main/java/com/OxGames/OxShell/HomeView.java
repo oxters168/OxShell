@@ -3,18 +3,21 @@ package com.OxGames.OxShell;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Canvas;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.GridView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 public class HomeView extends GridView implements SlideTouchListener {
     SlideTouchHandler slideTouch = new SlideTouchHandler();
     int properPosition = 0;
+    int currentFrame = 0;
+    int totalFrame = 4;
 
     public HomeView(Context context) {
         super(context);
@@ -54,10 +57,10 @@ public class HomeView extends GridView implements SlideTouchListener {
         slideTouch.Update(ev);
         return true;
     }
-    @Override
-    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, widthMeasureSpec); // This is the key that will make the height equivalent to its width
-    }
+//    @Override
+//    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+//        super.onMeasure(widthMeasureSpec, widthMeasureSpec); // This is the key that will make the height equivalent to its width
+//    }
 
     @Override
     public void onRequestInvalidate() {
@@ -115,15 +118,41 @@ public class HomeView extends GridView implements SlideTouchListener {
     private void HighlightSelection() {
         for (int i = 0; i < getCount(); i++) {
             View view = ((HomeItem)getItemAtPosition(i)).view;
+            Log.d("HomeView", i + " " + view);
 
             if (view != null) {
                 int bgColor = (i == properPosition) ? R.color.scheme1 : R.color.light_blue_400;
+//                TextView title = view.findViewById(R.id.title);
+//                if (i == 0) {
+//                    if (currentFrame == 0) {
+//                        bgColor = R.color.gray_400;
+//                        title.setText("1");
+//                    }
+//                    else if (currentFrame == 1) {
+//                        bgColor = R.color.light_blue_600;
+//                        title.setText("12");
+//                    }
+//                    else if (currentFrame == 2) {
+//                        bgColor = R.color.light_blue_900;
+//                        title.setText("123");
+//                    }
+//                    else if (currentFrame == 3) {
+//                        bgColor = R.color.black;
+//                        title.setText("1234");
+//                    }
+//
+//
+//                    currentFrame++;
+//                    if (currentFrame > totalFrame)
+//                        currentFrame = 0;
+//                }
 //                ColorDrawable bg = (ColorDrawable)view.getBackground();
 //                int currentColor = -1;
 //                if (bg != null)
 //                    currentColor = bg.getColor();
                 view.setBackgroundResource(bgColor);
 //                Log.d("Home", i + " == " + properPosition + " " + currentColor + " => " + bgColor);
+//                Log.d("Home", i + " == " + properPosition + " " + bgColor);
             }
         }
     }
@@ -167,19 +196,22 @@ public class HomeView extends GridView implements SlideTouchListener {
     }
 
     public void RefreshShownItems() {
-        HomeItem[] homeItems = new HomeItem[] {
-                new HomeItem(HomeItem.Type.explorer, "Something"),
-                new HomeItem(HomeItem.Type.explorer, "Wong"),
-                new HomeItem(HomeItem.Type.explorer, "Wid"),
-                new HomeItem(HomeItem.Type.explorer, "Dis"),
-                new HomeItem(HomeItem.Type.explorer, "View"),
-                new HomeItem(HomeItem.Type.explorer, "Lol"),
-                new HomeItem(HomeItem.Type.explorer, "Out"),
-                new HomeItem(HomeItem.Type.explorer, "Of"),
-                new HomeItem(HomeItem.Type.explorer, "Stuff"),
-                new HomeItem(HomeItem.Type.explorer, "GTG")
-        };
+        ArrayList<HomeItem> homeItems = new ArrayList<>();
+
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Something"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Wong"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Wid"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Dis"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "View"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Lol"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Out"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Of"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Stuff"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "GTG"));
+
         HomeAdapter customAdapter = new HomeAdapter(getContext(), homeItems);
         setAdapter(customAdapter);
+
+        SetProperPosition(2);
     }
 }
