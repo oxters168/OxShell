@@ -118,7 +118,7 @@ public class HomeView extends GridView implements SlideTouchListener {
     private void HighlightSelection() {
         for (int i = 0; i < getCount(); i++) {
             View view = ((HomeItem)getItemAtPosition(i)).view;
-            Log.d("HomeView", i + " " + view);
+//            Log.d("HomeView", i + " " + view);
 
             if (view != null) {
                 int bgColor = (i == properPosition) ? R.color.scheme1 : R.color.light_blue_400;
@@ -132,6 +132,7 @@ public class HomeView extends GridView implements SlideTouchListener {
         int nextIndex = properPosition + columns;
         if (nextIndex >= total)
             nextIndex = properPosition;
+//        Log.d("Home", "Down " + properPosition + " => " + nextIndex);
         SetProperPosition(nextIndex);
     }
     public void SelectUpperItem() {
@@ -139,6 +140,7 @@ public class HomeView extends GridView implements SlideTouchListener {
         int prevIndex = properPosition - columns;
         if (prevIndex < 0)
             prevIndex = properPosition;
+//        Log.d("Home", "Up " + properPosition + " => " + prevIndex);
         SetProperPosition(prevIndex);
     }
     public void SelectRightItem() {
@@ -149,6 +151,7 @@ public class HomeView extends GridView implements SlideTouchListener {
             nextIndex = total - 1;
         if (nextIndex % columns == 0)
             nextIndex = properPosition;
+//        Log.d("Home", "Right " + properPosition + " => " + nextIndex);
         SetProperPosition(nextIndex);
     }
     public void SelectLeftItem() {
@@ -158,6 +161,7 @@ public class HomeView extends GridView implements SlideTouchListener {
             prevIndex = 0;
         if (prevIndex % columns == columns - 1)
             prevIndex = properPosition;
+//        Log.d("Home", "Left " + properPosition + " => " + prevIndex);
         SetProperPosition(prevIndex);
     }
     public void SetProperPosition(int pos) {

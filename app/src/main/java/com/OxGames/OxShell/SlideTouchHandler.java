@@ -1,5 +1,7 @@
 package com.OxGames.OxShell;
 
+import android.os.SystemClock;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -12,10 +14,19 @@ public class SlideTouchHandler {
         float prevTouchY = 0;
         float startTouchX = 0;
         float startTouchY = 0;
-        int framesPassed = 0;
+
+        float slideSpreadDiv = 4f; //Lower number means it takes a larger area to reach max speed
+
+//        int framesPassed = 0;
+//        long prevScrollMilli = 0;
+        long prevScrollUpMilli = 0;
+        long prevScrollDownMilli = 0;
+        long prevScrollLeftMilli = 0;
+        long prevScrollRightMilli = 0;
 
         float deadzone = 0.2f;
-        int framesPerScroll = 24;
+//        int framesPerScroll = 24;
+        int millisPerScroll = 1000; //How frequently repeated events should be sent (once per given milliseconds)
         boolean moved = false;
     }
     private TouchData data;
@@ -34,6 +45,8 @@ public class SlideTouchHandler {
     }
 
     public void Update(MotionEvent ev) {
+        data.prevTouchX = data.currentTouchX;
+        data.prevTouchY = data.currentTouchY;
         data.currentTouchX = ev.getX();
         data.currentTouchY = ev.getY();
 
@@ -41,10 +54,22 @@ public class SlideTouchHandler {
         switch (action) {
             case MotionEvent.ACTION_MOVE:
                 data.moved = true;
-//                invalidate();
+
+//                float maxXPixels = HomeActivity.displayMetrics.widthPixels / data.slideSpreadDiv;
+                float maxXPixels = GetMaxPixels();
+                float diffX = data.startTouchX - data.currentTouchX;
+//                float percentX = CalculatePercentWithDeadzone(diffX, HomeActivity.displayMetrics.widthPixels);
+//                Log.d("Touch", "Start " + data.startTouchX + " current " + data.currentTouchX + " percent " + percentX + " diff " + diffX + " max " + maxXPixels);
+                if (Math.abs(diffX) > maxXPixels)
+                    data.startTouchX = data.currentTouchX + Math.signum(diffX) * maxXPixels; //Don't let start point stray further than the max distance
+//                float maxYPixels = HomeActivity.displayMetrics.heightPixels / data.slideSpreadDiv;
+                float maxYPixels = GetMaxPixels();
+                float diffY = data.startTouchY - data.currentTouchY;
+                if (Math.abs(diffY) > maxYPixels)
+                    data.startTouchY = data.currentTouchY + Math.signum(diffY) * maxYPixels; //Don't let start point stray further than the max distance
+
                 for (SlideTouchListener stl : touchListeners)
                     stl.onRequestInvalidate();
-//                Log.d("Touch", "Diff = " + diff);
 //                Log.d("Touch", "Action_Move (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
             case MotionEvent.ACTION_DOWN:
@@ -64,68 +89,74 @@ public class SlideTouchHandler {
 //                Log.d("Touch", "Action_Up (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
         }
-
-        data.prevTouchX = data.currentTouchX;
-        data.prevTouchY = data.currentTouchY;
     }
     public void CheckForEvents() {
         if (data.moved) {
+//            Log.d("Touch", "x " + diffX + " / " + HomeActivity.displayMetrics.widthPixels + " = " + percentScrollX);
+//            Log.d("Touch", "y " + diffY + " / " + HomeActivity.displayMetrics.heightPixels + " = " + percentScrollY);
             float diffX = data.currentTouchX - data.startTouchX;
-            float diffY = data.currentTouchY - data.startTouchY;
-            float percentScrollX = CalculatePercentWithDeadzone(diffX, HomeActivity.displayMetrics.widthPixels);
-            float percentScrollY = CalculatePercentWithDeadzone(diffY, HomeActivity.displayMetrics.heightPixels);
-
-//            Log.d("Touch", diff + " / " + FullscreenActivity.displayMetrics.heightPixels + " = " + percentScroll);
-
-            float stretchedFramesPerScroll = (1 - percentScrollY) * data.framesPerScroll;
+            float percentScrollX = CalculatePercentWithDeadzone(diffX);
+            float stretchedFramesPerScrollX = (1 - percentScrollX) * data.millisPerScroll;
             if (percentScrollX > 0 && diffX > 0) {
                 //Go right
-                if (data.framesPassed > stretchedFramesPerScroll) {
-                    data.framesPassed = 0;
+                if (SystemClock.uptimeMillis() - data.prevScrollRightMilli > stretchedFramesPerScrollX) {
+                    data.prevScrollRightMilli = SystemClock.uptimeMillis();
                     for (SlideTouchListener stl : touchListeners)
                         stl.onSwipeRight();
                 }
             } else if (percentScrollX > 0 && diffX < 0) {
                 //Go left
-                if (data.framesPassed > stretchedFramesPerScroll) {
-                    data.framesPassed = 0;
+                if (SystemClock.uptimeMillis() - data.prevScrollLeftMilli > stretchedFramesPerScrollX) {
+                    data.prevScrollLeftMilli = SystemClock.uptimeMillis();
                     for (SlideTouchListener stl : touchListeners)
                         stl.onSwipeLeft();
                 }
             }
 
+            float diffY = data.currentTouchY - data.startTouchY;
+            float percentScrollY = CalculatePercentWithDeadzone(diffY);
+            float stretchedFramesPerScrollY = (1 - percentScrollY) * data.millisPerScroll;
             if (percentScrollY > 0 && diffY > 0) {
                 //Go down
-                if (data.framesPassed > stretchedFramesPerScroll) {
-                    data.framesPassed = 0;
+                if (SystemClock.uptimeMillis() - data.prevScrollDownMilli > stretchedFramesPerScrollY) {
+                    data.prevScrollDownMilli = SystemClock.uptimeMillis();
                     for (SlideTouchListener stl : touchListeners)
                         stl.onSwipeDown();
-//                    SelectNextItem();
                 }
             } else if (percentScrollY > 0 && diffY < 0) {
                 //Go up
-                if (data.framesPassed > stretchedFramesPerScroll) {
-                    data.framesPassed = 0;
+                if (SystemClock.uptimeMillis() - data.prevScrollUpMilli > stretchedFramesPerScrollY) {
+                    data.prevScrollUpMilli = SystemClock.uptimeMillis();
                     for (SlideTouchListener stl : touchListeners)
                         stl.onSwipeUp();
-//                    SelectPrevItem();
                 }
             }
-            data.framesPassed++;
             for (SlideTouchListener stl : touchListeners)
                 stl.onRequestInvalidate();
-//            invalidate();
         }
     }
 
-    private float CalculatePercentWithDeadzone(float diff, float total) {
-        float percentWithDeadzone = Math.abs(diff / (total / 5f));
+    private float GetMaxPixels() {
+        return Math.min(HomeActivity.displayMetrics.widthPixels, HomeActivity.displayMetrics.heightPixels) / data.slideSpreadDiv;
+    }
+
+    private float CalculatePercentWithDeadzone(float diff) {
+//        float max = total / data.slideSpreadDiv;
+        float max = GetMaxPixels();
+        float percentWithDeadzone = Math.abs(diff / max);
+//        Log.d("TouchPercent", diff + " / " + max + " = " + percentWithDeadzone);
         if (percentWithDeadzone > 1)
             percentWithDeadzone = 1;
-        if (percentWithDeadzone < data.deadzone)
+
+        percentWithDeadzone -= data.deadzone;
+//        Log.d("TouchPercent", "shifted " + percentWithDeadzone);
+        if (percentWithDeadzone < 0)
             percentWithDeadzone = 0;
         else
-            percentWithDeadzone = (percentWithDeadzone - data.deadzone) / (1 - data.deadzone);
+            percentWithDeadzone = percentWithDeadzone / (1f - data.deadzone);
+
+        percentWithDeadzone = (float)Math.pow(percentWithDeadzone, 2);
+
         return percentWithDeadzone;
     }
 }
