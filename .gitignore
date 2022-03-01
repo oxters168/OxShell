@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+#Added due to its constant change and non-portable nature
+/.idea/deploymentTargetDropDown.xml
