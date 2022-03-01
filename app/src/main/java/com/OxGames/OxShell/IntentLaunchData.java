@@ -7,18 +7,15 @@ import android.net.Uri;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class IntentLaunchData {
-    public enum IntentType { None, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
+    public enum DataType { None, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
     private ArrayList<String> associatedExtensions;
     private String action;
     private String packageName;
     private String className;
     private ArrayList<IntentPutExtra> extras;
-//    private IntentPutData data;
-    private IntentType dataType = IntentType.None;
-//    private String data;
+    private DataType dataType = DataType.None;
 
     public IntentLaunchData(String _action, String _packageName, String _className, String[] extensions) {
         action = _action;
@@ -78,10 +75,10 @@ public class IntentLaunchData {
 //    public void SetData(String _data) {
 //        data = _data;
 //    }
-    public void SetDataType(IntentType _dataType) {
+    public void SetDataType(DataType _dataType) {
         dataType = _dataType;
     }
-    public IntentType GetDataType() {
+    public DataType GetDataType() {
         return dataType;
     }
 

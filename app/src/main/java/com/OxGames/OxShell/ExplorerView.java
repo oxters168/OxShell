@@ -229,7 +229,7 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
                     arrayList.add(new ExplorerItem(icon, absolutePath, files[i].getName(), files[i].isDirectory()));
                 }
             }
-            ExplorerAdapter customAdapter = new ExplorerAdapter(getContext(), arrayList);
+            ExplorerAdapter customAdapter = new ExplorerAdapter(getContext(), arrayList, true);
             setAdapter(customAdapter);
         }
         SetProperPosition(0);
@@ -248,9 +248,9 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
             IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
-                IntentLaunchData.IntentType dataType = fileLaunchIntent.GetDataType();
+                IntentLaunchData.DataType dataType = fileLaunchIntent.GetDataType();
                 String data = null;
-                if (dataType == IntentLaunchData.IntentType.AbsolutePath)
+                if (dataType == IntentLaunchData.DataType.AbsolutePath)
                     data = clickedItem.absolutePath;
 
                 IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
@@ -258,7 +258,7 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
                 if (extras != null && extras.length > 0) {
                     extrasValues = new String[extras.length];
                     for (int i = 0; i < extras.length; i++)
-                        if (extras[i].GetExtraType() == IntentLaunchData.IntentType.AbsolutePath)
+                        if (extras[i].GetExtraType() == IntentLaunchData.DataType.AbsolutePath)
                             extrasValues[i] = clickedItem.absolutePath;
                 }
                 startActivity(getContext(), fileLaunchIntent.BuildIntent(data, extrasValues), null);

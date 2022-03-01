@@ -18,14 +18,14 @@ public class PackagesCache {
 
     public static void PrepareDefaultLaunchIntents() {
         IntentLaunchData gbaLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
-        gbaLaunchIntent.SetDataType(IntentLaunchData.IntentType.AbsolutePath);
+        gbaLaunchIntent.SetDataType(IntentLaunchData.DataType.AbsolutePath);
         //            Gson gson = new Gson();
         //            String gbaJSON = gson.toJson(gbaLaunchIntent);
         //            Log.d("Intent", gbaJSON);
         //            gbaLaunchIntent = gson.fromJson(gbaJSON, IntentLaunchData.class);
         launchIntents.add(gbaLaunchIntent);
         IntentLaunchData ndsLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" });
-        ndsLaunchIntent.AddExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.IntentType.AbsolutePath));
+        ndsLaunchIntent.AddExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(ndsLaunchIntent);
     }
     public static IntentLaunchData GetLaunchDataForExtension(String extension) {

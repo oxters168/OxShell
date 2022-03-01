@@ -1,7 +1,6 @@
 package com.OxGames.OxShell;
 
 import android.database.DataSetObserver;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 import android.content.Context;
@@ -30,7 +29,7 @@ public class HomeAdapter extends BaseAdapter {
             homeItem.view = view;
 
             TextView title = view.findViewById(R.id.title);
-            title.setText(homeItem.packageName);
+            title.setText(homeItem.title);
 
             ImageView typeIcon = view.findViewById(R.id.typeIcon);
             typeIcon.setImageDrawable(homeItem.GetIcon());

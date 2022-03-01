@@ -14,24 +14,29 @@ import java.util.ArrayList;
 
 public class ExplorerAdapter implements ListAdapter {
     Context context;
-    ArrayList<ExplorerItem> arrayList;
+    ArrayList<ExplorerItem> explorerItems;
+    boolean hideExtensions;
 
-    public ExplorerAdapter(Context context, ArrayList<ExplorerItem> arrayList) {
-        this.arrayList = arrayList;
-        this.context = context;
+    public ExplorerAdapter(Context _context, ArrayList<ExplorerItem> _explorerItems, boolean _hideExtensions) {
+        context = _context;
+        explorerItems = _explorerItems;
+        hideExtensions = _hideExtensions;
     }
 
     @Override
     public View getView(int position, View view, ViewGroup parent) {
-        ExplorerItem explorerItem = arrayList.get(position);
+        ExplorerItem explorerItem = explorerItems.get(position);
         if (view == null) {
             //I think this is when the view is being initialized for the first time
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             view = layoutInflater.inflate(R.layout.explorer_row, null);
             explorerItem.view = view;
 
+            String shownName = explorerItem.name;
+            if (hideExtensions && !explorerItem.isDir && shownName.lastIndexOf(".") > 0)
+                shownName = shownName.substring(0, shownName.lastIndexOf("."));
             TextView title = view.findViewById(R.id.title);
-            title.setText(explorerItem.name);
+            title.setText(shownName);
 
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) title.getLayoutParams();
             params.setMargins(explorerItem.HasIcon() ? 40 : 0, 0, 0, 0);
@@ -62,11 +67,11 @@ public class ExplorerAdapter implements ListAdapter {
     public void unregisterDataSetObserver(DataSetObserver observer) { }
     @Override
     public int getCount() {
-        return arrayList.size();
+        return explorerItems.size();
     }
     @Override
     public Object getItem(int position) {
-        return arrayList.get(position);
+        return explorerItems.get(position);
     }
     @Override
     public long getItemId(int position) {
@@ -82,10 +87,10 @@ public class ExplorerAdapter implements ListAdapter {
     }
     @Override
     public int getViewTypeCount() {
-        return arrayList.size();
+        return explorerItems.size();
     }
     @Override
     public boolean isEmpty() {
-        return arrayList.size() <= 0;
+        return explorerItems.size() <= 0;
     }
 }

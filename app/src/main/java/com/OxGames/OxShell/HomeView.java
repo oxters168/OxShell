@@ -16,8 +16,6 @@ import java.util.ArrayList;
 public class HomeView extends GridView implements SlideTouchListener {
     SlideTouchHandler slideTouch = new SlideTouchHandler();
     int properPosition = 0;
-    int currentFrame = 0;
-    int totalFrame = 4;
 
     public HomeView(Context context) {
         super(context);
@@ -177,16 +175,9 @@ public class HomeView extends GridView implements SlideTouchListener {
     public void RefreshShownItems() {
         ArrayList<HomeItem> homeItems = new ArrayList<>();
 
-        homeItems.add(new HomeItem(HomeItem.Type.none, "Something"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "Wong"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "Wid"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "Dis"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "View"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Lol"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "Out"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "Of"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "Stuff"));
-        homeItems.add(new HomeItem(HomeItem.Type.none, "GTG"));
+        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
+        //Get added items and place in home
+        homeItems.add(new HomeItem(HomeItem.Type.add));
 
         HomeAdapter customAdapter = new HomeAdapter(getContext(), homeItems);
         setAdapter(customAdapter);

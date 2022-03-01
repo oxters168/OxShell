@@ -1,7 +1,7 @@
 package com.OxGames.OxShell;
 
 public class IntentPutExtra {
-    private IntentLaunchData.IntentType extraType = IntentLaunchData.IntentType.None;
+    private IntentLaunchData.DataType extraType = IntentLaunchData.DataType.None;
     private String name;
 //    private String value;
 
@@ -9,7 +9,7 @@ public class IntentPutExtra {
         name = _name;
 //        value = _value;
     }
-    public IntentPutExtra(String _name, IntentLaunchData.IntentType _extraType) {
+    public IntentPutExtra(String _name, IntentLaunchData.DataType _extraType) {
         name = _name;
         extraType = _extraType;
     }
@@ -19,7 +19,7 @@ public class IntentPutExtra {
 //    public String GetValue() {
 //        return value;
 //    }
-    public void SetExtraType(IntentLaunchData.IntentType _extraType) { extraType = _extraType; }
-    public IntentLaunchData.IntentType GetExtraType() { return extraType; }
+    public void SetExtraType(IntentLaunchData.DataType _extraType) { extraType = _extraType; }
+    public IntentLaunchData.DataType GetExtraType() { return extraType; }
 //    public void SetValue(String _value) { value = _value; }
 }
