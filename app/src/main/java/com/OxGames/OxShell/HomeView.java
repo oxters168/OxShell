@@ -122,37 +122,7 @@ public class HomeView extends GridView implements SlideTouchListener {
 
             if (view != null) {
                 int bgColor = (i == properPosition) ? R.color.scheme1 : R.color.light_blue_400;
-//                TextView title = view.findViewById(R.id.title);
-//                if (i == 0) {
-//                    if (currentFrame == 0) {
-//                        bgColor = R.color.gray_400;
-//                        title.setText("1");
-//                    }
-//                    else if (currentFrame == 1) {
-//                        bgColor = R.color.light_blue_600;
-//                        title.setText("12");
-//                    }
-//                    else if (currentFrame == 2) {
-//                        bgColor = R.color.light_blue_900;
-//                        title.setText("123");
-//                    }
-//                    else if (currentFrame == 3) {
-//                        bgColor = R.color.black;
-//                        title.setText("1234");
-//                    }
-//
-//
-//                    currentFrame++;
-//                    if (currentFrame > totalFrame)
-//                        currentFrame = 0;
-//                }
-//                ColorDrawable bg = (ColorDrawable)view.getBackground();
-//                int currentColor = -1;
-//                if (bg != null)
-//                    currentColor = bg.getColor();
                 view.setBackgroundResource(bgColor);
-//                Log.d("Home", i + " == " + properPosition + " " + currentColor + " => " + bgColor);
-//                Log.d("Home", i + " == " + properPosition + " " + bgColor);
             }
         }
     }
@@ -212,6 +182,6 @@ public class HomeView extends GridView implements SlideTouchListener {
         HomeAdapter customAdapter = new HomeAdapter(getContext(), homeItems);
         setAdapter(customAdapter);
 
-        SetProperPosition(2);
+        SetProperPosition(0);
     }
 }

@@ -10,7 +10,6 @@ public class HomeItem {
     Type type;
     String packageName;
     View view;
-//    HomeItemHolder holder;
 
     public HomeItem(Type _type, String _packageName) {
         type = _type;

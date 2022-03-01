@@ -13,28 +13,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 public class HomeAdapter extends BaseAdapter {
-//    public class HomeItem {
-////        public enum Type { none, explorer, app, }
-//        com.OxGames.OxShell.HomeItem.Type type;
-//        String packageName;
-//        private HomeItemHolder itemHolder;
-////    View view;
-//
-//        public HomeItem(com.OxGames.OxShell.HomeItem.Type _type, String _packageName) {
-//            type = _type;
-//            packageName = _packageName;
-//        }
-//        public Drawable GetIcon() {
-//            Drawable icon = null;
-//            if (type == com.OxGames.OxShell.HomeItem.Type.explorer)
-//                icon = ContextCompat.getDrawable(HomeActivity.GetInstance(), R.drawable.ic_baseline_source_24);
-//            return icon;
-//        }
-//        public View GetView() {
-//            return itemHolder.itemView;
-//        }
-//    }
-
     private final Context context;
     private final ArrayList<HomeItem> homeItems;
 
@@ -46,14 +24,10 @@ public class HomeAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View view, ViewGroup parent) {
         HomeItem homeItem = homeItems.get(position);
-        View child = parent.getChildAt(position);
         if (view == null) {
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             view = layoutInflater.inflate(R.layout.home_cell, null);
             homeItem.view = view;
-//            HomeItemHolder itemHolder = new HomeItemHolder(view);
-//            view.setTag(itemHolder);
-//            homeItem.holder = itemHolder;
 
             TextView title = view.findViewById(R.id.title);
             title.setText(homeItem.packageName);
@@ -63,9 +37,6 @@ public class HomeAdapter extends BaseAdapter {
         }
         else
             homeItem.view = parent.getChildAt(position);
-//        else
-//            homeItem.holder = (HomeItemHolder)view.getTag();
-        Log.d("HomeAdapter", position + " " + view + " " + child);
 
         return view;
     }

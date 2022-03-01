@@ -23,8 +23,8 @@ public class ExplorerAdapter implements ListAdapter {
 
     @Override
     public View getView(int position, View view, ViewGroup parent) {
+        ExplorerItem explorerItem = arrayList.get(position);
         if (view == null) {
-            ExplorerItem explorerItem = arrayList.get(position);
             //I think this is when the view is being initialized for the first time
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             view = layoutInflater.inflate(R.layout.explorer_row, null);
@@ -43,6 +43,8 @@ public class ExplorerAdapter implements ListAdapter {
             typeIcon.setImageDrawable(explorerItem.GetIcon());
             typeIcon.setVisibility(explorerItem.HasIcon() ? View.VISIBLE : View.GONE);
         }
+//        else
+//            explorerItem.view = parent.getChildAt(position); //Doing this here causes the explorer list to not highlight properly until a selection is made
 
         return view;
     }
