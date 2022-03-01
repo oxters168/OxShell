@@ -1,7 +1,6 @@
 package com.OxGames.OxShell;
 
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -12,8 +11,10 @@ public class SlideTouchHandler {
         float currentTouchY = 0;
         float prevTouchX = 0;
         float prevTouchY = 0;
-        float startTouchX = 0;
-        float startTouchY = 0;
+        float startX = 0;
+        float startY = 0;
+        float movingStartTouchX = 0;
+        float movingStartTouchY = 0;
 
         float slideSpreadDiv = 4f; //Lower number means it takes a larger area to reach max speed
 
@@ -57,16 +58,16 @@ public class SlideTouchHandler {
 
 //                float maxXPixels = HomeActivity.displayMetrics.widthPixels / data.slideSpreadDiv;
                 float maxXPixels = GetMaxPixels();
-                float diffX = data.startTouchX - data.currentTouchX;
+                float diffX = data.movingStartTouchX - data.currentTouchX;
 //                float percentX = CalculatePercentWithDeadzone(diffX, HomeActivity.displayMetrics.widthPixels);
 //                Log.d("Touch", "Start " + data.startTouchX + " current " + data.currentTouchX + " percent " + percentX + " diff " + diffX + " max " + maxXPixels);
                 if (Math.abs(diffX) > maxXPixels)
-                    data.startTouchX = data.currentTouchX + Math.signum(diffX) * maxXPixels; //Don't let start point stray further than the max distance
+                    data.movingStartTouchX = data.currentTouchX + Math.signum(diffX) * maxXPixels; //Don't let start point stray further than the max distance
 //                float maxYPixels = HomeActivity.displayMetrics.heightPixels / data.slideSpreadDiv;
                 float maxYPixels = GetMaxPixels();
-                float diffY = data.startTouchY - data.currentTouchY;
+                float diffY = data.movingStartTouchY - data.currentTouchY;
                 if (Math.abs(diffY) > maxYPixels)
-                    data.startTouchY = data.currentTouchY + Math.signum(diffY) * maxYPixels; //Don't let start point stray further than the max distance
+                    data.movingStartTouchY = data.currentTouchY + Math.signum(diffY) * maxYPixels; //Don't let start point stray further than the max distance
 
                 for (SlideTouchListener stl : touchListeners)
                     stl.onRequestInvalidate();
@@ -74,12 +75,16 @@ public class SlideTouchHandler {
                 break;
             case MotionEvent.ACTION_DOWN:
                 data.moved = false;
-                data.startTouchX = data.currentTouchX;
-                data.startTouchY = data.currentTouchY;
+                data.startX = data.currentTouchX;
+                data.startY = data.currentTouchY;
+                data.movingStartTouchX = data.currentTouchX;
+                data.movingStartTouchY = data.currentTouchY;
 //                Log.d("Touch", "Action_Down (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
             case MotionEvent.ACTION_UP:
-                if (!data.moved) {
+                float offsetX = Math.abs(data.currentTouchX - data.startX);
+                float offsetY = Math.abs(data.currentTouchY - data.startY);
+                if (!(data.moved && (offsetX > data.deadzone * GetMaxPixels() || offsetY > data.deadzone * GetMaxPixels()))) {
                     //Click
 //                    Log.d("Touch", "Clicked");
                     for (SlideTouchListener stl : touchListeners)
@@ -94,7 +99,7 @@ public class SlideTouchHandler {
         if (data.moved) {
 //            Log.d("Touch", "x " + diffX + " / " + HomeActivity.displayMetrics.widthPixels + " = " + percentScrollX);
 //            Log.d("Touch", "y " + diffY + " / " + HomeActivity.displayMetrics.heightPixels + " = " + percentScrollY);
-            float diffX = data.currentTouchX - data.startTouchX;
+            float diffX = data.currentTouchX - data.movingStartTouchX;
             float percentScrollX = CalculatePercentWithDeadzone(diffX);
             float stretchedFramesPerScrollX = (1 - percentScrollX) * data.millisPerScroll;
             if (percentScrollX > 0 && diffX > 0) {
@@ -113,7 +118,7 @@ public class SlideTouchHandler {
                 }
             }
 
-            float diffY = data.currentTouchY - data.startTouchY;
+            float diffY = data.currentTouchY - data.movingStartTouchY;
             float percentScrollY = CalculatePercentWithDeadzone(diffY);
             float stretchedFramesPerScrollY = (1 - percentScrollY) * data.millisPerScroll;
             if (percentScrollY > 0 && diffY > 0) {

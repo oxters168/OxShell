@@ -3,6 +3,7 @@ package com.OxGames.OxShell;
 import static androidx.core.content.ContextCompat.startActivity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
@@ -114,7 +115,12 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("Input", key_code + " " + key_event);
+        Log.d("ExplorerView", key_code + " " + key_event);
+        if (key_code == KeyEvent.KEYCODE_BUTTON_START || key_code == KeyEvent.KEYCODE_BACK) {
+            GoHome();
+            return false;
+        }
+
         if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
             MakeSelection();
             return false;
@@ -164,6 +170,11 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
         else {
             LaunchIntent(clickedItem);
         }
+    }
+
+    private void GoHome() {
+        Intent intent = new Intent(ExplorerActivity.GetInstance(), HomeActivity.class);
+        ExplorerActivity.GetInstance().startActivity(intent);
     }
     public void GoUp() {
         explorerBehaviour.GoUp();

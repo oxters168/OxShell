@@ -3,6 +3,8 @@ package com.OxGames.OxShell;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
@@ -30,13 +32,20 @@ public class HomeActivity extends Activity {
 
         setContentView(R.layout.activity_home);
 
-//        ((HomeView)instance.findViewById(R.id.home_view)).setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+//        findViewById(R.id.home_view).setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+        findViewById(R.id.home_view).requestFocusFromTouch();
 
         PackagesCache.SetContext(this);
         PackagesCache.PrepareDefaultLaunchIntents();
 
         displayMetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+    }
+
+    @Override
+    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+        Log.d("HomeActivity", key_code + " " + key_event);
+        return true;
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {

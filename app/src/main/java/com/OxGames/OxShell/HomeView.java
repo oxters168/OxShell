@@ -68,7 +68,7 @@ public class HomeView extends GridView implements SlideTouchListener {
     }
     @Override
     public void onClick() {
-        OpenExplorer();
+        MakeSelection();
     }
     @Override
     public void onSwipeDown() {
@@ -89,9 +89,9 @@ public class HomeView extends GridView implements SlideTouchListener {
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("Input", key_code + " " + key_event);
+        Log.d("HomeView", key_code + " " + key_event);
         if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
-            OpenExplorer();
+            MakeSelection();
             return false;
         }
         if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
@@ -164,6 +164,11 @@ public class HomeView extends GridView implements SlideTouchListener {
 //        Log.d("Home", "Left " + properPosition + " => " + prevIndex);
         SetProperPosition(prevIndex);
     }
+    public void MakeSelection() {
+        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        if (selectedItem.type == HomeItem.Type.explorer)
+            OpenExplorer();
+    }
     public void SetProperPosition(int pos) {
         properPosition = pos;
         setSelectionFromTop(pos, HomeActivity.displayMetrics != null ? (int)(HomeActivity.displayMetrics.heightPixels * 0.5) : 0);
@@ -172,16 +177,16 @@ public class HomeView extends GridView implements SlideTouchListener {
     public void RefreshShownItems() {
         ArrayList<HomeItem> homeItems = new ArrayList<>();
 
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Something"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Wong"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Wid"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Dis"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "View"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "Something"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "Wong"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "Wid"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "Dis"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "View"));
         homeItems.add(new HomeItem(HomeItem.Type.explorer, "Lol"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Out"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Of"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Stuff"));
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "GTG"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "Out"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "Of"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "Stuff"));
+        homeItems.add(new HomeItem(HomeItem.Type.none, "GTG"));
 
         HomeAdapter customAdapter = new HomeAdapter(getContext(), homeItems);
         setAdapter(customAdapter);
