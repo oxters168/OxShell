@@ -2,6 +2,7 @@ package com.OxGames.OxShell;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
@@ -10,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class PackagesCache {
-    private static Activity context;
+//    private static Activity context;
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
+    private static Hashtable<String, ApplicationInfo> appInfos = new Hashtable<>();
+    private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
 //    private static Hashtable<String, String> packageExtensionAssociations = new Hashtable<>();
 
     private static ArrayList<IntentLaunchData> launchIntents = new ArrayList<>();
@@ -39,13 +42,13 @@ public class PackagesCache {
         return null;
     }
 
-    public static void SetContext(Activity _context) {
-        context = _context;
-    }
+//    public static void SetContext(Activity _context) {
+//        context = _context;
+//    }
     public static Drawable GetPackageIcon(String packageName) {
         if (!packageIcons.containsKey(packageName)) {
             try {
-                Drawable icon = context.getPackageManager().getApplicationIcon(packageName);
+                Drawable icon = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().getApplicationIcon(packageName);
                 packageIcons.put(packageName, icon);
             }
             catch (PackageManager.NameNotFoundException e) {
@@ -57,6 +60,32 @@ public class PackagesCache {
         }
 
         return packageIcons.get(packageName);
+    }
+    public static ApplicationInfo GetPackageInfo(String packageName) {
+        ApplicationInfo appInfo = null;
+        if (!appInfos.containsKey(packageName)) {
+            PackageManager packageManager = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager();
+            try {
+                appInfo = packageManager.getApplicationInfo(packageName, 0);
+                appInfos.put(packageName, appInfo);
+            } catch (final PackageManager.NameNotFoundException e) {
+                Log.e("PackageCache", e.getMessage());
+            }
+        } else
+            appInfo = appInfos.get(packageName);
+        return appInfo;
+    }
+    public static String GetAppLabel(ApplicationInfo appInfo) {
+        String appLabel = null;
+        if (!appLabels.containsKey(appInfo)) {
+            PackageManager packageManager = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager();
+            appLabel = (String)packageManager.getApplicationLabel(appInfo);
+            if (appLabel != null)
+                appLabels.put(appInfo, appLabel);
+        }
+        else
+            appLabel = appLabels.get(appInfo);
+        return appLabel;
     }
     public static String GetPackageNameForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {

@@ -1,12 +1,11 @@
 package com.OxGames.OxShell;
 
-import android.app.Activity;
+import androidx.appcompat.app.ActionBar;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 
 import android.os.Build;
@@ -16,10 +15,17 @@ import android.content.pm.ResolveInfo;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class HomeActivity extends Activity {
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public class HomeActivity extends AppCompatActivity {
+    public enum Page { home, explorer, packages }
+    private Hashtable<Page, View> allPages;
     private static HomeActivity instance;
     private ArrayAdapter<String> intentsAdapter;
     public static DisplayMetrics displayMetrics;
@@ -32,14 +38,51 @@ public class HomeActivity extends Activity {
 
         setContentView(R.layout.activity_home);
 
-//        findViewById(R.id.home_view).setChoiceMode(AbsListView.CHOICE_MODE_NONE);
-        findViewById(R.id.home_view).requestFocusFromTouch();
+//        ((HomeView)findViewById(R.id.home_view)).setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+        //findViewById(R.id.home_view).requestFocusFromTouch();
+        InitViewsTable();
+        GoTo(Page.home);
 
-        PackagesCache.SetContext(this);
+        HideActionBar();
+
         PackagesCache.PrepareDefaultLaunchIntents();
 
         displayMetrics = new DisplayMetrics();
         this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Add an if statement later to optionally hide status bar
+        //HideStatusBar();
+    }
+
+    private void InitViewsTable() {
+        allPages = new Hashtable<>();
+        allPages.put(Page.home, findViewById(R.id.home_view));
+        allPages.put(Page.explorer, findViewById(R.id.explorer_list));
+        allPages.put(Page.packages, findViewById(R.id.packages_list));
+    }
+    public void GoTo(Page page) {
+        Set<Map.Entry<Page, View>> entrySet = allPages.entrySet();
+        for (Map.Entry<Page, View> entry : entrySet) {
+            entry.getValue().setVisibility(page == entry.getKey() ? View.VISIBLE : View.GONE);
+            if (page == entry.getKey())
+                entry.getValue().requestFocusFromTouch();
+        }
+    }
+
+    private void HideStatusBar() {
+        View decorView = getWindow().getDecorView();
+        // Hide the status bar.
+        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
+    private void HideActionBar() {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null)
+            actionBar.hide();
     }
 
     @Override
@@ -49,6 +92,7 @@ public class HomeActivity extends Activity {
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         for (PermissionsListener pl : permissionListeners) {
             pl.onPermissionResponse(requestCode, permissions, grantResults);
         }
@@ -70,84 +114,5 @@ public class HomeActivity extends Activity {
             Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
             startActivity(myIntent);
         }
-    }
-
-    public void listAllIntentsBtn(View view) {
-
-        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-//        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-//        mainIntent.addCategory(Intent.CATEGORY_ALTERNATIVE);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_BROWSER);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_CALCULATOR);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_CALENDAR);
-//        mainIntent.addCategory(Intent.CATEGORY_ACCESSIBILITY_SHORTCUT_TARGET);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_CONTACTS);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_EMAIL);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_FILES);
-        List<ResolveInfo> pkgAppsList = this.getPackageManager().queryIntentActivities( mainIntent, 0);
-        System.out.println("Found " + pkgAppsList.size() + " pkgs with given intent");
-//        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
-        TextView outputText = findViewById(R.id.output_text);
-        outputText.setText("Found " + pkgAppsList.size() + " pkgs");
-//        ArrayList<View> buttons = new ArrayList<>();
-        ArrayList<String> intentNames = new ArrayList<>();
-        for (int i = 0; i < pkgAppsList.size(); i++) {
-//            Button btnTag = new Button(this);
-//            btnTag.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//            btnTag.setText("Button");
-//            btnTag.setId(i);
-//            buttons.add(btnTag);
-            String activityName = pkgAppsList.get(i).activityInfo.packageName;//.name;
-            if (activityName != null)
-            intentNames.add(activityName);
-        }
-        intentsAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, intentNames);
-//        binding.intentsList.setAdapter(intentsAdapter);
-        ListView intentsList = findViewById(R.id.intents_list);
-        intentsList.setAdapter(intentsAdapter);
-
-//        Intent i = new Intent(Intent.ACTION_MAIN);
-//        i.addCategory(Intent.CATEGORY_LAUNCHER);
-//        mainIntent.setPackage("com.otherapp.package");
-//        startActivity(mainIntent);
-    }
-    public void listLauncherIntentsBtn(View view) {
-
-        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
-        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-//        mainIntent.addCategory(Intent.CATEGORY_ALTERNATIVE);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_BROWSER);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_CALCULATOR);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_CALENDAR);
-//        mainIntent.addCategory(Intent.CATEGORY_ACCESSIBILITY_SHORTCUT_TARGET);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_CONTACTS);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_EMAIL);
-//        mainIntent.addCategory(Intent.CATEGORY_APP_FILES);
-        List<ResolveInfo> pkgAppsList = this.getPackageManager().queryIntentActivities( mainIntent, 0);
-        System.out.println("Found " + pkgAppsList.size() + " pkgs with given intent");
-//        binding.outputText.setText("Found " + pkgAppsList.size() + " pkgs");
-        TextView outputText = findViewById(R.id.output_text);
-        outputText.setText("Found " + pkgAppsList.size() + " pkgs");
-//        ArrayList<View> buttons = new ArrayList<>();
-        ArrayList<String> intentNames = new ArrayList<>();
-        for (int i = 0; i < pkgAppsList.size(); i++) {
-//            Button btnTag = new Button(this);
-//            btnTag.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-//            btnTag.setText("Button");
-//            btnTag.setId(i);
-//            buttons.add(btnTag);
-            String activityName = pkgAppsList.get(i).activityInfo.packageName;//.name;
-            if (activityName != null)
-                intentNames.add(activityName);
-        }
-        intentsAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, intentNames);
-//        binding.intentsList.setAdapter(intentsAdapter);
-        ListView intentsList = findViewById(R.id.intents_list);
-        intentsList.setAdapter(intentsAdapter);
-
-//        Intent i = new Intent(Intent.ACTION_MAIN);
-//        i.addCategory(Intent.CATEGORY_LAUNCHER);
-//        mainIntent.setPackage("com.otherapp.package");
-//        startActivity(mainIntent);
     }
 }

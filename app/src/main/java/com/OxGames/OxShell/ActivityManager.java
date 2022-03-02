@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 
 public class ActivityManager {
-    public enum Page { home, explorer }
+    public enum Page { home }
     private static Page current = Page.home;
 
     public static void GoTo(Page page) {
@@ -20,16 +20,16 @@ public class ActivityManager {
         Activity activity = null;
         if (page == Page.home)
             activity = HomeActivity.GetInstance();
-        else if (page == Page.explorer)
-            activity = ExplorerActivity.GetInstance();
+//        else if (page == Page.explorer)
+//            activity = ExplorerActivity.GetInstance();
         return activity;
     }
     public static Class GetActivityClass(Page page) {
         Class cls = null;
         if (page == Page.home)
             cls = HomeActivity.class;
-        if (page == Page.explorer)
-            cls = ExplorerActivity.class;
+//        else if (page == Page.explorer)
+//            cls = ExplorerActivity.class;
         return cls;
     }
 }

@@ -114,7 +114,7 @@ public class HomeView extends GridView implements SlideTouchListener {
         }
         return true;
     }
-    private void HighlightSelection() {
+    public void HighlightSelection() {
         for (int i = 0; i < getCount(); i++) {
             View view = ((HomeItem)getItemAtPosition(i)).view;
 //            Log.d("HomeView", i + " " + view);
@@ -165,8 +165,14 @@ public class HomeView extends GridView implements SlideTouchListener {
     }
     public void MakeSelection() {
         HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
-        if (selectedItem.type == HomeItem.Type.explorer)
-            ActivityManager.GoTo(ActivityManager.Page.explorer);
+        if (selectedItem.type == HomeItem.Type.explorer) {
+//            ActivityManager.GoTo(ActivityManager.Page.explorer);
+            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
+        }
+        else if (selectedItem.type == HomeItem.Type.add) {
+//            ActivityManager.GoTo(ActivityManager.Page.explorer);
+            HomeActivity.GetInstance().GoTo(HomeActivity.Page.packages);
+        }
     }
     public void SetProperPosition(int pos) {
         properPosition = pos;

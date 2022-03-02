@@ -14,61 +14,6 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
-    <LinearLayout
-        android:id="@+id/apps_list_menu"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/find_all_intents"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:onClick="listAllIntentsBtn"
-                android:text="List All Apps"
-                android:textColor="#80D8FF" />
-
-            <Button
-                android:id="@+id/find_launcher_intents"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="listLauncherIntentsBtn"
-                android:text="List Apps" />
-
-            <Button
-                android:id="@+id/overlay_button"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:onClick="getOverlayPermissionBtn"
-                android:text="Get Overlay Permission"
-                android:textColor="#80D8FF" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/output_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <ListView
-            android:id="@+id/intents_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        </ListView>
-
-    </LinearLayout>
-
     <com.OxGames.OxShell.HomeView
         android:id="@+id/home_view"
         android:layout_width="match_parent"
@@ -79,5 +24,19 @@
         android:padding="16px"
         android:verticalSpacing="16px">
     </com.OxGames.OxShell.HomeView>
+
+    <com.OxGames.OxShell.ExplorerView
+        android:id="@+id/explorer_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbarStyle="insideInset"
+        android:visibility="gone">
+    </com.OxGames.OxShell.ExplorerView>
+
+    <com.OxGames.OxShell.PackagesView
+        android:id="@+id/packages_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"></com.OxGames.OxShell.PackagesView>
 
 </FrameLayout>

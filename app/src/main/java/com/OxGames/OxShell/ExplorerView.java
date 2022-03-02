@@ -2,46 +2,37 @@ package com.OxGames.OxShell;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.ListView;
 
 import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class ExplorerView extends ListView implements PermissionsListener, SlideTouchListener {
-
+public class ExplorerView extends SlideTouchListView implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
-    int properPosition = 0;
 
     public ExplorerView(Context context) {
         super(context);
-        slideTouch.AddListener(this);
-        ExplorerActivity.GetInstance().AddPermissionListener(this);
+        HomeActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        slideTouch.AddListener(this);
-        ExplorerActivity.GetInstance().AddPermissionListener(this);
+        HomeActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
 
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        slideTouch.AddListener(this);
-        ExplorerActivity.GetInstance().AddPermissionListener(this);
+        HomeActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
     }
@@ -67,99 +58,27 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
-        slideTouch.CheckForEvents();
-        HighlightSelection();
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return true;
-    }
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        slideTouch.Update(ev);
-        return true;
-    }
-
-    @Override
-    public void onRequestInvalidate() {
-        invalidate();
-    }
-    @Override
-    public void onClick() {
-        MakeSelection();
-    }
-    @Override
-    public void onSwipeUp() {
-        SelectPrevItem();
-    }
-    @Override
-    public void onSwipeDown() {
-        SelectNextItem();
-    }
-    @Override
-    public void onSwipeRight() {
-
-    }
-    @Override
-    public void onSwipeLeft() {
-
-    }
-
-
-    @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
         Log.d("ExplorerView", key_code + " " + key_event);
         if (key_code == KeyEvent.KEYCODE_BUTTON_START || key_code == KeyEvent.KEYCODE_BACK) {
-            ActivityManager.GoTo(ActivityManager.Page.home);
-            return false;
-        }
-
-        if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
-            MakeSelection();
+//            ActivityManager.GoTo(ActivityManager.Page.home);
+            HomeActivity.GetInstance().GoTo(HomeActivity.Page.home);
             return false;
         }
         if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
             GoUp();
             return false;
         }
-        if (key_code == KeyEvent.KEYCODE_DPAD_DOWN) {
-            SelectNextItem();
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_DPAD_UP) {
-            SelectPrevItem();
-            return false;
-        }
-        return true;
+
+        return super.onKeyDown(key_code, key_event);
     }
-    private void HighlightSelection() {
-        for (int i = 0; i < getCount(); i++) {
-            View view = ((ExplorerItem)getItemAtPosition(i)).view;
-            if (view != null)
-                view.setBackgroundResource((i == properPosition) ? R.color.scheme1 : R.color.light_blue_400);
-        }
-    }
-    public void SelectNextItem() {
-        int total = getCount();
-        int nextIndex = properPosition + 1;
-        if (nextIndex >= total)
-            nextIndex = total - 1;
-        SetProperPosition(nextIndex);
-    }
-    public void SelectPrevItem() {
-        int prevIndex = properPosition - 1;
-        if (prevIndex < 0)
-            prevIndex = 0;
-        SetProperPosition(prevIndex);
-    }
+
+    @Override
     public void MakeSelection() {
-        ExplorerItem clickedItem = (ExplorerItem)getItemAtPosition(properPosition);
-        if (clickedItem.isDir) {
-            explorerBehaviour.SetDirectory(clickedItem.absolutePath);
+        DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
+        File file = (File)clickedItem.obj;
+        if (file.isDirectory()) {
+            explorerBehaviour.SetDirectory(file.getAbsolutePath());
             RefreshExplorerList();
 //            SetProperPosition(0);
             TryHighlightPrevDir();
@@ -178,7 +97,7 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
     private void TryHighlightPrevDir() {
         String previousDir = explorerBehaviour.GetLastItemInHistory();
         for (int i = 0; i < getCount(); i++) {
-            String itemDir = ((ExplorerItem)getItemAtPosition(i)).absolutePath;
+            String itemDir = ((File)((DetailItem)getItemAtPosition(i)).obj).getAbsolutePath();
             if (itemDir.equalsIgnoreCase(previousDir)) {
                 requestFocusFromTouch();
                 SetProperPosition(i);
@@ -186,24 +105,17 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
             }
         }
     }
-    public void SetProperPosition(int pos) {
-//        Log.d("Explorer", "Setting position to " + pos);
-        properPosition = pos;
-        setSelectionFromTop(pos, HomeActivity.displayMetrics != null ? (int)(HomeActivity.displayMetrics.heightPixels * 0.5) : 0);
-//        setSelection(pos);
-//        HighlightSelection();
-    }
 
     private void RefreshExplorerList() {
-        ArrayList<ExplorerItem> arrayList = new ArrayList<>();
+        ArrayList<DetailItem> arrayList = new ArrayList<>();
         File[] files = explorerBehaviour.ListContents();
         boolean isEmpty = files == null || files.length <= 0;
         boolean hasParent = explorerBehaviour.HasParent();
         if (!isEmpty || hasParent) {
             if (hasParent)
-                arrayList.add(new ExplorerItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), explorerBehaviour.GetParent(), "..", true));
+                arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "..", "<dir>", new File(explorerBehaviour.GetParent())));
             if (explorerBehaviour.GetDirectory().equalsIgnoreCase("/storage/emulated"))
-                arrayList.add(new ExplorerItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "/storage/emulated/0", "0", true));
+                arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "0", "<dir>", new File("/storage/emulated/0")));
             if (!isEmpty) {
                 for (int i = 0; i < files.length; i++) {
                     String absolutePath = files[i].getAbsolutePath();
@@ -219,26 +131,23 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
                     else
                         icon = ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24);
 
-                    arrayList.add(new ExplorerItem(icon, absolutePath, files[i].getName(), files[i].isDirectory()));
+                    arrayList.add(new DetailItem(icon, files[i].getName(), files[i].isDirectory() ? "<dir>" : null, new File(absolutePath)));
                 }
             }
-            ExplorerAdapter customAdapter = new ExplorerAdapter(getContext(), arrayList, true);
+            DetailAdapter customAdapter = new DetailAdapter(getContext(), arrayList);
             setAdapter(customAdapter);
         }
         SetProperPosition(0);
-
-//        binding.emptyView.setVisibility((isEmpty && !hasParent) ? View.VISIBLE : View.GONE);
-//        setVisibility((isEmpty && !hasParent) ? View.GONE : View.VISIBLE);
     }
 
-    private void TryRun(ExplorerItem clickedItem) {
-        if (clickedItem.absolutePath.contains(".")) {
-            String extension = ExplorerBehaviour.GetExtension(clickedItem.absolutePath);
-
+    private void TryRun(DetailItem clickedItem) {
+        String absPath = ((File)clickedItem.obj).getAbsolutePath();
+        if (absPath.contains(".")) {
+            String extension = ExplorerBehaviour.GetExtension(absPath);
             IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
-                fileLaunchIntent.Launch(clickedItem.absolutePath);
+                fileLaunchIntent.Launch(absPath);
             }
             else
                 Log.e("Explorer", "No launch intent associated with extension " + extension);
@@ -246,35 +155,4 @@ public class ExplorerView extends ListView implements PermissionsListener, Slide
         else
             Log.e("Explorer", "Missing extension, could not identify file");
     }
-//    private void LaunchIntent(ExplorerItem clickedItem) {
-//        //Cheat sheet: http://p.cweiske.de/221
-////            IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
-////            launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
-//        if (clickedItem.absolutePath.contains(".")) {
-//            String extension = ExplorerBehaviour.GetExtension(clickedItem.absolutePath);
-//
-//            IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
-//
-//            if (fileLaunchIntent != null) {
-//                IntentLaunchData.DataType dataType = fileLaunchIntent.GetDataType();
-//                String data = null;
-//                if (dataType == IntentLaunchData.DataType.AbsolutePath)
-//                    data = clickedItem.absolutePath;
-//
-//                IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
-//                String[] extrasValues = null;
-//                if (extras != null && extras.length > 0) {
-//                    extrasValues = new String[extras.length];
-//                    for (int i = 0; i < extras.length; i++)
-//                        if (extras[i].GetExtraType() == IntentLaunchData.DataType.AbsolutePath)
-//                            extrasValues[i] = clickedItem.absolutePath;
-//                }
-//                startActivity(getContext(), fileLaunchIntent.BuildIntent(data, extrasValues), null);
-//            }
-//            else
-//                Log.e("Explorer", "No launch intent associated with extension " + extension);
-//        }
-//        else
-//            Log.e("Explorer", "Missing extension, could not identify file");
-//    }
 }

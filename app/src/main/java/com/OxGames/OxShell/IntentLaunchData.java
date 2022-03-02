@@ -20,6 +20,9 @@ public class IntentLaunchData {
     private ArrayList<IntentPutExtra> extras;
     private DataType dataType = DataType.None;
 
+    public IntentLaunchData(String _packageName) {
+        packageName = _packageName;
+    }
     public IntentLaunchData(String _action, String _packageName, String _className, String[] extensions) {
         action = _action;
         packageName = _packageName;
@@ -53,18 +56,21 @@ public class IntentLaunchData {
         return BuildIntent(null, null);
     }
     public Intent BuildIntent(String data, String[] extrasValues) {
-        Intent intent = new Intent();
-        if (action != null && !action.isEmpty())
-            intent.setAction(action);
-        if (className != null && !className.isEmpty())
-            intent.setComponent(new ComponentName(packageName, className));
-        else if (packageName != null && !packageName.isEmpty())
-            intent.setPackage(packageName);
-        for (int i = 0; i < extras.size(); i++)
-            intent.putExtra(extras.get(i).GetName(), extrasValues[i]);
-        if (data != null && !data.isEmpty())
-            intent.setData(Uri.parse(data));
-        return intent;
+        if (action != null && !action.isEmpty()) {
+            Intent intent = new Intent();
+            if (action != null && !action.isEmpty())
+                intent.setAction(action);
+            if (className != null && !className.isEmpty())
+                intent.setComponent(new ComponentName(packageName, className));
+            else if (packageName != null && !packageName.isEmpty())
+                intent.setPackage(packageName);
+            for (int i = 0; i < extras.size(); i++)
+                intent.putExtra(extras.get(i).GetName(), extrasValues[i]);
+            if (data != null && !data.isEmpty())
+                intent.setData(Uri.parse(data));
+            return intent;
+        } else
+            return ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().getLaunchIntentForPackage(packageName);
     }
 
     public void AddExtra(IntentPutExtra extra) {

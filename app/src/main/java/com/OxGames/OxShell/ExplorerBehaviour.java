@@ -1,6 +1,7 @@
 package com.OxGames.OxShell;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.util.Log;
@@ -80,7 +81,8 @@ public class ExplorerBehaviour {
     }
 
     public void GrantStoragePermission() {
-        if(ContextCompat.checkSelfPermission(ExplorerActivity.GetInstance(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(ExplorerActivity.GetInstance(), new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+        Activity currentActivity = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent());
+        if(ContextCompat.checkSelfPermission(currentActivity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(currentActivity, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
     }
 }
