@@ -29,6 +29,7 @@ public class SlideTouchHandler {
 //        int framesPerScroll = 24;
         int millisPerScroll = 1000; //How frequently repeated events should be sent (once per given milliseconds)
         boolean moved = false;
+        boolean movedBeyondDeadZone = false;
     }
     private TouchData data;
     private ArrayList<SlideTouchListener> touchListeners = new ArrayList<>();
@@ -63,11 +64,16 @@ public class SlideTouchHandler {
 //                Log.d("Touch", "Start " + data.startTouchX + " current " + data.currentTouchX + " percent " + percentX + " diff " + diffX + " max " + maxXPixels);
                 if (Math.abs(diffX) > maxXPixels)
                     data.movingStartTouchX = data.currentTouchX + Math.signum(diffX) * maxXPixels; //Don't let start point stray further than the max distance
+                if (Math.abs(diffX) > maxXPixels * data.deadzone)
+                    data.movedBeyondDeadZone = true;
+
 //                float maxYPixels = HomeActivity.displayMetrics.heightPixels / data.slideSpreadDiv;
                 float maxYPixels = GetMaxPixels();
                 float diffY = data.movingStartTouchY - data.currentTouchY;
                 if (Math.abs(diffY) > maxYPixels)
                     data.movingStartTouchY = data.currentTouchY + Math.signum(diffY) * maxYPixels; //Don't let start point stray further than the max distance
+                if (Math.abs(diffY) > maxYPixels * data.deadzone)
+                    data.movedBeyondDeadZone = true;
 
                 for (SlideTouchListener stl : touchListeners)
                     stl.onRequestInvalidate();
@@ -75,6 +81,7 @@ public class SlideTouchHandler {
                 break;
             case MotionEvent.ACTION_DOWN:
                 data.moved = false;
+                data.movedBeyondDeadZone = false;
                 data.startX = data.currentTouchX;
                 data.startY = data.currentTouchY;
                 data.movingStartTouchX = data.currentTouchX;
@@ -84,13 +91,14 @@ public class SlideTouchHandler {
             case MotionEvent.ACTION_UP:
                 float offsetX = Math.abs(data.currentTouchX - data.startX);
                 float offsetY = Math.abs(data.currentTouchY - data.startY);
-                if (!(data.moved && (offsetX > data.deadzone * GetMaxPixels() || offsetY > data.deadzone * GetMaxPixels()))) {
+                if (!(data.movedBeyondDeadZone || offsetX > data.deadzone * GetMaxPixels() || offsetY > data.deadzone * GetMaxPixels())) {
                     //Click
 //                    Log.d("Touch", "Clicked");
                     for (SlideTouchListener stl : touchListeners)
                         stl.onClick();
                 }
                 data.moved = false;
+                data.movedBeyondDeadZone = false;
 //                Log.d("Touch", "Action_Up (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
         }

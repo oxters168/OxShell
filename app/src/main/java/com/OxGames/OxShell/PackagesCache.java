@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
@@ -11,12 +12,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 
 public class PackagesCache {
-//    private static Activity context;
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
     private static Hashtable<String, ApplicationInfo> appInfos = new Hashtable<>();
     private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
-//    private static Hashtable<String, String> packageExtensionAssociations = new Hashtable<>();
-
     private static ArrayList<IntentLaunchData> launchIntents = new ArrayList<>();
 
     public static void PrepareDefaultLaunchIntents() {
@@ -42,14 +40,12 @@ public class PackagesCache {
         return null;
     }
 
-//    public static void SetContext(Activity _context) {
-//        context = _context;
-//    }
     public static Drawable GetPackageIcon(String packageName) {
+        Drawable pkgIcon = null;
         if (!packageIcons.containsKey(packageName)) {
             try {
-                Drawable icon = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().getApplicationIcon(packageName);
-                packageIcons.put(packageName, icon);
+                pkgIcon = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().getApplicationIcon(packageName);
+                packageIcons.put(packageName, pkgIcon);
             }
             catch (PackageManager.NameNotFoundException e) {
                 Log.e("PackageCache", e.getMessage());
@@ -57,9 +53,14 @@ public class PackagesCache {
             catch (Exception e) {
                 Log.e("PackageCache", e.getMessage());
             }
-        }
+        } else
+            pkgIcon = packageIcons.get(packageName);
 
-        return packageIcons.get(packageName);
+        return pkgIcon;
+    }
+    public static Drawable GetPackageIcon(ResolveInfo rslvInfo) {
+        String pkgName = rslvInfo.activityInfo.packageName;
+        return GetPackageIcon(pkgName);
     }
     public static ApplicationInfo GetPackageInfo(String packageName) {
         ApplicationInfo appInfo = null;
@@ -87,6 +88,17 @@ public class PackagesCache {
             appLabel = appLabels.get(appInfo);
         return appLabel;
     }
+    public static String GetAppLabel(ResolveInfo rslvInfo) {
+        String appName = null;
+        String pkgName = rslvInfo.activityInfo.packageName;
+        if (pkgName != null) {
+            ApplicationInfo pkgInfo = PackagesCache.GetPackageInfo(pkgName);
+            if (pkgInfo != null)
+                appName = GetAppLabel(pkgInfo);
+//            intentNames.add(new DetailItem(PackagesCache.GetPackageIcon(pkgName), appName, null, pkgAppsList.get(i)));
+        }
+        return appName;
+    }
     public static String GetPackageNameForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {
             IntentLaunchData currentLaunchIntent = launchIntents.get(i);
@@ -95,9 +107,5 @@ public class PackagesCache {
             }
         }
         return null;
-//        if (!packageExtensionAssociations.containsKey(extension)) {
-//
-//        }
-//        return packageExtensionAssociations.get(extension);
     }
 }

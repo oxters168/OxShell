@@ -42,9 +42,7 @@ public class PackagesView extends SlideTouchListView {
     @Override
     public void MakeSelection() {
         ResolveInfo rsvInfo = (ResolveInfo)((DetailItem)getItemAtPosition(properPosition)).obj;
-//        HomeActivity.GetInstance().getPackageManager().getLaunchIntentForPackage()
-        IntentLaunchData selectedPkg = new IntentLaunchData(rsvInfo.activityInfo.packageName);
-        selectedPkg.Launch();
+        HomeManager.AddItem(new HomeItem(HomeItem.Type.app, PackagesCache.GetAppLabel(rsvInfo), rsvInfo));
     }
 
     public void RefreshPackages(String[] categories) {
@@ -52,17 +50,11 @@ public class PackagesView extends SlideTouchListView {
         for (int i = 0; i < categories.length; i++)
             mainIntent.addCategory(categories[i]);
 
-        List<ResolveInfo> pkgAppsList = HomeActivity.GetInstance().getPackageManager().queryIntentActivities( mainIntent, 0);
         ArrayList<DetailItem> intentNames = new ArrayList<>();
+        List<ResolveInfo> pkgAppsList = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().queryIntentActivities(mainIntent, 0);
         for (int i = 0; i < pkgAppsList.size(); i++) {
-            String pkgName = pkgAppsList.get(i).activityInfo.packageName;
-            if (pkgName != null) {
-                ApplicationInfo pkgInfo = PackagesCache.GetPackageInfo(pkgName);
-                String appName = "???";
-                if (pkgInfo != null)
-                    appName = PackagesCache.GetAppLabel(pkgInfo);
-                intentNames.add(new DetailItem(PackagesCache.GetPackageIcon(pkgName), appName, null, pkgAppsList.get(i)));
-            }
+            ResolveInfo currentPkg = pkgAppsList.get(i);
+            intentNames.add(new DetailItem(PackagesCache.GetPackageIcon(currentPkg), PackagesCache.GetAppLabel(currentPkg), null, currentPkg));
         }
         DetailAdapter intentsAdapter = new DetailAdapter(getContext(), intentNames);
         setAdapter(intentsAdapter);

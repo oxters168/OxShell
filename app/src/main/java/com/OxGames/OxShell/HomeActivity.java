@@ -38,12 +38,11 @@ public class HomeActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_home);
 
-//        ((HomeView)findViewById(R.id.home_view)).setChoiceMode(AbsListView.CHOICE_MODE_NONE);
-        //findViewById(R.id.home_view).requestFocusFromTouch();
-        InitViewsTable();
-        GoTo(Page.home);
-
         HideActionBar();
+
+        InitViewsTable();
+        HomeManager.InitItems();
+        GoTo(Page.home);
 
         PackagesCache.PrepareDefaultLaunchIntents();
 
@@ -71,6 +70,9 @@ public class HomeActivity extends AppCompatActivity {
             if (page == entry.getKey())
                 entry.getValue().requestFocusFromTouch();
         }
+    }
+    public void RefreshHome() {
+        ((HomeView)allPages.get(Page.home)).RefreshShownItems();
     }
 
     private void HideStatusBar() {

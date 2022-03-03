@@ -3,6 +3,7 @@ package com.OxGames.OxShell;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -168,8 +169,9 @@ public class HomeView extends GridView implements SlideTouchListener {
         if (selectedItem.type == HomeItem.Type.explorer) {
 //            ActivityManager.GoTo(ActivityManager.Page.explorer);
             HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
-        }
-        else if (selectedItem.type == HomeItem.Type.add) {
+        } else if (selectedItem.type == HomeItem.Type.app) {
+            (new IntentLaunchData(((ResolveInfo)selectedItem.obj).activityInfo.packageName)).Launch();
+        } else if (selectedItem.type == HomeItem.Type.add) {
 //            ActivityManager.GoTo(ActivityManager.Page.explorer);
             HomeActivity.GetInstance().GoTo(HomeActivity.Page.packages);
         }
@@ -180,9 +182,9 @@ public class HomeView extends GridView implements SlideTouchListener {
     }
 
     public void RefreshShownItems() {
-        ArrayList<HomeItem> homeItems = new ArrayList<>();
+        ArrayList<HomeItem> homeItems = HomeManager.GetItems();
 
-        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
+//        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
         //Get added items and place in home
         homeItems.add(new HomeItem(HomeItem.Type.add));
 
