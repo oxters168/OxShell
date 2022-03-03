@@ -1,6 +1,4 @@
 <resources>
     <string name="app_name">OxShell</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_explorer">ExplorerActivity</string>
-    <string name="dummy_button">Dummy Button</string>
 </resources>
