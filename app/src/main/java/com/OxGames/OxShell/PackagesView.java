@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Configuration;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,15 +17,15 @@ import java.util.List;
 public class PackagesView extends SlideTouchListView {
     public PackagesView(Context context) {
         super(context);
-        RefreshPackages(new String[] { Intent.CATEGORY_LAUNCHER });
+        RefreshPackages();
     }
     public PackagesView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        RefreshPackages(new String[] { Intent.CATEGORY_LAUNCHER });
+        RefreshPackages();
     }
     public PackagesView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        RefreshPackages(new String[] { Intent.CATEGORY_LAUNCHER });
+        RefreshPackages();
     }
 
     @Override
@@ -38,13 +40,31 @@ public class PackagesView extends SlideTouchListView {
         return super.onKeyDown(key_code, key_event);
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        int storedPos = properPosition;
+        RefreshPackages();
+        SetProperPosition(storedPos);
+
+        // Checks the orientation of the screen
+//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "landscape", Toast.LENGTH_SHORT).show();
+//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "portrait", Toast.LENGTH_SHORT).show();
+//        }
+    }
 
     @Override
     public void MakeSelection() {
         ResolveInfo rsvInfo = (ResolveInfo)((DetailItem)getItemAtPosition(properPosition)).obj;
         HomeManager.AddItem(new HomeItem(HomeItem.Type.app, PackagesCache.GetAppLabel(rsvInfo), rsvInfo));
+        Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();
     }
 
+    public void RefreshPackages() {
+        RefreshPackages(new String[] { Intent.CATEGORY_LAUNCHER });
+    }
     public void RefreshPackages(String[] categories) {
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         for (int i = 0; i < categories.length; i++)

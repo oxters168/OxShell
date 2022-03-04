@@ -1,6 +1,8 @@
 package com.OxGames.OxShell;
 
 import androidx.appcompat.app.ActionBar;
+
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -14,6 +16,7 @@ import android.provider.Settings;
 import android.content.pm.ResolveInfo;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -27,7 +30,6 @@ public class HomeActivity extends AppCompatActivity {
     public enum Page { home, explorer, packages }
     private Hashtable<Page, View> allPages;
     private static HomeActivity instance;
-    private ArrayAdapter<String> intentsAdapter;
     public static DisplayMetrics displayMetrics;
     private List<PermissionsListener> permissionListeners = new ArrayList<>();
 
@@ -46,8 +48,7 @@ public class HomeActivity extends AppCompatActivity {
 
         PackagesCache.PrepareDefaultLaunchIntents();
 
-        displayMetrics = new DisplayMetrics();
-        this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        RefreshDisplayMetrics();
     }
 
     @Override
@@ -55,6 +56,23 @@ public class HomeActivity extends AppCompatActivity {
         super.onResume();
         //Add an if statement later to optionally hide status bar
         //HideStatusBar();
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        RefreshDisplayMetrics();
+
+        // Checks the orientation of the screen
+//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+//            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
+//        }
+    }
+
+    public void RefreshDisplayMetrics() {
+        displayMetrics = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
     }
 
     private void InitViewsTable() {

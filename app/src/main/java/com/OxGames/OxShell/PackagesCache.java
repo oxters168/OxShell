@@ -26,9 +26,22 @@ public class PackagesCache {
         //            Log.d("Intent", gbaJSON);
         //            gbaLaunchIntent = gson.fromJson(gbaJSON, IntentLaunchData.class);
         launchIntents.add(gbaLaunchIntent);
+
         IntentLaunchData ndsLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" });
         ndsLaunchIntent.AddExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(ndsLaunchIntent);
+
+        IntentLaunchData pspLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso" });
+        pspLaunchIntent.AddExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
+        launchIntents.add(pspLaunchIntent);
+
+        IntentLaunchData ps2LaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "chd" });
+        ps2LaunchIntent.AddExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
+        launchIntents.add(ps2LaunchIntent);
+
+        IntentLaunchData threedsLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "cxi" });
+        threedsLaunchIntent.AddExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
+        launchIntents.add(threedsLaunchIntent);
     }
     public static IntentLaunchData GetLaunchDataForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {

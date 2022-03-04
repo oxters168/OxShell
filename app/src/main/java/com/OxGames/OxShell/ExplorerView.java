@@ -2,10 +2,13 @@ package com.OxGames.OxShell;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
@@ -35,6 +38,21 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         HomeActivity.GetInstance().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         RefreshExplorerList();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        int storedPos = properPosition;
+        RefreshExplorerList();
+        SetProperPosition(storedPos);
+
+        // Checks the orientation of the screen
+//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "landscape", Toast.LENGTH_SHORT).show();
+//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "portrait", Toast.LENGTH_SHORT).show();
+//        }
     }
 
     @Override
@@ -147,7 +165,43 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
-                fileLaunchIntent.Launch(absPath);
+                String nameWithExt = ((File)clickedItem.obj).getName();
+                String nameWithoutExt = nameWithExt.substring(0, nameWithExt.lastIndexOf("."));
+
+                String[] extrasValues = null;
+                IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
+                if (extras != null && extras.length > 0) {
+                    extrasValues = new String[extras.length];
+                    for (int i = 0; i < extras.length; i++) {
+                        IntentPutExtra current = extras[i];
+                        if (current.GetExtraType() == IntentLaunchData.DataType.AbsolutePath)
+                            extrasValues[i] = absPath;
+                        else if (current.GetExtraType() == IntentLaunchData.DataType.FileNameWithExt)
+                            extrasValues[i] = nameWithExt;
+                        else if (current.GetExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                            extrasValues[i] = nameWithoutExt;
+//                        else if (current.GetExtraType() == IntentLaunchData.DataType.Uri) {
+//                            String uri = Uri.parse(absPath).getScheme();
+//                            Log.d("Explorer", "Passing " + uri);
+//                            extrasValues[i] = uri;
+//                        }
+                    }
+                }
+
+                String data = null;
+                if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.AbsolutePath)
+                    data = absPath;
+                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.FileNameWithExt)
+                    data = nameWithExt;
+                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                    data = nameWithoutExt;
+//                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.Uri) {
+//                    String uri = Uri.parse(absPath).getScheme();
+//                    Log.d("Explorer", "Passing " + uri);
+//                    data = uri;
+//                }
+
+                fileLaunchIntent.Launch(data, extrasValues);
             }
             else
                 Log.e("Explorer", "No launch intent associated with extension " + extension);
