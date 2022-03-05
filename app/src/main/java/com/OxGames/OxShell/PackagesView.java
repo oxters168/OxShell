@@ -30,8 +30,8 @@ public class PackagesView extends SlideTouchListView {
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        Log.d("ExplorerView", key_code + " " + key_event);
-        if (key_code == KeyEvent.KEYCODE_BUTTON_START || key_code == KeyEvent.KEYCODE_BACK) {
+//        Log.d("ExplorerView", key_code + " " + key_event);
+        if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
 //            ActivityManager.GoTo(ActivityManager.Page.home);
             HomeActivity.GetInstance().GoTo(HomeActivity.Page.home);
             return false;
@@ -57,8 +57,10 @@ public class PackagesView extends SlideTouchListView {
 
     @Override
     public void MakeSelection() {
-        ResolveInfo rsvInfo = (ResolveInfo)((DetailItem)getItemAtPosition(properPosition)).obj;
-        HomeManager.AddItem(new HomeItem(HomeItem.Type.app, PackagesCache.GetAppLabel(rsvInfo), rsvInfo));
+        DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
+        ResolveInfo rsvInfo = PackagesCache.GetResolveInfo((String)currentItem.obj);
+        Log.d("PackagesView", (String)currentItem.obj);
+        HomeManager.AddItemAndSave(new HomeItem(HomeItem.Type.app, PackagesCache.GetAppLabel(rsvInfo), (String)currentItem.obj));
         Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();
     }
 
@@ -74,7 +76,7 @@ public class PackagesView extends SlideTouchListView {
         List<ResolveInfo> pkgAppsList = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().queryIntentActivities(mainIntent, 0);
         for (int i = 0; i < pkgAppsList.size(); i++) {
             ResolveInfo currentPkg = pkgAppsList.get(i);
-            intentNames.add(new DetailItem(PackagesCache.GetPackageIcon(currentPkg), PackagesCache.GetAppLabel(currentPkg), null, currentPkg));
+            intentNames.add(new DetailItem(PackagesCache.GetPackageIcon(currentPkg), PackagesCache.GetAppLabel(currentPkg), null, currentPkg.activityInfo.packageName));
         }
         DetailAdapter intentsAdapter = new DetailAdapter(getContext(), intentNames);
         setAdapter(intentsAdapter);

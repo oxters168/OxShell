@@ -106,7 +106,7 @@ public class HomeView extends GridView implements SlideTouchListener {
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        Log.d("HomeView", key_code + " " + key_event);
+//        Log.d("HomeView", key_code + " " + key_event);
         if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
             MakeSelection();
             return false;
@@ -187,7 +187,7 @@ public class HomeView extends GridView implements SlideTouchListener {
 //            ActivityManager.GoTo(ActivityManager.Page.explorer);
             HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
         } else if (selectedItem.type == HomeItem.Type.app) {
-            (new IntentLaunchData(((ResolveInfo)selectedItem.obj).activityInfo.packageName)).Launch();
+            (new IntentLaunchData((String)selectedItem.obj)).Launch();
         } else if (selectedItem.type == HomeItem.Type.add) {
 //            ActivityManager.GoTo(ActivityManager.Page.explorer);
             HomeActivity.GetInstance().GoTo(HomeActivity.Page.packages);

@@ -107,7 +107,7 @@ public class HomeActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        Log.d("HomeActivity", key_code + " " + key_event);
+//        Log.d("HomeActivity", key_code + " " + key_event);
         return true;
     }
     @Override

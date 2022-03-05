@@ -14,6 +14,7 @@ import java.util.LinkedList;
 
 public class ExplorerBehaviour {
     public static final int READ_EXTERNAL_STORAGE = 100;
+    public static final int WRITE_EXTERNAL_STORAGE = 101;
     private LinkedList<String> history;
     private int maxHistory = 100;
     private File current;
@@ -60,7 +61,7 @@ public class ExplorerBehaviour {
         return current.getAbsolutePath();
     }
     public File[] ListContents() {
-        GrantStoragePermission();
+        GrantReadStoragePermission();
         return current.listFiles();
     }
 
@@ -80,9 +81,14 @@ public class ExplorerBehaviour {
         return extension;
     }
 
-    public void GrantStoragePermission() {
+    public static void GrantReadStoragePermission() {
         Activity currentActivity = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent());
         if(ContextCompat.checkSelfPermission(currentActivity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
             ActivityCompat.requestPermissions(currentActivity, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+    }
+    public static void GrantWriteStoragePermission() {
+        Activity currentActivity = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent());
+        if(ContextCompat.checkSelfPermission(currentActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+            ActivityCompat.requestPermissions(currentActivity, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
     }
 }

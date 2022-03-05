@@ -77,13 +77,13 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        Log.d("ExplorerView", key_code + " " + key_event);
-        if (key_code == KeyEvent.KEYCODE_BUTTON_START || key_code == KeyEvent.KEYCODE_BACK) {
+//        Log.d("ExplorerView", key_code + " " + key_event);
+        if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
 //            ActivityManager.GoTo(ActivityManager.Page.home);
             HomeActivity.GetInstance().GoTo(HomeActivity.Page.home);
             return false;
         }
-        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
+        if (key_code == KeyEvent.KEYCODE_BUTTON_Y) {
             GoUp();
             return false;
         }

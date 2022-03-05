@@ -112,6 +112,9 @@ public class PackagesCache {
         }
         return appName;
     }
+    public static ResolveInfo GetResolveInfo(String packageName) {
+        return ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().resolveActivity(new IntentLaunchData(packageName).BuildIntent(), 0);
+    }
     public static String GetPackageNameForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {
             IntentLaunchData currentLaunchIntent = launchIntents.get(i);

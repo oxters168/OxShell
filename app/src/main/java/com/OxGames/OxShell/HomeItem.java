@@ -6,12 +6,16 @@ import android.view.View;
 
 import androidx.core.content.ContextCompat;
 
-public class HomeItem {
-    public enum Type { explorer, app, add, }
+import java.io.Serializable;
+import java.util.ArrayList;
+
+public class HomeItem implements Serializable {
+    public enum Type { explorer, app, assoc, add, }
     Type type;
     String title;
     Object obj;
-    View view;
+    transient View view;
+    ArrayList<String> extraData;
 
     public HomeItem(Type _type) {
         type = _type;
@@ -30,7 +34,7 @@ public class HomeItem {
         if (type == Type.explorer)
             icon = ContextCompat.getDrawable(HomeActivity.GetInstance(), R.drawable.ic_baseline_source_24);
         else if (type == Type.app)
-            icon = PackagesCache.GetPackageIcon((ResolveInfo)obj);
+            icon = PackagesCache.GetPackageIcon((String)obj);
         else if (type == Type.add)
             icon = ContextCompat.getDrawable(HomeActivity.GetInstance(), R.drawable.ic_baseline_add_circle_outline_24);
         return icon;
