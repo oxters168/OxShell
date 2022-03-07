@@ -19,7 +19,7 @@ public class PackagesCache {
 
     public static void PrepareDefaultLaunchIntents() {
         //Cheat sheet: http://p.cweiske.de/221
-        IntentLaunchData gbaLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
+        IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
         gbaLaunchIntent.SetDataType(IntentLaunchData.DataType.AbsolutePath);
         //            Gson gson = new Gson();
         //            String gbaJSON = gson.toJson(gbaLaunchIntent);
@@ -27,21 +27,26 @@ public class PackagesCache {
         //            gbaLaunchIntent = gson.fromJson(gbaJSON, IntentLaunchData.class);
         launchIntents.add(gbaLaunchIntent);
 
-        IntentLaunchData ndsLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" });
+        IntentLaunchData ndsLaunchIntent = new IntentLaunchData("NDS", Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" });
         ndsLaunchIntent.AddExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(ndsLaunchIntent);
 
-        IntentLaunchData pspLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso" });
+        IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso" });
         pspLaunchIntent.AddExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(pspLaunchIntent);
 
-        IntentLaunchData ps2LaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "chd" });
+        IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "chd" });
         ps2LaunchIntent.AddExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(ps2LaunchIntent);
 
-        IntentLaunchData threedsLaunchIntent = new IntentLaunchData(Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "cxi" });
+        IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "cxi" });
         threedsLaunchIntent.AddExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(threedsLaunchIntent);
+    }
+    public static IntentLaunchData[] GetStoredIntents() {
+        IntentLaunchData[] intents = new IntentLaunchData[launchIntents.size()];
+        intents = launchIntents.toArray(intents);
+        return intents;
     }
     public static IntentLaunchData GetLaunchDataForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {
@@ -57,7 +62,7 @@ public class PackagesCache {
         Drawable pkgIcon = null;
         if (!packageIcons.containsKey(packageName)) {
             try {
-                pkgIcon = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().getApplicationIcon(packageName);
+                pkgIcon = ActivityManager.GetCurrentActivity().getPackageManager().getApplicationIcon(packageName);
                 packageIcons.put(packageName, pkgIcon);
             }
             catch (PackageManager.NameNotFoundException e) {
@@ -78,7 +83,7 @@ public class PackagesCache {
     public static ApplicationInfo GetPackageInfo(String packageName) {
         ApplicationInfo appInfo = null;
         if (!appInfos.containsKey(packageName)) {
-            PackageManager packageManager = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager();
+            PackageManager packageManager = ActivityManager.GetCurrentActivity().getPackageManager();
             try {
                 appInfo = packageManager.getApplicationInfo(packageName, 0);
                 appInfos.put(packageName, appInfo);
@@ -92,7 +97,7 @@ public class PackagesCache {
     public static String GetAppLabel(ApplicationInfo appInfo) {
         String appLabel = null;
         if (!appLabels.containsKey(appInfo)) {
-            PackageManager packageManager = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager();
+            PackageManager packageManager = ActivityManager.GetCurrentActivity().getPackageManager();
             appLabel = (String)packageManager.getApplicationLabel(appInfo);
             if (appLabel != null)
                 appLabels.put(appInfo, appLabel);
@@ -113,7 +118,7 @@ public class PackagesCache {
         return appName;
     }
     public static ResolveInfo GetResolveInfo(String packageName) {
-        return ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().resolveActivity(new IntentLaunchData(packageName).BuildIntent(), 0);
+        return ActivityManager.GetCurrentActivity().getPackageManager().resolveActivity(new IntentLaunchData(packageName).BuildIntent(), 0);
     }
     public static String GetPackageNameForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {

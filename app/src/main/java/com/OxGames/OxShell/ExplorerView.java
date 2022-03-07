@@ -4,11 +4,9 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
@@ -21,30 +19,32 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     public ExplorerView(Context context) {
         super(context);
-        HomeActivity.GetInstance().AddPermissionListener(this);
+        ActivityManager.GetCurrentActivity().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
-        RefreshExplorerList();
+        Refresh();
     }
 
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        HomeActivity.GetInstance().AddPermissionListener(this);
+        PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
+        Log.d("ExplorerView", currentActivity.toString());
+        currentActivity.AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
-        RefreshExplorerList();
+        Refresh();
     }
 
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        HomeActivity.GetInstance().AddPermissionListener(this);
+        ActivityManager.GetCurrentActivity().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
-        RefreshExplorerList();
+        Refresh();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         int storedPos = properPosition;
-        RefreshExplorerList();
+        Refresh();
         SetProperPosition(storedPos);
 
         // Checks the orientation of the screen
@@ -63,7 +63,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 // Permission is granted. Continue the action or workflow
                 // in your app.
                 Log.d("Explorer", "Storage permission granted");
-                RefreshExplorerList();
+                Refresh();
             }  else {
                 // Explain to the user that the feature is unavailable because
                 // the features requires a permission that the user has denied.
@@ -79,8 +79,8 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
 //        Log.d("ExplorerView", key_code + " " + key_event);
         if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
+            ActivityManager.GoTo(ActivityManager.Page.home);
 //            ActivityManager.GoTo(ActivityManager.Page.home);
-            HomeActivity.GetInstance().GoTo(HomeActivity.Page.home);
             return false;
         }
         if (key_code == KeyEvent.KEYCODE_BUTTON_Y) {
@@ -97,7 +97,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         File file = (File)clickedItem.obj;
         if (file.isDirectory()) {
             explorerBehaviour.SetDirectory(file.getAbsolutePath());
-            RefreshExplorerList();
+            Refresh();
 //            SetProperPosition(0);
             TryHighlightPrevDir();
         }
@@ -108,7 +108,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     public void GoUp() {
         explorerBehaviour.GoUp();
-        RefreshExplorerList();
+        Refresh();
 //        SetProperPosition(0);
         TryHighlightPrevDir();
     }
@@ -123,8 +123,8 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             }
         }
     }
-
-    private void RefreshExplorerList() {
+    @Override
+    public void Refresh() {
         ArrayList<DetailItem> arrayList = new ArrayList<>();
         File[] files = explorerBehaviour.ListContents();
         boolean isEmpty = files == null || files.length <= 0;

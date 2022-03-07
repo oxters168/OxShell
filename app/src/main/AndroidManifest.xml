@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.OxGames.OxShell">
-
-<!--    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />-->
+    <!-- <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" /> -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
@@ -16,10 +15,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OxShell">
         <activity
+            android:name=".ExplorerActivity"
+            android:exported="false" />
+        <activity
             android:name=".HomeActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
-            android:theme="@style/Theme.OxShell.Fullscreen"> <!--@android:style/Theme.Holo.NoActionBar.Fullscreen-->
+            android:theme="@style/Theme.OxShell.Fullscreen"> <!-- @android:style/Theme.Holo.NoActionBar.Fullscreen -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

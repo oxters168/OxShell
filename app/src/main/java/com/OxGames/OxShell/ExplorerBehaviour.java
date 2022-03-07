@@ -81,14 +81,15 @@ public class ExplorerBehaviour {
         return extension;
     }
 
+    public static boolean HasPermission(String permType) {
+        return ContextCompat.checkSelfPermission(ActivityManager.GetCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
+    }
     public static void GrantReadStoragePermission() {
-        Activity currentActivity = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent());
-        if(ContextCompat.checkSelfPermission(currentActivity, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(currentActivity, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+        if(!HasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
+            ActivityCompat.requestPermissions(ActivityManager.GetCurrentActivity(), new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
     }
     public static void GrantWriteStoragePermission() {
-        Activity currentActivity = ActivityManager.GetActivityInstance(ActivityManager.GetCurrent());
-        if(ContextCompat.checkSelfPermission(currentActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(currentActivity, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
+        if(!HasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+            ActivityCompat.requestPermissions(ActivityManager.GetCurrentActivity(), new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
     }
 }

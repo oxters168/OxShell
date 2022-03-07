@@ -32,17 +32,17 @@ public class DetailAdapter implements ListAdapter {
             view = layoutInflater.inflate(R.layout.detail_row, null);
             detailItem.view = view;
 
-            String shownName = detailItem.leftAlignedText;
 //            if (hideExtensions && !detailItem.isDir && shownName.lastIndexOf(".") > 0)
 //                shownName = shownName.substring(0, shownName.lastIndexOf("."));
             TextView title = view.findViewById(R.id.title);
-            title.setText(shownName);
+            title.setText(detailItem.leftAlignedText);
 
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) title.getLayoutParams();
             params.setMargins(detailItem.HasIcon() ? 40 : 0, 0, 0, 0);
 
-            TextView isDirText = view.findViewById(R.id.isDir);
-            isDirText.setVisibility(detailItem.rightAlignedText != null && !detailItem.rightAlignedText.isEmpty() ? View.VISIBLE : View.INVISIBLE);
+            TextView rightText = view.findViewById(R.id.isDir);
+            rightText.setVisibility(detailItem.rightAlignedText != null && !detailItem.rightAlignedText.isEmpty() ? View.VISIBLE : View.INVISIBLE);
+            rightText.setText(detailItem.rightAlignedText);
 
             ImageView typeIcon = view.findViewById(R.id.typeIcon);
             typeIcon.setImageDrawable(detailItem.GetIcon());

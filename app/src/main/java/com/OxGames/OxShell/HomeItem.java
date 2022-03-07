@@ -37,6 +37,8 @@ public class HomeItem implements Serializable {
             icon = PackagesCache.GetPackageIcon((String)obj);
         else if (type == Type.add)
             icon = ContextCompat.getDrawable(HomeActivity.GetInstance(), R.drawable.ic_baseline_add_circle_outline_24);
+        else if (type == Type.assoc)
+            icon = PackagesCache.GetPackageIcon(((IntentLaunchData)obj).GetPackageName());
         return icon;
     }
 }

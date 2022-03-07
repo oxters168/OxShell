@@ -25,18 +25,25 @@
         android:verticalSpacing="16px">
     </com.OxGames.OxShell.HomeView>
 
-    <com.OxGames.OxShell.ExplorerView
-        android:id="@+id/explorer_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbarStyle="insideInset"
-        android:visibility="gone">
-    </com.OxGames.OxShell.ExplorerView>
-
     <com.OxGames.OxShell.PackagesView
         android:id="@+id/packages_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"></com.OxGames.OxShell.PackagesView>
+        android:visibility="gone">
+    </com.OxGames.OxShell.PackagesView>
+
+    <com.OxGames.OxShell.AddView
+        android:id="@+id/add_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+    </com.OxGames.OxShell.AddView>
+
+    <com.OxGames.OxShell.AssocView
+        android:id="@+id/assoc_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+    </com.OxGames.OxShell.AssocView>
 
 </FrameLayout>

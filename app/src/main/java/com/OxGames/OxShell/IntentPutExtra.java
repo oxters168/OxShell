@@ -1,6 +1,8 @@
 package com.OxGames.OxShell;
 
-public class IntentPutExtra {
+import java.io.Serializable;
+
+public class IntentPutExtra implements Serializable {
     private IntentLaunchData.DataType extraType = IntentLaunchData.DataType.None;
     private String name;
 //    private String value;

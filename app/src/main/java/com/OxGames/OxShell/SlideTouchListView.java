@@ -110,4 +110,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
         properPosition = pos;
         setSelectionFromTop(pos, HomeActivity.displayMetrics != null ? (int)(HomeActivity.displayMetrics.heightPixels * 0.5) : 0);
     }
+    public void Refresh() {
+
+    }
 }

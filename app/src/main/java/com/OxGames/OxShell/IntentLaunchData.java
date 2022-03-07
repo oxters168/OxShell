@@ -9,10 +9,12 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class IntentLaunchData {
+public class IntentLaunchData implements Serializable {
     public enum DataType { None, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
+    private String displayName;
     private ArrayList<String> associatedExtensions;
     private String action;
     private String packageName;
@@ -23,7 +25,8 @@ public class IntentLaunchData {
     public IntentLaunchData(String _packageName) {
         packageName = _packageName;
     }
-    public IntentLaunchData(String _action, String _packageName, String _className, String[] extensions) {
+    public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] extensions) {
+        displayName = _displayName;
         action = _action;
         packageName = _packageName;
         className = _className;
@@ -44,6 +47,9 @@ public class IntentLaunchData {
     }
     public String GetClassName() {
         return className;
+    }
+    public String GetDisplayName() {
+        return displayName;
     }
 
     public Intent BuildIntent(String[] extrasValues) {
@@ -70,7 +76,7 @@ public class IntentLaunchData {
                 intent.setData(Uri.parse(data));
             return intent;
         } else
-            return ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()).getPackageManager().getLaunchIntentForPackage(packageName);
+            return ActivityManager.GetCurrentActivity().getPackageManager().getLaunchIntentForPackage(packageName);
     }
 
     public void AddExtra(IntentPutExtra extra) {
@@ -106,7 +112,7 @@ public class IntentLaunchData {
     public void Launch(String data, String[] extrasValues) {
         //IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
         //launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
-        startActivity(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), BuildIntent(data, extrasValues), null);
+        startActivity(ActivityManager.GetCurrentActivity(), BuildIntent(data, extrasValues), null);
     }
     public void Launch(String data) {
         String dataEntry = null;

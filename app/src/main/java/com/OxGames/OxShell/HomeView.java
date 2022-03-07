@@ -1,19 +1,13 @@
 package com.OxGames.OxShell;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.GridView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -24,17 +18,17 @@ public class HomeView extends GridView implements SlideTouchListener {
     public HomeView(Context context) {
         super(context);
         slideTouch.AddListener(this);
-        RefreshShownItems();
+        Refresh();
     }
     public HomeView(Context context, AttributeSet attrs) {
         super(context, attrs);
         slideTouch.AddListener(this);
-        RefreshShownItems();
+        Refresh();
     }
     public HomeView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         slideTouch.AddListener(this);
-        RefreshShownItems();
+        Refresh();
     }
 
 //    private void OpenExplorer() {
@@ -54,7 +48,7 @@ public class HomeView extends GridView implements SlideTouchListener {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         int storedPos = properPosition;
-        RefreshShownItems();
+        Refresh();
         SetProperPosition(storedPos);
 
         // Checks the orientation of the screen
@@ -184,13 +178,15 @@ public class HomeView extends GridView implements SlideTouchListener {
     public void MakeSelection() {
         HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
         if (selectedItem.type == HomeItem.Type.explorer) {
-//            ActivityManager.GoTo(ActivityManager.Page.explorer);
-            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
+            ActivityManager.GoTo(ActivityManager.Page.explorer);
+//            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
         } else if (selectedItem.type == HomeItem.Type.app) {
             (new IntentLaunchData((String)selectedItem.obj)).Launch();
         } else if (selectedItem.type == HomeItem.Type.add) {
-//            ActivityManager.GoTo(ActivityManager.Page.explorer);
-            HomeActivity.GetInstance().GoTo(HomeActivity.Page.packages);
+            ActivityManager.GoTo(ActivityManager.Page.addToHome);
+//            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
+        } else if (selectedItem.type == HomeItem.Type.assoc) {
+
         }
     }
     public void SetProperPosition(int pos) {
@@ -198,8 +194,10 @@ public class HomeView extends GridView implements SlideTouchListener {
         setSelectionFromTop(pos, HomeActivity.displayMetrics != null ? (int)(HomeActivity.displayMetrics.heightPixels * 0.5) : 0);
     }
 
-    public void RefreshShownItems() {
+    public void Refresh() {
         ArrayList<HomeItem> homeItems = HomeManager.GetItems();
+        if (homeItems == null)
+            homeItems = new ArrayList<>();
 
 //        homeItems.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
         //Get added items and place in home
@@ -208,6 +206,6 @@ public class HomeView extends GridView implements SlideTouchListener {
         HomeAdapter customAdapter = new HomeAdapter(getContext(), homeItems);
         setAdapter(customAdapter);
 
-        SetProperPosition(0);
+//        SetProperPosition(0);
     }
 }
