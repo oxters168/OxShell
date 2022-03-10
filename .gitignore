@@ -16,3 +16,6 @@ local.properties
 
 #Added due to its constant change and non-portable nature
 /.idea/deploymentTargetDropDown.xml
+
+#Private keystore data
+/app/keystores
