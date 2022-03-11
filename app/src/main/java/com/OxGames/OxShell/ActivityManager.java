@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class ActivityManager {
     private static Hashtable<Class, Page[]> pagesOfActivities;
-    public enum Page { home, explorer, addToHome, packages, assoc }
+    public enum Page { home, explorer, addToHome, packages, assoc, selectdirs }
     private static Page current = Page.home;
 
     public static void GoTo(Page page) {
@@ -32,7 +32,7 @@ public class ActivityManager {
     public static void Init() {
         if (pagesOfActivities == null) {
             pagesOfActivities = new Hashtable<>();
-            pagesOfActivities.put(HomeActivity.class, new Page[]{ Page.home, Page.addToHome, Page.packages, Page.assoc });
+            pagesOfActivities.put(HomeActivity.class, new Page[]{ Page.home, Page.addToHome, Page.packages, Page.assoc, Page.selectdirs });
             pagesOfActivities.put(ExplorerActivity.class, new Page[]{ Page.explorer });
         }
     }

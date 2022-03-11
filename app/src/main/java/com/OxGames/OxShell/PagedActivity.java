@@ -1,7 +1,9 @@
 package com.OxGames.OxShell;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -45,7 +47,7 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //Add an if statement later to optionally hide status bar
+        //Add an if statement later to have a setting for hiding status bar
         //HideStatusBar();
     }
     @Override
@@ -89,11 +91,11 @@ public class PagedActivity extends AppCompatActivity {
             entry.getValue().setVisibility(page == entry.getKey() ? View.VISIBLE : View.GONE);
             if (page == entry.getKey()) {
                 View nextPage = entry.getValue();
-                nextPage.requestFocusFromTouch();
                 if (nextPage instanceof SlideTouchListView)
                     ((SlideTouchListView)nextPage).Refresh();
                 else if (nextPage instanceof HomeView)
                     ((HomeView)nextPage).Refresh();
+                nextPage.requestFocusFromTouch();
             }
         }
     }

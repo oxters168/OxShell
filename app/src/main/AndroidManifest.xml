@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.OxGames.OxShell">
     <!-- <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" /> -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
@@ -14,20 +14,62 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OxShell">
+<!--        <provider-->
+<!--            android:name="com.OxGames.OxShell.CustomFileProvider"-->
+<!--            android:authorities="com.OxGames.OxShell.Explorer"-->
+<!--            android:exported="true"-->
+<!--            android:grantUriPermissions="true"-->
+<!--            android:permission="android.permission.MANAGE_DOCUMENTS">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>-->
+<!--            </intent-filter>-->
+<!--            <meta-data-->
+<!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
+<!--                android:resource="@xml/file_paths"/>-->
+<!--        </provider>-->
+        <!-- This activity alias is added so that GET_CONTENT intent-filter
+         can be disabled for builds on API level 19 and higher. -->
+        <activity-alias android:name="com.android.example.app.MyPicker"
+            android:targetActivity="com.OxGames.OxShell.ExplorerActivity">
+<!--            android:enabled="@bool/atMostJellyBeanMR2">-->
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT"/>
+                <category android:name="android.intent.category.OPENABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="file/*"/>
+                <data android:mimeType="image/*"/>
+                <data android:mimeType="video/*"/>
+            </intent-filter>
+        </activity-alias>
+
         <activity
             android:name=".ExplorerActivity"
-            android:exported="false" />
+            android:label="@string/app_name">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN"/>-->
+<!--                <action android:name="android.intent.action.CHOOSER"/>-->
+<!--                <action android:name="android.intent.action.PICK_ACTIVITY"/>-->
+<!--                <action android:name="android.intent.action.PICK"/>-->
+<!--                <action android:name="android.intent.action.OPEN_DOCUMENT"/>-->
+<!--                <action android:name="android.intent.action.OPEN_DOCUMENT_TREE"/>-->
+<!--                <action android:name="android.intent.action.OPEN_DOCUMENT"/>-->
+<!--                <action android:name="android.intent.action.GET_CONTENT"/>-->
+
+<!--                <category android:name="android.intent.category.APP_FILES"/>-->
+<!--                <category android:name="android.intent.category.DEFAULT"/>-->
+<!--            </intent-filter>-->
+        </activity>
         <activity
             android:name=".HomeActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:theme="@style/Theme.OxShell.Fullscreen"> <!-- @android:style/Theme.Holo.NoActionBar.Fullscreen -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.HOME" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.HOME"/>
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
     </application>

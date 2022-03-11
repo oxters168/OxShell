@@ -61,8 +61,10 @@ public class AddView extends SlideTouchListView {
     @Override
     public void MakeSelection() {
         HomeItem.Type selectedItem = (HomeItem.Type)((DetailItem)getItemAtPosition(properPosition)).obj;
-        if (selectedItem == HomeItem.Type.explorer)
+        if (selectedItem == HomeItem.Type.explorer) {
             HomeManager.AddExplorer();
+            Toast.makeText(ActivityManager.GetCurrentActivity(), "Added explorer to home", Toast.LENGTH_SHORT).show();
+        }
         else if (selectedItem == HomeItem.Type.app)
             ActivityManager.GoTo(ActivityManager.Page.packages);
         else if (selectedItem == HomeItem.Type.assoc)

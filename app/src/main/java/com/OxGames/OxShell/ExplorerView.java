@@ -1,6 +1,8 @@
 package com.OxGames.OxShell;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
@@ -96,10 +98,11 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
         File file = (File)clickedItem.obj;
         if (file.isDirectory()) {
-            explorerBehaviour.SetDirectory(file.getAbsolutePath());
-            Refresh();
-//            SetProperPosition(0);
-            TryHighlightPrevDir();
+            ((ExplorerActivity)ExplorerActivity.GetInstance()).SendResult(file.getAbsolutePath());
+//            startActivityForResult(intent, requestCode);
+//            explorerBehaviour.SetDirectory(file.getAbsolutePath());
+//            Refresh();
+//            TryHighlightPrevDir();
         }
         else {
             TryRun(clickedItem);
