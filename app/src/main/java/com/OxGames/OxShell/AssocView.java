@@ -11,6 +11,8 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 
 public class AssocView extends SlideTouchListView {
+//    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.assoc;
+
     public AssocView(Context context) {
         super(context);
         Refresh();

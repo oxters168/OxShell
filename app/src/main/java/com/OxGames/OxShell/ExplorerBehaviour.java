@@ -85,8 +85,10 @@ public class ExplorerBehaviour {
         return ContextCompat.checkSelfPermission(ActivityManager.GetCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
     }
     public static void GrantReadStoragePermission() {
+        //From here https://stackoverflow.com/questions/47292505/exception-writing-exception-to-parcel
         if(!HasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
             ActivityCompat.requestPermissions(ActivityManager.GetCurrentActivity(), new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+//        ActivityCompat.shouldShowRequestPermissionRationale(ActivityManager.GetCurrentActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
     }
     public static void GrantWriteStoragePermission() {
         if(!HasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))

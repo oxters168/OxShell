@@ -1,6 +1,7 @@
 package com.OxGames.OxShell;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -9,10 +10,12 @@ import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsProvider;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 
@@ -38,6 +41,7 @@ public class CustomFileProvider extends DocumentsProvider {
     }
     @Override
     public Cursor queryRoots(String[] projection) throws FileNotFoundException {
+        Log.d("DocumentsProvider", "Query roots " + (projection != null ? projection : "null"));
         // If user is not logged in, return an empty root cursor.  This removes our
         // provider from the list entirely.
 //        if (!isUserLoggedIn()) {
@@ -56,30 +60,57 @@ public class CustomFileProvider extends DocumentsProvider {
         // shares.
 //        row.add(DocumentsContract.Root.COLUMN_FLAGS, DocumentsContract.Root.FLAG_SUPPORTS_CREATE | DocumentsContract.Root.FLAG_SUPPORTS_RECENTS | DocumentsContract.Root.FLAG_SUPPORTS_SEARCH);
 
-        final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_ROOT_PROJECTION);
-        final MatrixCursor.RowBuilder row = result.newRow();
-        row.add(DocumentsContract.Root.COLUMN_TITLE, "OxShell");
-        row.add(DocumentsContract.Root.COLUMN_ICON, R.mipmap.ic_launcher);
-        row.add(DocumentsContract.Root.COLUMN_MIME_TYPES, "file/*");
-        row.add(DocumentsContract.Root.COLUMN_ROOT_ID, "def");
-        row.add(DocumentsContract.Root.COLUMN_SUMMARY, "Ox Games");
-//        row.add(DocumentsContract.Root.COLUMN_FLAGS, DocumentsContract.Root.FLAG_SUPPORTS_CREATE | DocumentsContract.Root.FLAG_SUPPORTS_RECENTS | DocumentsContract.Root.FLAG_SUPPORTS_SEARCH);
-        row.add(DocumentsContract.Root.COLUMN_FLAGS, DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD);
-        row.add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, "mno");
-//        row.add(DocumentsContract.Root.COLUMN_AVAILABLE_BYTES, 16);
-        return result;
+//        final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_ROOT_PROJECTION);
+//        final MatrixCursor.RowBuilder row = result.newRow();
+//        row.add(DocumentsContract.Root.COLUMN_TITLE, "OxShell");
+//        row.add(DocumentsContract.Root.COLUMN_ICON, R.mipmap.ic_launcher);
+//        row.add(DocumentsContract.Root.COLUMN_MIME_TYPES, "file/*");
+//        row.add(DocumentsContract.Root.COLUMN_ROOT_ID, "def");
+//        row.add(DocumentsContract.Root.COLUMN_SUMMARY, "Ox Games");
+//        row.add(DocumentsContract.Root.COLUMN_FLAGS, DocumentsContract.Root.FLAG_SUPPORTS_EJECT);
+//        row.add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, "mno");
+//        return result;
+        return null;
     }
     @Override
     public Cursor queryDocument(String s, String[] strings) throws FileNotFoundException {
+        Log.d("DocumentsProvider", "Query " + s + " " + (strings != null ? strings : "null"));
         return null;
     }
     @Override
     public Cursor queryChildDocuments(String s, String[] strings, String s1) throws FileNotFoundException {
+        Log.d("DocumentsProvider", "Query Child " + s + " " + (strings != null ? strings : "null") + " " + s1);
         return null;
     }
     @Override
     public ParcelFileDescriptor openDocument(String s, String s1, @Nullable CancellationSignal cancellationSignal) throws FileNotFoundException {
-        return null;
+        Log.d("DocumentsProvider", "Open " + s + " " + s1);
+        ParcelFileDescriptor data = null;
+        try {
+            data = ParcelFileDescriptor.open(new File(s), ParcelFileDescriptor.MODE_READ_ONLY);
+        } catch (FileNotFoundException ex) {
+            Log.d("FileChooser", ex.getMessage());
+        }
+        return data;
+    }
+
+    public static Uri getUriForFile(String path) {
+//        final Uri data = FileProvider.getUriForFile(this, "com.OxGames.OxShell.Explorer", new File(path));
+//        grantUriPermission(getPackageName(), data, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//        final Intent intent = new Intent(Intent.ACTION_VIEW).setDataAndType(data, "video/*").addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
+//        Uri fileUri = FileProvider.getUriForFile(currentActivity, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
+
+        Uri.Builder uriBuilder = new Uri.Builder();
+        uriBuilder.scheme("content");
+        uriBuilder.encodedAuthority(BuildConfig.DOCUMENTS_AUTHORITY);
+        uriBuilder.encodedPath(path);
+        Uri fileUri = uriBuilder.build();
+        currentActivity.grantUriPermission(currentActivity.getPackageName(), fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION  | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+//        String documentId = DocumentsContract.getDocumentId(fileUri);
+//        Uri contractUri = DocumentsContract.buildDocumentUri(BuildConfig.DOCUMENTS_AUTHORITY, documentId);
+        return fileUri;
     }
 
     // defining authority so that other application can access it

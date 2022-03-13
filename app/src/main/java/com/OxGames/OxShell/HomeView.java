@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class HomeView extends GridView implements SlideTouchListener {
     SlideTouchHandler slideTouch = new SlideTouchHandler();
     int properPosition = 0;
+//    private final ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.home;
 
     public HomeView(Context context) {
         super(context);

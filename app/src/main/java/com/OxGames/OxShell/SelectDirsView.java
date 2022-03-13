@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 
 public class SelectDirsView extends SlideTouchListView {
+//    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.selectdirs;
     public static final int PICKFILE_REQUEST_CODE = 100;
     private ArrayList<String> dirs;
 
@@ -55,9 +56,11 @@ public class SelectDirsView extends SlideTouchListView {
 //        IntentLaunchData selectedItem = (IntentLaunchData)((DetailItem)getItemAtPosition(properPosition)).obj;
         Object obj = ((DetailItem)getItemAtPosition(properPosition)).obj;
         if (obj instanceof Integer && ((int)obj) == 0) {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("file/*");
-            startActivityForResult(ActivityManager.GetCurrentActivity(), intent, PICKFILE_REQUEST_CODE, null);
+//            ActivityManager.GoTo(ActivityManager.Page.chooser);
+//            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//            intent.setType("file/*");
+//            startActivityForResult(ActivityManager.GetCurrentActivity(), intent, PICKFILE_REQUEST_CODE, null);
+            ((HomeActivity)ActivityManager.GetInstance(HomeActivity.class)).getDir.launch("file/*");
         } else if (obj instanceof Integer && ((int)obj) == 1) {
             CancelAndReturn();
         } else if (obj instanceof Integer && ((int)obj) == 2) {

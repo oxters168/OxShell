@@ -32,11 +32,11 @@ public class HomeItem implements Serializable {
     public Drawable GetIcon() {
         Drawable icon = null;
         if (type == Type.explorer)
-            icon = ContextCompat.getDrawable(HomeActivity.GetInstance(), R.drawable.ic_baseline_source_24);
+            icon = ContextCompat.getDrawable(ActivityManager.GetInstance(HomeActivity.class), R.drawable.ic_baseline_source_24);
         else if (type == Type.app)
             icon = PackagesCache.GetPackageIcon((String)obj);
         else if (type == Type.add)
-            icon = ContextCompat.getDrawable(HomeActivity.GetInstance(), R.drawable.ic_baseline_add_circle_outline_24);
+            icon = ContextCompat.getDrawable(ActivityManager.GetInstance(HomeActivity.class), R.drawable.ic_baseline_add_circle_outline_24);
         else if (type == Type.assoc)
             icon = PackagesCache.GetPackageIcon(((IntentLaunchData)obj).GetPackageName());
         return icon;

@@ -36,7 +36,7 @@ public class HomeManager {
     }
     public static void AddItem(HomeItem homeItem) {
         homeItems.add(homeItem);
-        ((HomeActivity)HomeActivity.GetInstance()).RefreshHome();
+        ((HomeActivity)ActivityManager.GetInstance(HomeActivity.class)).RefreshHome();
     }
     public static void AddItemAndSave(HomeItem homeItem) {
         AddItem(homeItem);

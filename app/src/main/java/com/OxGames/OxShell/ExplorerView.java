@@ -18,6 +18,7 @@ import java.util.ArrayList;
 public class ExplorerView extends SlideTouchListView implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
+//    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.explorer;
 
     public ExplorerView(Context context) {
         super(context);
@@ -29,7 +30,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
         PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
-        Log.d("ExplorerView", currentActivity.toString());
+//        Log.d("ExplorerView", currentActivity.toString());
         currentActivity.AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         Refresh();
@@ -81,9 +82,11 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
 //        Log.d("ExplorerView", key_code + " " + key_event);
         if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
-            ActivityManager.GoTo(ActivityManager.Page.home);
-//            ActivityManager.GoTo(ActivityManager.Page.home);
-            return false;
+            if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+                ActivityManager.GoTo(ActivityManager.Page.home);
+                return false;
+            } else
+                return super.onKeyDown(key_code, key_event);
         }
         if (key_code == KeyEvent.KEYCODE_BUTTON_Y) {
             GoUp();
@@ -96,16 +99,22 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     @Override
     public void MakeSelection() {
         DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
-        File file = (File)clickedItem.obj;
-        if (file.isDirectory()) {
-            ((ExplorerActivity)ExplorerActivity.GetInstance()).SendResult(file.getAbsolutePath());
+        if (clickedItem.obj == null) {
+            ((FileChooserActivity)ActivityManager.GetInstance(FileChooserActivity.class)).SendResult(explorerBehaviour.GetDirectory());
+        } else {
+            File file = (File)clickedItem.obj;
+            if (file.isDirectory()) {
+//            ((ExplorerActivity)ExplorerActivity.GetInstance()).SendResult(file.getAbsolutePath());
 //            startActivityForResult(intent, requestCode);
-//            explorerBehaviour.SetDirectory(file.getAbsolutePath());
-//            Refresh();
-//            TryHighlightPrevDir();
-        }
-        else {
-            TryRun(clickedItem);
+                explorerBehaviour.SetDirectory(file.getAbsolutePath());
+                Refresh();
+                TryHighlightPrevDir();
+            } else {
+                if (ActivityManager.GetCurrent() == ActivityManager.Page.chooser)
+                    ((FileChooserActivity)ActivityManager.GetInstance(FileChooserActivity.class)).SendResult(file.getAbsolutePath());
+                else
+                    TryRun(clickedItem);
+            }
         }
     }
 
@@ -118,11 +127,14 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     private void TryHighlightPrevDir() {
         String previousDir = explorerBehaviour.GetLastItemInHistory();
         for (int i = 0; i < getCount(); i++) {
-            String itemDir = ((File)((DetailItem)getItemAtPosition(i)).obj).getAbsolutePath();
-            if (itemDir.equalsIgnoreCase(previousDir)) {
-                requestFocusFromTouch();
-                SetProperPosition(i);
-                break;
+            File file = ((File)((DetailItem)getItemAtPosition(i)).obj);
+            if (file != null) {
+                String itemDir = file.getAbsolutePath();
+                if (itemDir.equalsIgnoreCase(previousDir)) {
+                    requestFocusFromTouch();
+                    SetProperPosition(i);
+                    break;
+                }
             }
         }
     }
@@ -135,6 +147,8 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         if (!isEmpty || hasParent) {
             if (hasParent)
                 arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "..", "<dir>", new File(explorerBehaviour.GetParent())));
+            if (ActivityManager.GetCurrent() == ActivityManager.Page.chooser)
+                arrayList.add(new DetailItem(null, "Choose current directory", null, null));
             if (explorerBehaviour.GetDirectory().equalsIgnoreCase("/storage/emulated"))
                 arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "0", "<dir>", new File("/storage/emulated/0")));
             if (!isEmpty) {

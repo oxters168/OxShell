@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PackagesView extends SlideTouchListView {
+//    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.packages;
+
     public PackagesView(Context context) {
         super(context);
         Refresh();

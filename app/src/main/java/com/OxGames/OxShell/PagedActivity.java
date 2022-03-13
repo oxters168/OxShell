@@ -1,12 +1,10 @@
 package com.OxGames.OxShell;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -18,14 +16,17 @@ import java.util.Set;
 
 public class PagedActivity extends AppCompatActivity {
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
-    private static PagedActivity instance;
+//    private static PagedActivity instance;
     public static DisplayMetrics displayMetrics;
     private List<PermissionsListener> permissionListeners = new ArrayList<>();
+    protected ActivityManager.Page currentPage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        instance = this;
+//        instance = this;
+        ActivityManager.Init();
+        ActivityManager.InstanceCreated(this);
 
         HideActionBar();
 
@@ -33,7 +34,6 @@ public class PagedActivity extends AppCompatActivity {
 
         RefreshDisplayMetrics();
 
-        ActivityManager.Init();
 
 //        HomeManager.Init();
     }
@@ -46,6 +46,7 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        ActivityManager.SetCurrent(currentPage);
         super.onResume();
         //Add an if statement later to have a setting for hiding status bar
         //HideStatusBar();
@@ -62,9 +63,9 @@ public class PagedActivity extends AppCompatActivity {
         permissionListeners.add(listener);
     }
 
-    public static PagedActivity GetInstance() {
-        return instance;
-    }
+//    public static PagedActivity GetInstance() {
+//        return instance;
+//    }
 
     private void HideStatusBar() {
         View decorView = getWindow().getDecorView();
@@ -86,16 +87,19 @@ public class PagedActivity extends AppCompatActivity {
     protected void InitViewsTable() {
     }
     public void GoTo(ActivityManager.Page page) {
-        Set<Map.Entry<ActivityManager.Page, View>> entrySet = allPages.entrySet();
-        for (Map.Entry<ActivityManager.Page, View> entry : entrySet) {
-            entry.getValue().setVisibility(page == entry.getKey() ? View.VISIBLE : View.GONE);
-            if (page == entry.getKey()) {
-                View nextPage = entry.getValue();
-                if (nextPage instanceof SlideTouchListView)
-                    ((SlideTouchListView)nextPage).Refresh();
-                else if (nextPage instanceof HomeView)
-                    ((HomeView)nextPage).Refresh();
-                nextPage.requestFocusFromTouch();
+        if (currentPage != page) {
+            Set<Map.Entry<ActivityManager.Page, View>> entrySet = allPages.entrySet();
+            for (Map.Entry<ActivityManager.Page, View> entry : entrySet) {
+                entry.getValue().setVisibility(page == entry.getKey() ? View.VISIBLE : View.GONE);
+                if (page == entry.getKey()) {
+                    View nextPage = entry.getValue();
+                    if (nextPage instanceof SlideTouchListView)
+                        ((SlideTouchListView) nextPage).Refresh();
+                    else if (nextPage instanceof HomeView)
+                        ((HomeView) nextPage).Refresh();
+                    nextPage.requestFocusFromTouch();
+                    currentPage = page;
+                }
             }
         }
     }

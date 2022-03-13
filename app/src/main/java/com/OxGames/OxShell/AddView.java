@@ -16,6 +16,7 @@ import java.util.Set;
 
 public class AddView extends SlideTouchListView {
     private Hashtable<HomeItem.Type, String> buttons;
+//    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.addToHome;
 //    private final String[] btnLabels = new String[] { "Add Explorer", "Add Application", "Add Association" };
 
     public AddView(Context context) {
