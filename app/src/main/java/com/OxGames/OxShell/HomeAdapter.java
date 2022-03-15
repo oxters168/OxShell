@@ -33,6 +33,9 @@ public class HomeAdapter extends BaseAdapter {
 
             ImageView typeIcon = view.findViewById(R.id.typeIcon);
             typeIcon.setImageDrawable(homeItem.GetIcon());
+
+            ImageView typeSuperIcon = view.findViewById(R.id.typeSuperIcon);
+            typeSuperIcon.setImageDrawable(homeItem.GetSuperIcon());
         }
         else
             homeItem.view = parent.getChildAt(position);

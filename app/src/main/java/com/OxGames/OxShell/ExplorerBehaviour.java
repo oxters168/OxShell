@@ -1,7 +1,6 @@
 package com.OxGames.OxShell;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.util.Log;
@@ -61,7 +60,8 @@ public class ExplorerBehaviour {
         return current.getAbsolutePath();
     }
     public File[] ListContents() {
-        GrantReadStoragePermission();
+        if (!HasReadStoragePermission())
+            RequestReadStoragePermission();
         return current.listFiles();
     }
 
@@ -84,14 +84,20 @@ public class ExplorerBehaviour {
     public static boolean HasPermission(String permType) {
         return ContextCompat.checkSelfPermission(ActivityManager.GetCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
     }
-    public static void GrantReadStoragePermission() {
+    public static boolean HasReadStoragePermission() {
+        return HasPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+    }
+    public static boolean HasWriteStoragePermission() {
+        return HasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    }
+    public static void RequestReadStoragePermission() {
         //From here https://stackoverflow.com/questions/47292505/exception-writing-exception-to-parcel
-        if(!HasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
+//        if(!HasReadStoragePermission())
             ActivityCompat.requestPermissions(ActivityManager.GetCurrentActivity(), new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
 //        ActivityCompat.shouldShowRequestPermissionRationale(ActivityManager.GetCurrentActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
     }
-    public static void GrantWriteStoragePermission() {
-        if(!HasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+    public static void RequestWriteStoragePermission() {
+//        if(!HasWriteStoragePermission())
             ActivityCompat.requestPermissions(ActivityManager.GetCurrentActivity(), new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
     }
 }

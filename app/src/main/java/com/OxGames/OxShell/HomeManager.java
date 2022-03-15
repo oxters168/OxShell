@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import java.io.File;
@@ -13,17 +14,37 @@ public class HomeManager {
 
     public static void Init() {
         if (homeItems == null) {
-            homeItems = new ArrayList<>();
             if ((new File(HOME_ITEMS_FILE)).exists()) {
-                ExplorerBehaviour.GrantReadStoragePermission();
-                //Need to add the permission event listener
-                Object[] savedItems = (Object[]) Serialaver.LoadFile(HOME_ITEMS_FILE);
-                if (savedItems != null)
-                    for (int i = 0; i < savedItems.length; i++)
-                        AddItem((HomeItem) savedItems[i]);
+                if (!ExplorerBehaviour.HasReadStoragePermission()) {
+                    AddTempExplorer(); //Temp explorer in case no permissions granted
+
+                    ExplorerBehaviour.RequestReadStoragePermission();
+                    ActivityManager.GetCurrentActivity().AddPermissionListener(new PermissionsListener() {
+                        @Override
+                        public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
+                            if (requestCode == ExplorerBehaviour.READ_EXTERNAL_STORAGE) {
+                                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                                    LoadHomeItems();
+                                else
+                                    Log.e("HomeManager", "Read storage permission denied");
+                            }
+                        }
+                    });
+                }
+                else
+                    LoadHomeItems();
             } else
-                AddExplorer();
+                AddTempExplorer(); //Since nothing is saved anyway no need to save this because it is the default (this way the user isn't always bombarded with permission request on start, only when they want to add something to the home)
         }
+    }
+    private static void LoadHomeItems() {
+        homeItems = new ArrayList<>();
+        Object[] savedItems = (Object[]) Serialaver.LoadFile(HOME_ITEMS_FILE);
+//        if (savedItems != null) { //Removed if statement since now this function is expected to be called when there are permissions for sure, so exception/error is welcome now
+        for (int i = 0; i < savedItems.length; i++)
+            AddItem((HomeItem) savedItems[i]);
+        ((HomeActivity)ActivityManager.GetInstance(HomeActivity.class)).RefreshHome();
+//        }
     }
     public static ArrayList<HomeItem> GetItems() {
         ArrayList<HomeItem> clonedItems = null;
@@ -34,14 +55,35 @@ public class HomeManager {
     public static void AddExplorer() {
         AddItemAndSave(new HomeItem(HomeItem.Type.explorer, "Explorer"));
     }
+    private static void AddTempExplorer() {
+        homeItems = new ArrayList<>();
+        AddItem(new HomeItem(HomeItem.Type.explorer, "Explorer"));
+    }
     public static void AddItem(HomeItem homeItem) {
         homeItems.add(homeItem);
         ((HomeActivity)ActivityManager.GetInstance(HomeActivity.class)).RefreshHome();
     }
     public static void AddItemAndSave(HomeItem homeItem) {
+        if (!ExplorerBehaviour.HasWriteStoragePermission()) {
+            ExplorerBehaviour.RequestWriteStoragePermission();
+            ActivityManager.GetCurrentActivity().AddPermissionListener(new PermissionsListener() {
+                @Override
+                public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
+                    if (requestCode == ExplorerBehaviour.WRITE_EXTERNAL_STORAGE) {
+                        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                            SaveHomeItem(homeItem);
+                        else
+                            Log.e("HomeManager", "Write storage permission denied");
+                    }
+                }
+            });
+        }
+        else
+            SaveHomeItem(homeItem);
         AddItem(homeItem);
+    }
+    private static void SaveHomeItem(HomeItem homeItem) {
         try {
-            ExplorerBehaviour.GrantWriteStoragePermission();
             File homeItemsDir = new File(HOME_ITEMS_DIR);
             homeItemsDir.mkdirs();
             File homeItemsFile = new File(HOME_ITEMS_FILE);
