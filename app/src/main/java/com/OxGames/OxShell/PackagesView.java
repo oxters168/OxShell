@@ -40,13 +40,13 @@ public class PackagesView extends SlideTouchListView {
         return super.onKeyDown(key_code, key_event);
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        int storedPos = properPosition;
-        Refresh();
-        SetProperPosition(storedPos);
-    }
+//    @Override
+//    public void onConfigurationChanged(Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        int storedPos = properPosition;
+//        Refresh();
+//        SetProperPosition(storedPos);
+//    }
 
     @Override
     public void MakeSelection() {

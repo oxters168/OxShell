@@ -37,6 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone">
+
     </com.OxGames.OxShell.AddView>
 
     <com.OxGames.OxShell.AssocView
@@ -50,6 +51,14 @@
         android:id="@+id/selectdirs_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"></com.OxGames.OxShell.SelectDirsView>
+        android:visibility="gone">
+    </com.OxGames.OxShell.SelectDirsView>
+
+    <com.OxGames.OxShell.IntentShortcutsView
+        android:id="@+id/shortcuts_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+    </com.OxGames.OxShell.IntentShortcutsView>
 
 </FrameLayout>

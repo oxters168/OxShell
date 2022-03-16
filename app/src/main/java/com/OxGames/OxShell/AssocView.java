@@ -2,9 +2,9 @@ package com.OxGames.OxShell;
 
 import android.content.Context;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
@@ -38,21 +38,34 @@ public class AssocView extends SlideTouchListView {
         return super.onKeyDown(key_code, key_event);
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        int storedPos = properPosition;
-        Refresh();
-        SetProperPosition(storedPos);
-    }
+//    @Override
+//    public void onConfigurationChanged(Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        int storedPos = properPosition;
+//        Refresh();
+//        SetProperPosition(storedPos);
+//    }
 
     @Override
     public void MakeSelection() {
         IntentLaunchData selectedItem = (IntentLaunchData)((DetailItem)getItemAtPosition(properPosition)).obj;
         if (selectedItem == null)
             Refresh(); //Create new assoc
-        else
-            ActivityManager.GoTo(ActivityManager.Page.selectdirs);
+        else {
+            HomeItem addedItem = new HomeItem(HomeItem.Type.assoc, selectedItem.GetDisplayName(), selectedItem);
+            SelectDirsView.SetDirsCarrier(addedItem);
+            SelectDirsView.SetReturnPage(ActivityManager.Page.assoc);
+            ActivityManager.GoTo(ActivityManager.Page.selectDirs);
+            SelectDirsView.AddResultListener(new DirsViewListener() {
+                @Override
+                public void onDirsResult(int resultCode, DirsCarrier output) {
+                    if (resultCode == SelectDirsView.RESULT_DONE) {
+                        HomeManager.AddItemAndSave(addedItem);
+                        Toast.makeText(ActivityManager.GetCurrentActivity(), "Added " + selectedItem.GetDisplayName() + " to home", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
 //            HomeManager.AddItemAndSave(new HomeItem(HomeItem.Type.assoc, selectedItem.GetDisplayName(), selectedItem));
     }
     @Override

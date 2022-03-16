@@ -51,6 +51,10 @@ public class IntentLaunchData implements Serializable {
     public String GetDisplayName() {
         return displayName;
     }
+    public String[] GetExtensions() {
+        String[] extensions = new String[associatedExtensions.size()];
+        return associatedExtensions.toArray(extensions);
+    }
 
     public Intent BuildIntent(String[] extrasValues) {
         return BuildIntent(null, extrasValues);

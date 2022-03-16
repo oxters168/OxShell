@@ -1,7 +1,5 @@
 package com.OxGames.OxShell;
 
-import android.content.Intent;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -12,20 +10,14 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
-import java.util.Hashtable;
-
 public class HomeActivity extends PagedActivity {
     public ActivityResultLauncher<String> getDir = registerForActivityResult(new ActivityResultContracts.GetContent(),
             new ActivityResultCallback<Uri>() {
                 @Override
                 public void onActivityResult(Uri uri) {
                     Log.d("ActivityResult", uri.toString());
-                    SelectDirsView dirsView = (SelectDirsView)allPages.get(ActivityManager.Page.selectdirs);
-//                    if (requestCode == dirsView.PICKFILE_REQUEST_CODE) {
-//                        String folderPath = data.getDataString();
-                        dirsView.AddToList(uri.getPath());
-                        return;
-//                    }
+                    SelectDirsView dirsView = (SelectDirsView)allPages.get(ActivityManager.Page.selectDirs);
+                    dirsView.AddToList(uri.getPath());
 //                    super.onActivityResult(requestCode, resultCode, data);
                 }
             });
@@ -53,22 +45,12 @@ public class HomeActivity extends PagedActivity {
         allPages.put(ActivityManager.Page.addToHome, findViewById(R.id.add_view));
         allPages.put(ActivityManager.Page.packages, findViewById(R.id.packages_list));
         allPages.put(ActivityManager.Page.assoc, findViewById(R.id.assoc_view));
-        allPages.put(ActivityManager.Page.selectdirs, findViewById(R.id.selectdirs_view));
+        allPages.put(ActivityManager.Page.selectDirs, findViewById(R.id.selectdirs_view));
+        allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
     }
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        Log.d("ActivityResult", requestCode + " " + resultCode + " " + data);
-//        SelectDirsView dirsView = (SelectDirsView)allPages.get(ActivityManager.Page.selectdirs);
-//        if (requestCode == dirsView.PICKFILE_REQUEST_CODE) {
-//            String folderPath = data.getDataString();
-//            dirsView.AddToList(folderPath);
-//            return;
-//        }
-//        super.onActivityResult(requestCode, resultCode, data);
-//    }
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("HomeActivity", key_code + " " + key_event);
+        Log.d("HomeActivity", key_code + " " + key_event);
         return true;
     }
     public void RefreshHome() {

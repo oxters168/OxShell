@@ -21,15 +21,15 @@ public class AddView extends SlideTouchListView {
 
     public AddView(Context context) {
         super(context);
-        RefreshBtns();
+        Refresh();
     }
     public AddView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        RefreshBtns();
+        Refresh();
     }
     public AddView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        RefreshBtns();
+        Refresh();
     }
 
     @Override
@@ -44,20 +44,13 @@ public class AddView extends SlideTouchListView {
         return super.onKeyDown(key_code, key_event);
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        int storedPos = properPosition;
-        RefreshBtns();
-        SetProperPosition(storedPos);
-
-        // Checks the orientation of the screen
-//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "landscape", Toast.LENGTH_SHORT).show();
-//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "portrait", Toast.LENGTH_SHORT).show();
-//        }
-    }
+//    @Override
+//    public void onConfigurationChanged(Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        int storedPos = properPosition;
+//        RefreshBtns();
+//        SetProperPosition(storedPos);
+//    }
 
     @Override
     public void MakeSelection() {
@@ -78,7 +71,8 @@ public class AddView extends SlideTouchListView {
         buttons.put(HomeItem.Type.app, "Add Application");
         buttons.put(HomeItem.Type.explorer, "Add Explorer");
     }
-    public void RefreshBtns() {
+    @Override
+    public void Refresh() {
         InitButtons();
         ArrayList<DetailItem> addBtns = new ArrayList<>();
         Set<Map.Entry<HomeItem.Type, String>> entrySet = buttons.entrySet();

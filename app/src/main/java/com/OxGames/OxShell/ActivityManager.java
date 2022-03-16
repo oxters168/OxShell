@@ -1,11 +1,7 @@
 package com.OxGames.OxShell;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.util.Log;
-import android.view.View;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
@@ -14,7 +10,7 @@ import java.util.Set;
 public class ActivityManager {
     private static Hashtable<Class, Page[]> pagesOfActivities;
     private static Hashtable<Class, PagedActivity> activityInstances;
-    public enum Page { home, explorer, chooser, addToHome, packages, assoc, selectdirs }
+    public enum Page { home, explorer, chooser, addToHome, packages, assoc, selectDirs, intentShortcuts }
     private static Page current = Page.home;
 
     public static void GoTo(Page page) {
@@ -38,7 +34,7 @@ public class ActivityManager {
     public static void Init() {
         if (pagesOfActivities == null) {
             pagesOfActivities = new Hashtable<>();
-            pagesOfActivities.put(HomeActivity.class, new Page[] { Page.home, Page.addToHome, Page.packages, Page.assoc, Page.selectdirs });
+            pagesOfActivities.put(HomeActivity.class, new Page[] { Page.home, Page.addToHome, Page.packages, Page.assoc, Page.selectDirs, Page.intentShortcuts });
             pagesOfActivities.put(ExplorerActivity.class, new Page[] { Page.explorer });
             pagesOfActivities.put(FileChooserActivity.class, new Page[] { Page.chooser });
         }

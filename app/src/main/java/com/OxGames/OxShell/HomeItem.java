@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class HomeItem implements Serializable {
+public class HomeItem implements Serializable, DirsCarrier {
     public enum Type { explorer, app, assoc, add, }
     Type type;
     String title;
@@ -19,15 +19,18 @@ public class HomeItem implements Serializable {
 
     public HomeItem(Type _type) {
         type = _type;
+        extraData = new ArrayList<>();
     }
     public HomeItem(Type _type, String _title) {
         type = _type;
         title = _title;
+        extraData = new ArrayList<>();
     }
     public HomeItem(Type _type, String _title, Object _obj) {
         type = _type;
         title = _title;
         obj = _obj;
+        extraData = new ArrayList<>();
     }
     public Drawable GetIcon() {
         Drawable icon = null;
@@ -46,5 +49,19 @@ public class HomeItem implements Serializable {
         if (type == Type.assoc)
             icon = PackagesCache.GetPackageIcon(((IntentLaunchData)obj).GetPackageName());
         return icon;
+    }
+
+    public void ClearDirsList() {
+        extraData = new ArrayList<>();
+    }
+    public void AddToDirsList(String dir) {
+        extraData.add(dir);
+    }
+    public void RemoveFromDirsList(String dir) {
+        extraData.remove(dir);
+    }
+    public String[] GetDirsList() {
+        String[] arrayed = new String[extraData.size()];
+        return extraData.toArray(arrayed);
     }
 }

@@ -106,6 +106,10 @@ public class HomeView extends GridView implements SlideTouchListener {
             MakeSelection();
             return false;
         }
+        if (key_code == KeyEvent.KEYCODE_BUTTON_X) {
+            DeleteSelection();
+            return false;
+        }
         if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
             return false;
         }
@@ -187,8 +191,13 @@ public class HomeView extends GridView implements SlideTouchListener {
             ActivityManager.GoTo(ActivityManager.Page.addToHome);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
         } else if (selectedItem.type == HomeItem.Type.assoc) {
-
+            IntentShortcutsView.SetLaunchItem(selectedItem);
+            ActivityManager.GoTo(ActivityManager.Page.intentShortcuts);
         }
+    }
+    public void DeleteSelection() {
+        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        HomeManager.RemoveItem(selectedItem);
     }
     public void SetProperPosition(int pos) {
         properPosition = pos;

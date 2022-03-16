@@ -44,21 +44,6 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        int storedPos = properPosition;
-        Refresh();
-        SetProperPosition(storedPos);
-
-        // Checks the orientation of the screen
-//        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "landscape", Toast.LENGTH_SHORT).show();
-//        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-//            Toast.makeText(ActivityManager.GetActivityInstance(ActivityManager.GetCurrent()), "portrait", Toast.LENGTH_SHORT).show();
-//        }
-    }
-
-    @Override
     public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == ExplorerBehaviour.READ_EXTERNAL_STORAGE) {
             // If request is cancelled, the result arrays are empty.

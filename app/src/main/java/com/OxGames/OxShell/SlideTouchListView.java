@@ -1,6 +1,7 @@
 package com.OxGames.OxShell;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
@@ -31,6 +32,13 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
 
         slideTouch.CheckForEvents();
         HighlightSelection();
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        int storedPos = properPosition;
+        Refresh();
+        SetProperPosition(storedPos);
     }
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
