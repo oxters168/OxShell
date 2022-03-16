@@ -69,7 +69,7 @@ public class IntentShortcutsView extends SlideTouchListView {
                 for (int i = 0; i < dirs.length; i++) {
                     ArrayList<File> executables = GetItemsInDirWithExt(dirs[i], extensions);
                     for (int j = 0; j < executables.size(); j++) {
-                        intentItems.add(new DetailItem(null, executables.get(j).getName(), null, executables.get(j)));
+                        intentItems.add(new DetailItem(null, ExplorerBehaviour.RemoveExtension(executables.get(j).getName()), null, executables.get(j)));
                     }
                 }
 

@@ -33,6 +33,7 @@ public class HomeActivity extends PagedActivity {
 
         PackagesCache.PrepareDefaultLaunchIntents(); //Currently duplicates the defaults each time the activity is reloaded
         HomeManager.Init();
+        GoTo(ActivityManager.Page.home);
 
         Log.d("HomeActivity", "files-path " + getFilesDir());
         Log.d("HomeActivity", "cache-path " + getCacheDir());

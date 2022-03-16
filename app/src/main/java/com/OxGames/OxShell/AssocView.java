@@ -74,7 +74,8 @@ public class AssocView extends SlideTouchListView {
         ArrayList<DetailItem> intentItems = new ArrayList<>();
         for (int i = 0; i < intents.length; i++) {
             ResolveInfo rsv = PackagesCache.GetResolveInfo(intents[i].GetPackageName());
-            intentItems.add(new DetailItem(PackagesCache.GetPackageIcon(rsv), intents[i].GetDisplayName(), "<" + PackagesCache.GetAppLabel(rsv) + ">", intents[i]));
+            if (rsv != null)
+                intentItems.add(new DetailItem(PackagesCache.GetPackageIcon(rsv), intents[i].GetDisplayName(), "<" + PackagesCache.GetAppLabel(rsv) + ">", intents[i]));
         }
         intentItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Create new", null, null));
         DetailAdapter addAdapter = new DetailAdapter(getContext(), intentItems);

@@ -32,8 +32,8 @@ public class DetailAdapter implements ListAdapter {
             view = layoutInflater.inflate(R.layout.detail_row, null);
             detailItem.view = view;
 
-//            if (hideExtensions && !detailItem.isDir && shownName.lastIndexOf(".") > 0)
-//                shownName = shownName.substring(0, shownName.lastIndexOf("."));
+//            if (hideExtensions)
+//                shownName = ExplorerBehaviour.RemoveExtension(shownName);
             TextView title = view.findViewById(R.id.title);
             title.setText(detailItem.leftAlignedText);
 

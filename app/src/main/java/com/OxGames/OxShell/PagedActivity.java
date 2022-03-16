@@ -17,7 +17,7 @@ import java.util.Set;
 public class PagedActivity extends AppCompatActivity {
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
 //    private static PagedActivity instance;
-    public static DisplayMetrics displayMetrics;
+//    public static DisplayMetrics displayMetrics;
     private List<PermissionsListener> permissionListeners = new ArrayList<>();
     protected ActivityManager.Page currentPage;
 
@@ -32,10 +32,11 @@ public class PagedActivity extends AppCompatActivity {
 
 //        InitViewsTable();
 
-        RefreshDisplayMetrics();
+//        RefreshDisplayMetrics();
 
 
 //        HomeManager.Init();
+        Log.d("PagedActivity", "OnCreate " + this);
     }
 
 //    @Override
@@ -47,9 +48,11 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         ActivityManager.SetCurrent(currentPage);
+        GoTo(currentPage);
         super.onResume();
         //Add an if statement later to have a setting for hiding status bar
         //HideStatusBar();
+        Log.d("PagedActivity", "OnResume " + this);
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -79,9 +82,14 @@ public class PagedActivity extends AppCompatActivity {
             actionBar.hide();
     }
 
-    public void RefreshDisplayMetrics() {
-        displayMetrics = new DisplayMetrics();
-        this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//    public void RefreshDisplayMetrics() {
+//        displayMetrics = new DisplayMetrics();
+//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//    }
+    public DisplayMetrics GetDisplayMetrics() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        return displayMetrics;
     }
 
     protected void InitViewsTable() {

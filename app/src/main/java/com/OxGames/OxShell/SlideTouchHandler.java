@@ -1,6 +1,7 @@
 package com.OxGames.OxShell;
 
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -150,7 +151,8 @@ public class SlideTouchHandler {
     }
 
     private float GetMaxPixels() {
-        return Math.min(HomeActivity.displayMetrics.widthPixels, HomeActivity.displayMetrics.heightPixels) / data.slideSpreadDiv;
+        DisplayMetrics displayMetrics = ActivityManager.GetCurrentActivity().GetDisplayMetrics();
+        return Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels) / data.slideSpreadDiv;
     }
 
     private float CalculatePercentWithDeadzone(float diff) {

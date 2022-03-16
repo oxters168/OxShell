@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -116,7 +117,8 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
     public void SetProperPosition(int pos) {
 //        Log.d("Explorer", "Setting position to " + pos);
         properPosition = pos;
-        setSelectionFromTop(pos, HomeActivity.displayMetrics != null ? (int)(HomeActivity.displayMetrics.heightPixels * 0.5) : 0);
+        DisplayMetrics displayMetrics = ActivityManager.GetCurrentActivity().GetDisplayMetrics();
+        setSelectionFromTop(pos, (int)(displayMetrics.heightPixels * 0.5));
     }
     public void Refresh() {
 

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -31,11 +32,6 @@ public class HomeView extends GridView implements SlideTouchListener {
         slideTouch.AddListener(this);
         Refresh();
     }
-
-//    private void OpenExplorer() {
-//        Intent intent = new Intent(HomeActivity.GetInstance(), ExplorerActivity.class);
-//        HomeActivity.GetInstance().startActivity(intent);
-//    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -132,8 +128,9 @@ public class HomeView extends GridView implements SlideTouchListener {
         return true;
     }
     public void HighlightSelection() {
-        for (int i = 0; i < getCount(); i++) {
-            View view = ((HomeItem)getItemAtPosition(i)).view;
+        for (int i = 0; i < getChildCount(); i++) {
+//            View view = ((HomeItem)getItemAtPosition(i)).view;
+            View view = getChildAt(i);
 //            Log.d("HomeView", i + " " + view);
 
             if (view != null) {
@@ -144,7 +141,7 @@ public class HomeView extends GridView implements SlideTouchListener {
     }
     public void SelectLowerItem() {
         int columns = getNumColumns();
-        int total = getCount();
+        int total = getChildCount();
         int nextIndex = properPosition + columns;
         if (nextIndex >= total)
             nextIndex = properPosition;
@@ -161,7 +158,7 @@ public class HomeView extends GridView implements SlideTouchListener {
     }
     public void SelectRightItem() {
         int columns = getNumColumns();
-        int total = getCount();
+        int total = getChildCount();
         int nextIndex = properPosition + 1;
         if (nextIndex >= total)
             nextIndex = total - 1;
@@ -201,7 +198,8 @@ public class HomeView extends GridView implements SlideTouchListener {
     }
     public void SetProperPosition(int pos) {
         properPosition = pos;
-        setSelectionFromTop(pos, HomeActivity.displayMetrics != null ? (int)(HomeActivity.displayMetrics.heightPixels * 0.5) : 0);
+        DisplayMetrics displayMetrics = ActivityManager.GetCurrentActivity().GetDisplayMetrics();
+        setSelectionFromTop(pos, displayMetrics != null ? (int)(displayMetrics.heightPixels * 0.5) : 0);
     }
 
     public void Refresh() {

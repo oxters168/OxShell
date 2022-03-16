@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -19,6 +20,9 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     private ExplorerBehaviour explorerBehaviour;
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
 //    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.explorer;
+    private long keyDownStart;
+    private long touchDownStart;
+    private long longPressTime = 300;
 
     public ExplorerView(Context context) {
         super(context);
@@ -26,16 +30,12 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         explorerBehaviour = new ExplorerBehaviour();
         Refresh();
     }
-
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
-//        Log.d("ExplorerView", currentActivity.toString());
-        currentActivity.AddPermissionListener(this);
+        ActivityManager.GetCurrentActivity().AddPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         Refresh();
     }
-
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         ActivityManager.GetCurrentActivity().AddPermissionListener(this);
@@ -46,18 +46,10 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     @Override
     public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == ExplorerBehaviour.READ_EXTERNAL_STORAGE) {
-            // If request is cancelled, the result arrays are empty.
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission is granted. Continue the action or workflow
-                // in your app.
                 Log.d("Explorer", "Storage permission granted");
                 Refresh();
             }  else {
-                // Explain to the user that the feature is unavailable because
-                // the features requires a permission that the user has denied.
-                // At the same time, respect the user's decision. Don't link to
-                // system settings in an effort to convince the user to change
-                // their decision.
                 Log.e("Explorer", "Storage permission denied");
             }
         }
@@ -65,20 +57,46 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("ExplorerView", key_code + " " + key_event);
-        if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
-            if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-                ActivityManager.GoTo(ActivityManager.Page.home);
-                return false;
-            } else
-                return super.onKeyDown(key_code, key_event);
-        }
-        if (key_code == KeyEvent.KEYCODE_BUTTON_Y) {
-            GoUp();
+        Log.d("ExplorerView", key_code + " " + key_event);
+        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
+            keyDownStart = SystemClock.uptimeMillis();
             return false;
+        }
+        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
+            if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+                touchDownStart = SystemClock.uptimeMillis();
+                return false;
+            }
         }
 
         return super.onKeyDown(key_code, key_event);
+    }
+
+    @Override
+    public boolean onKeyUp(int key_code, KeyEvent key_event) {
+        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
+            if (SystemClock.uptimeMillis() - keyDownStart >= longPressTime) {
+                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+                    ActivityManager.GoTo(ActivityManager.Page.home);
+                    return false;
+                }
+            } else {
+                GoUp();
+                return false;
+            }
+        }
+        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
+            if (SystemClock.uptimeMillis() - touchDownStart >= longPressTime) {
+                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+                    ActivityManager.GoTo(ActivityManager.Page.home);
+                    return false;
+                } else {
+                    GoUp();
+                    return false;
+                }
+            }
+        }
+        return super.onKeyUp(key_code, key_event);
     }
 
     @Override
@@ -157,18 +175,18 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             DetailAdapter customAdapter = new DetailAdapter(getContext(), arrayList);
             setAdapter(customAdapter);
         }
-        SetProperPosition(0);
+//        SetProperPosition(0);
     }
 
     private void TryRun(DetailItem clickedItem) {
         String absPath = ((File)clickedItem.obj).getAbsolutePath();
-        if (absPath.contains(".")) {
+        if (ExplorerBehaviour.HasExtension(absPath)) {
             String extension = ExplorerBehaviour.GetExtension(absPath);
             IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
                 String nameWithExt = ((File)clickedItem.obj).getName();
-                String nameWithoutExt = nameWithExt.substring(0, nameWithExt.lastIndexOf("."));
+                String nameWithoutExt = ExplorerBehaviour.RemoveExtension(nameWithExt);
 
                 String[] extrasValues = null;
                 IntentPutExtra[] extras = fileLaunchIntent.GetExtras();

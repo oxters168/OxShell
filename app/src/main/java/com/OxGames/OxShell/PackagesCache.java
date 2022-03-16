@@ -19,27 +19,27 @@ public class PackagesCache {
 
     public static void PrepareDefaultLaunchIntents() {
         //Cheat sheet: http://p.cweiske.de/221
-        IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
-        gbaLaunchIntent.SetDataType(IntentLaunchData.DataType.AbsolutePath);
         //            Gson gson = new Gson();
         //            String gbaJSON = gson.toJson(gbaLaunchIntent);
         //            Log.d("Intent", gbaJSON);
         //            gbaLaunchIntent = gson.fromJson(gbaJSON, IntentLaunchData.class);
+        IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" });
+        gbaLaunchIntent.SetDataType(IntentLaunchData.DataType.AbsolutePath);
         launchIntents.add(gbaLaunchIntent);
 
         IntentLaunchData ndsLaunchIntent = new IntentLaunchData("NDS", Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" });
         ndsLaunchIntent.AddExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(ndsLaunchIntent);
 
-        IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso" });
+        IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso", "cso" });
         pspLaunchIntent.AddExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(pspLaunchIntent);
 
-        IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "chd" });
+        IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "iso", "bin", "chd" });
         ps2LaunchIntent.AddExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(ps2LaunchIntent);
 
-        IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "cxi" });
+        IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "3ds", "cxi" });
         threedsLaunchIntent.AddExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(threedsLaunchIntent);
     }
@@ -118,7 +118,13 @@ public class PackagesCache {
         return appName;
     }
     public static ResolveInfo GetResolveInfo(String packageName) {
-        return ActivityManager.GetCurrentActivity().getPackageManager().resolveActivity(new IntentLaunchData(packageName).BuildIntent(), 0);
+        ResolveInfo rsvInfo = null;
+        try {
+            rsvInfo = ActivityManager.GetCurrentActivity().getPackageManager().resolveActivity(new IntentLaunchData(packageName).BuildIntent(), 0);
+        } catch (NullPointerException ex) {
+            Log.e("PackagesCache", "Unable to resolve package " + packageName);
+        }
+        return rsvInfo;
     }
     public static String GetPackageNameForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {

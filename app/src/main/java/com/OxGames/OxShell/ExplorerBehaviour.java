@@ -80,6 +80,15 @@ public class ExplorerBehaviour {
             extension = path.substring(path.lastIndexOf(".") + 1);
         return extension;
     }
+    public static boolean HasExtension(String path) {
+        return !(new File(path).isDirectory()) && path.lastIndexOf(".") > 0;
+    }
+    public static String RemoveExtension(String path) {
+        String fileName = (new File(path)).getName();
+        while (HasExtension(fileName))
+            fileName = fileName.substring(0, fileName.lastIndexOf("."));
+        return fileName;
+    }
 
     public static boolean HasPermission(String permType) {
         return ContextCompat.checkSelfPermission(ActivityManager.GetCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
