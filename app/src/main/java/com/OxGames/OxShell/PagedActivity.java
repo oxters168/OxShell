@@ -106,6 +106,10 @@ public class PagedActivity extends AppCompatActivity {
                     else if (nextPage instanceof HomeView)
                         ((HomeView) nextPage).Refresh();
                     nextPage.requestFocusFromTouch();
+                    if (nextPage instanceof SlideTouchListView)
+                        ((SlideTouchListView)nextPage).Refresh();
+                    else if (nextPage instanceof SlideTouchGridView)
+                        ((SlideTouchGridView)nextPage).Refresh();
                     currentPage = page;
                 }
             }

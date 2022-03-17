@@ -48,6 +48,7 @@ public class HomeActivity extends PagedActivity {
         allPages.put(ActivityManager.Page.assoc, findViewById(R.id.assoc_view));
         allPages.put(ActivityManager.Page.selectDirs, findViewById(R.id.selectdirs_view));
         allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
+        allPages.put(ActivityManager.Page.runningApps, findViewById(R.id.runningapps_view));
     }
     @Override
     public boolean onKeyDown(int key_code, KeyEvent key_event) {

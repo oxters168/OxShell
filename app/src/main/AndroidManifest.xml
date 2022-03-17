@@ -4,6 +4,7 @@
     <!-- <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" /> -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
 
     <application
         android:allowBackup="true"

@@ -65,6 +65,7 @@ public class PackagesView extends SlideTouchListView {
         for (int i = 0; i < categories.length; i++)
             mainIntent.addCategory(categories[i]);
 
+        //Needs some clean up (use common PackagesCache function to get all apps)
         ArrayList<DetailItem> intentNames = new ArrayList<>();
         PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
         Log.d("PackagesView", currentActivity.toString());

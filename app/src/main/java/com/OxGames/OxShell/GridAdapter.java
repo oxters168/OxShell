@@ -11,21 +11,21 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class HomeAdapter extends BaseAdapter {
+public class GridAdapter extends BaseAdapter {
     private final Context context;
-    private final ArrayList<HomeItem> homeItems;
+    private final ArrayList<GridItem> homeItems;
 
-    public HomeAdapter(Context _context, ArrayList<HomeItem> _homeItems) {
+    public GridAdapter(Context _context, ArrayList<GridItem> _homeItems) {
         context = _context;
         homeItems = _homeItems;
     }
 
     @Override
     public View getView(int position, View view, ViewGroup parent) {
-        HomeItem homeItem = homeItems.get(position);
+        GridItem homeItem = homeItems.get(position);
         if (view == null) {
             LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = layoutInflater.inflate(R.layout.home_cell, null);
+            view = layoutInflater.inflate(R.layout.grid_cell, null);
             homeItem.view = view;
 
             TextView title = view.findViewById(R.id.title);

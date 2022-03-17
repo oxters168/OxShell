@@ -23,6 +23,7 @@
         android:numColumns="auto_fit"
         android:padding="16px"
         android:verticalSpacing="16px">
+
     </com.OxGames.OxShell.HomeView>
 
     <com.OxGames.OxShell.PackagesView
@@ -60,5 +61,17 @@
         android:layout_height="match_parent"
         android:visibility="gone">
     </com.OxGames.OxShell.IntentShortcutsView>
+
+    <com.OxGames.OxShell.RunningAppsView
+        android:id="@+id/runningapps_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:columnWidth="256px"
+        android:horizontalSpacing="16px"
+        android:numColumns="auto_fit"
+        android:padding="16px"
+        android:verticalSpacing="16px"
+        android:visibility="gone">
+    </com.OxGames.OxShell.RunningAppsView>
 
 </FrameLayout>

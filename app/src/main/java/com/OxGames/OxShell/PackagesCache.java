@@ -10,6 +10,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 public class PackagesCache {
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
@@ -42,6 +43,23 @@ public class PackagesCache {
         IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "3ds", "cxi" });
         threedsLaunchIntent.AddExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
         launchIntents.add(threedsLaunchIntent);
+    }
+    public static boolean IsRunning(String packageName) {
+        return IsRunning(GetPackageInfo(packageName));
+    }
+    public static boolean IsRunning(ApplicationInfo appInfo) {
+        return ((appInfo.flags & ApplicationInfo.FLAG_STOPPED) == 0);
+    }
+    public static boolean IsSystem(String packageName) {
+        return IsSystem(GetPackageInfo(packageName));
+    }
+    public static List<ApplicationInfo> GetAllInstalledApplications() {
+        PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
+        List<ApplicationInfo> appsList = currentActivity.getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
+        return appsList;
+    }
+    public static boolean IsSystem(ApplicationInfo appInfo) {
+        return (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
     public static IntentLaunchData[] GetStoredIntents() {
         IntentLaunchData[] intents = new IntentLaunchData[launchIntents.size()];

@@ -11,8 +11,11 @@ import com.google.gson.Gson;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class IntentLaunchData implements Serializable {
+    //Might be best to implement a guid that other data structures can identify by so they don't store copies
+    private UUID id;
     public enum DataType { None, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
     private String displayName;
     private ArrayList<String> associatedExtensions;
@@ -23,9 +26,11 @@ public class IntentLaunchData implements Serializable {
     private DataType dataType = DataType.None;
 
     public IntentLaunchData(String _packageName) {
+        id = UUID.randomUUID();
         packageName = _packageName;
     }
     public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] extensions) {
+        id = UUID.randomUUID();
         displayName = _displayName;
         action = _action;
         packageName = _packageName;

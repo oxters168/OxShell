@@ -1,6 +1,5 @@
 package com.OxGames.OxShell;
 
-import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
@@ -9,29 +8,27 @@ import androidx.core.content.ContextCompat;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class HomeItem implements Serializable, DirsCarrier {
+public class HomeItem extends GridItem implements Serializable, DirsCarrier {
     public enum Type { explorer, app, assoc, add, }
     Type type;
-    String title;
-    Object obj;
-    transient View view;
     ArrayList<String> extraData;
 
     public HomeItem(Type _type) {
+        super(null, null);
         type = _type;
         extraData = new ArrayList<>();
     }
     public HomeItem(Type _type, String _title) {
+        super(_title, null);
         type = _type;
-        title = _title;
         extraData = new ArrayList<>();
     }
     public HomeItem(Type _type, String _title, Object _obj) {
+        super(_title, _obj);
         type = _type;
-        title = _title;
-        obj = _obj;
         extraData = new ArrayList<>();
     }
+    @Override
     public Drawable GetIcon() {
         Drawable icon = null;
         if (type == Type.explorer)
@@ -44,6 +41,7 @@ public class HomeItem implements Serializable, DirsCarrier {
             icon = ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_app_shortcut_24);
         return icon;
     }
+    @Override
     public Drawable GetSuperIcon() {
         Drawable icon = null;
         if (type == Type.assoc)

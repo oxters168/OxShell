@@ -38,11 +38,15 @@ public class HomeManager {
                 AddTempExplorer(); //Since nothing is saved anyway no need to save this because it is the default (this way the user isn't always bombarded with permission request on start, only when they want to add something to the home)
         }
     }
-    public static ArrayList<HomeItem> GetItems() {
-        ArrayList<HomeItem> clonedItems = null;
-        if (homeItems != null)
-            clonedItems = (ArrayList<HomeItem>)homeItems.clone();
-        return clonedItems;
+    public static ArrayList<GridItem> GetItems() {
+        if (homeItems != null) {
+            ArrayList<GridItem> convertedItems = new ArrayList<>();
+            for (int i = 0; i < homeItems.size(); i++) {
+                convertedItems.add(homeItems.get(i));
+            }
+            return convertedItems;
+        } else
+            return null;
     }
     public static void AddExplorer() {
         AddItemAndSave(new HomeItem(HomeItem.Type.explorer, "Explorer"));
