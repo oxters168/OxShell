@@ -50,11 +50,11 @@ public class HomeActivity extends PagedActivity {
         allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
         allPages.put(ActivityManager.Page.runningApps, findViewById(R.id.runningapps_view));
     }
-    @Override
-    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        Log.d("HomeActivity", key_code + " " + key_event);
-        return true;
-    }
+//    @Override
+//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+//        Log.d("HomeActivity", key_code + " " + key_event);
+//        return true;
+//    }
     public void RefreshHome() {
         ((HomeView)allPages.get(ActivityManager.Page.home)).Refresh();
     }

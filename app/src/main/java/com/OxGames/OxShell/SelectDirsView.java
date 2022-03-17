@@ -35,19 +35,35 @@ public class SelectDirsView extends SlideTouchListView {
         instance = this;
     }
 
+//    @Override
+//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+////        Log.d("ExplorerView", key_code + " " + key_event);
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
+//            CancelAndReturn();
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_X) {
+//            RemoveSelection();
+//            return false;
+//        }
+//
+//        return super.onKeyDown(key_code, key_event);
+//    }
     @Override
-    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("ExplorerView", key_code + " " + key_event);
-        if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
-            CancelAndReturn();
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_BUTTON_X) {
-            RemoveSelection();
-            return false;
+    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+    //        Log.d("ExplorerView", key_code + " " + key_event);
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                CancelAndReturn();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                RemoveSelection();
+                return true;
+            }
         }
 
-        return super.onKeyDown(key_code, key_event);
+        return super.ReceiveKeyEvent(key_event);
     }
 
     @Override

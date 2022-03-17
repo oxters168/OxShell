@@ -21,7 +21,9 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
 //    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.explorer;
     private long keyDownStart;
+    private boolean keyDownDown;
     private long touchDownStart;
+    private boolean touchDownDown;
     private long longPressTime = 300;
 
     public ExplorerView(Context context) {
@@ -55,48 +57,96 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         }
     }
 
+//    @Override
+//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+//        Log.d("ExplorerView", key_code + " " + key_event);
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
+//            keyDownStart = SystemClock.uptimeMillis();
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
+//            if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+//                touchDownStart = SystemClock.uptimeMillis();
+//                return false;
+//            }
+//        }
+//
+//        return super.onKeyDown(key_code, key_event);
+//    }
+//    @Override
+//    public boolean onKeyUp(int key_code, KeyEvent key_event) {
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
+//            if (SystemClock.uptimeMillis() - keyDownStart >= longPressTime) {
+//                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+//                    ActivityManager.GoTo(ActivityManager.Page.home);
+//                    return false;
+//                }
+//            } else {
+//                GoUp();
+//                return false;
+//            }
+//        }
+//        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
+//            if (SystemClock.uptimeMillis() - touchDownStart >= longPressTime) {
+//                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+//                    ActivityManager.GoTo(ActivityManager.Page.home);
+//                    return false;
+//                } else {
+//                    GoUp();
+//                    return false;
+//                }
+//            }
+//        }
+//        return super.onKeyUp(key_code, key_event);
+//    }
     @Override
-    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        Log.d("ExplorerView", key_code + " " + key_event);
-        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
-            keyDownStart = SystemClock.uptimeMillis();
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
-            if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-                touchDownStart = SystemClock.uptimeMillis();
-                return false;
-            }
-        }
-
-        return super.onKeyDown(key_code, key_event);
-    }
-
-    @Override
-    public boolean onKeyUp(int key_code, KeyEvent key_event) {
-        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
-            if (SystemClock.uptimeMillis() - keyDownStart >= longPressTime) {
-                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-                    ActivityManager.GoTo(ActivityManager.Page.home);
-                    return false;
+    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+//        Log.d("ExplorerView", key_code + " " + key_event);
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
+                if (!keyDownDown) {
+                    keyDownStart = SystemClock.uptimeMillis();
+                    keyDownDown = true;
                 }
-            } else {
-                GoUp();
-                return false;
+                return true;
             }
-        }
-        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
-            if (SystemClock.uptimeMillis() - touchDownStart >= longPressTime) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
                 if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-                    ActivityManager.GoTo(ActivityManager.Page.home);
-                    return false;
+                    if (!touchDownDown) {
+                        touchDownStart = SystemClock.uptimeMillis();
+                        touchDownDown = true;
+                    }
+                    return true;
+                }
+            }
+        } else if (key_event.getAction() == KeyEvent.ACTION_UP) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
+                keyDownDown = false;
+                if (SystemClock.uptimeMillis() - keyDownStart >= longPressTime) {
+                    if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+                        ActivityManager.GoTo(ActivityManager.Page.home);
+                        return true;
+                    }
                 } else {
                     GoUp();
-                    return false;
+                    return true;
+                }
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
+                touchDownDown = false;
+                if (SystemClock.uptimeMillis() - touchDownStart >= longPressTime) {
+                    if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+                        ActivityManager.GoTo(ActivityManager.Page.home);
+                        return true;
+                    } else {
+                        GoUp();
+                        return true;
+                    }
                 }
             }
         }
-        return super.onKeyUp(key_code, key_event);
+
+        return super.ReceiveKeyEvent(key_event);
     }
 
     @Override

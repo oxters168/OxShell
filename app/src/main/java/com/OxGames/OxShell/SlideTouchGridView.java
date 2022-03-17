@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -87,38 +88,84 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
         SelectUpperItem();
     }
 
-    @Override
-    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("HomeView", key_code + " " + key_event);
-        if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
-            MakeSelection();
-            return false;
+//    @Override
+//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+////        Log.d("HomeView", key_code + " " + key_event);
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
+//            MakeSelection();
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_X) {
+//            DeleteSelection();
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_DPAD_DOWN) {
+//            SelectLowerItem();
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_DPAD_UP) {
+//            SelectUpperItem();
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_DPAD_LEFT) {
+//            SelectLeftItem();
+//            return false;
+//        }
+//        if (key_code == KeyEvent.KEYCODE_DPAD_RIGHT) {
+//            SelectRightItem();
+//            return false;
+//        }
+//        return true;
+//    }
+//    @Override
+//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+//        Log.d("SlideTouchGridView", key_code + " " + key_event);
+//        return ReceiveKeyDown(key_code, key_event);
+//    }
+//    @Override
+//    public boolean onKeyUp(int key_code, KeyEvent key_event) {
+//        Log.d("SlideTouchGridView", key_code + " " + key_event);
+//        return ReceiveKeyUp(key_code, key_event);
+//    }
+    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+    //        Log.d("HomeView", key_code + " " + key_event);
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
+                MakeSelection();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                DeleteSelection();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+                SelectLowerItem();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+                SelectUpperItem();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
+                SelectLeftItem();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                SelectRightItem();
+                return true;
+            }
         }
-        if (key_code == KeyEvent.KEYCODE_BUTTON_X) {
-            DeleteSelection();
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_DPAD_DOWN) {
-            SelectLowerItem();
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_DPAD_UP) {
-            SelectUpperItem();
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_DPAD_LEFT) {
-            SelectLeftItem();
-            return false;
-        }
-        if (key_code == KeyEvent.KEYCODE_DPAD_RIGHT) {
-            SelectRightItem();
-            return false;
-        }
-        return true;
+        return false;
     }
+//    public boolean ReceiveKeyUp(int key_code, KeyEvent key_event) {
+//        return true;
+//    }
     public void HighlightSelection() {
         for (int i = 0; i < getChildCount(); i++) {
 //            View view = ((HomeItem)getItemAtPosition(i)).view;

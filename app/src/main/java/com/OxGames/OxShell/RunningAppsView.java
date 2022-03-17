@@ -36,13 +36,23 @@ public class RunningAppsView extends SlideTouchGridView {
         Refresh();
     }
 
+//    @Override
+//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+//        if (key_code == KeyEvent.KEYCODE_BUTTON_R2) {
+//            ActivityManager.GoTo(ActivityManager.Page.home);
+//            return false;
+//        }
+//        return super.onKeyDown(key_code, key_event);
+//    }
     @Override
-    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-        if (key_code == KeyEvent.KEYCODE_BUTTON_R2) {
-            ActivityManager.GoTo(ActivityManager.Page.home);
-            return false;
+    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2) {
+                ActivityManager.GoTo(ActivityManager.Page.home);
+                return true;
+            }
         }
-        return super.onKeyDown(key_code, key_event);
+        return super.ReceiveKeyEvent(key_event);
     }
     @Override
     public void Refresh() {

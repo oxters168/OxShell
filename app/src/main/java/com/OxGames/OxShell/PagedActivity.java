@@ -3,6 +3,7 @@ package com.OxGames.OxShell;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 
 import androidx.appcompat.app.ActionBar;
@@ -43,6 +44,39 @@ public class PagedActivity extends AppCompatActivity {
 //    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
 //        super.onPostCreate(savedInstanceState);
 //        InitViewsTable();
+//    }
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent key_event) {
+        Log.d("PagedActivity", key_event.toString());
+        View currentView = allPages.get(currentPage);
+        boolean childsPlay = false;
+        if (currentView instanceof SlideTouchListView)
+            childsPlay = ((SlideTouchListView)currentView).ReceiveKeyEvent(key_event);
+        else if (currentView instanceof SlideTouchGridView)
+            childsPlay = ((SlideTouchGridView)currentView).ReceiveKeyEvent(key_event);
+        if (childsPlay)
+            return true;
+        return super.dispatchKeyEvent(key_event);
+    }
+//    @Override
+//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
+//        Log.d("PagedActivity", key_code + " " + key_event);
+//        View currentView = allPages.get(currentPage);
+//        if (currentView instanceof SlideTouchListView)
+//            return ((SlideTouchListView)currentView).ReceiveKeyDown(key_code, key_event);
+//        else if (currentView instanceof SlideTouchGridView)
+//            return ((SlideTouchGridView)currentView).ReceiveKeyDown(key_code, key_event);
+//        return super.onKeyDown(key_code, key_event);
+//    }
+//    @Override
+//    public boolean onKeyUp(int key_code, KeyEvent key_event) {
+//        Log.d("PagedActivity", key_code + " " + key_event);
+//        View currentView = allPages.get(currentPage);
+//        if (currentView instanceof SlideTouchListView)
+//            return ((SlideTouchListView)currentView).ReceiveKeyUp(key_code, key_event);
+//        else if (currentView instanceof SlideTouchGridView)
+//            return ((SlideTouchGridView)currentView).ReceiveKeyUp(key_code, key_event);
+//        return super.onKeyUp(key_code, key_event);
 //    }
 
     @Override
