@@ -14,6 +14,11 @@
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
+    <com.appspell.shaderview.ShaderView
+        android:id="@+id/shaderView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <com.OxGames.OxShell.HomeView
         android:id="@+id/home_view"
         android:layout_width="match_parent"

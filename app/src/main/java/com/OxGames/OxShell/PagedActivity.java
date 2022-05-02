@@ -29,7 +29,7 @@ public class PagedActivity extends AppCompatActivity {
         ActivityManager.Init();
         ActivityManager.InstanceCreated(this);
 
-        HideActionBar();
+        //HideActionBar();
 
 //        InitViewsTable();
 
@@ -86,6 +86,8 @@ public class PagedActivity extends AppCompatActivity {
         super.onResume();
         //Add an if statement later to have a setting for hiding status bar
         //HideStatusBar();
+        hideActionBar();
+        hideSystemUI();
         Log.d("PagedActivity", "OnResume " + this);
     }
     @Override
@@ -110,10 +112,22 @@ public class PagedActivity extends AppCompatActivity {
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
     }
-    private void HideActionBar() {
+    private void hideActionBar() {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null)
             actionBar.hide();
+    }
+    private void hideSystemUI() {
+        // Set the IMMERSIVE flag.
+        // Set the content to appear under the system bars so that the content
+        // doesn't resize when the system bars hide and show.
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
 //    public void RefreshDisplayMetrics() {

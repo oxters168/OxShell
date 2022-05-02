@@ -3,6 +3,7 @@ package com.OxGames.OxShell;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -126,7 +127,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
         for (int i = 0; i < getCount(); i++) {
             View view = ((DetailItem)getItemAtPosition(i)).view;
             if (view != null)
-                view.setBackgroundResource((i == properPosition) ? R.color.scheme1 : R.color.light_blue_400);
+                view.setBackgroundColor((i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO implement color theme that can take custom theme from file
         }
     }
     public void SelectNextItem() {

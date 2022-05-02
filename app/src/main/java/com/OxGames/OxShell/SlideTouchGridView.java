@@ -3,6 +3,7 @@ package com.OxGames.OxShell;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -173,8 +174,8 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
 //            Log.d("HomeView", i + " " + view);
 
             if (view != null) {
-                int bgColor = (i == properPosition) ? R.color.scheme1 : R.color.light_blue_400;
-                view.setBackgroundResource(bgColor);
+                int bgColor = (i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000"); //TODO implement color theme that can take custom theme from file
+                view.setBackgroundColor(bgColor);
             }
         }
     }
