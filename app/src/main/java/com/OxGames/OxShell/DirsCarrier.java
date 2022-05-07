@@ -1,10 +1,8 @@
 package com.OxGames.OxShell;
 
-import java.util.ArrayList;
-
 public interface DirsCarrier {
-    void ClearDirsList();
-    void AddToDirsList(String dir);
-    void RemoveFromDirsList(String dir);
-    String[] GetDirsList();
+    void clearDirsList();
+    void addToDirsList(String dir);
+    void removeFromDirsList(String dir);
+    String[] getDirsList();
 }

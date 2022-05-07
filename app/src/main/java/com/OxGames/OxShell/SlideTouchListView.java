@@ -6,7 +6,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,30 +17,30 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
 
     public SlideTouchListView(Context context) {
         super(context);
-        slideTouch.AddListener(this);
+        slideTouch.addListener(this);
     }
     public SlideTouchListView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        slideTouch.AddListener(this);
+        slideTouch.addListener(this);
     }
     public SlideTouchListView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        slideTouch.AddListener(this);
+        slideTouch.addListener(this);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        slideTouch.CheckForEvents();
-        HighlightSelection();
+        slideTouch.checkForEvents();
+        highlightSelection();
     }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         int storedPos = properPosition;
-        Refresh();
-        SetProperPosition(storedPos);
+        refresh();
+        setProperPosition(storedPos);
     }
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
@@ -49,7 +48,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
     }
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        slideTouch.Update(ev);
+        slideTouch.update(ev);
         return true;
     }
     @Override
@@ -58,15 +57,15 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
     }
     @Override
     public void onClick() {
-        MakeSelection();
+        makeSelection();
     }
     @Override
     public void onSwipeUp() {
-        SelectPrevItem();
+        selectPrevItem();
     }
     @Override
     public void onSwipeDown() {
-        SelectNextItem();
+        selectNextItem();
     }
     @Override
     public void onSwipeRight() {
@@ -76,83 +75,56 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
     public void onSwipeLeft() {
 
     }
-//    @Override
-//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
-//            MakeSelection();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_DPAD_DOWN) {
-//            SelectNextItem();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_DPAD_UP) {
-//            SelectPrevItem();
-//            return false;
-//        }
-//        return true;
-//    }
-//    @Override
-//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("SlideTouchListView", key_code + " " + key_event);
-//        return ReceiveKeyDown(key_code, key_event);
-//    }
-//    @Override
-//    public boolean onKeyUp(int key_code, KeyEvent key_event) {
-//        Log.d("SlideTouchListView", key_code + " " + key_event);
-//        return ReceiveKeyUp(key_code, key_event);
-//    }
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+
+    public boolean receiveKeyEvent(KeyEvent key_event) {
+        //Log.d("SlideTouchListView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-                MakeSelection();
+                makeSelection();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                SelectNextItem();
+                selectNextItem();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                SelectPrevItem();
+                selectPrevItem();
                 return true;
             }
         }
         return false;
     }
-//    public boolean ReceiveKeyUp(int key_code, KeyEvent key_event) {
-//        return true;
-//    }
 
-    private void HighlightSelection() {
+    private void highlightSelection() {
         for (int i = 0; i < getCount(); i++) {
             View view = ((DetailItem)getItemAtPosition(i)).view;
             if (view != null)
                 view.setBackgroundColor((i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO implement color theme that can take custom theme from file
         }
     }
-    public void SelectNextItem() {
+    public void selectNextItem() {
         int total = getCount();
         int nextIndex = properPosition + 1;
         if (nextIndex >= total)
             nextIndex = total - 1;
-        SetProperPosition(nextIndex);
+        setProperPosition(nextIndex);
     }
-    public void SelectPrevItem() {
+    public void selectPrevItem() {
         int prevIndex = properPosition - 1;
         if (prevIndex < 0)
             prevIndex = 0;
-        SetProperPosition(prevIndex);
+        setProperPosition(prevIndex);
     }
-    public void MakeSelection() {
+    public void makeSelection() {
         //ExplorerItem clickedItem = (ExplorerItem)getItemAtPosition(properPosition);
     }
-    public void SetProperPosition(int pos) {
+    public void setProperPosition(int pos) {
 //        Log.d("Explorer", "Setting position to " + pos);
         properPosition = pos;
-        DisplayMetrics displayMetrics = ActivityManager.GetCurrentActivity().GetDisplayMetrics();
+        DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
         setSelectionFromTop(pos, (int)(displayMetrics.heightPixels * 0.5));
     }
-    public void Refresh() {
+    public void refresh() {
 
     }
 }

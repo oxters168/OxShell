@@ -14,10 +14,10 @@ public class GridItem implements Serializable {
         title = _title;
         obj = _obj;
     }
-    public Drawable GetIcon() {
+    public Drawable getIcon() {
         return null;
     }
-    public Drawable GetSuperIcon() {
+    public Drawable getSuperIcon() {
         return null;
     }
 }

@@ -6,13 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.GridView;
-
-import java.util.ArrayList;
 
 public class SlideTouchGridView extends GridView implements SlideTouchListener {
     SlideTouchHandler slideTouch = new SlideTouchHandler();
@@ -20,34 +17,34 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
 
     public SlideTouchGridView(Context context) {
         super(context);
-        slideTouch.AddListener(this);
-        Refresh();
+        slideTouch.addListener(this);
+        refresh();
     }
     public SlideTouchGridView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        slideTouch.AddListener(this);
-        Refresh();
+        slideTouch.addListener(this);
+        refresh();
     }
     public SlideTouchGridView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        slideTouch.AddListener(this);
-        Refresh();
+        slideTouch.addListener(this);
+        refresh();
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        slideTouch.CheckForEvents();
-        HighlightSelection();
+        slideTouch.checkForEvents();
+        highlightSelection();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         int storedPos = properPosition;
-        Refresh();
-        SetProperPosition(storedPos);
+        refresh();
+        setProperPosition(storedPos);
     }
 
     @Override
@@ -56,7 +53,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
     }
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        slideTouch.Update(ev);
+        slideTouch.update(ev);
         return true;
     }
 //    @Override
@@ -70,104 +67,64 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
     }
     @Override
     public void onClick() {
-        MakeSelection();
+        makeSelection();
     }
     @Override
     public void onSwipeDown() {
-        SelectLowerItem();
+        selectLowerItem();
     }
     @Override
     public void onSwipeLeft() {
-        SelectLeftItem();
+        selectLeftItem();
     }
     @Override
     public void onSwipeRight() {
-        SelectRightItem();
+        selectRightItem();
     }
     @Override
     public void onSwipeUp() {
-        SelectUpperItem();
+        selectUpperItem();
     }
 
-//    @Override
-//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-////        Log.d("HomeView", key_code + " " + key_event);
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_A) {
-//            MakeSelection();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_X) {
-//            DeleteSelection();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_DPAD_DOWN) {
-//            SelectLowerItem();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_DPAD_UP) {
-//            SelectUpperItem();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_DPAD_LEFT) {
-//            SelectLeftItem();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_DPAD_RIGHT) {
-//            SelectRightItem();
-//            return false;
-//        }
-//        return true;
-//    }
-//    @Override
-//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("SlideTouchGridView", key_code + " " + key_event);
-//        return ReceiveKeyDown(key_code, key_event);
-//    }
-//    @Override
-//    public boolean onKeyUp(int key_code, KeyEvent key_event) {
-//        Log.d("SlideTouchGridView", key_code + " " + key_event);
-//        return ReceiveKeyUp(key_code, key_event);
-//    }
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
-    //        Log.d("HomeView", key_code + " " + key_event);
+    public boolean receiveKeyEvent(KeyEvent key_event) {
+        //Log.d("SlideTouchGridView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-                MakeSelection();
+                makeSelection();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                DeleteSelection();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
+                deleteSelection();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                SelectLowerItem();
+                selectLowerItem();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                SelectUpperItem();
+                selectUpperItem();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
-                SelectLeftItem();
+                selectLeftItem();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                SelectRightItem();
+                selectRightItem();
                 return true;
             }
         }
+
+        //Block out default back events
+        if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B)
+            return true;
+
         return false;
     }
 //    public boolean ReceiveKeyUp(int key_code, KeyEvent key_event) {
 //        return true;
 //    }
-    public void HighlightSelection() {
+    public void highlightSelection() {
         for (int i = 0; i < getChildCount(); i++) {
 //            View view = ((HomeItem)getItemAtPosition(i)).view;
             View view = getChildAt(i);
@@ -179,24 +136,24 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
             }
         }
     }
-    public void SelectLowerItem() {
+    public void selectLowerItem() {
         int columns = getNumColumns();
         int total = getChildCount();
         int nextIndex = properPosition + columns;
         if (nextIndex >= total)
             nextIndex = properPosition;
 //        Log.d("Home", "Down " + properPosition + " => " + nextIndex);
-        SetProperPosition(nextIndex);
+        setProperPosition(nextIndex);
     }
-    public void SelectUpperItem() {
+    public void selectUpperItem() {
         int columns = getNumColumns();
         int prevIndex = properPosition - columns;
         if (prevIndex < 0)
             prevIndex = properPosition;
 //        Log.d("Home", "Up " + properPosition + " => " + prevIndex);
-        SetProperPosition(prevIndex);
+        setProperPosition(prevIndex);
     }
-    public void SelectRightItem() {
+    public void selectRightItem() {
         int columns = getNumColumns();
         int total = getChildCount();
         int nextIndex = properPosition + 1;
@@ -205,9 +162,9 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
         if (nextIndex % columns == 0)
             nextIndex = properPosition;
 //        Log.d("Home", "Right " + properPosition + " => " + nextIndex);
-        SetProperPosition(nextIndex);
+        setProperPosition(nextIndex);
     }
-    public void SelectLeftItem() {
+    public void selectLeftItem() {
         int columns = getNumColumns();
         int prevIndex = properPosition - 1;
         if (prevIndex < 0)
@@ -215,18 +172,18 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
         if (prevIndex % columns == columns - 1)
             prevIndex = properPosition;
 //        Log.d("Home", "Left " + properPosition + " => " + prevIndex);
-        SetProperPosition(prevIndex);
+        setProperPosition(prevIndex);
     }
-    public void SetProperPosition(int pos) {
+    public void setProperPosition(int pos) {
         properPosition = pos;
-        DisplayMetrics displayMetrics = ActivityManager.GetCurrentActivity().GetDisplayMetrics();
+        DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
         setSelectionFromTop(pos, displayMetrics != null ? (int)(displayMetrics.heightPixels * 0.5) : 0);
     }
-    public void MakeSelection() {
+    public void makeSelection() {
     }
-    public void DeleteSelection() {
+    public void deleteSelection() {
     }
 
-    public void Refresh() {
+    public void refresh() {
     }
 }

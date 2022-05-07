@@ -16,11 +16,10 @@ public class DetailItem {
         leftAlignedText = _leftAlignedText;
         rightAlignedText = _rightAlignedText;
     }
-    public boolean HasIcon() {
+    public boolean hasIcon() {
         return icon != null;
     }
-    public Drawable GetIcon() {
-
+    public Drawable getIcon() {
         return icon;
     }
 }

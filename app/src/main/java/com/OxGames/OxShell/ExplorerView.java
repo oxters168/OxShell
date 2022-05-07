@@ -1,10 +1,7 @@
 package com.OxGames.OxShell;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -28,21 +25,21 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     public ExplorerView(Context context) {
         super(context);
-        ActivityManager.GetCurrentActivity().AddPermissionListener(this);
+        ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
-        Refresh();
+        refresh();
     }
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        ActivityManager.GetCurrentActivity().AddPermissionListener(this);
+        ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
-        Refresh();
+        refresh();
     }
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        ActivityManager.GetCurrentActivity().AddPermissionListener(this);
+        ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
-        Refresh();
+        refresh();
     }
 
     @Override
@@ -50,58 +47,16 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         if (requestCode == ExplorerBehaviour.READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d("Explorer", "Storage permission granted");
-                Refresh();
+                refresh();
             }  else {
                 Log.e("Explorer", "Storage permission denied");
             }
         }
     }
 
-//    @Override
-//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        Log.d("ExplorerView", key_code + " " + key_event);
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
-//            keyDownStart = SystemClock.uptimeMillis();
-//            return false;
-//        }
-//        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
-//            if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-//                touchDownStart = SystemClock.uptimeMillis();
-//                return false;
-//            }
-//        }
-//
-//        return super.onKeyDown(key_code, key_event);
-//    }
-//    @Override
-//    public boolean onKeyUp(int key_code, KeyEvent key_event) {
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_B) {
-//            if (SystemClock.uptimeMillis() - keyDownStart >= longPressTime) {
-//                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-//                    ActivityManager.GoTo(ActivityManager.Page.home);
-//                    return false;
-//                }
-//            } else {
-//                GoUp();
-//                return false;
-//            }
-//        }
-//        if (key_code == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
-//            if (SystemClock.uptimeMillis() - touchDownStart >= longPressTime) {
-//                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-//                    ActivityManager.GoTo(ActivityManager.Page.home);
-//                    return false;
-//                } else {
-//                    GoUp();
-//                    return false;
-//                }
-//            }
-//        }
-//        return super.onKeyUp(key_code, key_event);
-//    }
     @Override
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
-//        Log.d("ExplorerView", key_code + " " + key_event);
+    public boolean receiveKeyEvent(KeyEvent key_event) {
+        Log.d("ExplorerView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
                 if (!keyDownDown) {
@@ -110,8 +65,8 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 }
                 return true;
             }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
-                if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
                     if (!touchDownDown) {
                         touchDownStart = SystemClock.uptimeMillis();
                         touchDownDown = true;
@@ -123,97 +78,97 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
                 keyDownDown = false;
                 if (SystemClock.uptimeMillis() - keyDownStart >= longPressTime) {
-                    if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-                        ActivityManager.GoTo(ActivityManager.Page.home);
+                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
+                        ActivityManager.goTo(ActivityManager.Page.home);
                         return true;
                     }
                 } else {
-                    GoUp();
+                    goUp();
                     return true;
                 }
             }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK && key_event.getScanCode() == 0) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 touchDownDown = false;
                 if (SystemClock.uptimeMillis() - touchDownStart >= longPressTime) {
-                    if (ActivityManager.GetCurrent() != ActivityManager.Page.chooser) {
-                        ActivityManager.GoTo(ActivityManager.Page.home);
+                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
+                        ActivityManager.goTo(ActivityManager.Page.home);
                         return true;
                     } else {
-                        GoUp();
+                        goUp();
                         return true;
                     }
                 }
             }
         }
 
-        return super.ReceiveKeyEvent(key_event);
+        return super.receiveKeyEvent(key_event);
     }
 
     @Override
-    public void MakeSelection() {
+    public void makeSelection() {
         DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
         if (clickedItem.obj == null) {
-            ((FileChooserActivity)ActivityManager.GetInstance(FileChooserActivity.class)).SendResult(explorerBehaviour.GetDirectory());
+            ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(explorerBehaviour.getDirectory());
         } else {
             File file = (File)clickedItem.obj;
             if (file.isDirectory()) {
 //            ((ExplorerActivity)ExplorerActivity.GetInstance()).SendResult(file.getAbsolutePath());
 //            startActivityForResult(intent, requestCode);
-                explorerBehaviour.SetDirectory(file.getAbsolutePath());
-                Refresh();
-                TryHighlightPrevDir();
+                explorerBehaviour.setDirectory(file.getAbsolutePath());
+                refresh();
+                tryHighlightPrevDir();
             } else {
-                if (ActivityManager.GetCurrent() == ActivityManager.Page.chooser)
-                    ((FileChooserActivity)ActivityManager.GetInstance(FileChooserActivity.class)).SendResult(file.getAbsolutePath());
+                if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
+                    ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(file.getAbsolutePath());
                 else
-                    TryRun(clickedItem);
+                    tryRun(clickedItem);
             }
         }
     }
 
-    public void GoUp() {
-        explorerBehaviour.GoUp();
-        Refresh();
+    public void goUp() {
+        explorerBehaviour.goUp();
+        refresh();
 //        SetProperPosition(0);
-        TryHighlightPrevDir();
+        tryHighlightPrevDir();
     }
-    private void TryHighlightPrevDir() {
-        String previousDir = explorerBehaviour.GetLastItemInHistory();
+    private void tryHighlightPrevDir() {
+        String previousDir = explorerBehaviour.getLastItemInHistory();
         for (int i = 0; i < getCount(); i++) {
             File file = ((File)((DetailItem)getItemAtPosition(i)).obj);
             if (file != null) {
                 String itemDir = file.getAbsolutePath();
                 if (itemDir.equalsIgnoreCase(previousDir)) {
                     requestFocusFromTouch();
-                    SetProperPosition(i);
+                    setProperPosition(i);
                     break;
                 }
             }
         }
     }
     @Override
-    public void Refresh() {
+    public void refresh() {
         ArrayList<DetailItem> arrayList = new ArrayList<>();
-        File[] files = explorerBehaviour.ListContents();
+        File[] files = explorerBehaviour.listContents();
         boolean isEmpty = files == null || files.length <= 0;
-        boolean hasParent = explorerBehaviour.HasParent();
+        boolean hasParent = explorerBehaviour.hasParent();
         if (!isEmpty || hasParent) {
             if (hasParent)
-                arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "..", "<dir>", new File(explorerBehaviour.GetParent())));
-            if (ActivityManager.GetCurrent() == ActivityManager.Page.chooser)
+                arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "..", "<dir>", new File(explorerBehaviour.getParent())));
+            if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
                 arrayList.add(new DetailItem(null, "Choose current directory", null, null));
-            if (explorerBehaviour.GetDirectory().equalsIgnoreCase("/storage/emulated"))
+            if (explorerBehaviour.getDirectory().equalsIgnoreCase("/storage/emulated"))
                 arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "0", "<dir>", new File("/storage/emulated/0")));
             if (!isEmpty) {
                 for (int i = 0; i < files.length; i++) {
                     String absolutePath = files[i].getAbsolutePath();
                     Drawable icon = null;
                     if (!files[i].isDirectory()) {
-                        String extension = ExplorerBehaviour.GetExtension(absolutePath);
+                        String extension = ExplorerBehaviour.getExtension(absolutePath);
                         if (extension != null) {
-                            String packageName = PackagesCache.GetPackageNameForExtension(extension);
+                            String packageName = PackagesCache.getPackageNameForExtension(extension);
                             if (packageName != null)
-                                icon = PackagesCache.GetPackageIcon(packageName);
+                                icon = PackagesCache.getPackageIcon(packageName);
                         }
                     }
                     else
@@ -228,27 +183,27 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 //        SetProperPosition(0);
     }
 
-    private void TryRun(DetailItem clickedItem) {
+    private void tryRun(DetailItem clickedItem) {
         String absPath = ((File)clickedItem.obj).getAbsolutePath();
-        if (ExplorerBehaviour.HasExtension(absPath)) {
-            String extension = ExplorerBehaviour.GetExtension(absPath);
-            IntentLaunchData fileLaunchIntent = PackagesCache.GetLaunchDataForExtension(extension);
+        if (ExplorerBehaviour.hasExtension(absPath)) {
+            String extension = ExplorerBehaviour.getExtension(absPath);
+            IntentLaunchData fileLaunchIntent = PackagesCache.getLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
                 String nameWithExt = ((File)clickedItem.obj).getName();
-                String nameWithoutExt = ExplorerBehaviour.RemoveExtension(nameWithExt);
+                String nameWithoutExt = ExplorerBehaviour.removeExtension(nameWithExt);
 
                 String[] extrasValues = null;
-                IntentPutExtra[] extras = fileLaunchIntent.GetExtras();
+                IntentPutExtra[] extras = fileLaunchIntent.getExtras();
                 if (extras != null && extras.length > 0) {
                     extrasValues = new String[extras.length];
                     for (int i = 0; i < extras.length; i++) {
                         IntentPutExtra current = extras[i];
-                        if (current.GetExtraType() == IntentLaunchData.DataType.AbsolutePath)
+                        if (current.getExtraType() == IntentLaunchData.DataType.AbsolutePath)
                             extrasValues[i] = absPath;
-                        else if (current.GetExtraType() == IntentLaunchData.DataType.FileNameWithExt)
+                        else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithExt)
                             extrasValues[i] = nameWithExt;
-                        else if (current.GetExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                        else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
                             extrasValues[i] = nameWithoutExt;
 //                        else if (current.GetExtraType() == IntentLaunchData.DataType.Uri) {
 //                            String uri = Uri.parse(absPath).getScheme();
@@ -259,11 +214,11 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 }
 
                 String data = null;
-                if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.AbsolutePath)
+                if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.AbsolutePath)
                     data = absPath;
-                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.FileNameWithExt)
+                else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithExt)
                     data = nameWithExt;
-                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
                     data = nameWithoutExt;
 //                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.Uri) {
 //                    String uri = Uri.parse(absPath).getScheme();
@@ -271,7 +226,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 //                    data = uri;
 //                }
 
-                fileLaunchIntent.Launch(data, extrasValues);
+                fileLaunchIntent.launch(data, extrasValues);
             }
             else
                 Log.e("Explorer", "No launch intent associated with extension " + extension);

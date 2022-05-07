@@ -50,24 +50,24 @@ public class SelectDirsView extends SlideTouchListView {
 //        return super.onKeyDown(key_code, key_event);
 //    }
     @Override
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+    public boolean receiveKeyEvent(KeyEvent key_event) {
     //        Log.d("ExplorerView", key_code + " " + key_event);
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                CancelAndReturn();
+                cancelAndReturn();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                RemoveSelection();
+                removeSelection();
                 return true;
             }
         }
 
-        return super.ReceiveKeyEvent(key_event);
+        return super.receiveKeyEvent(key_event);
     }
 
     @Override
-    public void MakeSelection() {
+    public void makeSelection() {
 //        IntentLaunchData selectedItem = (IntentLaunchData)((DetailItem)getItemAtPosition(properPosition)).obj;
         Object obj = ((DetailItem)getItemAtPosition(properPosition)).obj;
         if (obj instanceof Integer && ((int)obj) == 0) {
@@ -75,66 +75,66 @@ public class SelectDirsView extends SlideTouchListView {
 //            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 //            intent.setType("file/*");
 //            startActivityForResult(ActivityManager.GetCurrentActivity(), intent, PICKFILE_REQUEST_CODE, null);
-            ((HomeActivity)ActivityManager.GetInstance(HomeActivity.class)).getDir.launch("file/*");
+            ((HomeActivity)ActivityManager.getInstance(HomeActivity.class)).getDir.launch("file/*");
         } else if (obj instanceof Integer && ((int)obj) == 1) {
-            CancelAndReturn();
+            cancelAndReturn();
         } else if (obj instanceof Integer && ((int)obj) == 2) {
             //Done
-            SendResult(RESULT_DONE);
-            Return();
+            sendResult(RESULT_DONE);
+            goBack();
         }
     }
 
-    public static void AddResultListener(DirsViewListener listener) {
+    public static void addResultListener(DirsViewListener listener) {
         instance.resultListeners.add(listener);
     }
-    private static void SendResult(int resultCode) {
+    private static void sendResult(int resultCode) {
         for (DirsViewListener rl : instance.resultListeners) {
             rl.onDirsResult(resultCode, instance.currentMod);
         }
     }
-    private void Return() {
+    private void goBack() {
         resultListeners.clear();
         currentMod = null;
-        ActivityManager.GoTo(returnPage);
-        Refresh();
+        ActivityManager.goTo(returnPage);
+        refresh();
     }
 
-    public static void SetReturnPage(ActivityManager.Page _returnPage) {
+    public static void setReturnPage(ActivityManager.Page _returnPage) {
         instance.returnPage = _returnPage;
     }
-    public static void SetDirsCarrier(DirsCarrier carrier) {
+    public static void setDirsCarrier(DirsCarrier carrier) {
         instance.currentMod = carrier;
-        instance.Refresh();
+        instance.refresh();
     }
-    private void CancelAndReturn() {
-        currentMod.ClearDirsList();
-        SendResult(RESULT_CANCELLED);
-        Return();
+    private void cancelAndReturn() {
+        currentMod.clearDirsList();
+        sendResult(RESULT_CANCELLED);
+        goBack();
     }
-    public void AddToList(String dir) {
-        currentMod.AddToDirsList(dir);
-        Refresh();
+    public void addToList(String dir) {
+        currentMod.addToDirsList(dir);
+        refresh();
     }
-    public void RemoveSelection() {
+    public void removeSelection() {
         Object obj = ((DetailItem)getItemAtPosition(properPosition)).obj;
         if (obj instanceof String) {
-            currentMod.RemoveFromDirsList((String)obj);
-            Refresh();
+            currentMod.removeFromDirsList((String)obj);
+            refresh();
         }
     }
     @Override
-    public void Refresh() {
+    public void refresh() {
         ArrayList<DetailItem> addDirsItems = new ArrayList<>();
         if (currentMod != null) {
-            String[] dirs = currentMod.GetDirsList();
+            String[] dirs = currentMod.getDirsList();
             for (int i = 0; i < dirs.length; i++) {
                 addDirsItems.add(new DetailItem(null, dirs[i], null, dirs[i]));
             }
         }
-        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Choose directory", null, 0));
-        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_cancel_24), "Cancel", null, 1));
-        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_check_24), "Done", null, 2));
+        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Choose directory", null, 0));
+        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_cancel_24), "Cancel", null, 1));
+        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_check_24), "Done", null, 2));
         DetailAdapter addAdapter = new DetailAdapter(getContext(), addDirsItems);
         setAdapter(addAdapter);
     }

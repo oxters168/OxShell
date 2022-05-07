@@ -3,7 +3,6 @@ package com.OxGames.OxShell;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -17,15 +16,15 @@ public class PackagesView extends SlideTouchListView {
 
     public PackagesView(Context context) {
         super(context);
-        Refresh();
+        refresh();
     }
     public PackagesView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        Refresh();
+        refresh();
     }
     public PackagesView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        Refresh();
+        refresh();
     }
 
 //    @Override
@@ -40,17 +39,17 @@ public class PackagesView extends SlideTouchListView {
 //        return super.onKeyDown(key_code, key_event);
 //    }
     @Override
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+    public boolean receiveKeyEvent(KeyEvent key_event) {
     //        Log.d("ExplorerView", key_code + " " + key_event);
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                ActivityManager.GoTo(ActivityManager.Page.addToHome);
+                ActivityManager.goTo(ActivityManager.Page.addToHome);
                 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
                 return true;
             }
         }
 
-        return super.ReceiveKeyEvent(key_event);
+        return super.receiveKeyEvent(key_event);
     }
 
 //    @Override
@@ -62,30 +61,30 @@ public class PackagesView extends SlideTouchListView {
 //    }
 
     @Override
-    public void MakeSelection() {
+    public void makeSelection() {
         DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
-        ResolveInfo rsvInfo = PackagesCache.GetResolveInfo((String)currentItem.obj);
+        ResolveInfo rsvInfo = PackagesCache.getResolveInfo((String)currentItem.obj);
         Log.d("PackagesView", (String)currentItem.obj);
-        HomeManager.AddItemAndSave(new HomeItem(HomeItem.Type.app, PackagesCache.GetAppLabel(rsvInfo), (String)currentItem.obj));
-        Toast.makeText(ActivityManager.GetCurrentActivity(), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();
+        HomeManager.addItemAndSave(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(rsvInfo), (String)currentItem.obj));
+        Toast.makeText(ActivityManager.getCurrentActivity(), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();
     }
     @Override
-    public void Refresh() {
-        Refresh(new String[] { Intent.CATEGORY_LAUNCHER });
+    public void refresh() {
+        refresh(new String[] { Intent.CATEGORY_LAUNCHER });
     }
-    public void Refresh(String[] categories) {
+    public void refresh(String[] categories) {
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
         for (int i = 0; i < categories.length; i++)
             mainIntent.addCategory(categories[i]);
 
         //Needs some clean up (use common PackagesCache function to get all apps)
         ArrayList<DetailItem> intentNames = new ArrayList<>();
-        PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
         Log.d("PackagesView", currentActivity.toString());
         List<ResolveInfo> pkgAppsList = currentActivity.getPackageManager().queryIntentActivities(mainIntent, 0);
         for (int i = 0; i < pkgAppsList.size(); i++) {
             ResolveInfo currentPkg = pkgAppsList.get(i);
-            intentNames.add(new DetailItem(PackagesCache.GetPackageIcon(currentPkg), PackagesCache.GetAppLabel(currentPkg), null, currentPkg.activityInfo.packageName));
+            intentNames.add(new DetailItem(PackagesCache.getPackageIcon(currentPkg), PackagesCache.getAppLabel(currentPkg), null, currentPkg.activityInfo.packageName));
         }
         DetailAdapter intentsAdapter = new DetailAdapter(getContext(), intentNames);
         setAdapter(intentsAdapter);

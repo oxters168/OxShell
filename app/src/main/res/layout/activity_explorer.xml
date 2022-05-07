@@ -6,10 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".ExplorerActivity">
 
+    <com.appspell.shaderview.ShaderView
+        android:id="@+id/bgShader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <com.OxGames.OxShell.ExplorerView
         android:id="@+id/explorer_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fadeScrollbars="false"
         android:scrollbarStyle="insideInset"
         android:visibility="visible"></com.OxGames.OxShell.ExplorerView>
 </FrameLayout>

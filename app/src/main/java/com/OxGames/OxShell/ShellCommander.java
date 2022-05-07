@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
 public class ShellCommander {
-    public static String Run(String command) {
+    public static String run(String command) {
         String output = null;
         try {
             Process process = Runtime.getRuntime().exec(command);

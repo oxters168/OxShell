@@ -1,11 +1,8 @@
 package com.OxGames.OxShell;
 
 import android.content.Context;
-import android.content.pm.ResolveInfo;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
-
-import androidx.core.content.ContextCompat;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,19 +17,19 @@ public class IntentShortcutsView extends SlideTouchListView {
         super(context);
         instance = this;
         explorerBehaviour = new ExplorerBehaviour();
-        Refresh();
+        refresh();
     }
     public IntentShortcutsView(Context context, AttributeSet attrs) {
         super(context, attrs);
         instance = this;
         explorerBehaviour = new ExplorerBehaviour();
-        Refresh();
+        refresh();
     }
     public IntentShortcutsView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         instance = this;
         explorerBehaviour = new ExplorerBehaviour();
-        Refresh();
+        refresh();
     }
 
 //    @Override
@@ -46,42 +43,42 @@ public class IntentShortcutsView extends SlideTouchListView {
 //        return super.onKeyDown(key_code, key_event);
 //    }
     @Override
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+    public boolean receiveKeyEvent(KeyEvent key_event) {
     //        Log.d("ExplorerView", key_code + " " + key_event);
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                ActivityManager.GoTo(ActivityManager.Page.home);
+                ActivityManager.goTo(ActivityManager.Page.home);
                 return true;
             }
         }
 
-        return super.ReceiveKeyEvent(key_event);
+        return super.receiveKeyEvent(key_event);
     }
 
     @Override
-    public void MakeSelection() {
+    public void makeSelection() {
         File selectedItem = (File)((DetailItem)getItemAtPosition(properPosition)).obj;
-        ((IntentLaunchData)currentIntent.obj).Launch(selectedItem.getAbsolutePath());
+        ((IntentLaunchData)currentIntent.obj).launch(selectedItem.getAbsolutePath());
     }
 
-    public static void SetLaunchItem(HomeItem intent) {
+    public static void setLaunchItem(HomeItem intent) {
         instance.currentIntent = intent;
-        instance.Refresh();
+        instance.refresh();
     }
 
     @Override
-    public void Refresh() {
+    public void refresh() {
         if (currentIntent != null) {
-            String[] dirs = currentIntent.GetDirsList();
+            String[] dirs = currentIntent.getDirsList();
             if (dirs != null && dirs.length > 0) {
                 ArrayList<DetailItem> intentItems = new ArrayList<>();
 
                 IntentLaunchData launchData = (IntentLaunchData) currentIntent.obj;
-                String[] extensions = launchData.GetExtensions();
+                String[] extensions = launchData.getExtensions();
                 for (int i = 0; i < dirs.length; i++) {
-                    ArrayList<File> executables = GetItemsInDirWithExt(dirs[i], extensions);
+                    ArrayList<File> executables = getItemsInDirWithExt(dirs[i], extensions);
                     for (int j = 0; j < executables.size(); j++) {
-                        intentItems.add(new DetailItem(null, ExplorerBehaviour.RemoveExtension(executables.get(j).getName()), null, executables.get(j)));
+                        intentItems.add(new DetailItem(null, ExplorerBehaviour.removeExtension(executables.get(j).getName()), null, executables.get(j)));
                     }
                 }
 
@@ -91,14 +88,14 @@ public class IntentShortcutsView extends SlideTouchListView {
         }
     }
 
-    private ArrayList<File> GetItemsInDirWithExt(String path, String[] extensions) {
+    private ArrayList<File> getItemsInDirWithExt(String path, String[] extensions) {
         ArrayList<File> matching = new ArrayList<>();
-        explorerBehaviour.SetDirectory(path);
-        File[] files = explorerBehaviour.ListContents();
+        explorerBehaviour.setDirectory(path);
+        File[] files = explorerBehaviour.listContents();
         boolean isEmpty = files == null || files.length <= 0;
         if (!isEmpty) {
             for (int i = 0; i < files.length; i++) {
-                String ext = ExplorerBehaviour.GetExtension(files[i].getAbsolutePath());
+                String ext = ExplorerBehaviour.getExtension(files[i].getAbsolutePath());
                 if (Arrays.stream(extensions).anyMatch(otherExt -> otherExt.equalsIgnoreCase(ext)))
                     matching.add(files[i]);
             }

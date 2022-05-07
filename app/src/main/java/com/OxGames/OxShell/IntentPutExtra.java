@@ -15,13 +15,13 @@ public class IntentPutExtra implements Serializable {
         name = _name;
         extraType = _extraType;
     }
-    public String GetName() {
+    public String getName() {
         return name;
     }
 //    public String GetValue() {
 //        return value;
 //    }
-    public void SetExtraType(IntentLaunchData.DataType _extraType) { extraType = _extraType; }
-    public IntentLaunchData.DataType GetExtraType() { return extraType; }
+    public void setExtraType(IntentLaunchData.DataType _extraType) { extraType = _extraType; }
+    public IntentLaunchData.DataType getExtraType() { return extraType; }
 //    public void SetValue(String _value) { value = _value; }
 }

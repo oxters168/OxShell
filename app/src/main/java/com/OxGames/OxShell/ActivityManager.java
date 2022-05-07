@@ -13,9 +13,9 @@ public class ActivityManager {
     public enum Page { home, explorer, chooser, addToHome, packages, assoc, selectDirs, intentShortcuts, runningApps }
     private static Page current = Page.home;
 
-    public static void GoTo(Page page) {
-        PagedActivity currentActivity = GetCurrentActivity(); //When going back from selectdirsview after choosing a directory the current directory seems to stay as chooseractivity
-        Class nextActivity = GetActivityClass(page);
+    public static void goTo(Page page) {
+        PagedActivity currentActivity = getCurrentActivity(); //When going back from selectdirsview after choosing a directory the current directory seems to stay as chooseractivity
+        Class nextActivity = getActivityClass(page);
 //        Class prevActivity = GetActivityClass(from);
 //        current = page;
 //        PagedActivity instance = GetInstance(prevActivity);
@@ -23,15 +23,15 @@ public class ActivityManager {
             Intent intent = new Intent(currentActivity, nextActivity);
             currentActivity.startActivity(intent);
         } else {
-            currentActivity.GoTo(page);
+            currentActivity.goTo(page);
         }
 //        nextActivity.GoTo(page);
     }
-    public static void SetCurrent(Page page) {
+    public static void setCurrent(Page page) {
         current = page;
     }
 
-    public static void Init() {
+    public static void init() {
         if (pagesOfActivities == null) {
             pagesOfActivities = new Hashtable<>();
             pagesOfActivities.put(HomeActivity.class, new Page[] { Page.home, Page.addToHome, Page.packages, Page.assoc, Page.selectDirs, Page.intentShortcuts, Page.runningApps });
@@ -45,17 +45,17 @@ public class ActivityManager {
 //        Log.d("ActivityManager", "Putting " + activity.getClass());
 //        pagesOfActivities.put(activity, pages);
 //    }
-    public static void InstanceCreated(PagedActivity instance) {
+    public static void instanceCreated(PagedActivity instance) {
         activityInstances.put(instance.getClass(), instance);
     }
-    public static PagedActivity GetInstance(Class type) {
+    public static PagedActivity getInstance(Class type) {
         PagedActivity instance = null;
         if (activityInstances.containsKey(type))
             instance = activityInstances.get(type);
         return instance;
     }
-    public static PagedActivity GetActivity(Page page) {
-        PagedActivity activity = activityInstances.get(FindEntry(page).getKey());
+    public static PagedActivity getActivity(Page page) {
+        PagedActivity activity = activityInstances.get(findEntry(page).getKey());
 //        PagedActivity activity = null;
 //        try {
 //            activity = (PagedActivity)FindEntry(page).getKey().getMethod("GetInstance").invoke(null);
@@ -68,7 +68,7 @@ public class ActivityManager {
 //        }
         return activity;
     }
-    public static Map.Entry<Class, Page[]> FindEntry(Page page) {
+    public static Map.Entry<Class, Page[]> findEntry(Page page) {
         Set<Map.Entry<Class, Page[]>> entrySet = pagesOfActivities.entrySet();
         for (Map.Entry<Class, Page[]> entry : entrySet) {
             if (Arrays.stream(entry.getValue()).anyMatch(otherPage -> (otherPage == page))) {
@@ -77,13 +77,13 @@ public class ActivityManager {
         }
         return null;
     }
-    public static PagedActivity GetCurrentActivity() {
-        return GetActivity(GetCurrent());
+    public static PagedActivity getCurrentActivity() {
+        return getActivity(getCurrent());
     }
-    public static Page GetCurrent() {
+    public static Page getCurrent() {
         return current; //Can be wrong
     }
-    public static Class GetActivityClass(Page page) {
-        return FindEntry(page).getKey();
+    public static Class getActivityClass(Page page) {
+        return findEntry(page).getKey();
     }
 }

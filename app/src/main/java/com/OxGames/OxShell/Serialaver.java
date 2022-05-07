@@ -10,7 +10,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public class Serialaver {
-    public static void SaveFile(Serializable obj, String path) {
+    public static void saveFile(Serializable obj, String path) {
         try {
             FileOutputStream file = new FileOutputStream(path);
             ObjectOutputStream out = new ObjectOutputStream(file);
@@ -22,7 +22,7 @@ public class Serialaver {
             Log.e("Serialize", ex.getMessage());
         }
     }
-    public static Object LoadFile(String path) {
+    public static Object loadFile(String path) {
         Object obj = null;
 
         try {

@@ -32,10 +32,10 @@ public class GridAdapter extends BaseAdapter {
             title.setText(homeItem.title);
 
             ImageView typeIcon = view.findViewById(R.id.typeIcon);
-            typeIcon.setImageDrawable(homeItem.GetIcon());
+            typeIcon.setImageDrawable(homeItem.getIcon());
 
             ImageView typeSuperIcon = view.findViewById(R.id.typeSuperIcon);
-            typeSuperIcon.setImageDrawable(homeItem.GetSuperIcon());
+            typeSuperIcon.setImageDrawable(homeItem.getSuperIcon());
         }
         else
             homeItem.view = parent.getChildAt(position);

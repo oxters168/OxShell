@@ -1,7 +1,6 @@
 package com.OxGames.OxShell;
 
 import android.graphics.drawable.Drawable;
-import android.view.View;
 
 import androidx.core.content.ContextCompat;
 
@@ -29,36 +28,36 @@ public class HomeItem extends GridItem implements Serializable, DirsCarrier {
         extraData = new ArrayList<>();
     }
     @Override
-    public Drawable GetIcon() {
+    public Drawable getIcon() {
         Drawable icon = null;
         if (type == Type.explorer)
-            icon = ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_source_24);
+            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_source_24);
         else if (type == Type.app)
-            icon = PackagesCache.GetPackageIcon((String)obj);
+            icon = PackagesCache.getPackageIcon((String)obj);
         else if (type == Type.add)
-            icon = ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24);
+            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24);
         else if (type == Type.assoc)
-            icon = ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_app_shortcut_24);
+            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_app_shortcut_24);
         return icon;
     }
     @Override
-    public Drawable GetSuperIcon() {
+    public Drawable getSuperIcon() {
         Drawable icon = null;
         if (type == Type.assoc)
-            icon = PackagesCache.GetPackageIcon(((IntentLaunchData)obj).GetPackageName());
+            icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
         return icon;
     }
 
-    public void ClearDirsList() {
+    public void clearDirsList() {
         extraData = new ArrayList<>();
     }
-    public void AddToDirsList(String dir) {
+    public void addToDirsList(String dir) {
         extraData.add(dir);
     }
-    public void RemoveFromDirsList(String dir) {
+    public void removeFromDirsList(String dir) {
         extraData.remove(dir);
     }
-    public String[] GetDirsList() {
+    public String[] getDirsList() {
         String[] arrayed = new String[extraData.size()];
         return extraData.toArray(arrayed);
     }

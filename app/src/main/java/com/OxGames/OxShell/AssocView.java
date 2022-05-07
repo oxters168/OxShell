@@ -15,38 +15,27 @@ public class AssocView extends SlideTouchListView {
 
     public AssocView(Context context) {
         super(context);
-        Refresh();
+        refresh();
     }
     public AssocView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        Refresh();
+        refresh();
     }
     public AssocView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        Refresh();
+        refresh();
     }
 
-//    @Override
-//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-////        Log.d("ExplorerView", key_code + " " + key_event);
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_B || key_code == KeyEvent.KEYCODE_BACK) {
-//            ActivityManager.GoTo(ActivityManager.Page.addToHome);
-////            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
-//            return false;
-//        }
-//
-//        return super.onKeyDown(key_code, key_event);
-//    }
     @Override
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+    public boolean receiveKeyEvent(KeyEvent key_event) {
         //        Log.d("ExplorerView", key_code + " " + key_event);
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                ActivityManager.GoTo(ActivityManager.Page.addToHome);
+                ActivityManager.goTo(ActivityManager.Page.addToHome);
                 return true;
             }
         }
-        return super.ReceiveKeyEvent(key_event);
+        return super.receiveKeyEvent(key_event);
     }
 
 //    @Override
@@ -58,21 +47,21 @@ public class AssocView extends SlideTouchListView {
 //    }
 
     @Override
-    public void MakeSelection() {
+    public void makeSelection() {
         IntentLaunchData selectedItem = (IntentLaunchData)((DetailItem)getItemAtPosition(properPosition)).obj;
         if (selectedItem == null)
-            Refresh(); //Create new assoc
+            refresh(); //Create new assoc
         else {
-            HomeItem addedItem = new HomeItem(HomeItem.Type.assoc, selectedItem.GetDisplayName(), selectedItem);
-            SelectDirsView.SetDirsCarrier(addedItem);
-            SelectDirsView.SetReturnPage(ActivityManager.Page.assoc);
-            ActivityManager.GoTo(ActivityManager.Page.selectDirs);
-            SelectDirsView.AddResultListener(new DirsViewListener() {
+            HomeItem addedItem = new HomeItem(HomeItem.Type.assoc, selectedItem.getDisplayName(), selectedItem);
+            SelectDirsView.setDirsCarrier(addedItem);
+            SelectDirsView.setReturnPage(ActivityManager.Page.assoc);
+            ActivityManager.goTo(ActivityManager.Page.selectDirs);
+            SelectDirsView.addResultListener(new DirsViewListener() {
                 @Override
                 public void onDirsResult(int resultCode, DirsCarrier output) {
                     if (resultCode == SelectDirsView.RESULT_DONE) {
-                        HomeManager.AddItemAndSave(addedItem);
-                        Toast.makeText(ActivityManager.GetCurrentActivity(), "Added " + selectedItem.GetDisplayName() + " to home", Toast.LENGTH_SHORT).show();
+                        HomeManager.addItemAndSave(addedItem);
+                        Toast.makeText(ActivityManager.getCurrentActivity(), "Added " + selectedItem.getDisplayName() + " to home", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -80,15 +69,15 @@ public class AssocView extends SlideTouchListView {
 //            HomeManager.AddItemAndSave(new HomeItem(HomeItem.Type.assoc, selectedItem.GetDisplayName(), selectedItem));
     }
     @Override
-    public void Refresh() {
-        IntentLaunchData[] intents = PackagesCache.GetStoredIntents();
+    public void refresh() {
+        IntentLaunchData[] intents = PackagesCache.getStoredIntents();
         ArrayList<DetailItem> intentItems = new ArrayList<>();
         for (int i = 0; i < intents.length; i++) {
-            ResolveInfo rsv = PackagesCache.GetResolveInfo(intents[i].GetPackageName());
+            ResolveInfo rsv = PackagesCache.getResolveInfo(intents[i].getPackageName());
             if (rsv != null)
-                intentItems.add(new DetailItem(PackagesCache.GetPackageIcon(rsv), intents[i].GetDisplayName(), "<" + PackagesCache.GetAppLabel(rsv) + ">", intents[i]));
+                intentItems.add(new DetailItem(PackagesCache.getPackageIcon(rsv), intents[i].getDisplayName(), "<" + PackagesCache.getAppLabel(rsv) + ">", intents[i]));
         }
-        intentItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.GetCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Create new", null, null));
+        intentItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Create new", null, null));
         DetailAdapter addAdapter = new DetailAdapter(getContext(), intentItems);
         setAdapter(addAdapter);
     }

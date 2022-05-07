@@ -5,17 +5,18 @@ import static androidx.core.content.ContextCompat.startActivity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 
 import com.google.gson.Gson;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class IntentLaunchData implements Serializable {
     //Might be best to implement a guid that other data structures can identify by so they don't store copies
     private UUID id;
+
     public enum DataType { None, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
     private String displayName;
     private ArrayList<String> associatedExtensions;
@@ -25,6 +26,9 @@ public class IntentLaunchData implements Serializable {
     private ArrayList<IntentPutExtra> extras;
     private DataType dataType = DataType.None;
 
+    public IntentLaunchData() {
+
+    }
     public IntentLaunchData(String _packageName) {
         id = UUID.randomUUID();
         packageName = _packageName;
@@ -44,33 +48,48 @@ public class IntentLaunchData implements Serializable {
 //            Collections.addAll(associatedExtensions, extensions);
     }
 
-    public String GetAction() {
+    public void setAction(String value) {
+        action = value;
+    }
+    public String getAction() {
         return action;
     }
-    public String GetPackageName() {
+    public void setPackageName(String value) {
+        packageName = value;
+    }
+    public String getPackageName() {
         return packageName;
     }
-    public String GetClassName() {
+    public void setClassName(String value) {
+        className = value;
+    }
+    public String getClassName() {
         return className;
     }
-    public String GetDisplayName() {
+    public void setDisplayName(String value) {
+        displayName = value;
+    }
+    public String getDisplayName() {
         return displayName;
     }
-    public String[] GetExtensions() {
+    public void setExtensions(String[] values) {
+        associatedExtensions = new ArrayList<>(Arrays.asList(values));
+    }
+    public String[] getExtensions() {
         String[] extensions = new String[associatedExtensions.size()];
         return associatedExtensions.toArray(extensions);
     }
 
-    public Intent BuildIntent(String[] extrasValues) {
-        return BuildIntent(null, extrasValues);
+    public Intent buildIntent(String[] extrasValues) {
+        return buildIntent(null, extrasValues);
     }
-    public Intent BuildIntent(String data) {
-        return BuildIntent(data, null);
+    public Intent buildIntent(String data) {
+        return buildIntent(data, null);
     }
-    public Intent BuildIntent() {
-        return BuildIntent(null, null);
+    public Intent buildIntent() {
+        return buildIntent(null, null);
     }
-    public Intent BuildIntent(String data, String[] extrasValues) {
+    public Intent buildIntent(String data, String[] extrasValues) {
         if (action != null && !action.isEmpty()) {
             Intent intent = new Intent();
             if (action != null && !action.isEmpty())
@@ -80,18 +99,18 @@ public class IntentLaunchData implements Serializable {
             else if (packageName != null && !packageName.isEmpty())
                 intent.setPackage(packageName);
             for (int i = 0; i < extras.size(); i++)
-                intent.putExtra(extras.get(i).GetName(), extrasValues[i]);
+                intent.putExtra(extras.get(i).getName(), extrasValues[i]);
             if (data != null && !data.isEmpty())
                 intent.setData(Uri.parse(data));
             return intent;
         } else
-            return ActivityManager.GetCurrentActivity().getPackageManager().getLaunchIntentForPackage(packageName);
+            return ActivityManager.getCurrentActivity().getPackageManager().getLaunchIntentForPackage(packageName);
     }
 
-    public void AddExtra(IntentPutExtra extra) {
+    public void addExtra(IntentPutExtra extra) {
         extras.add(extra);
     }
-    public IntentPutExtra[] GetExtras() {
+    public IntentPutExtra[] getExtras() {
         IntentPutExtra[] extrasArray = new IntentPutExtra[extras.size()];
         extrasArray = extras.toArray(extrasArray);
         return extrasArray;
@@ -99,31 +118,31 @@ public class IntentLaunchData implements Serializable {
 //    public void SetData(String _data) {
 //        data = _data;
 //    }
-    public void SetDataType(DataType _dataType) {
+    public void setDataType(DataType _dataType) {
         dataType = _dataType;
     }
-    public DataType GetDataType() {
+    public DataType getDataType() {
         return dataType;
     }
 
-    public String ToJSON() {
+    public String toJSON() {
         Gson gson = new Gson();
         return gson.toJson(this);
     }
-    public static IntentLaunchData FromJSON(String json) {
+    public static IntentLaunchData fromJSON(String json) {
         Gson gson = new Gson();
         return gson.fromJson(json, IntentLaunchData.class);
     }
-    public boolean ContainsExtension(String extension) {
+    public boolean containsExtension(String extension) {
         return associatedExtensions.contains(extension.toLowerCase());
     }
 
-    public void Launch(String data, String[] extrasValues) {
+    public void launch(String data, String[] extrasValues) {
         //IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
         //launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
-        startActivity(ActivityManager.GetCurrentActivity(), BuildIntent(data, extrasValues), null);
+        startActivity(ActivityManager.getCurrentActivity(), buildIntent(data, extrasValues), null);
     }
-    public void Launch(String data) {
+    public void launch(String data) {
         String dataEntry = null;
         if (dataType != DataType.None)
             dataEntry = data;
@@ -134,9 +153,9 @@ public class IntentLaunchData implements Serializable {
             for (int i = 0; i < extras.size(); i++)
                 extrasValues[i] = data;
         }
-        Launch(dataEntry, extrasValues);
+        launch(dataEntry, extrasValues);
     }
-    public void Launch() {
-        Launch(null, null);
+    public void launch() {
+        launch(null, null);
     }
 }

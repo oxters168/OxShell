@@ -1,28 +1,17 @@
 package com.OxGames.OxShell;
 
-import android.content.ContentProviderResult;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.CancellationSignal;
-import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.provider.DocumentsProvider;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.content.FileProvider;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
 
 public class CustomFileProvider extends DocumentsProvider {
     private final String ROOT_FOLDER_ID = "roots";
@@ -131,7 +120,7 @@ public class CustomFileProvider extends DocumentsProvider {
     }
 
     public static Uri getUriForFile(String path) {
-        PagedActivity currentActivity = ActivityManager.GetCurrentActivity();
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
 //        Uri fileUri = FileProvider.getUriForFile(currentActivity, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
 //        ParcelFileDescriptor data = null;
 //        try {

@@ -15,7 +15,7 @@
          android:fitsSystemWindows. -->
 
     <com.appspell.shaderview.ShaderView
-        android:id="@+id/shaderView"
+        android:id="@+id/bgShader"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

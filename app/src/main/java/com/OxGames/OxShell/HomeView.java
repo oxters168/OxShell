@@ -5,7 +5,6 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 public class HomeView extends SlideTouchGridView {
     public HomeView(Context context) {
@@ -18,48 +17,40 @@ public class HomeView extends SlideTouchGridView {
         super(context, attrs, defStyle);
     }
 
-//    @Override
-//    public boolean onKeyDown(int key_code, KeyEvent key_event) {
-//        if (key_code == KeyEvent.KEYCODE_BUTTON_R2) {
-//            ActivityManager.GoTo(ActivityManager.Page.runningApps);
-//            return false;
-//        }
-//        return super.onKeyDown(key_code, key_event);
-//    }
     @Override
-    public boolean ReceiveKeyEvent(KeyEvent key_event) {
+    public boolean receiveKeyEvent(KeyEvent key_event) {
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2) {
-                ActivityManager.GoTo(ActivityManager.Page.runningApps);
+                //ActivityManager.GoTo(ActivityManager.Page.runningApps);
                 return true;
             }
         }
-        return super.ReceiveKeyEvent(key_event);
+        return super.receiveKeyEvent(key_event);
     }
     @Override
-    public void MakeSelection() {
+    public void makeSelection() {
         HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
         if (selectedItem.type == HomeItem.Type.explorer) {
-            ActivityManager.GoTo(ActivityManager.Page.explorer);
+            ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
         } else if (selectedItem.type == HomeItem.Type.app) {
-            (new IntentLaunchData((String)selectedItem.obj)).Launch();
+            (new IntentLaunchData((String)selectedItem.obj)).launch();
         } else if (selectedItem.type == HomeItem.Type.add) {
-            ActivityManager.GoTo(ActivityManager.Page.addToHome);
+            ActivityManager.goTo(ActivityManager.Page.addToHome);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
         } else if (selectedItem.type == HomeItem.Type.assoc) {
-            IntentShortcutsView.SetLaunchItem(selectedItem);
-            ActivityManager.GoTo(ActivityManager.Page.intentShortcuts);
+            IntentShortcutsView.setLaunchItem(selectedItem);
+            ActivityManager.goTo(ActivityManager.Page.intentShortcuts);
         }
     }
     @Override
-    public void DeleteSelection() {
+    public void deleteSelection() {
         HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
-        HomeManager.RemoveItem(selectedItem);
+        HomeManager.removeItem(selectedItem);
     }
     @Override
-    public void Refresh() {
-        ArrayList<GridItem> homeItems = HomeManager.GetItems();
+    public void refresh() {
+        ArrayList<GridItem> homeItems = HomeManager.getItems();
         if (homeItems == null)
             homeItems = new ArrayList<>();
 

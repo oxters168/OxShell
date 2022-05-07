@@ -22,10 +22,10 @@ public class ExplorerBehaviour {
         history = new LinkedList<>();
 
         String startPath = Environment.getExternalStorageDirectory().toString();
-        SetDirectory(startPath);
+        setDirectory(startPath);
     }
 
-    public boolean HasParent() {
+    public boolean hasParent() {
         String parentDir = current.getParent();
         try {
             File parent = new File(parentDir);
@@ -35,17 +35,17 @@ public class ExplorerBehaviour {
             return false;
         }
     }
-    public String GetParent() {
+    public String getParent() {
         return current.getParent();
     }
-    public void GoUp() {
-        SetDirectory(GetParent());
+    public void goUp() {
+        setDirectory(getParent());
     }
-    public void SetDirectory(String path) {
+    public void setDirectory(String path) {
         Log.d("Files", "Path: " + path);
         try {
             current = new File(path);
-            AppendHistory(path);
+            appendHistory(path);
 
             if (!current.canRead())
                 Log.e("Files", "Cannot read contents of directory");
@@ -56,57 +56,61 @@ public class ExplorerBehaviour {
             Log.e("Files", e.toString());
         }
     }
-    public String GetDirectory() {
+    public String getDirectory() {
         return current.getAbsolutePath();
     }
-    public File[] ListContents() {
-        if (!HasReadStoragePermission())
-            RequestReadStoragePermission();
+    public File[] listContents() {
+        if (!hasReadStoragePermission())
+            requestReadStoragePermission();
+        //Might be how to do it for android 11+
+        //IntentLaunchData ild = new IntentLaunchData();
+        //ild.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+        //ild.launch();
         return current.listFiles();
     }
 
-    public String GetLastItemInHistory() {
+    public String getLastItemInHistory() {
         return history.get(history.size() - 2);
     }
-    private void AppendHistory(String path) {
+    private void appendHistory(String path) {
         history.add(path);
         while (history.size() > maxHistory)
             history.removeFirst();
     }
 
-    public static String GetExtension(String path) {
+    public static String getExtension(String path) {
         String extension = null;
         if (path.contains("."))
             extension = path.substring(path.lastIndexOf(".") + 1);
         return extension;
     }
-    public static boolean HasExtension(String path) {
+    public static boolean hasExtension(String path) {
         return !(new File(path).isDirectory()) && path.lastIndexOf(".") > 0;
     }
-    public static String RemoveExtension(String path) {
+    public static String removeExtension(String path) {
         String fileName = (new File(path)).getName();
-        while (HasExtension(fileName))
+        while (hasExtension(fileName))
             fileName = fileName.substring(0, fileName.lastIndexOf("."));
         return fileName;
     }
 
-    public static boolean HasPermission(String permType) {
-        return ContextCompat.checkSelfPermission(ActivityManager.GetCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
+    public static boolean hasPermission(String permType) {
+        return ContextCompat.checkSelfPermission(ActivityManager.getCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
     }
-    public static boolean HasReadStoragePermission() {
-        return HasPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+    public static boolean hasReadStoragePermission() {
+        return hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
     }
-    public static boolean HasWriteStoragePermission() {
-        return HasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    public static boolean hasWriteStoragePermission() {
+        return hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
-    public static void RequestReadStoragePermission() {
+    public static void requestReadStoragePermission() {
         //From here https://stackoverflow.com/questions/47292505/exception-writing-exception-to-parcel
 //        if(!HasReadStoragePermission())
-            ActivityCompat.requestPermissions(ActivityManager.GetCurrentActivity(), new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[] { Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
 //        ActivityCompat.shouldShowRequestPermissionRationale(ActivityManager.GetCurrentActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
     }
-    public static void RequestWriteStoragePermission() {
+    public static void requestWriteStoragePermission() {
 //        if(!HasWriteStoragePermission())
-            ActivityCompat.requestPermissions(ActivityManager.GetCurrentActivity(), new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
+            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
     }
 }

@@ -60,7 +60,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation "androidx.core:core-ktx:+"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.github.oxters168:ShaderView:0.8.9'
+    implementation 'com.github.oxters168:ShaderView:0.8.11'
 }
 repositories {
     mavenCentral()

@@ -38,15 +38,15 @@ public class DetailAdapter implements ListAdapter {
             title.setText(detailItem.leftAlignedText);
 
             RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) title.getLayoutParams();
-            params.setMargins(detailItem.HasIcon() ? 40 : 0, 0, 0, 0);
+            params.setMargins(detailItem.hasIcon() ? 40 : 0, 0, 0, 0);
 
             TextView rightText = view.findViewById(R.id.isDir);
             rightText.setVisibility(detailItem.rightAlignedText != null && !detailItem.rightAlignedText.isEmpty() ? View.VISIBLE : View.INVISIBLE);
             rightText.setText(detailItem.rightAlignedText);
 
             ImageView typeIcon = view.findViewById(R.id.typeIcon);
-            typeIcon.setImageDrawable(detailItem.GetIcon());
-            typeIcon.setVisibility(detailItem.HasIcon() ? View.VISIBLE : View.GONE);
+            typeIcon.setImageDrawable(detailItem.getIcon());
+            typeIcon.setVisibility(detailItem.hasIcon() ? View.VISIBLE : View.GONE);
         }
 //        else
 //            explorerItem.view = parent.getChildAt(position); //Doing this here causes the explorer list to not highlight properly until a selection is made

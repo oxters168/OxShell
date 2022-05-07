@@ -39,19 +39,19 @@ public class SlideTouchHandler {
         data = new TouchData();
     }
 
-    public void AddListener(SlideTouchListener listener) {
+    public void addListener(SlideTouchListener listener) {
         touchListeners.add(listener);
     }
 
-    public TouchData GetTouchData() {
+    public TouchData getTouchData() {
         return data;
     }
 
-    public void Update(MotionEvent ev) {
+    public void update(MotionEvent ev) {
         data.prevTouchX = data.currentTouchX;
         data.prevTouchY = data.currentTouchY;
-        data.currentTouchX = ev.getX();
-        data.currentTouchY = ev.getY();
+        data.currentTouchX = ev.getRawX();
+        data.currentTouchY = ev.getRawY();
 
         final int action = ev.getAction();
         switch (action) {
@@ -59,7 +59,7 @@ public class SlideTouchHandler {
                 data.moved = true;
 
 //                float maxXPixels = HomeActivity.displayMetrics.widthPixels / data.slideSpreadDiv;
-                float maxXPixels = GetMaxPixels();
+                float maxXPixels = getMaxPixels();
                 float diffX = data.movingStartTouchX - data.currentTouchX;
 //                float percentX = CalculatePercentWithDeadzone(diffX, HomeActivity.displayMetrics.widthPixels);
 //                Log.d("Touch", "Start " + data.startTouchX + " current " + data.currentTouchX + " percent " + percentX + " diff " + diffX + " max " + maxXPixels);
@@ -69,7 +69,7 @@ public class SlideTouchHandler {
                     data.movedBeyondDeadZone = true;
 
 //                float maxYPixels = HomeActivity.displayMetrics.heightPixels / data.slideSpreadDiv;
-                float maxYPixels = GetMaxPixels();
+                float maxYPixels = getMaxPixels();
                 float diffY = data.movingStartTouchY - data.currentTouchY;
                 if (Math.abs(diffY) > maxYPixels)
                     data.movingStartTouchY = data.currentTouchY + Math.signum(diffY) * maxYPixels; //Don't let start point stray further than the max distance
@@ -92,7 +92,7 @@ public class SlideTouchHandler {
             case MotionEvent.ACTION_UP:
                 float offsetX = Math.abs(data.currentTouchX - data.startX);
                 float offsetY = Math.abs(data.currentTouchY - data.startY);
-                if (!(data.movedBeyondDeadZone || offsetX > data.deadzone * GetMaxPixels() || offsetY > data.deadzone * GetMaxPixels())) {
+                if (!(data.movedBeyondDeadZone || offsetX > data.deadzone * getMaxPixels() || offsetY > data.deadzone * getMaxPixels())) {
                     //Click
 //                    Log.d("Touch", "Clicked");
                     for (SlideTouchListener stl : touchListeners)
@@ -104,12 +104,12 @@ public class SlideTouchHandler {
                 break;
         }
     }
-    public void CheckForEvents() {
+    public void checkForEvents() {
         if (data.moved) {
 //            Log.d("Touch", "x " + diffX + " / " + HomeActivity.displayMetrics.widthPixels + " = " + percentScrollX);
 //            Log.d("Touch", "y " + diffY + " / " + HomeActivity.displayMetrics.heightPixels + " = " + percentScrollY);
             float diffX = data.currentTouchX - data.movingStartTouchX;
-            float percentScrollX = CalculatePercentWithDeadzone(diffX);
+            float percentScrollX = calculatePercentWithDeadzone(diffX);
             float stretchedFramesPerScrollX = (1 - percentScrollX) * data.millisPerScroll;
             if (percentScrollX > 0 && diffX > 0) {
                 //Go right
@@ -128,7 +128,7 @@ public class SlideTouchHandler {
             }
 
             float diffY = data.currentTouchY - data.movingStartTouchY;
-            float percentScrollY = CalculatePercentWithDeadzone(diffY);
+            float percentScrollY = calculatePercentWithDeadzone(diffY);
             float stretchedFramesPerScrollY = (1 - percentScrollY) * data.millisPerScroll;
             if (percentScrollY > 0 && diffY > 0) {
                 //Go down
@@ -150,14 +150,14 @@ public class SlideTouchHandler {
         }
     }
 
-    private float GetMaxPixels() {
-        DisplayMetrics displayMetrics = ActivityManager.GetCurrentActivity().GetDisplayMetrics();
+    private float getMaxPixels() {
+        DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
         return Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels) / data.slideSpreadDiv;
     }
 
-    private float CalculatePercentWithDeadzone(float diff) {
+    private float calculatePercentWithDeadzone(float diff) {
 //        float max = total / data.slideSpreadDiv;
-        float max = GetMaxPixels();
+        float max = getMaxPixels();
         float percentWithDeadzone = Math.abs(diff / max);
 //        Log.d("TouchPercent", diff + " / " + max + " = " + percentWithDeadzone);
         if (percentWithDeadzone > 1)
