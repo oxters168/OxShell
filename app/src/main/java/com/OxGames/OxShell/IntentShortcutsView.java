@@ -86,6 +86,7 @@ public class IntentShortcutsView extends SlideTouchListView {
                 setAdapter(executablesAdapter);
             }
         }
+        super.refresh();
     }
 
     private ArrayList<File> getItemsInDirWithExt(String path, String[] extensions) {

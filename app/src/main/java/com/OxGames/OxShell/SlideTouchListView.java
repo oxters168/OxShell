@@ -120,11 +120,11 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
     }
     public void setProperPosition(int pos) {
 //        Log.d("Explorer", "Setting position to " + pos);
-        properPosition = pos;
+        properPosition = pos; //Probably should clamp properPosition here
         DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
         setSelectionFromTop(pos, (int)(displayMetrics.heightPixels * 0.5));
     }
     public void refresh() {
-
+        setProperPosition(properPosition);
     }
 }

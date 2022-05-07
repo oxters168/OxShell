@@ -185,5 +185,6 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
     }
 
     public void refresh() {
+        setProperPosition(properPosition);
     }
 }

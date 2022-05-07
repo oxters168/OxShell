@@ -88,5 +88,6 @@ public class AddView extends SlideTouchListView {
             addBtns.add(new DetailItem(null, entry.getValue(), null, entry.getKey()));
         DetailAdapter addAdapter = new DetailAdapter(getContext(), addBtns);
         setAdapter(addAdapter);
+        super.refresh();
     }
 }

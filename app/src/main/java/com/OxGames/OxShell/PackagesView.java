@@ -88,5 +88,6 @@ public class PackagesView extends SlideTouchListView {
         }
         DetailAdapter intentsAdapter = new DetailAdapter(getContext(), intentNames);
         setAdapter(intentsAdapter);
+        super.refresh();
     }
 }

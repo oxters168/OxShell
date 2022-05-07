@@ -107,5 +107,6 @@ public class RunningAppsView extends SlideTouchGridView {
         }
         GridAdapter customAdapter = new GridAdapter(getContext(), runningApps);
         setAdapter(customAdapter);
+        super.refresh();
     }
 }

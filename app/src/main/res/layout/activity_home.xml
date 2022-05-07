@@ -25,6 +25,7 @@
         android:layout_height="match_parent"
         android:columnWidth="256px"
         android:horizontalSpacing="16px"
+        android:listSelector="#00000000"
         android:numColumns="auto_fit"
         android:padding="16px"
         android:verticalSpacing="16px">
@@ -35,13 +36,18 @@
         android:id="@+id/packages_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
-    </com.OxGames.OxShell.PackagesView>
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
+        android:visibility="gone"></com.OxGames.OxShell.PackagesView>
 
     <com.OxGames.OxShell.AddView
         android:id="@+id/add_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
         android:visibility="gone">
 
     </com.OxGames.OxShell.AddView>
@@ -50,22 +56,28 @@
         android:id="@+id/assoc_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
-    </com.OxGames.OxShell.AssocView>
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
+        android:visibility="gone"></com.OxGames.OxShell.AssocView>
 
     <com.OxGames.OxShell.SelectDirsView
         android:id="@+id/selectdirs_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
-    </com.OxGames.OxShell.SelectDirsView>
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
+        android:visibility="gone"></com.OxGames.OxShell.SelectDirsView>
 
     <com.OxGames.OxShell.IntentShortcutsView
         android:id="@+id/shortcuts_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone">
-    </com.OxGames.OxShell.IntentShortcutsView>
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
+        android:visibility="gone"></com.OxGames.OxShell.IntentShortcutsView>
 
     <com.OxGames.OxShell.RunningAppsView
         android:id="@+id/runningapps_view"
@@ -73,10 +85,10 @@
         android:layout_height="match_parent"
         android:columnWidth="256px"
         android:horizontalSpacing="16px"
+        android:listSelector="#00000000"
         android:numColumns="auto_fit"
         android:padding="16px"
         android:verticalSpacing="16px"
-        android:visibility="gone">
-    </com.OxGames.OxShell.RunningAppsView>
+        android:visibility="gone"></com.OxGames.OxShell.RunningAppsView>
 
 </FrameLayout>

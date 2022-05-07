@@ -58,5 +58,6 @@ public class HomeView extends SlideTouchGridView {
 
         GridAdapter customAdapter = new GridAdapter(getContext(), homeItems);
         setAdapter(customAdapter);
+        super.refresh();
     }
 }

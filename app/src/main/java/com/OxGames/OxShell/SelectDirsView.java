@@ -137,5 +137,6 @@ public class SelectDirsView extends SlideTouchListView {
         addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_check_24), "Done", null, 2));
         DetailAdapter addAdapter = new DetailAdapter(getContext(), addDirsItems);
         setAdapter(addAdapter);
+        super.refresh();
     }
 }

@@ -80,5 +80,6 @@ public class AssocView extends SlideTouchListView {
         intentItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Create new", null, null));
         DetailAdapter addAdapter = new DetailAdapter(getContext(), intentItems);
         setAdapter(addAdapter);
+        super.refresh();
     }
 }

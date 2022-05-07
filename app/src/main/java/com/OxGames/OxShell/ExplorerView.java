@@ -180,7 +180,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             DetailAdapter customAdapter = new DetailAdapter(getContext(), arrayList);
             setAdapter(customAdapter);
         }
-//        SetProperPosition(0);
+        super.refresh();
     }
 
     private void tryRun(DetailItem clickedItem) {

@@ -224,10 +224,11 @@ public class PagedActivity extends AppCompatActivity {
                 if (page == entry.getKey()) {
                     View nextPage = entry.getValue();
                     if (nextPage instanceof SlideTouchListView)
-                        ((SlideTouchListView) nextPage).refresh();
-                    else if (nextPage instanceof HomeView)
-                        ((HomeView) nextPage).refresh();
+                        ((SlideTouchListView)nextPage).refresh();
+                    else if (nextPage instanceof SlideTouchGridView)
+                        ((SlideTouchGridView)nextPage).refresh();
                     nextPage.requestFocusFromTouch();
+
                     if (nextPage instanceof SlideTouchListView)
                         ((SlideTouchListView)nextPage).refresh();
                     else if (nextPage instanceof SlideTouchGridView)
