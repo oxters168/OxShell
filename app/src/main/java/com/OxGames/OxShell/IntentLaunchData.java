@@ -5,6 +5,7 @@ import static androidx.core.content.ContextCompat.startActivity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 
 import com.google.gson.Gson;
 
@@ -25,15 +26,18 @@ public class IntentLaunchData implements Serializable {
     private String className;
     private ArrayList<IntentPutExtra> extras;
     private DataType dataType = DataType.None;
+    private int flags;
 
     public IntentLaunchData() {
-
+        this(null, null, null, null, null, 0);
     }
     public IntentLaunchData(String _packageName) {
-        id = UUID.randomUUID();
-        packageName = _packageName;
+        this(null, null, _packageName, null, null, 0);
     }
-    public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] extensions) {
+    public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] _extensions) {
+        this(_displayName, _action, _packageName, _className, _extensions, 0);
+    }
+    public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] _extensions, int _flags) {
         id = UUID.randomUUID();
         displayName = _displayName;
         action = _action;
@@ -41,11 +45,26 @@ public class IntentLaunchData implements Serializable {
         className = _className;
         extras = new ArrayList<>();
         associatedExtensions = new ArrayList<>();
-        if (extensions != null && extensions.length > 0)
-            for (int i = 0; i < extensions.length; i++)
-                if (extensions[i] != null && !extensions[i].isEmpty())
-                    associatedExtensions.add(extensions[i].toLowerCase());
+        if (_extensions != null && _extensions.length > 0)
+            for (int i = 0; i < _extensions.length; i++)
+                if (_extensions[i] != null && !_extensions[i].isEmpty())
+                    associatedExtensions.add(_extensions[i].toLowerCase());
 //            Collections.addAll(associatedExtensions, extensions);
+        flags = _flags;
+    }
+
+    @Override
+    public String toString() {
+        return "IntentLaunchData{" +
+                "id=" + id +
+                ", displayName='" + displayName + '\'' +
+                ", associatedExtensions=" + associatedExtensions +
+                ", action='" + action + '\'' +
+                ", packageName='" + packageName + '\'' +
+                ", className='" + className + '\'' +
+                ", extras=" + extras +
+                ", dataType=" + dataType +
+                '}';
     }
 
     public void setAction(String value) {
@@ -90,21 +109,27 @@ public class IntentLaunchData implements Serializable {
         return buildIntent(null, null);
     }
     public Intent buildIntent(String data, String[] extrasValues) {
+        Intent intent;
         if (action != null && !action.isEmpty()) {
-            Intent intent = new Intent();
-            if (action != null && !action.isEmpty())
-                intent.setAction(action);
+            intent = new Intent();
+            intent.setAction(action);
+        } else
+            intent = ActivityManager.getCurrentActivity().getPackageManager().getLaunchIntentForPackage(packageName);
+
+        if (packageName != null && !packageName.isEmpty()) {
             if (className != null && !className.isEmpty())
                 intent.setComponent(new ComponentName(packageName, className));
-            else if (packageName != null && !packageName.isEmpty())
+            else
                 intent.setPackage(packageName);
-            for (int i = 0; i < extras.size(); i++)
-                intent.putExtra(extras.get(i).getName(), extrasValues[i]);
-            if (data != null && !data.isEmpty())
-                intent.setData(Uri.parse(data));
-            return intent;
-        } else
-            return ActivityManager.getCurrentActivity().getPackageManager().getLaunchIntentForPackage(packageName);
+        }
+        for (int i = 0; i < extras.size(); i++)
+            intent.putExtra(extras.get(i).getName(), extrasValues[i]);
+        if (data != null && !data.isEmpty())
+            intent.setData(Uri.parse(data));
+        if (flags > 0)
+            intent.setFlags(flags);
+
+        return intent;
     }
 
     public void addExtra(IntentPutExtra extra) {
@@ -140,7 +165,9 @@ public class IntentLaunchData implements Serializable {
     public void launch(String data, String[] extrasValues) {
         //IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
         //launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
-        startActivity(ActivityManager.getCurrentActivity(), buildIntent(data, extrasValues), null);
+        Intent intent = buildIntent(data, extrasValues);
+        Log.d("IntentLaunchData", intent.toString());
+        startActivity(ActivityManager.getCurrentActivity(), intent, null);
     }
     public void launch(String data) {
         String dataEntry = null;
