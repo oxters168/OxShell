@@ -15,7 +15,7 @@ public class HomeManager {
 
     public static void init() {
         if (homeItems == null) {
-            if ((new File(HOME_ITEMS_FILE)).exists()) {
+            if (ExplorerBehaviour.fileExists(HOME_ITEMS_FILE)) {
                 if (!ExplorerBehaviour.hasReadStoragePermission()) {
                     addTempExplorer(); //Temp explorer in case no permissions granted
 
@@ -100,15 +100,8 @@ public class HomeManager {
         refreshHomeItems();
     }
     private static void saveHomeItems() {
-        try {
-            File homeItemsDir = new File(HOME_ITEMS_DIR);
-            homeItemsDir.mkdirs();
-            File homeItemsFile = new File(HOME_ITEMS_FILE);
-            if (!homeItemsFile.exists())
-                homeItemsFile.createNewFile();
-        } catch (IOException ex) {
-            Log.e("HomeManager", ex.getMessage());
-        }
+        ExplorerBehaviour.makeDir(HOME_ITEMS_DIR);
+        ExplorerBehaviour.makeFile(HOME_ITEMS_FILE);
         Serialaver.saveFile(homeItems.toArray(), HOME_ITEMS_FILE);
     }
     private static void refreshHomeItems() {

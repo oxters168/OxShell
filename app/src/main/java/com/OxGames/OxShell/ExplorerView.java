@@ -17,11 +17,6 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     private ExplorerBehaviour explorerBehaviour;
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
 //    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.explorer;
-    private long keyDownStart;
-    private boolean keyDownDown;
-    private long touchDownStart;
-    private boolean touchDownDown;
-    private long longPressTime = 300;
 
     public ExplorerView(Context context) {
         super(context);
@@ -58,46 +53,15 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     public boolean receiveKeyEvent(KeyEvent key_event) {
         Log.d("ExplorerView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
-                if (!keyDownDown) {
-                    keyDownStart = SystemClock.uptimeMillis();
-                    keyDownDown = true;
-                }
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-                    if (!touchDownDown) {
-                        touchDownStart = SystemClock.uptimeMillis();
-                        touchDownDown = true;
-                    }
+                    ActivityManager.goTo(ActivityManager.Page.home);
                     return true;
                 }
             }
-        } else if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
-                keyDownDown = false;
-                if (SystemClock.uptimeMillis() - keyDownStart >= longPressTime) {
-                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-                        ActivityManager.goTo(ActivityManager.Page.home);
-                        return true;
-                    }
-                } else {
-                    goUp();
-                    return true;
-                }
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                touchDownDown = false;
-                if (SystemClock.uptimeMillis() - touchDownStart >= longPressTime) {
-                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-                        ActivityManager.goTo(ActivityManager.Page.home);
-                        return true;
-                    } else {
-                        goUp();
-                        return true;
-                    }
-                }
+                goUp();
+                return true;
             }
         }
 

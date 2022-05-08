@@ -5,44 +5,76 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.os.Environment;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
 public class PackagesCache {
+    private static final String INTENT_SHORTCUTS_DIR = Environment.getExternalStorageDirectory() + "/OxShell/Intents";
+
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
     private static Hashtable<String, ApplicationInfo> appInfos = new Hashtable<>();
     private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
     private static ArrayList<IntentLaunchData> launchIntents = new ArrayList<>();
 
-    public static void prepareDefaultLaunchIntents() {
+    public static void loadIntents() {
+        //If dir doesn't exist, create it and the default intents
+        if (!ExplorerBehaviour.dirExists(INTENT_SHORTCUTS_DIR)) {
+            if (ExplorerBehaviour.hasWriteStoragePermission()) {
+                ExplorerBehaviour.makeDir(INTENT_SHORTCUTS_DIR);
+                saveDefaultLaunchIntents();
+            }
+        }
+
+        //If dir exists, load intents stored in it
+        if (ExplorerBehaviour.dirExists(INTENT_SHORTCUTS_DIR)) {
+            if (ExplorerBehaviour.hasReadStoragePermission()) {
+                launchIntents.clear(); //So we don't get duplicates
+                Gson gson = new Gson();
+                File[] intents = ExplorerBehaviour.listContents(INTENT_SHORTCUTS_DIR);
+                for (File intent : intents) {
+                    launchIntents.add(gson.fromJson(ExplorerBehaviour.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
+                }
+            }
+        }
+    }
+    private static void saveDefaultLaunchIntents() {
         //Cheat sheet: http://p.cweiske.de/221
-        //            Gson gson = new Gson();
-        //            String gbaJSON = gson.toJson(gbaLaunchIntent);
-        //            Log.d("Intent", gbaJSON);
-        //            gbaLaunchIntent = gson.fromJson(gbaJSON, IntentLaunchData.class);
         IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" }, Intent.FLAG_ACTIVITY_NEW_TASK);
         gbaLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
-        launchIntents.add(gbaLaunchIntent);
+        saveIntentData(gbaLaunchIntent);
 
         IntentLaunchData ndsLaunchIntent = new IntentLaunchData("NDS", Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" }, Intent.FLAG_ACTIVITY_NEW_TASK);
         ndsLaunchIntent.addExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsolutePath));
-        launchIntents.add(ndsLaunchIntent);
+        saveIntentData(ndsLaunchIntent);
 
         IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso", "cso" }, Intent.FLAG_ACTIVITY_NEW_TASK);
         pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
-        launchIntents.add(pspLaunchIntent);
+        saveIntentData(pspLaunchIntent);
 
         IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "iso", "bin", "chd" }, Intent.FLAG_ACTIVITY_NEW_TASK);
         ps2LaunchIntent.addExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
-        launchIntents.add(ps2LaunchIntent);
+        saveIntentData(ps2LaunchIntent);
 
         IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "3ds", "cxi" }, Intent.FLAG_ACTIVITY_NEW_TASK);
         threedsLaunchIntent.addExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
-        launchIntents.add(threedsLaunchIntent);
+        saveIntentData(threedsLaunchIntent);
     }
+    private static void saveIntentData(IntentLaunchData intentData) {
+        Gson gson = new Gson();
+        String fileName = INTENT_SHORTCUTS_DIR + "/" + intentData.getDisplayName() + ".json";
+        if (!ExplorerBehaviour.fileExists(fileName))
+            ExplorerBehaviour.makeFile(fileName);
+        ExplorerBehaviour.writeToFile(fileName, gson.toJson(intentData));
+    }
+
     public static boolean isRunning(String packageName) {
         return isRunning(getPackageInfo(packageName));
     }

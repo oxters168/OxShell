@@ -24,7 +24,7 @@ public class HomeActivity extends PagedActivity {
         setContentView(R.layout.activity_home);
         initViewsTable();
 
-        PackagesCache.prepareDefaultLaunchIntents(); //Currently duplicates the defaults each time the activity is reloaded
+        //PackagesCache.prepareDefaultLaunchIntents(); //Currently duplicates the defaults each time the activity is reloaded
         HomeManager.init();
         goTo(ActivityManager.Page.home);
 
