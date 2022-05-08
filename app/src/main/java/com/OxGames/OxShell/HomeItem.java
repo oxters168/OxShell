@@ -35,16 +35,16 @@ public class HomeItem extends GridItem implements Serializable, DirsCarrier {
         else if (type == Type.app)
             icon = PackagesCache.getPackageIcon((String)obj);
         else if (type == Type.add)
-            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24);
+            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_settings_24);
         else if (type == Type.assoc)
-            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_app_shortcut_24);
+            icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
         return icon;
     }
     @Override
     public Drawable getSuperIcon() {
         Drawable icon = null;
         if (type == Type.assoc)
-            icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
+            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_view_list_24);
         return icon;
     }
 

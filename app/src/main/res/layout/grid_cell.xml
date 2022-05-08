@@ -16,21 +16,22 @@
             android:layout_gravity="center">
 
             <ImageView
-                android:id="@+id/typeSuperIcon"
-                android:layout_width="60px"
-                android:layout_height="60px"
-                android:layout_gravity="center"
-                android:layout_marginTop="15px"
-                android:scaleType="centerCrop" />
-
-            <ImageView
                 android:id="@+id/typeIcon"
                 android:layout_width="180px"
                 android:layout_height="180px"
                 android:layout_gravity="center"
                 android:layout_marginTop="16px"
+                android:scaleType="centerCrop" />
+
+            <ImageView
+                android:id="@+id/typeSuperIcon"
+                android:layout_width="60px"
+                android:layout_height="60px"
+                android:layout_gravity="bottom|right"
+                android:layout_marginRight="-32px"
+                android:layout_marginBottom="-32px"
                 android:scaleType="centerCrop"
-                app:srcCompat="@drawable/ic_baseline_app_shortcut_24" />
+                app:srcCompat="@drawable/ic_baseline_view_list_24" />
 
         </FrameLayout>
 
