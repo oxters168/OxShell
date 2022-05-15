@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.io.File;
 import java.util.Hashtable;
 
 public class FileChooserActivity extends PagedActivity {
@@ -32,7 +33,8 @@ public class FileChooserActivity extends PagedActivity {
     public void sendResult(String path) {
 //        ExplorerBehaviour.GrantWriteStoragePermission();
 //        final Uri data = FileProvider.getUriForFile(this, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
-        final Uri data = CustomFileProvider.getUriForFile(path);
+        //final Uri data = CustomFileProvider.getUriForFile(path);
+        final Uri data = FileHelpers.uriFromFile(this, new File(path));
 //        ParcelFileDescriptor data = null;
 //        try {
 //            data = ParcelFileDescriptor.open(new File(path), ParcelFileDescriptor.MODE_READ_ONLY);

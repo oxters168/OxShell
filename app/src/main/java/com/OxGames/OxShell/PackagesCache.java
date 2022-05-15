@@ -26,21 +26,21 @@ public class PackagesCache {
 
     public static void loadIntents() {
         //If dir doesn't exist, create it and the default intents
-        if (!ExplorerBehaviour.dirExists(INTENT_SHORTCUTS_DIR)) {
-            if (ExplorerBehaviour.hasWriteStoragePermission()) {
-                ExplorerBehaviour.makeDir(INTENT_SHORTCUTS_DIR);
+        if (!FileHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
+            if (FileHelpers.hasWriteStoragePermission()) {
+                FileHelpers.makeDir(INTENT_SHORTCUTS_DIR);
                 saveDefaultLaunchIntents();
             }
         }
 
         //If dir exists, load intents stored in it
-        if (ExplorerBehaviour.dirExists(INTENT_SHORTCUTS_DIR)) {
-            if (ExplorerBehaviour.hasReadStoragePermission()) {
+        if (FileHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
+            if (FileHelpers.hasReadStoragePermission()) {
                 launchIntents.clear(); //So we don't get duplicates
                 Gson gson = new Gson();
-                File[] intents = ExplorerBehaviour.listContents(INTENT_SHORTCUTS_DIR);
+                File[] intents = FileHelpers.listContents(INTENT_SHORTCUTS_DIR);
                 for (File intent : intents) {
-                    launchIntents.add(gson.fromJson(ExplorerBehaviour.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
+                    launchIntents.add(gson.fromJson(FileHelpers.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
                 }
             }
         }
@@ -70,9 +70,9 @@ public class PackagesCache {
     private static void saveIntentData(IntentLaunchData intentData) {
         Gson gson = new Gson();
         String fileName = INTENT_SHORTCUTS_DIR + "/" + intentData.getDisplayName() + ".json";
-        if (!ExplorerBehaviour.fileExists(fileName))
-            ExplorerBehaviour.makeFile(fileName);
-        ExplorerBehaviour.writeToFile(fileName, gson.toJson(intentData));
+        if (!FileHelpers.fileExists(fileName))
+            FileHelpers.makeFile(fileName);
+        FileHelpers.writeToFile(fileName, gson.toJson(intentData));
     }
 
     public static boolean isRunning(String packageName) {

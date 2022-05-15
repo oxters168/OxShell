@@ -14,7 +14,8 @@ vec3 lerp(vec3 color1, vec3 color2, float value)
 }
 float wave(float x, float frequency, float speed, float midHeight, float maxHeight)
 {
-    return (sin(frequency * (x + speed * iTime)) * (maxHeight - midHeight)) + midHeight;
+    return (sin(frequency * (x + speed * (((1. - (pow(cos(0.002 * (iTime + 400.)), 2.) + 1.) / 2.) + .1) * 2048.))) * (maxHeight - midHeight)) + midHeight;
+    //return (sin(frequency * (x + speed * iTime)) * (maxHeight - midHeight)) + midHeight;
 }
 float percentHigh(float currentY, float waveHeight, float maxHeight, float power)
 {
@@ -42,7 +43,7 @@ void main() {
     float maxHeight1 = 0.7 + wave(0.0, 4.0, 0.02, 0.0, 0.02);
     float power1 = 50.0; //Higher power means thinner line
     float frequency1 = 2.0 + wave(0.0, 3.0, 0.03, 0.0, 0.02);
-    float speed1 = 0.12;// + wave(0.0, 2.2, 0.04, 0.0, 0.01);
+    float speed1 = 0.12 + wave(0.0, 2.2, 0.04, 0.0, 0.01);
     float waveHeight1 = wave(uv.x, frequency1, speed1, midHeight1, maxHeight1);
     float waveCol1 = waveColor(uv, waveHeight1, maxHeight1, frequency1, power1);
 
@@ -50,7 +51,7 @@ void main() {
     float maxHeight2 = 0.74 + wave(0.0, 3.0, 0.04, 0.0, 0.02);
     float power2 = 50.0; //Higher power means thinner line
     float frequency2 = 2.1 + wave(0.0, 4.0, 0.05, 0.0, 0.02);
-    float speed2 = 0.08;// + wave(0.0, 2.0, 0.02, 0.0, 0.01);
+    float speed2 = 0.08 + wave(0.0, 2.0, 0.02, 0.0, 0.01);
     float waveHeight2 = wave(uv.x, frequency2, speed2, midHeight2, maxHeight2);
     float waveCol2 = waveColor(uv, waveHeight2, maxHeight2, frequency2, power2);
 

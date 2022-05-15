@@ -15,15 +15,15 @@ public class HomeManager {
 
     public static void init() {
         if (homeItems == null) {
-            if (ExplorerBehaviour.fileExists(HOME_ITEMS_FILE)) {
-                if (!ExplorerBehaviour.hasReadStoragePermission()) {
+            if (FileHelpers.fileExists(HOME_ITEMS_FILE)) {
+                if (!FileHelpers.hasReadStoragePermission()) {
                     addTempExplorer(); //Temp explorer in case no permissions granted
 
-                    ExplorerBehaviour.requestReadStoragePermission();
+                    FileHelpers.requestReadStoragePermission();
                     ActivityManager.getCurrentActivity().addPermissionListener(new PermissionsListener() {
                         @Override
                         public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-                            if (requestCode == ExplorerBehaviour.READ_EXTERNAL_STORAGE) {
+                            if (requestCode == FileHelpers.READ_EXTERNAL_STORAGE) {
                                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                                     loadHomeItems();
                                 else
@@ -61,12 +61,12 @@ public class HomeManager {
     }
     public static void addItemAndSave(HomeItem homeItem) {
         addItem(homeItem);
-        if (!ExplorerBehaviour.hasWriteStoragePermission()) {
-            ExplorerBehaviour.requestWriteStoragePermission();
+        if (!FileHelpers.hasWriteStoragePermission()) {
+            FileHelpers.requestWriteStoragePermission();
             ActivityManager.getCurrentActivity().addPermissionListener(new PermissionsListener() {
                 @Override
                 public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-                    if (requestCode == ExplorerBehaviour.WRITE_EXTERNAL_STORAGE) {
+                    if (requestCode == FileHelpers.WRITE_EXTERNAL_STORAGE) {
                         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                             saveHomeItems();
                         else
@@ -100,8 +100,8 @@ public class HomeManager {
         refreshHomeItems();
     }
     private static void saveHomeItems() {
-        ExplorerBehaviour.makeDir(HOME_ITEMS_DIR);
-        ExplorerBehaviour.makeFile(HOME_ITEMS_FILE);
+        FileHelpers.makeDir(HOME_ITEMS_DIR);
+        FileHelpers.makeFile(HOME_ITEMS_FILE);
         Serialaver.saveFile(homeItems.toArray(), HOME_ITEMS_FILE);
     }
     private static void refreshHomeItems() {

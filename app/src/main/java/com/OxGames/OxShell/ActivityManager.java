@@ -10,7 +10,7 @@ import java.util.Set;
 public class ActivityManager {
     private static Hashtable<Class, Page[]> pagesOfActivities;
     private static Hashtable<Class, PagedActivity> activityInstances;
-    public enum Page { home, explorer, chooser, addToHome, packages, assoc, selectDirs, intentShortcuts, runningApps }
+    public enum Page { home, explorer, chooser, settings, customizeHome, pkgList, assocList, selectDirs, intentShortcuts, runningApps }
     private static Page current = Page.home;
 
     public static void goTo(Page page) {
@@ -34,7 +34,7 @@ public class ActivityManager {
     public static void init() {
         if (pagesOfActivities == null) {
             pagesOfActivities = new Hashtable<>();
-            pagesOfActivities.put(HomeActivity.class, new Page[] { Page.home, Page.addToHome, Page.packages, Page.assoc, Page.selectDirs, Page.intentShortcuts, Page.runningApps });
+            pagesOfActivities.put(HomeActivity.class, new Page[] { Page.home, Page.settings, Page.customizeHome, Page.pkgList, Page.assocList, Page.selectDirs, Page.intentShortcuts, Page.runningApps });
             pagesOfActivities.put(ExplorerActivity.class, new Page[] { Page.explorer });
             pagesOfActivities.put(FileChooserActivity.class, new Page[] { Page.chooser });
         }

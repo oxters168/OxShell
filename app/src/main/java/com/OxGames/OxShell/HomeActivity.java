@@ -12,6 +12,7 @@ public class HomeActivity extends PagedActivity {
             uri -> {
                 Log.d("ActivityResult", uri.toString());
                 SelectDirsView dirsView = (SelectDirsView)allPages.get(ActivityManager.Page.selectDirs);
+                //dirsView.addToList(ProviderHelpers.getRealPathFromURI(this, uri));
                 dirsView.addToList(uri.getPath());
 //                    super.onActivityResult(requestCode, resultCode, data);
             });
@@ -24,21 +25,24 @@ public class HomeActivity extends PagedActivity {
         setContentView(R.layout.activity_home);
         initViewsTable();
 
-        //PackagesCache.prepareDefaultLaunchIntents(); //Currently duplicates the defaults each time the activity is reloaded
         HomeManager.init();
         goTo(ActivityManager.Page.home);
 
-        Log.d("HomeActivity", "files-path " + getFilesDir());
-        Log.d("HomeActivity", "cache-path " + getCacheDir());
         Log.d("HomeActivity", "external-path " + Environment.getExternalStorageDirectory());
+        Log.d("HomeActivity", "external-files-path " + getExternalFilesDir(null));
+        Log.d("HomeActivity", "cache-path " + getCacheDir());
+        Log.d("HomeActivity", "external-cache-path " + getExternalCacheDir());
+        Log.d("HomeActivity", "files-path " + getFilesDir());
+        Log.d("HomeActivity", "external-media-path " + getExternalMediaDirs());
     }
 
     @Override
     protected void initViewsTable() {
         allPages.put(ActivityManager.Page.home, findViewById(R.id.home_view));
-        allPages.put(ActivityManager.Page.addToHome, findViewById(R.id.add_view));
-        allPages.put(ActivityManager.Page.packages, findViewById(R.id.packages_list));
-        allPages.put(ActivityManager.Page.assoc, findViewById(R.id.assoc_view));
+        allPages.put(ActivityManager.Page.settings, findViewById(R.id.settings_view));
+        allPages.put(ActivityManager.Page.customizeHome, findViewById(R.id.customize_home_view));
+        allPages.put(ActivityManager.Page.pkgList, findViewById(R.id.packages_list));
+        allPages.put(ActivityManager.Page.assocList, findViewById(R.id.assoc_list_view));
         allPages.put(ActivityManager.Page.selectDirs, findViewById(R.id.selectdirs_view));
         allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
     }

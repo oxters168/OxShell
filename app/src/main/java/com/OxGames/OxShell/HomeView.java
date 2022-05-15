@@ -35,8 +35,8 @@ public class HomeView extends SlideTouchGridView {
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
         } else if (selectedItem.type == HomeItem.Type.app) {
             (new IntentLaunchData((String)selectedItem.obj)).launch();
-        } else if (selectedItem.type == HomeItem.Type.add) {
-            ActivityManager.goTo(ActivityManager.Page.addToHome);
+        } else if (selectedItem.type == HomeItem.Type.settings) {
+            ActivityManager.goTo(ActivityManager.Page.settings);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
         } else if (selectedItem.type == HomeItem.Type.assoc) {
             IntentShortcutsView.setLaunchItem(selectedItem);
@@ -54,7 +54,7 @@ public class HomeView extends SlideTouchGridView {
         if (homeItems == null)
             homeItems = new ArrayList<>();
 
-        homeItems.add(new HomeItem(HomeItem.Type.add));
+        homeItems.add(new HomeItem(HomeItem.Type.settings));
 
         GridAdapter customAdapter = new GridAdapter(getContext(), homeItems);
         setAdapter(customAdapter);

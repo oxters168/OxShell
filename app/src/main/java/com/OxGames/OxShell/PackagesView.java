@@ -43,7 +43,7 @@ public class PackagesView extends SlideTouchListView {
     //        Log.d("ExplorerView", key_code + " " + key_event);
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                ActivityManager.goTo(ActivityManager.Page.addToHome);
+                ActivityManager.goTo(ActivityManager.Page.customizeHome);
                 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
                 return true;
             }

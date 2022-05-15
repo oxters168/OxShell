@@ -41,25 +41,34 @@
         android:scrollbarStyle="insideInset"
         android:visibility="gone"></com.OxGames.OxShell.PackagesView>
 
-    <com.OxGames.OxShell.AddView
-        android:id="@+id/add_view"
+    <com.OxGames.OxShell.SettingsView
+        android:id="@+id/settings_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
         android:visibility="gone">
+    </com.OxGames.OxShell.SettingsView>
 
-    </com.OxGames.OxShell.AddView>
-
-    <com.OxGames.OxShell.AssocView
-        android:id="@+id/assoc_view"
+    <com.OxGames.OxShell.CustomizeHomeView
+        android:id="@+id/customize_home_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="gone"></com.OxGames.OxShell.AssocView>
+        android:visibility="gone">
+    </com.OxGames.OxShell.CustomizeHomeView>
+
+    <com.OxGames.OxShell.AssocListView
+        android:id="@+id/assoc_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
+        android:visibility="gone"></com.OxGames.OxShell.AssocListView>
 
     <com.OxGames.OxShell.SelectDirsView
         android:id="@+id/selectdirs_view"

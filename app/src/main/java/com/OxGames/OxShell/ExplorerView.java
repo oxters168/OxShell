@@ -1,9 +1,10 @@
 package com.OxGames.OxShell;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.os.SystemClock;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -39,7 +40,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     @Override
     public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == ExplorerBehaviour.READ_EXTERNAL_STORAGE) {
+        if (requestCode == FileHelpers.READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d("Explorer", "Storage permission granted");
                 refresh();
@@ -85,7 +86,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
                     ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(file.getAbsolutePath());
                 else
-                    tryRun(clickedItem);
+                    FileHelpers.tryRun(((File)clickedItem.obj));
             }
         }
     }
@@ -128,7 +129,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     String absolutePath = files[i].getAbsolutePath();
                     Drawable icon = null;
                     if (!files[i].isDirectory()) {
-                        String extension = ExplorerBehaviour.getExtension(absolutePath);
+                        String extension = FileHelpers.getExtension(absolutePath);
                         if (extension != null) {
                             String packageName = PackagesCache.getPackageNameForExtension(extension);
                             if (packageName != null)
@@ -145,57 +146,5 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             setAdapter(customAdapter);
         }
         super.refresh();
-    }
-
-    private void tryRun(DetailItem clickedItem) {
-        String absPath = ((File)clickedItem.obj).getAbsolutePath();
-        if (ExplorerBehaviour.hasExtension(absPath)) {
-            String extension = ExplorerBehaviour.getExtension(absPath);
-            IntentLaunchData fileLaunchIntent = PackagesCache.getLaunchDataForExtension(extension);
-
-            if (fileLaunchIntent != null) {
-                String nameWithExt = ((File)clickedItem.obj).getName();
-                String nameWithoutExt = ExplorerBehaviour.removeExtension(nameWithExt);
-
-                String[] extrasValues = null;
-                IntentPutExtra[] extras = fileLaunchIntent.getExtras();
-                if (extras != null && extras.length > 0) {
-                    extrasValues = new String[extras.length];
-                    for (int i = 0; i < extras.length; i++) {
-                        IntentPutExtra current = extras[i];
-                        if (current.getExtraType() == IntentLaunchData.DataType.AbsolutePath)
-                            extrasValues[i] = absPath;
-                        else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithExt)
-                            extrasValues[i] = nameWithExt;
-                        else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
-                            extrasValues[i] = nameWithoutExt;
-//                        else if (current.GetExtraType() == IntentLaunchData.DataType.Uri) {
-//                            String uri = Uri.parse(absPath).getScheme();
-//                            Log.d("Explorer", "Passing " + uri);
-//                            extrasValues[i] = uri;
-//                        }
-                    }
-                }
-
-                String data = null;
-                if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.AbsolutePath)
-                    data = absPath;
-                else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithExt)
-                    data = nameWithExt;
-                else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
-                    data = nameWithoutExt;
-//                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.Uri) {
-//                    String uri = Uri.parse(absPath).getScheme();
-//                    Log.d("Explorer", "Passing " + uri);
-//                    data = uri;
-//                }
-
-                fileLaunchIntent.launch(data, extrasValues);
-            }
-            else
-                Log.e("Explorer", "No launch intent associated with extension " + extension);
-        }
-        else
-            Log.e("Explorer", "Missing extension, could not identify file");
     }
 }

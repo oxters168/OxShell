@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class HomeItem extends GridItem implements Serializable, DirsCarrier {
-    public enum Type { explorer, app, assoc, add, }
+    public enum Type { explorer, app, assoc, settings, }
     Type type;
     ArrayList<String> extraData;
 
@@ -34,7 +34,7 @@ public class HomeItem extends GridItem implements Serializable, DirsCarrier {
             icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_source_24);
         else if (type == Type.app)
             icon = PackagesCache.getPackageIcon((String)obj);
-        else if (type == Type.add)
+        else if (type == Type.settings)
             icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_settings_24);
         else if (type == Type.assoc)
             icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
