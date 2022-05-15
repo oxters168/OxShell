@@ -1,12 +1,18 @@
 package com.OxGames.OxShell;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 
 import java.util.ArrayList;
 
 public class HomeView extends SlideTouchGridView {
+    private HomeContextMenu overlay;
+
     public HomeView(Context context) {
         super(context);
     }
@@ -22,6 +28,10 @@ public class HomeView extends SlideTouchGridView {
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2) {
                 //ActivityManager.GoTo(ActivityManager.Page.runningApps);
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                showCustomContextMenu();
                 return true;
             }
         }
@@ -48,6 +58,14 @@ public class HomeView extends SlideTouchGridView {
         HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
         HomeManager.removeItem(selectedItem);
     }
+    public void uninstallSelection() {
+        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        if (selectedItem.type == HomeItem.Type.app) {
+            Intent intent = new Intent(Intent.ACTION_DELETE);
+            intent.setData(Uri.parse("package:" + selectedItem.obj));
+            ActivityManager.getCurrentActivity().startActivity(intent);
+        }
+    }
     @Override
     public void refresh() {
         ArrayList<GridItem> homeItems = HomeManager.getItems();
@@ -59,5 +77,12 @@ public class HomeView extends SlideTouchGridView {
         GridAdapter customAdapter = new GridAdapter(getContext(), homeItems);
         setAdapter(customAdapter);
         super.refresh();
+    }
+
+    private void showCustomContextMenu() {
+        overlay = new HomeContextMenu(ActivityManager.getCurrentActivity());
+        overlay.setCancelable(true);
+        overlay.currentHomeView = this;
+        overlay.show();
     }
 }
