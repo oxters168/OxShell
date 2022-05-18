@@ -2,37 +2,22 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="400px"
-    android:layout_height="400px">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
+    <com.OxGames.OxShell.SlideTouchListView
+        android:id="@+id/context_btns_list"
+        android:layout_width="200px"
+        android:layout_height="400px"
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"></com.OxGames.OxShell.SlideTouchListView>
 
-        <Button
-            android:id="@+id/move_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#000"
-            android:text="Move" />
-
-        <Button
-            android:id="@+id/remove_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#FF0000"
-            android:text="Remove" />
-
-        <Button
-            android:id="@+id/uninstall_btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#000"
-            android:text="Uninstall" />
-    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

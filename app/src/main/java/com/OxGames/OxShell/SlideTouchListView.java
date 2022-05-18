@@ -11,8 +11,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
 
+import java.util.ArrayList;
+
 public class SlideTouchListView extends ListView implements SlideTouchListener {
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
+    private ArrayList<CustomViewListener> eventListeners = new ArrayList<>();
     int properPosition = 0;
 
     public SlideTouchListView(Context context) {
@@ -76,6 +79,10 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
 
     }
 
+    public void addListener(CustomViewListener listener) {
+        eventListeners.add(listener);
+    }
+
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("SlideTouchListView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
@@ -116,6 +123,8 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
         setProperPosition(prevIndex);
     }
     public void makeSelection() {
+        for (CustomViewListener el : eventListeners)
+            el.onMakeSelection(properPosition);
         //ExplorerItem clickedItem = (ExplorerItem)getItemAtPosition(properPosition);
     }
     public void setProperPosition(int pos) {

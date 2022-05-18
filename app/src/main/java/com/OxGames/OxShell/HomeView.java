@@ -83,6 +83,7 @@ public class HomeView extends SlideTouchGridView {
         overlay = new HomeContextMenu(ActivityManager.getCurrentActivity());
         overlay.setCancelable(true);
         overlay.currentHomeView = this;
+        //Add buttons specific for the selected item and handle button events here
         overlay.show();
     }
 }

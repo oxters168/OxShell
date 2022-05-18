@@ -17,10 +17,18 @@ public class DetailAdapter implements ListAdapter {
     ArrayList<DetailItem> detailItems;
 //    boolean hideExtensions;
 
+    public DetailAdapter(Context _context) {
+        context = _context;
+        detailItems = new ArrayList<>();
+    }
     public DetailAdapter(Context _context, ArrayList<DetailItem> _detailItems) {
         context = _context;
         detailItems = _detailItems;
 //        hideExtensions = _hideExtensions;
+    }
+
+    public void add(DetailItem detailItem) {
+        detailItems.add(detailItem);
     }
 
     @Override
@@ -87,7 +95,8 @@ public class DetailAdapter implements ListAdapter {
     }
     @Override
     public int getViewTypeCount() {
-        return detailItems.size();
+        //return detailItems.size();
+        return 1;
     }
     @Override
     public boolean isEmpty() {

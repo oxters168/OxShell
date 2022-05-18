@@ -18,5 +18,6 @@
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="visible"></com.OxGames.OxShell.ExplorerView>
+        android:visibility="visible">
+    </com.OxGames.OxShell.ExplorerView>
 </FrameLayout>

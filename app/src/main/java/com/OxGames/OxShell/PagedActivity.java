@@ -90,6 +90,13 @@ public class PagedActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        Log.d("PagedActivity", "OnWindowFocusChanged " + this);
+        super.onWindowFocusChanged(hasFocus);
+        hideSystemUI();
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
 //        Log.d("PagedActivity", key_event.toString());
         View currentView = allPages.get(currentPage);
