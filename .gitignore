@@ -19,3 +19,4 @@ local.properties
 
 #Private keystore data
 /app/keystores
+!/app/keystores/.gitkeep
