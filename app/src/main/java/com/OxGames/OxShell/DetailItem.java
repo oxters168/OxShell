@@ -8,7 +8,6 @@ public class DetailItem {
     String leftAlignedText; //string
     String rightAlignedText;
     Drawable icon; //stay
-    //View view; //stay
     boolean isSelected;
 
     public DetailItem(Drawable _icon, String _leftAlignedText, String _rightAlignedText, Object _obj) {

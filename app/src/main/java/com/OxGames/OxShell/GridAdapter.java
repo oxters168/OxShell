@@ -28,11 +28,8 @@ public class GridAdapter extends BaseAdapter {
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             view = layoutInflater.inflate(R.layout.grid_cell, null);
         }
-        //else
-        //    homeItem.view = parent.getChildAt(position);
 
-        //homeItem.view = view;
-        view.setBackgroundColor(homeItem.isSelected ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000"));
+        view.setBackgroundColor(homeItem.isSelected ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO: implement color theme that can take custom theme from file
 
         TextView title = view.findViewById(R.id.title);
         title.setText(homeItem.title);
@@ -75,7 +72,7 @@ public class GridAdapter extends BaseAdapter {
     }
     @Override
     public int getItemViewType(int position) {
-        return position;
+        return 0;
     }
     @Override
     public int getViewTypeCount() {
