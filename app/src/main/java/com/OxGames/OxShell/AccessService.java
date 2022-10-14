@@ -66,7 +66,7 @@ public class AccessService extends AccessibilityService {
         if (instance != null)
             instance.performGlobalAction(GLOBAL_ACTION_RECENTS);
         else {
-            //TODO: Request user to turn on service
+            //TODO: show popup telling user why they're about to go to the accessibility settings and option to cancel
             Log.e("AccessService", "Service not turned on");
             IntentLaunchData.createFromAction(Settings.ACTION_ACCESSIBILITY_SETTINGS, Intent.FLAG_ACTIVITY_NEW_TASK).launch();
             //context.startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));

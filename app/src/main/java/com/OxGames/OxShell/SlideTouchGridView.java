@@ -156,7 +156,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
 //            Log.d("HomeView", i + " " + view);
 
             if (view != null) {
-                int bgColor = (i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000"); //TODO implement color theme that can take custom theme from file
+                int bgColor = (i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000"); //TODO: implement color theme that can take custom theme from file
                 view.setBackgroundColor(bgColor);
             }
         }

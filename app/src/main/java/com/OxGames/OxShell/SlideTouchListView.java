@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -12,7 +14,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
+import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -37,9 +41,10 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        //Log.d("SlideTouchListView", "Drawing");
 
         slideTouch.checkForEvents();
-        highlightSelection();
+        //highlightSelection();
     }
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -128,11 +133,42 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
 //    }
 
     private void highlightSelection() {
+        //ListAdapter adapter = getAdapter();
+        //if (adapter instanceof DetailAdapter)
+        //    ((DetailAdapter)adapter).setHighlightedIndex(properPosition);
+        //invalidateViews();
+
+        //View realView = getSelectedView();
         for (int i = 0; i < getCount(); i++) {
-            View view = ((DetailItem)getItemAtPosition(i)).view;
-            if (view != null)
-                view.setBackgroundColor((i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO implement color theme that can take custom theme from file
+            //View view = ((DetailItem)getItemAtPosition(i)).view;
+            //View view = getChildAt(i%20);
+            //View otherView = getChildAt(i);
+            ((DetailItem)getItemAtPosition(i)).isSelected = (i == properPosition);
+            //if (view != null) {
+                //TextView title = view.findViewById(R.id.title);
+                //title.setText("Highlighting");
+//                if (i == properPosition) {
+//                    view.setBackgroundResource(R.color.highlight);
+//                    realView.setBackgroundResource(R.color.highlight);
+//                }
+//                else
+//                    view.setBackgroundResource(R.color.transparent);
+                //view.setBackgroundResource((i == properPosition) ? R.color.highlight : R.color.transparent);
+                //view.setBackgroundColor((i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO: implement color theme that can take custom theme from file
+                //view.invalidate();
+//                Drawable bg = view.getBackground();
+//                if (bg != null) {
+//                    //Log.d("SlideTouchListView", "BG is not null");
+//                    bg.setColorFilter((i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000"), PorterDuff.Mode.MULTIPLY);
+//                    bg.invalidateSelf();
+//                }
+                //view.setDrawingCacheBackgroundColor(R.color.black);
+                //if (i == properPosition)
+                //    Log.d("SlideTouchListView", "Highlighting item at " + i);
+            //} else
+            //    Log.e("SlideTouchListView", "View is null");
         }
+        invalidateViews();
     }
     public void selectNextItem() {
         int total = getCount();
@@ -140,12 +176,14 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
         if (nextIndex >= total)
             nextIndex = total - 1;
         setProperPosition(nextIndex);
+        //highlightSelection();
     }
     public void selectPrevItem() {
         int prevIndex = properPosition - 1;
         if (prevIndex < 0)
             prevIndex = 0;
         setProperPosition(prevIndex);
+        //highlightSelection();
     }
     public void makeSelection() {
         for (CustomViewListener el : eventListeners)
@@ -155,8 +193,13 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
     public void setProperPosition(int pos) {
 //        Log.d("Explorer", "Setting position to " + pos);
         properPosition = pos; //Probably should clamp properPosition here
+//        ListAdapter adapter = getAdapter();
+//        if (adapter instanceof DetailAdapter)
+//            ((DetailAdapter)adapter).setHighlightedIndex(properPosition);
+        highlightSelection();
         DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
         setSelectionFromTop(pos, (int)(displayMetrics.heightPixels * 0.5));
+        //highlightSelection();
     }
     public void refresh() {
         setProperPosition(properPosition);
