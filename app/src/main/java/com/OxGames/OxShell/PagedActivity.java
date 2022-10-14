@@ -102,7 +102,7 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
-        Log.d("PagedActivity", key_event.toString());
+        //Log.d("PagedActivity", key_event.toString());
         View currentView = allPages.get(currentPage);
 
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {

@@ -8,7 +8,8 @@ import java.io.Serializable;
 public class GridItem implements Serializable {
     protected String title;
     protected Object obj;
-    protected transient View view;
+    //protected transient View view;
+    protected transient boolean isSelected;
 
     public GridItem(String _title, Object _obj) {
         title = _title;

@@ -39,7 +39,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
         super.onDraw(canvas);
 
         slideTouch.checkForEvents();
-        highlightSelection();
+        //highlightSelection();
     }
 
     @Override
@@ -150,20 +150,22 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
 //        return true;
 //    }
     public void highlightSelection() {
-        for (int i = 0; i < getChildCount(); i++) {
-//            View view = ((HomeItem)getItemAtPosition(i)).view;
-            View view = getChildAt(i);
-//            Log.d("HomeView", i + " " + view);
+        for (int i = 0; i < getCount(); i++) {
+            ((GridItem)getItemAtPosition(i)).isSelected = i == properPosition;
 
-            if (view != null) {
-                int bgColor = (i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000"); //TODO: implement color theme that can take custom theme from file
-                view.setBackgroundColor(bgColor);
-            }
+            //Log.d("HomeView", i + " " + view);
+            //View view = ((HomeItem)getItemAtPosition(i)).view;
+//            View view = getChildAt(i);
+//            if (view != null) {
+//                int bgColor = (i == properPosition) ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000"); //TODO: implement color theme that can take custom theme from file
+//                view.setBackgroundColor(bgColor);
+//            }
         }
+        invalidateViews();
     }
     public void selectLowerItem() {
         int columns = getNumColumns();
-        int total = getChildCount();
+        int total = getCount();
         int nextIndex = properPosition + columns;
         if (nextIndex >= total)
             nextIndex = properPosition;
@@ -180,7 +182,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
     }
     public void selectRightItem() {
         int columns = getNumColumns();
-        int total = getChildCount();
+        int total = getCount();
         int nextIndex = properPosition + 1;
         if (nextIndex >= total)
             nextIndex = total - 1;
@@ -201,6 +203,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
     }
     public void setProperPosition(int pos) {
         properPosition = pos;
+        highlightSelection();
         DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
         setSelectionFromTop(pos, displayMetrics != null ? (int)(displayMetrics.heightPixels * 0.5) : 0);
     }
