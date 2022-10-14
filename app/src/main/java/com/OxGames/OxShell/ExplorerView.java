@@ -1,10 +1,8 @@
 package com.OxGames.OxShell;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -40,7 +38,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     @Override
     public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == FileHelpers.READ_EXTERNAL_STORAGE) {
+        if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d("Explorer", "Storage permission granted");
                 refresh();
@@ -86,7 +84,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
                     ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(file.getAbsolutePath());
                 else
-                    FileHelpers.tryRun(((File)clickedItem.obj));
+                    AndroidHelpers.tryRun(((File)clickedItem.obj));
             }
         }
     }
@@ -129,7 +127,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     String absolutePath = files[i].getAbsolutePath();
                     Drawable icon = null;
                     if (!files[i].isDirectory()) {
-                        String extension = FileHelpers.getExtension(absolutePath);
+                        String extension = AndroidHelpers.getExtension(absolutePath);
                         if (extension != null) {
                             String packageName = PackagesCache.getPackageNameForExtension(extension);
                             if (packageName != null)

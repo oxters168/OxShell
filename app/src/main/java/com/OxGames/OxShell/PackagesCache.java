@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -26,21 +25,21 @@ public class PackagesCache {
 
     public static void loadIntents() {
         //If dir doesn't exist, create it and the default intents
-        if (!FileHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
-            if (FileHelpers.hasWriteStoragePermission()) {
-                FileHelpers.makeDir(INTENT_SHORTCUTS_DIR);
+        if (!AndroidHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
+            if (AndroidHelpers.hasWriteStoragePermission()) {
+                AndroidHelpers.makeDir(INTENT_SHORTCUTS_DIR);
                 saveDefaultLaunchIntents();
             }
         }
 
         //If dir exists, load intents stored in it
-        if (FileHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
-            if (FileHelpers.hasReadStoragePermission()) {
+        if (AndroidHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
+            if (AndroidHelpers.hasReadStoragePermission()) {
                 launchIntents.clear(); //So we don't get duplicates
                 Gson gson = new Gson();
-                File[] intents = FileHelpers.listContents(INTENT_SHORTCUTS_DIR);
+                File[] intents = AndroidHelpers.listContents(INTENT_SHORTCUTS_DIR);
                 for (File intent : intents) {
-                    launchIntents.add(gson.fromJson(FileHelpers.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
+                    launchIntents.add(gson.fromJson(AndroidHelpers.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
                 }
             }
         }
@@ -70,9 +69,9 @@ public class PackagesCache {
     private static void saveIntentData(IntentLaunchData intentData) {
         Gson gson = new Gson();
         String fileName = INTENT_SHORTCUTS_DIR + "/" + intentData.getDisplayName() + ".json";
-        if (!FileHelpers.fileExists(fileName))
-            FileHelpers.makeFile(fileName);
-        FileHelpers.writeToFile(fileName, gson.toJson(intentData));
+        if (!AndroidHelpers.fileExists(fileName))
+            AndroidHelpers.makeFile(fileName);
+        AndroidHelpers.writeToFile(fileName, gson.toJson(intentData));
     }
 
     public static boolean isRunning(String packageName) {
@@ -169,7 +168,7 @@ public class PackagesCache {
     public static ResolveInfo getResolveInfo(String packageName) {
         ResolveInfo rsvInfo = null;
         try {
-            rsvInfo = ActivityManager.getCurrentActivity().getPackageManager().resolveActivity(new IntentLaunchData(packageName).buildIntent(), 0);
+            rsvInfo = ActivityManager.getCurrentActivity().getPackageManager().resolveActivity(IntentLaunchData.createFromPackage(packageName).buildIntent(), 0);
         } catch (NullPointerException ex) {
             Log.e("PackagesCache", "Unable to resolve package " + packageName);
         }

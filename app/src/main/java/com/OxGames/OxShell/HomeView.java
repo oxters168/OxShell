@@ -44,7 +44,7 @@ public class HomeView extends SlideTouchGridView {
             ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
         } else if (selectedItem.type == HomeItem.Type.app) {
-            (new IntentLaunchData((String)selectedItem.obj)).launch();
+            (IntentLaunchData.createFromPackage((String)selectedItem.obj, Intent.FLAG_ACTIVITY_NEW_TASK)).launch();
         } else if (selectedItem.type == HomeItem.Type.settings) {
             ActivityManager.goTo(ActivityManager.Page.settings);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);

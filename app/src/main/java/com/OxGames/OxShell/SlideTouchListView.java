@@ -4,11 +4,14 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -98,9 +101,31 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
                 selectPrevItem();
                 return true;
             }
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+//                //Log.d("SlideTouchListView", "Attempting to bring up app switcher");
+//                sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_DOWN);
+//                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP, 0);
+//                return true;
+//            }
         }
+//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+//                Log.d("SlideTouchListView", "Attempting to bring up app switcher");
+//                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_DOWN, 0);
+//                sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
+//                return true;
+//            }
+//        }
         return false;
     }
+//    private void sendKeyEvent(View targetView, int keyeventcode, int action) {
+//        //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
+//        //& https://stackoverflow.com/questions/13026505/how-can-i-send-key-events-in-android
+//        //BaseInputConnection mInputConnection = new BaseInputConnection(targetView, true);
+//        long eventTime = SystemClock.uptimeMillis();
+//        //mInputConnection.sendKeyEvent(new KeyEvent(eventTime, eventTime, action, keyeventcode, 0));
+//        dispatchKeyEvent(new KeyEvent(eventTime, eventTime, action, keyeventcode, 0));
+//    }
 
     private void highlightSelection() {
         for (int i = 0; i < getCount(); i++) {

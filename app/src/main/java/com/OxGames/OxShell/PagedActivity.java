@@ -1,11 +1,15 @@
 package com.OxGames.OxShell;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -98,8 +102,44 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
-//        Log.d("PagedActivity", key_event.toString());
+        Log.d("PagedActivity", key_event.toString());
         View currentView = allPages.get(currentPage);
+
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+                Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
+                AccessService.showRecentApps();
+                //com.android.systemui.recents.Recents.showRecentApps(false);
+//                Intent intent = new Intent ("com.android.systemui.recents.action.TOGGLE_RECENTS");
+//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+//                intent.setComponent(new ComponentName("com.android.launcher3", AndroidHelpers.RECENT_ACTIVITY));
+//                startActivity (intent);
+                //IntentLaunchData recents = new IntentLaunchData(AndroidHelpers.RECENT_ACTIVITY);
+                //recents.launch();
+                //dispatchKeyEvent(new KeyEvent(key_event.getAction(), KeyEvent.KEYCODE_BUTTON_MODE));
+                //dispatchKeyEvent(new KeyEvent(key_event.getDownTime(), key_event.getEventTime(), key_event.getAction(), KeyEvent.KEYCODE_BUTTON_MODE, key_event.getRepeatCount(), key_event.getMetaState(), key_event.getDeviceId(), key_event.getScanCode(), key_event.getFlags(), key_event.getSource()));
+                //BaseInputConnection mInputConnection = new BaseInputConnection(currentView, false);
+                //mInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ALT_LEFT));
+                //mInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB));
+                //mInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_TAB));
+                //mInputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ALT_LEFT));
+                //dispatchKeyEvent(new KeyEvent(key_event.getDownTime(), key_event.getEventTime(), KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB, key_event.getRepeatCount(), KeyEvent.META_ALT_ON, key_event.getDeviceId(), key_event.getScanCode(), key_event.getFlags(), key_event.getSource()));
+                //sendKeyEvent(currentView, new KeyEvent(key_event.getDownTime(), key_event.getEventTime(), key_event.getAction(), KeyEvent.KEYCODE_APP_SWITCH, key_event.getRepeatCount(), key_event.getMetaState(), key_event.getDeviceId(), 704, key_event.getFlags(), key_event.getSource()));
+                //sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_DOWN);
+                //sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
+                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP, 0);
+                return true;
+            }
+        }
+//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+//                Log.d("PagedActivity", "Attempting to bring up app switcher");
+//                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_DOWN, 0);
+//                sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
+//                return true;
+//            }
+//        }
+
         boolean childsPlay = false;
         if (currentView instanceof SlideTouchListView)
             childsPlay = ((SlideTouchListView)currentView).receiveKeyEvent(key_event);
@@ -108,6 +148,14 @@ public class PagedActivity extends AppCompatActivity {
         if (childsPlay)
             return true;
         return super.dispatchKeyEvent(key_event);
+    }
+    private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
+        //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
+        //& https://stackoverflow.com/questions/13026505/how-can-i-send-key-events-in-android
+        //long eventTime = SystemClock.uptimeMillis();
+        BaseInputConnection mInputConnection = new BaseInputConnection(targetView, true);
+        mInputConnection.sendKeyEvent(keyEvent);
+        //dispatchKeyEvent(new KeyEvent(eventTime, eventTime, action, keyeventcode, 0));
     }
 
     @Override

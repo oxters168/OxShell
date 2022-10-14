@@ -31,7 +31,7 @@ public class FileChooserActivity extends PagedActivity {
     }
 
     public void sendResult(String path) {
-        final Uri data = FileHelpers.uriFromFile(this, new File(path));
+        final Uri data = AndroidHelpers.uriFromFile(this, new File(path));
         Intent returnIntent = new Intent();
         returnIntent.setData(data);
         returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

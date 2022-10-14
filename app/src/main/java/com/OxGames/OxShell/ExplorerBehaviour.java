@@ -1,23 +1,9 @@
 package com.OxGames.OxShell;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.util.Log;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.util.LinkedList;
 
 public class ExplorerBehaviour {
@@ -67,8 +53,8 @@ public class ExplorerBehaviour {
         return current.getAbsolutePath();
     }
     public File[] listContents() {
-        if (!FileHelpers.hasReadStoragePermission())
-            FileHelpers.requestReadStoragePermission();
+        if (!AndroidHelpers.hasReadStoragePermission())
+            AndroidHelpers.requestReadStoragePermission();
         //Might be how to do it for android 11+
         //IntentLaunchData ild = new IntentLaunchData();
         //ild.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);

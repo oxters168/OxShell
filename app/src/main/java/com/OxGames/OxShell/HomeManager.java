@@ -4,8 +4,6 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.util.Log;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class HomeManager {
@@ -15,28 +13,35 @@ public class HomeManager {
 
     public static void init() {
         if (homeItems == null) {
-            if (FileHelpers.fileExists(HOME_ITEMS_FILE)) {
-                if (!FileHelpers.hasReadStoragePermission()) {
+            if (AndroidHelpers.fileExists(HOME_ITEMS_FILE)) {
+                if (!AndroidHelpers.hasReadStoragePermission()) {
+                    Log.d("HomeManager", "HomeItems exists but we do not have permission to read, requesting permission");
                     addTempExplorer(); //Temp explorer in case no permissions granted
 
-                    FileHelpers.requestReadStoragePermission();
+                    AndroidHelpers.requestReadStoragePermission();
                     ActivityManager.getCurrentActivity().addPermissionListener(new PermissionsListener() {
                         @Override
                         public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-                            if (requestCode == FileHelpers.READ_EXTERNAL_STORAGE) {
-                                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                            if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
+                                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                                    Log.d("HomeManager", "Read permission granted, loading HomeItems from disk");
                                     loadHomeItems();
-                                else
+                                } else
                                     Log.e("HomeManager", "Read storage permission denied");
                             }
                         }
                     });
                 }
-                else
+                else {
+                    Log.d("HomeManager", "HomeItems exists and we have permission to read, loading HomeItems from disk");
                     loadHomeItems();
-            } else
+                }
+            } else {
+                Log.d("HomeManager", "HomeItems did not exist, placing default home items");
                 addTempExplorer(); //Since nothing is saved anyway no need to save this because it is the default (this way the user isn't always bombarded with permission request on start, only when they want to add something to the home)
-        }
+            }
+        } else
+            Log.d("HomeManager", "homeItems not null, so not reading from disk");
     }
     public static ArrayList<GridItem> getItems() {
         if (homeItems != null) {
@@ -60,13 +65,14 @@ public class HomeManager {
         refreshHomeItems();
     }
     public static void addItemAndSave(HomeItem homeItem) {
+        Log.d("HomeManager", "Adding item and saving to disk");
         addItem(homeItem);
-        if (!FileHelpers.hasWriteStoragePermission()) {
-            FileHelpers.requestWriteStoragePermission();
+        if (!AndroidHelpers.hasWriteStoragePermission()) {
+            AndroidHelpers.requestWriteStoragePermission();
             ActivityManager.getCurrentActivity().addPermissionListener(new PermissionsListener() {
                 @Override
                 public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-                    if (requestCode == FileHelpers.WRITE_EXTERNAL_STORAGE) {
+                    if (requestCode == AndroidHelpers.WRITE_EXTERNAL_STORAGE) {
                         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                             saveHomeItems();
                         else
@@ -100,8 +106,8 @@ public class HomeManager {
         refreshHomeItems();
     }
     private static void saveHomeItems() {
-        FileHelpers.makeDir(HOME_ITEMS_DIR);
-        FileHelpers.makeFile(HOME_ITEMS_FILE);
+        AndroidHelpers.makeDir(HOME_ITEMS_DIR);
+        AndroidHelpers.makeFile(HOME_ITEMS_FILE);
         Serialaver.saveFile(homeItems.toArray(), HOME_ITEMS_FILE);
     }
     private static void refreshHomeItems() {

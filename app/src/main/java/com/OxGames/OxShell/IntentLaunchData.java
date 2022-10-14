@@ -31,9 +31,9 @@ public class IntentLaunchData implements Serializable {
     public IntentLaunchData() {
         this(null, null, null, null, null, 0);
     }
-    public IntentLaunchData(String _packageName) {
-        this(null, null, _packageName, null, null, 0);
-    }
+//    public IntentLaunchData(String _packageName) {
+//        this(null, null, _packageName, null, null, 0);
+//    }
     public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] _extensions) {
         this(_displayName, _action, _packageName, _className, _extensions, 0);
     }
@@ -53,6 +53,18 @@ public class IntentLaunchData implements Serializable {
         flags = _flags;
     }
 
+    public static IntentLaunchData createFromPackage(String packageName) {
+        return createFromPackage(packageName, 0);
+    }
+    public static IntentLaunchData createFromPackage(String packageName, int flags) {
+        return new IntentLaunchData(null, null, packageName, null, null, flags);
+    }
+    public static IntentLaunchData createFromAction(String action) {
+        return createFromAction(action, 0);
+    }
+    public static IntentLaunchData createFromAction(String action, int flags) {
+        return new IntentLaunchData(null, action, null, null, null, flags);
+    }
     @Override
     public String toString() {
         return "IntentLaunchData{" +
@@ -111,10 +123,14 @@ public class IntentLaunchData implements Serializable {
     public Intent buildIntent(String data, String[] extrasValues) {
         Intent intent;
         if (action != null && !action.isEmpty()) {
-            intent = new Intent();
-            intent.setAction(action);
-        } else
+            intent = new Intent(action);
+        } else {
             intent = ActivityManager.getCurrentActivity().getPackageManager().getLaunchIntentForPackage(packageName);
+            if (intent == null)
+                intent = new Intent(Intent.ACTION_MAIN);
+            else
+                Log.d("IntentLaunchData", "Package manager gave intent the action: " + intent.getAction());
+        }
 
         if (packageName != null && !packageName.isEmpty()) {
             if (className != null && !className.isEmpty())
