@@ -38,6 +38,18 @@ public class AndroidHelpers {
         }
     }
 
+    public static String combinePaths(String first, String second) {
+        String combined;
+        boolean firstEndsWithSeparator = first.lastIndexOf('/') == first.length() - 1;
+        boolean secondStartsWithSeparator = second.indexOf('/') == 0;
+        if (firstEndsWithSeparator && secondStartsWithSeparator)
+            combined = first + second.substring(1);
+        else if (firstEndsWithSeparator || secondStartsWithSeparator)
+            combined = first + second;
+        else
+            combined = first + "/" + second;
+        return combined;
+    }
     public static boolean hasPermission(String permType) {
         return ContextCompat.checkSelfPermission(ActivityManager.getCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
     }

@@ -56,7 +56,7 @@ public class CustomizeHomeView extends SlideTouchListView {
     public void makeSelection() {
         HomeItem.Type selectedItem = (HomeItem.Type)((DetailItem)getItemAtPosition(properPosition)).obj;
         if (selectedItem == HomeItem.Type.explorer) {
-            HomeManager.addExplorer();
+            HomeManager.addExplorerAndSave();
             Toast.makeText(ActivityManager.getCurrentActivity(), "Added explorer to home", Toast.LENGTH_SHORT).show();
         }
         else if (selectedItem == HomeItem.Type.app)

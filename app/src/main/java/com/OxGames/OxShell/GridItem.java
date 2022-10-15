@@ -10,6 +10,7 @@ public class GridItem implements Serializable {
     protected Object obj;
     //protected transient View view;
     protected transient boolean isSelected;
+    //protected transient boolean breaker;
 
     public GridItem(String _title, Object _obj) {
         title = _title;
