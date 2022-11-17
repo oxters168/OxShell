@@ -5,7 +5,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
-import android.os.Environment;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -16,63 +15,32 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class PackagesCache {
-    private static final String INTENT_SHORTCUTS_DIR = Environment.getExternalStorageDirectory() + "/OxShell/Intents";
-
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
     private static Hashtable<String, ApplicationInfo> appInfos = new Hashtable<>();
     private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
-    private static ArrayList<IntentLaunchData> launchIntents = new ArrayList<>();
 
-    public static void loadIntents() {
-        //If dir doesn't exist, create it and the default intents
-        if (!AndroidHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
-            if (AndroidHelpers.hasWriteStoragePermission()) {
-                AndroidHelpers.makeDir(INTENT_SHORTCUTS_DIR);
-                saveDefaultLaunchIntents();
-            }
-        }
+//    public static void loadIntents() {
+//        //If dir doesn't exist, create it and the default intents
+//        if (!AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_EXTERNAL)) {
+//            if (AndroidHelpers.hasWriteStoragePermission()) {
+//                AndroidHelpers.makeDir(Paths.SHORTCUTS_DIR_EXTERNAL);
+//                saveDefaultLaunchIntents(Paths.SHORTCUTS_DIR_EXTERNAL);
+//            }
+//        }
+//
+//        //If dir exists, load intents stored in it
+//        if (AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_EXTERNAL)) {
+//            if (AndroidHelpers.hasReadStoragePermission()) {
+//                launchIntents.clear(); //So we don't get duplicates
+//                Gson gson = new Gson();
+//                File[] intents = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_EXTERNAL);
+//                for (File intent : intents) {
+//                    launchIntents.add(gson.fromJson(AndroidHelpers.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
+//                }
+//            }
+//        }
+//    }
 
-        //If dir exists, load intents stored in it
-        if (AndroidHelpers.dirExists(INTENT_SHORTCUTS_DIR)) {
-            if (AndroidHelpers.hasReadStoragePermission()) {
-                launchIntents.clear(); //So we don't get duplicates
-                Gson gson = new Gson();
-                File[] intents = AndroidHelpers.listContents(INTENT_SHORTCUTS_DIR);
-                for (File intent : intents) {
-                    launchIntents.add(gson.fromJson(AndroidHelpers.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
-                }
-            }
-        }
-    }
-    private static void saveDefaultLaunchIntents() {
-        //Cheat sheet: http://p.cweiske.de/221
-        IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        gbaLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
-        saveIntentData(gbaLaunchIntent);
-
-        IntentLaunchData ndsLaunchIntent = new IntentLaunchData("NDS", Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        ndsLaunchIntent.addExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsolutePath));
-        saveIntentData(ndsLaunchIntent);
-
-        IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso", "cso" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
-        saveIntentData(pspLaunchIntent);
-
-        IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "iso", "bin", "chd" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        ps2LaunchIntent.addExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
-        saveIntentData(ps2LaunchIntent);
-
-        IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "3ds", "cxi" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        threedsLaunchIntent.addExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
-        saveIntentData(threedsLaunchIntent);
-    }
-    private static void saveIntentData(IntentLaunchData intentData) {
-        Gson gson = new Gson();
-        String fileName = INTENT_SHORTCUTS_DIR + "/" + intentData.getDisplayName() + ".json";
-        if (!AndroidHelpers.fileExists(fileName))
-            AndroidHelpers.makeFile(fileName);
-        AndroidHelpers.writeToFile(fileName, gson.toJson(intentData));
-    }
 
     public static boolean isRunning(String packageName) {
         return isRunning(getPackageInfo(packageName));
@@ -90,20 +58,6 @@ public class PackagesCache {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
         List<ApplicationInfo> appsList = currentActivity.getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
         return appsList;
-    }
-    public static IntentLaunchData[] getStoredIntents() {
-        IntentLaunchData[] intents = new IntentLaunchData[launchIntents.size()];
-        intents = launchIntents.toArray(intents);
-        return intents;
-    }
-    public static IntentLaunchData getLaunchDataForExtension(String extension) {
-        for (int i = 0; i < launchIntents.size(); i++) {
-            IntentLaunchData currentLaunchIntent = launchIntents.get(i);
-            if (currentLaunchIntent.containsExtension(extension)) {
-                return currentLaunchIntent;
-            }
-        }
-        return null;
     }
 
     public static Drawable getPackageIcon(String packageName) {
@@ -173,14 +127,5 @@ public class PackagesCache {
             Log.e("PackagesCache", "Unable to resolve package " + packageName);
         }
         return rsvInfo;
-    }
-    public static String getPackageNameForExtension(String extension) {
-        for (int i = 0; i < launchIntents.size(); i++) {
-            IntentLaunchData currentLaunchIntent = launchIntents.get(i);
-            if (currentLaunchIntent.containsExtension(extension)) {
-                return currentLaunchIntent.getPackageName();
-            }
-        }
-        return null;
     }
 }

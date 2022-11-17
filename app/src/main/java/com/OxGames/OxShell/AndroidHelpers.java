@@ -20,6 +20,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class AndroidHelpers {
+    public static final char[] ILLEGAL_FAT_CHARS = new char[] { '"', '*', '/', ':', '<', '>', '?', '\\', '|', 0x7F };
+    public static final char[] ILLEGAL_EXT_CHARS = new char[] { '\0', '/' };
+    public static final int UNKNOWN_FORMAT = 0;
+    public static final int FAT_FORMAT = 1;
+    public static final int EXT_FORMAT = 2;
+
     public static final int READ_EXTERNAL_STORAGE = 100;
     public static final int WRITE_EXTERNAL_STORAGE = 101;
     public static final int MANAGE_EXTERNAL_STORAGE = 102;
@@ -104,7 +110,7 @@ public class AndroidHelpers {
         String absPath = file.getAbsolutePath();
         if (AndroidHelpers.hasExtension(absPath)) {
             String extension = AndroidHelpers.getExtension(absPath);
-            IntentLaunchData fileLaunchIntent = PackagesCache.getLaunchDataForExtension(extension);
+            IntentLaunchData fileLaunchIntent = ShortcutsCache.getLaunchDataForExtension(extension);
 
             if (fileLaunchIntent != null) {
                 String nameWithExt = file.getName();
@@ -170,6 +176,29 @@ public class AndroidHelpers {
         } catch (IOException ex) {
             Log.e("HomeManager", ex.getMessage());
         }
+    }
+    public static boolean isNameFSLegal(String fileName, int filesystem) {
+        switch (filesystem) {
+            case FAT_FORMAT:
+                for (char illegalChar : ILLEGAL_FAT_CHARS)
+                    if (fileName.indexOf(illegalChar) >= 0)
+                        return false;
+                break;
+            case EXT_FORMAT:
+                for (char illegalChar : ILLEGAL_EXT_CHARS)
+                    if (fileName.indexOf(illegalChar) >= 0)
+                        return false;
+                break;
+            default:
+                for (char illegalChar : ILLEGAL_FAT_CHARS)
+                    if (fileName.indexOf(illegalChar) >= 0)
+                        return false;
+                for (char illegalChar : ILLEGAL_EXT_CHARS)
+                    if (fileName.indexOf(illegalChar) >= 0)
+                        return false;
+                break;
+        }
+        return true;
     }
     public static boolean dirExists(String dirName) {
         return (new File(dirName)).isDirectory();

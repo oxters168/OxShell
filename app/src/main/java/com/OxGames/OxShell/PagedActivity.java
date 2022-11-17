@@ -49,6 +49,12 @@ public class PagedActivity extends AppCompatActivity {
         ActivityManager.init();
         ActivityManager.instanceCreated(this);
 
+        SettingsKeeper.loadOrCreateSettings();
+        if (SettingsKeeper.fileDidNotExist())
+            ShortcutsCache.createAndStoreDefaults();
+        else
+            ShortcutsCache.readIntentsFromDisk();
+
         //HideActionBar();
 
 //        InitViewsTable();

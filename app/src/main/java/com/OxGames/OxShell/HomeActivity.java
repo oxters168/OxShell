@@ -7,6 +7,8 @@ import android.util.Log;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import java.io.File;
+
 public class HomeActivity extends PagedActivity {
     public ActivityResultLauncher<String> getDir = registerForActivityResult(new ActivityResultContracts.GetContent(),
             uri -> {
@@ -33,7 +35,11 @@ public class HomeActivity extends PagedActivity {
         Log.d("HomeActivity", "cache-path " + getCacheDir());
         Log.d("HomeActivity", "external-cache-path " + getExternalCacheDir());
         Log.d("HomeActivity", "files-path " + getFilesDir());
-        Log.d("HomeActivity", "external-media-path " + getExternalMediaDirs());
+        File[] extMediaDirs = getExternalMediaDirs();
+        for (int i = 0; i < extMediaDirs.length; i++)
+            Log.d("HomeActivity", "external-media-path_" + i + ": " + extMediaDirs[i]);
+
+        Log.d("HomeActivity", ShellCommander.run("mount"));
     }
 
     @Override

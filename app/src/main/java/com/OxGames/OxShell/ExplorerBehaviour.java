@@ -14,6 +14,7 @@ public class ExplorerBehaviour {
     public ExplorerBehaviour() {
         history = new LinkedList<>();
 
+        //TODO: make default path be internal files and make internal and external directories quick access (probably with the use of getFilesDir() & getExternalMediaDirs())
         String startPath = Environment.getExternalStorageDirectory().toString();
         setDirectory(startPath);
     }

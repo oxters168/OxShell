@@ -129,7 +129,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     if (!files[i].isDirectory()) {
                         String extension = AndroidHelpers.getExtension(absolutePath);
                         if (extension != null) {
-                            String packageName = PackagesCache.getPackageNameForExtension(extension);
+                            String packageName = ShortcutsCache.getPackageNameForExtension(extension);
                             if (packageName != null)
                                 icon = PackagesCache.getPackageIcon(packageName);
                         }

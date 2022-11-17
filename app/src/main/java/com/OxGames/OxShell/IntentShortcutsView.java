@@ -68,7 +68,7 @@ public class IntentShortcutsView extends SlideTouchListView {
 
     @Override
     public void refresh() {
-        PackagesCache.loadIntents();
+        //PackagesCache.loadIntents();
 
         if (currentIntent != null) {
             String[] dirs = currentIntent.getDirsList();

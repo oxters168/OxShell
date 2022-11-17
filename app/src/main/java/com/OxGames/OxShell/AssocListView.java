@@ -67,7 +67,7 @@ public class AssocListView extends SlideTouchListView {
     }
     @Override
     public void refresh() {
-        IntentLaunchData[] intents = PackagesCache.getStoredIntents();
+        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
         ArrayList<DetailItem> intentItems = new ArrayList<>();
         for (int i = 0; i < intents.length; i++) {
             ResolveInfo rsv = PackagesCache.getResolveInfo(intents[i].getPackageName());
