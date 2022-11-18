@@ -12,6 +12,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Data.IntentPutExtra;
+import com.OxGames.OxShell.Data.ShortcutsCache;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -108,57 +112,57 @@ public class AndroidHelpers {
     }
     public static void tryRun(File file) {
         String absPath = file.getAbsolutePath();
-        if (AndroidHelpers.hasExtension(absPath)) {
+        if (!isDirectory(absPath)) {
             String extension = AndroidHelpers.getExtension(absPath);
-            IntentLaunchData fileLaunchIntent = ShortcutsCache.getLaunchDataForExtension(extension);
+            if (extension != null) {
+                IntentLaunchData fileLaunchIntent = ShortcutsCache.getLaunchDataForExtension(extension);
 
-            if (fileLaunchIntent != null) {
-                String nameWithExt = file.getName();
-                String nameWithoutExt = AndroidHelpers.removeExtension(nameWithExt);
+                if (fileLaunchIntent != null) {
+                    String nameWithExt = file.getName();
+                    String nameWithoutExt = AndroidHelpers.removeExtension(nameWithExt);
 
-                String[] extrasValues = null;
-                IntentPutExtra[] extras = fileLaunchIntent.getExtras();
-                if (extras != null && extras.length > 0) {
-                    extrasValues = new String[extras.length];
-                    for (int i = 0; i < extras.length; i++) {
-                        IntentPutExtra current = extras[i];
-                        if (current.getExtraType() == IntentLaunchData.DataType.AbsolutePath)
-                            extrasValues[i] = absPath;
-                        else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithExt)
-                            extrasValues[i] = nameWithExt;
-                        else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
-                            extrasValues[i] = nameWithoutExt;
+                    String[] extrasValues = null;
+                    IntentPutExtra[] extras = fileLaunchIntent.getExtras();
+                    if (extras != null && extras.length > 0) {
+                        extrasValues = new String[extras.length];
+                        for (int i = 0; i < extras.length; i++) {
+                            IntentPutExtra current = extras[i];
+                            if (current.getExtraType() == IntentLaunchData.DataType.AbsolutePath)
+                                extrasValues[i] = absPath;
+                            else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithExt)
+                                extrasValues[i] = nameWithExt;
+                            else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                                extrasValues[i] = nameWithoutExt;
 //                        else if (current.GetExtraType() == IntentLaunchData.DataType.Uri) {
 //                            String uri = Uri.parse(absPath).getScheme();
 //                            Log.d("Explorer", "Passing " + uri);
 //                            extrasValues[i] = uri;
 //                        }
+                        }
                     }
-                }
 
-                String data = null;
-                if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.AbsolutePath)
-                    data = absPath;
-                else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithExt)
-                    data = nameWithExt;
-                else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
-                    data = nameWithoutExt;
+                    String data = null;
+                    if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.AbsolutePath)
+                        data = absPath;
+                    else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithExt)
+                        data = nameWithExt;
+                    else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                        data = nameWithoutExt;
 //                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.Uri) {
 //                    String uri = Uri.parse(absPath).getScheme();
 //                    Log.d("Explorer", "Passing " + uri);
 //                    data = uri;
 //                }
 
-                fileLaunchIntent.launch(data, extrasValues);
-            }
-            else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
-                AndroidHelpers.install(absPath);
-            }
-            else
-                Log.e("Explorer", "No launch intent associated with extension " + extension);
-        }
-        else
-            Log.e("Explorer", "Missing extension, could not identify file");
+                    fileLaunchIntent.launch(data, extrasValues);
+                } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
+                    AndroidHelpers.install(absPath);
+                } else
+                    Log.e("Explorer", "No launch intent associated with extension " + extension);
+            } else
+                Log.e("Explorer", "Missing extension, could not identify file");
+        } else
+            Log.e("Explorer", "Cannot run a directory");
     }
 
     public static File[] listContents(String dirName) {
@@ -170,9 +174,9 @@ public class AndroidHelpers {
     }
     public static void makeFile(String fileName) {
         try {
-            File homeItemsFile = new File(fileName);
-            if (!homeItemsFile.exists())
-                homeItemsFile.createNewFile();
+            File file = new File(fileName);
+            if (!file.exists())
+                file.createNewFile();
         } catch (IOException ex) {
             Log.e("HomeManager", ex.getMessage());
         }
@@ -234,17 +238,23 @@ public class AndroidHelpers {
 
     public static String getExtension(String path) {
         String extension = null;
-        if (path.contains("."))
+        if (hasExtension(path))
             extension = path.substring(path.lastIndexOf(".") + 1);
         return extension;
     }
     public static boolean hasExtension(String path) {
-        return !(new File(path).isDirectory()) && path.lastIndexOf(".") > 0;
+        int dotIndex = path.lastIndexOf(".");
+        int spaceIndex = path.lastIndexOf(" ");
+        return dotIndex > 0 && spaceIndex < dotIndex;
+    }
+    public static boolean isDirectory(String path) {
+        return new File(path).isDirectory();
     }
     public static String removeExtension(String path) {
         String fileName = (new File(path)).getName();
-        while (hasExtension(fileName))
-            fileName = fileName.substring(0, fileName.lastIndexOf("."));
+        if (!isDirectory(path))
+            while (hasExtension(fileName))
+                fileName = fileName.substring(0, fileName.lastIndexOf("."));
         return fileName;
     }
 }

@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.OxGames.OxShell.Data.GridItem;
+
 import java.util.ArrayList;
 
 public class GridAdapter extends BaseAdapter {

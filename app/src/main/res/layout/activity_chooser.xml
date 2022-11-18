@@ -11,12 +11,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.OxGames.OxShell.ExplorerView
+    <com.OxGames.OxShell.Views.ExplorerView
         android:id="@+id/explorer_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="visible"></com.OxGames.OxShell.ExplorerView>
+        android:visibility="visible"></com.OxGames.OxShell.Views.ExplorerView>
 </FrameLayout>

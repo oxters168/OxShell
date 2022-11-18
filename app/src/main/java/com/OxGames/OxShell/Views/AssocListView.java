@@ -1,12 +1,23 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
+
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Data.HomeItem;
+import com.OxGames.OxShell.HomeManager;
+import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.R;
+import com.OxGames.OxShell.Data.ShortcutsCache;
 
 import java.util.ArrayList;
 
@@ -75,6 +86,7 @@ public class AssocListView extends SlideTouchListView {
                 intentItems.add(new DetailItem(PackagesCache.getPackageIcon(rsv), intents[i].getDisplayName(), "<" + PackagesCache.getAppLabel(rsv) + ">", intents[i]));
         }
         intentItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Create new", null, null));
+        Log.d("AssocListView", "Found " + intentItems.size() + " associations");
         DetailAdapter addAdapter = new DetailAdapter(getContext(), intentItems);
         setAdapter(addAdapter);
         super.refresh();

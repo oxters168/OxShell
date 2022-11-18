@@ -1,8 +1,11 @@
 package com.OxGames.OxShell;
 
 import android.content.pm.PackageManager;
-import android.os.Environment;
 import android.util.Log;
+
+import com.OxGames.OxShell.Data.GridItem;
+import com.OxGames.OxShell.Data.HomeItem;
+import com.OxGames.OxShell.Data.Paths;
 
 import java.util.ArrayList;
 
@@ -26,18 +29,15 @@ public class HomeManager {
                     requestingAccess = true;
                     //TODO: show pop up message explaining why storage access is being requested
                     AndroidHelpers.requestReadStoragePermission();
-                    ActivityManager.getCurrentActivity().addPermissionListener(new PermissionsListener() {
-                        @Override
-                        public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-                            if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
-                                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                                    Log.d("HomeManager", "Read permission granted, loading HomeItems from disk");
-                                    loadHomeItemsFromFile(Paths.STORAGE_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-                                    saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-                                } else {
-                                    Log.e("HomeManager", "Read storage permission denied");
-                                    initInternal();
-                                }
+                    ActivityManager.getCurrentActivity().addPermissionListener((requestCode, permissions, grantResults) -> {
+                        if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
+                            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                                Log.d("HomeManager", "Read permission granted, loading HomeItems from disk");
+                                loadHomeItemsFromFile(Paths.STORAGE_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                                saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                            } else {
+                                Log.e("HomeManager", "Read storage permission denied");
+                                initInternal();
                             }
                         }
                     });
@@ -93,10 +93,11 @@ public class HomeManager {
 
     private static void loadHomeItemsFromFile(String parentDir, String fileName) {
         homeItems = new ArrayList<>();
-        Object[] savedItems = (Object[])Serialaver.loadFile(AndroidHelpers.combinePaths(parentDir, fileName));
+        // Object[] savedItems = (Object[])Serialaver.loadFile(AndroidHelpers.combinePaths(parentDir, fileName));
+        HomeItem[] savedItems = Serialaver.loadFromJSON(AndroidHelpers.combinePaths(parentDir, fileName), HomeItem[].class);
         if (savedItems != null) {
-            for (Object savedItem : savedItems)
-                addItem((HomeItem) savedItem);
+            for (HomeItem savedItem : savedItems)
+                addItem(savedItem);
         } else
             Log.e("HomeManager", "Could not load home items, format unknown");
         refreshHomeItems();
@@ -105,7 +106,8 @@ public class HomeManager {
         AndroidHelpers.makeDir(parentDir);
         String fullPath = AndroidHelpers.combinePaths(parentDir, fileName);
         AndroidHelpers.makeFile(fullPath);
-        Serialaver.saveFile(homeItems.toArray(), fullPath);
+        // Serialaver.saveFile(homeItems.toArray(), fullPath);
+        Serialaver.saveAsJSON(homeItems.toArray(), fullPath);
     }
     private static void refreshHomeItems() {
         ((HomeActivity)ActivityManager.getInstance(HomeActivity.class)).refreshHome();

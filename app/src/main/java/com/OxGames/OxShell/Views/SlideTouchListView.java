@@ -1,22 +1,19 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.inputmethod.BaseInputConnection;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
+
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.CustomViewListener;
+import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.SlideTouchHandler;
+import com.OxGames.OxShell.SlideTouchListener;
 
 import java.util.ArrayList;
 

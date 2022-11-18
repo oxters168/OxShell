@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Data;
 
 import static androidx.core.content.ContextCompat.startActivity;
 
@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
-import com.google.gson.Gson;
+import com.OxGames.OxShell.ActivityManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -166,14 +166,6 @@ public class IntentLaunchData implements Serializable {
         return dataType;
     }
 
-    public String toJSON() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
-    }
-    public static IntentLaunchData fromJSON(String json) {
-        Gson gson = new Gson();
-        return gson.fromJson(json, IntentLaunchData.class);
-    }
     public boolean containsExtension(String extension) {
         return associatedExtensions.contains(extension.toLowerCase());
     }

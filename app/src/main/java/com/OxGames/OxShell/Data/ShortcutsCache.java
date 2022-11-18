@@ -1,8 +1,9 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Data;
 
 import android.content.Intent;
 
-import com.google.gson.Gson;
+import com.OxGames.OxShell.AndroidHelpers;
+import com.OxGames.OxShell.Serialaver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,10 +17,9 @@ public class ShortcutsCache {
     }
     public static void readIntentsFromDisk() {
         if (AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL)) {
-            Gson gson = new Gson();
             File[] intents = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
             for (File intent : intents) {
-                launchIntents.add(gson.fromJson(AndroidHelpers.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
+                launchIntents.add(Serialaver.loadFromJSON(intent.getAbsolutePath(), IntentLaunchData.class));
             }
         }
     }
@@ -69,11 +69,8 @@ public class ShortcutsCache {
         return defaults;
     }
     private static void saveIntentData(IntentLaunchData intentData, String dir) {
-        Gson gson = new Gson();
         String fileName = AndroidHelpers.combinePaths(dir, intentData.getDisplayName() + ".json");
-        if (!AndroidHelpers.fileExists(fileName))
-            AndroidHelpers.makeFile(fileName);
-        AndroidHelpers.writeToFile(fileName, gson.toJson(intentData));
+        Serialaver.saveAsJSON(intentData, fileName);
     }
 
     public static IntentLaunchData[] getStoredIntents() {

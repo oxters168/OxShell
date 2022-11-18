@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.OxGames.OxShell.SlideTouchListView
+    <com.OxGames.OxShell.Views.SlideTouchListView
         android:id="@+id/context_btns_list"
         android:layout_width="200px"
         android:layout_height="400px"
@@ -18,6 +18,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"></com.OxGames.OxShell.SlideTouchListView>
+        app:layout_constraintVertical_bias="0.0"></com.OxGames.OxShell.Views.SlideTouchListView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

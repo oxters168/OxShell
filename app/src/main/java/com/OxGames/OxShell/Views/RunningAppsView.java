@@ -1,9 +1,15 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
+
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.GridAdapter;
+import com.OxGames.OxShell.Data.GridItem;
+import com.OxGames.OxShell.Data.HomeItem;
+import com.OxGames.OxShell.Data.PackagesCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +32,7 @@ public class RunningAppsView extends SlideTouchGridView {
 //        ActivityManager.GetCurrentActivity().startActivity(startMain);
 
 //        android.app.ActivityManager.AppTask appTask = (android.app.ActivityManager.AppTask)((HomeItem)getItemAtPosition(properPosition)).obj;
-        android.app.ActivityManager am = (android.app.ActivityManager)ActivityManager.getCurrentActivity().getSystemService(Context.ACTIVITY_SERVICE);
+        android.app.ActivityManager am = (android.app.ActivityManager) ActivityManager.getCurrentActivity().getSystemService(Context.ACTIVITY_SERVICE);
 //        android.app.ActivityManager.RunningTaskInfo taskInfo = (android.app.ActivityManager.RunningTaskInfo)((GridItem)getItemAtPosition(properPosition)).obj;
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 //            Log.d("RunningApps", "Killing " + taskInfo.baseIntent.getPackage());

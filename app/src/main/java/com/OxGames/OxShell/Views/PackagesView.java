@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +7,14 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
+
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Data.HomeItem;
+import com.OxGames.OxShell.HomeManager;
+import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
 import java.util.List;

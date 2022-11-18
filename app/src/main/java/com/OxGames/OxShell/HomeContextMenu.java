@@ -13,9 +13,10 @@ import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
+import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Views.HomeView;
+import com.OxGames.OxShell.Views.SlideTouchListView;
+
 import java.util.concurrent.Callable;
 
 public class HomeContextMenu extends Dialog {

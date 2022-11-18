@@ -7,6 +7,9 @@ import android.util.Log;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.OxGames.OxShell.Views.HomeView;
+import com.OxGames.OxShell.Views.SelectDirsView;
+
 import java.io.File;
 
 public class HomeActivity extends PagedActivity {
@@ -40,7 +43,7 @@ public class HomeActivity extends PagedActivity {
         for (int i = 0; i < extMediaDirs.length; i++)
             Log.d("HomeActivity", "external-media-path_" + i + ": " + extMediaDirs[i]);
 
-        Log.d("HomeActivity", ShellCommander.run("mount"));
+        // Log.d("HomeActivity", ShellCommander.run("mount"));
     }
 
     @Override

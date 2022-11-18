@@ -1,16 +1,20 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Data;
 
 import android.graphics.drawable.Drawable;
 
 import androidx.core.content.ContextCompat;
+
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.DirsCarrier;
+import com.OxGames.OxShell.R;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class HomeItem extends GridItem implements Serializable, DirsCarrier {
     public enum Type { explorer, app, assoc, settings, }
-    Type type;
-    ArrayList<String> extraData;
+    public Type type;
+    public ArrayList<String> extraData;
 
     public HomeItem(Type _type) {
         super(null, null);

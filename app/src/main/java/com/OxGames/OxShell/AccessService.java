@@ -2,12 +2,12 @@ package com.OxGames.OxShell;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
+
+import com.OxGames.OxShell.Data.IntentLaunchData;
 
 public class AccessService extends AccessibilityService {
     private static AccessService instance;

@@ -1,5 +1,7 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Data;
 
+import com.OxGames.OxShell.AndroidHelpers;
+import com.OxGames.OxShell.Serialaver;
 import com.google.gson.Gson;
 
 import java.util.HashMap;
@@ -20,16 +22,13 @@ public class SettingsKeeper {
             fileDidExist = true;
     }
     public static void load() {
-        if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH)) {
-            Gson gson = new Gson();
-            settingsCache = gson.fromJson(AndroidHelpers.readFile(Paths.SETTINGS_INTERNAL_PATH), HashMap.class);
-        }
+        if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))
+            settingsCache = Serialaver.loadFromJSON(Paths.SETTINGS_INTERNAL_PATH, HashMap.class);
     }
     public static void save() {
         if (!AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))
             AndroidHelpers.makeFile(Paths.SETTINGS_INTERNAL_PATH);
-        Gson gson = new Gson();
-        AndroidHelpers.writeToFile(Paths.SETTINGS_INTERNAL_PATH, gson.toJson(settingsCache));
+        Serialaver.saveAsJSON(settingsCache, Paths.SETTINGS_INTERNAL_PATH);
     }
     public static void setValueAndSave(String key, Object value) {
         setValue(key, value);

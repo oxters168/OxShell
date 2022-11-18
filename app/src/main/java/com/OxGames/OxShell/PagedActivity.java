@@ -1,10 +1,7 @@
 package com.OxGames.OxShell;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -15,6 +12,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Data.ShortcutsCache;
+import com.OxGames.OxShell.Views.SlideTouchGridView;
+import com.OxGames.OxShell.Views.SlideTouchListView;
 import com.appspell.shaderview.ShaderView;
 import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 

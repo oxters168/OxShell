@@ -1,17 +1,21 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Data.DetailItem;
+
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class SettingsView extends SlideTouchListView {
-    public enum ButtonType { homeSettings, bgSettings, assocSettings, explorerSettings, }
-    private Hashtable<ButtonType, String> buttons;
+    public enum ButtonType { homeSettings, explorerSettings, assocSettings, bgSettings, } //Order of enum sets order of buttons in settings
+    private HashMap<ButtonType, String> buttons;
 //    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.addToHome;
 //    private final String[] btnLabels = new String[] { "Add Explorer", "Add Application", "Add Association" };
 
@@ -58,7 +62,7 @@ public class SettingsView extends SlideTouchListView {
     }
 
     private void initButtons() {
-        buttons = new Hashtable<>();
+        buttons = new HashMap<>();
         buttons.put(ButtonType.homeSettings, "Home Settings");
         buttons.put(ButtonType.explorerSettings, "Explorer Settings");
         buttons.put(ButtonType.assocSettings, "Edit Associations");
@@ -67,11 +71,11 @@ public class SettingsView extends SlideTouchListView {
     @Override
     public void refresh() {
         initButtons();
-        ArrayList<DetailItem> addBtns = new ArrayList<>();
+        DetailItem[] addBtns = new DetailItem[buttons.size()];
         Set<Map.Entry<ButtonType, String>> entrySet = buttons.entrySet();
         for (Map.Entry<ButtonType, String> entry : entrySet)
-            addBtns.add(new DetailItem(null, entry.getValue(), null, entry.getKey()));
-        DetailAdapter addAdapter = new DetailAdapter(getContext(), addBtns);
+            addBtns[entry.getKey().ordinal()] = new DetailItem(null, entry.getValue(), null, entry.getKey());
+        DetailAdapter addAdapter = new DetailAdapter(getContext(), Arrays.asList(addBtns));
         setAdapter(addAdapter);
         super.refresh();
     }

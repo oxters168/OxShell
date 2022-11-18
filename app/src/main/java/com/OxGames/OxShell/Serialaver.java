@@ -2,6 +2,9 @@ package com.OxGames.OxShell;
 
 import android.util.Log;
 
+import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.google.gson.Gson;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,5 +42,19 @@ public class Serialaver {
             Log.e("Deserialize", ex.getMessage());
         }
         return obj;
+    }
+    public static void saveAsJSON(Object data, String absPath) {
+        Gson gson = new Gson();
+        if (!AndroidHelpers.fileExists(absPath))
+            AndroidHelpers.makeFile(absPath);
+        String json = gson.toJson(data);
+        //Log.d("Serialaver", "Saving json to " + absPath + ":\n" + json);
+        AndroidHelpers.writeToFile(absPath, json);
+    }
+    public static <T> T loadFromJSON(String absPath, Class<T> tClass) {
+        Gson gson = new Gson();
+        String json = AndroidHelpers.readFile(absPath);
+        //Log.d("Serialaver", "Read json from " + absPath + ":\n" + json);
+        return gson.fromJson(json, tClass);
     }
 }

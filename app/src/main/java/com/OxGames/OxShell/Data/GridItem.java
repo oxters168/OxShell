@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Data;
 
 import android.graphics.drawable.Drawable;
 import android.view.View;
@@ -6,10 +6,10 @@ import android.view.View;
 import java.io.Serializable;
 
 public class GridItem implements Serializable {
-    protected String title;
-    protected Object obj;
+    public String title;
+    public Object obj;
     //protected transient View view;
-    protected transient boolean isSelected;
+    public transient boolean isSelected;
     //protected transient boolean breaker;
 
     public GridItem(String _title, Object _obj) {

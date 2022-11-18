@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -8,6 +8,18 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.core.content.ContextCompat;
+
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.AndroidHelpers;
+import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.ExplorerBehaviour;
+import com.OxGames.OxShell.FileChooserActivity;
+import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.PermissionsListener;
+import com.OxGames.OxShell.R;
+import com.OxGames.OxShell.Data.ShortcutsCache;
+import com.OxGames.OxShell.SlideTouchHandler;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -1,18 +1,18 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.inputmethod.BaseInputConnection;
 import android.widget.GridView;
+
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.Data.GridItem;
+import com.OxGames.OxShell.SlideTouchHandler;
+import com.OxGames.OxShell.SlideTouchListener;
 
 public class SlideTouchGridView extends GridView implements SlideTouchListener {
     SlideTouchHandler slideTouch = new SlideTouchHandler();

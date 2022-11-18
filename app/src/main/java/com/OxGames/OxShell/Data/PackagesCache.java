@@ -1,16 +1,14 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Data;
 
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
-import com.google.gson.Gson;
+import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.PagedActivity;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -18,29 +16,6 @@ public class PackagesCache {
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
     private static Hashtable<String, ApplicationInfo> appInfos = new Hashtable<>();
     private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
-
-//    public static void loadIntents() {
-//        //If dir doesn't exist, create it and the default intents
-//        if (!AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_EXTERNAL)) {
-//            if (AndroidHelpers.hasWriteStoragePermission()) {
-//                AndroidHelpers.makeDir(Paths.SHORTCUTS_DIR_EXTERNAL);
-//                saveDefaultLaunchIntents(Paths.SHORTCUTS_DIR_EXTERNAL);
-//            }
-//        }
-//
-//        //If dir exists, load intents stored in it
-//        if (AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_EXTERNAL)) {
-//            if (AndroidHelpers.hasReadStoragePermission()) {
-//                launchIntents.clear(); //So we don't get duplicates
-//                Gson gson = new Gson();
-//                File[] intents = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_EXTERNAL);
-//                for (File intent : intents) {
-//                    launchIntents.add(gson.fromJson(AndroidHelpers.readFile(intent.getAbsolutePath()), IntentLaunchData.class));
-//                }
-//            }
-//        }
-//    }
-
 
     public static boolean isRunning(String packageName) {
         return isRunning(getPackageInfo(packageName));

@@ -49,12 +49,12 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "boolean", "GOLD", "true"
-            debuggable true //TODO: Remove when actually releasing
+            debuggable true //TODO: Remove when publishing
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable true //TODO: Remove when actually releasing
+            debuggable true //TODO: Remove when publishing
         }
     }
     compileOptions {

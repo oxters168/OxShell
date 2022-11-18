@@ -3,9 +3,6 @@ package com.OxGames.OxShell;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +11,14 @@ import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.OxGames.OxShell.Data.DetailItem;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class DetailAdapter implements ListAdapter {
     Context context;
-    ArrayList<DetailItem> detailItems;
+    List<DetailItem> detailItems;
     private int highlightedIndex = -1;
 //    boolean hideExtensions;
 
@@ -26,7 +26,7 @@ public class DetailAdapter implements ListAdapter {
         context = _context;
         detailItems = new ArrayList<>();
     }
-    public DetailAdapter(Context _context, ArrayList<DetailItem> _detailItems) {
+    public DetailAdapter(Context _context, List<DetailItem> _detailItems) {
         context = _context;
         detailItems = _detailItems;
 //        hideExtensions = _hideExtensions;
