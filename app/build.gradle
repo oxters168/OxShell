@@ -39,22 +39,21 @@ android {
         buildConfigField "boolean", "GOLD", "false"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        if (keystoreProperties != null)
+            signingConfig signingConfigs.release
     }
 
     buildTypes {
         gold {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (keystoreProperties != null)
-                signingConfig signingConfigs.release
             buildConfigField "boolean", "GOLD", "true"
             debuggable true //TODO: Remove when actually releasing
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            if (keystoreProperties != null)
-                signingConfig signingConfigs.release
             debuggable true //TODO: Remove when actually releasing
         }
     }
