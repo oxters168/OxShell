@@ -13,7 +13,7 @@ In its current state there is no apk or release available yet as I believe it is
 to try this launcher anyways please follow the build instructions.
 
 # Build for Yourself
-- Clone the project or download into a zip using the green code button above.
+- Clone the project or download the zip using the green code button above.
 - Open Android Studio and browse to the directory you cloned/downloaded to and select it.
 
 <details><summary>Creating a debug variant</summary>
