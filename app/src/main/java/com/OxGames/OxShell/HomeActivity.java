@@ -29,6 +29,7 @@ public class HomeActivity extends PagedActivity {
 
         HomeManager.init();
         goTo(ActivityManager.Page.home);
+        showAnnoyingDialog();
 
         Log.d("HomeActivity", "external-path " + Environment.getExternalStorageDirectory());
         Log.d("HomeActivity", "external-files-path " + getExternalFilesDir(null));
@@ -51,6 +52,15 @@ public class HomeActivity extends PagedActivity {
         allPages.put(ActivityManager.Page.assocList, findViewById(R.id.assoc_list_view));
         allPages.put(ActivityManager.Page.selectDirs, findViewById(R.id.selectdirs_view));
         allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
+    }
+
+    private void showAnnoyingDialog() {
+        //TODO: Add dialog for 'free' version to ask for support
+        if (!BuildConfig.GOLD) {
+            Log.d("HomeActivity", "Not running in gold");
+        } else {
+            Log.d("HomeActivity", "Running in gold");
+        }
     }
 
     public void refreshHome() {
