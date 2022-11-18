@@ -30,7 +30,7 @@ public class ShortcutsCache {
     private static void writeIntentsToDisk() {
         if (!AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL))
             AndroidHelpers.makeDir(Paths.SHORTCUTS_DIR_INTERNAL);
-        
+
         for (IntentLaunchData intent : launchIntents) {
             saveIntentData(intent, Paths.SHORTCUTS_DIR_INTERNAL);
             if (AndroidHelpers.hasWriteStoragePermission())

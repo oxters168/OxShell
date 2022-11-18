@@ -26,9 +26,9 @@ public class SettingsKeeper {
         }
     }
     public static void save() {
-        Gson gson = new Gson();
         if (!AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))
             AndroidHelpers.makeFile(Paths.SETTINGS_INTERNAL_PATH);
+        Gson gson = new Gson();
         AndroidHelpers.writeToFile(Paths.SETTINGS_INTERNAL_PATH, gson.toJson(settingsCache));
     }
     public static void setValueAndSave(String key, Object value) {
