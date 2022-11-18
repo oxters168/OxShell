@@ -16,6 +16,7 @@ public class ShortcutsCache {
         launchIntents.clear();
     }
     public static void readIntentsFromDisk() {
+        launchIntents = new ArrayList<>();
         if (AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL)) {
             File[] intents = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
             for (File intent : intents) {
