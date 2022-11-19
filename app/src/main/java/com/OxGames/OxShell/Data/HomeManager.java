@@ -1,11 +1,12 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Data;
 
 import android.content.pm.PackageManager;
 import android.util.Log;
 
-import com.OxGames.OxShell.Data.GridItem;
-import com.OxGames.OxShell.Data.HomeItem;
-import com.OxGames.OxShell.Data.Paths;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.HomeActivity;
+import com.OxGames.OxShell.Helpers.Serialaver;
 
 import java.util.ArrayList;
 

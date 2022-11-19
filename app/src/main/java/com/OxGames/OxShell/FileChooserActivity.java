@@ -6,6 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+
 import java.io.File;
 import java.util.Hashtable;
 

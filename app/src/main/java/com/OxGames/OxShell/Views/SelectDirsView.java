@@ -6,11 +6,11 @@ import android.view.KeyEvent;
 
 import androidx.core.content.ContextCompat;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
-import com.OxGames.OxShell.DirsCarrier;
-import com.OxGames.OxShell.DirsViewListener;
+import com.OxGames.OxShell.Interfaces.DirsCarrier;
+import com.OxGames.OxShell.Interfaces.DirsViewListener;
 import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.R;
 

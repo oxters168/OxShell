@@ -2,8 +2,8 @@ package com.OxGames.OxShell.Data;
 
 import android.os.Environment;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
 public class Paths {
     public static final String STORAGE_DIR_EXTERNAL = Environment.getExternalStorageDirectory() + "/OxShell";

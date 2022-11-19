@@ -14,6 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Views.SlideTouchGridView;
 import com.OxGames.OxShell.Views.SlideTouchListView;
 import com.appspell.shaderview.ShaderView;

@@ -5,8 +5,8 @@ import android.content.pm.ApplicationInfo;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.GridAdapter;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Adapters.GridAdapter;
 import com.OxGames.OxShell.Data.GridItem;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.PackagesCache;

@@ -11,6 +11,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.OxGames.OxShell.Helpers.ActivityManager;
+
 import java.io.FileNotFoundException;
 
 public class CustomFileProvider extends DocumentsProvider {

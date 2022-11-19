@@ -4,8 +4,8 @@ import android.graphics.drawable.Drawable;
 
 import androidx.core.content.ContextCompat;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.DirsCarrier;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Interfaces.DirsCarrier;
 import com.OxGames.OxShell.R;
 
 import java.io.Serializable;

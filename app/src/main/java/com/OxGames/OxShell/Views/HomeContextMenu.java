@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Views;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -14,8 +14,8 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 
 import com.OxGames.OxShell.Data.DetailItem;
-import com.OxGames.OxShell.Views.HomeView;
-import com.OxGames.OxShell.Views.SlideTouchListView;
+import com.OxGames.OxShell.Adapters.DetailAdapter;
+import com.OxGames.OxShell.R;
 
 import java.util.concurrent.Callable;
 

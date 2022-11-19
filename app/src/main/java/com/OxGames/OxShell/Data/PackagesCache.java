@@ -6,7 +6,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
-import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.Hashtable;

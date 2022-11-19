@@ -2,6 +2,8 @@ package com.OxGames.OxShell;
 
 import android.os.Bundle;
 
+import com.OxGames.OxShell.Helpers.ActivityManager;
+
 import java.util.Hashtable;
 
 public class ExplorerActivity extends PagedActivity {

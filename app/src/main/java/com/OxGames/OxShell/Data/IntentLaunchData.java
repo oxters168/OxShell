@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 
-import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.Helpers.ActivityManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;

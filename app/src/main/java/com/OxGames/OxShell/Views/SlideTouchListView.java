@@ -9,11 +9,11 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.ListView;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.CustomViewListener;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Interfaces.CustomViewListener;
 import com.OxGames.OxShell.Data.DetailItem;
-import com.OxGames.OxShell.SlideTouchHandler;
-import com.OxGames.OxShell.SlideTouchListener;
+import com.OxGames.OxShell.Helpers.SlideTouchHandler;
+import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
 import java.util.ArrayList;
 

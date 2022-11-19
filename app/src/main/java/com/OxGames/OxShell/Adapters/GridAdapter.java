@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Adapters;
 
 import android.database.DataSetObserver;
 import android.graphics.Color;
@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.OxGames.OxShell.Data.GridItem;
+import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
 

@@ -9,10 +9,10 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.GridView;
 
-import com.OxGames.OxShell.ActivityManager;
+import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.GridItem;
-import com.OxGames.OxShell.SlideTouchHandler;
-import com.OxGames.OxShell.SlideTouchListener;
+import com.OxGames.OxShell.Helpers.SlideTouchHandler;
+import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
 public class SlideTouchGridView extends GridView implements SlideTouchListener {
     SlideTouchHandler slideTouch = new SlideTouchHandler();

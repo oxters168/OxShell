@@ -9,17 +9,17 @@ import android.view.KeyEvent;
 
 import androidx.core.content.ContextCompat;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.AndroidHelpers;
-import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
-import com.OxGames.OxShell.ExplorerBehaviour;
+import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
-import com.OxGames.OxShell.PermissionsListener;
+import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
-import com.OxGames.OxShell.SlideTouchHandler;
+import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 
 import java.io.File;
 import java.util.ArrayList;

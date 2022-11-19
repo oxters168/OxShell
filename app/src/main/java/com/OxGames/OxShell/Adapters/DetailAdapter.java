@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
 import android.database.DataSetObserver;
@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
 import java.util.List;

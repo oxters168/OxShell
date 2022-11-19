@@ -2,8 +2,8 @@ package com.OxGames.OxShell.Data;
 
 import android.content.Intent;
 
-import com.OxGames.OxShell.AndroidHelpers;
-import com.OxGames.OxShell.Serialaver;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.Serialaver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,8 +16,8 @@ public class ShortcutsCache {
         launchIntents.clear();
     }
     public static void readIntentsFromDisk() {
-        launchIntents = new ArrayList<>();
         if (AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL)) {
+            launchIntents = new ArrayList<>();
             File[] intents = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
             for (File intent : intents) {
                 launchIntents.add(Serialaver.loadFromJSON(intent.getAbsolutePath(), IntentLaunchData.class));

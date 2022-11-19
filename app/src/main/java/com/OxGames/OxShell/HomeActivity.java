@@ -7,6 +7,8 @@ import android.util.Log;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.OxGames.OxShell.Data.HomeManager;
+import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.SelectDirsView;
 

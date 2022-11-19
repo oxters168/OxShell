@@ -8,11 +8,11 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Data.HomeItem;
-import com.OxGames.OxShell.HomeManager;
+import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.PagedActivity;
 

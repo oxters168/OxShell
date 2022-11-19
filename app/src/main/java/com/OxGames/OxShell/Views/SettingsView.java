@@ -4,8 +4,8 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
 
 import java.util.Arrays;

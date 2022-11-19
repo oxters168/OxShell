@@ -1,8 +1,7 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Helpers;
 
 import android.util.Log;
 
-import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.google.gson.Gson;
 
 import java.io.FileInputStream;

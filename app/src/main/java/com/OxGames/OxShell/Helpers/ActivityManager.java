@@ -1,6 +1,11 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Helpers;
 
 import android.content.Intent;
+
+import com.OxGames.OxShell.ExplorerActivity;
+import com.OxGames.OxShell.FileChooserActivity;
+import com.OxGames.OxShell.HomeActivity;
+import com.OxGames.OxShell.PagedActivity;
 
 import java.util.Arrays;
 import java.util.Hashtable;

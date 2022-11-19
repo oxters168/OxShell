@@ -5,11 +5,11 @@ import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Data.HomeItem;
-import com.OxGames.OxShell.HomeManager;
+import com.OxGames.OxShell.Data.HomeManager;
 
 import java.util.ArrayList;
 import java.util.Hashtable;

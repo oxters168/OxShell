@@ -5,11 +5,11 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import com.OxGames.OxShell.ActivityManager;
-import com.OxGames.OxShell.AndroidHelpers;
-import com.OxGames.OxShell.DetailAdapter;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
-import com.OxGames.OxShell.ExplorerBehaviour;
+import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 

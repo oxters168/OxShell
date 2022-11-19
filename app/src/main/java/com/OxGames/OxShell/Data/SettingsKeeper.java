@@ -1,8 +1,7 @@
 package com.OxGames.OxShell.Data;
 
-import com.OxGames.OxShell.AndroidHelpers;
-import com.OxGames.OxShell.Serialaver;
-import com.google.gson.Gson;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.Serialaver;
 
 import java.util.HashMap;
 

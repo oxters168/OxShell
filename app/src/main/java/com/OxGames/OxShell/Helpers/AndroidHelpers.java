@@ -1,4 +1,4 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
 import android.content.Context;
@@ -12,6 +12,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.ShortcutsCache;

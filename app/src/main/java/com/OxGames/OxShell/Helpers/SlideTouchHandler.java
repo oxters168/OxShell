@@ -1,8 +1,11 @@
-package com.OxGames.OxShell;
+package com.OxGames.OxShell.Helpers;
 
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
+
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
 import java.util.ArrayList;
 
