@@ -4,7 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Adapters.GridAdapter;
@@ -36,7 +39,10 @@ public class HomeView extends SlideTouchGridView {
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                showCustomContextMenu();
+                HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+                Log.d("HomeView", "Opening context menu for " + selectedItem.title + " with position (" + selectedItem.dim.left + ", " + selectedItem.dim.top + ")");
+
+                showCustomContextMenu(selectedItem.dim.left, selectedItem.dim.top);
                 return true;
             }
         }
@@ -84,11 +90,15 @@ public class HomeView extends SlideTouchGridView {
         super.refresh();
     }
 
-    private void showCustomContextMenu() {
+    private void showCustomContextMenu(int x, int y) {
         overlay = new HomeContextMenu(ActivityManager.getCurrentActivity());
         overlay.setCancelable(true);
         overlay.currentHomeView = this;
         //Add buttons specific for the selected item and handle button events here
         overlay.show();
+        WindowManager.LayoutParams params = overlay.getWindow().getAttributes();
+        params.x = x;
+        params.y = y;
+        overlay.getWindow().setAttributes(params);
     }
 }

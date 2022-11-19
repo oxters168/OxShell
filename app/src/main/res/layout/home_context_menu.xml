@@ -8,7 +8,7 @@
     <com.OxGames.OxShell.Views.SlideTouchListView
         android:id="@+id/context_btns_list"
         android:layout_width="200px"
-        android:layout_height="400px"
+        android:layout_height="wrap_content"
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"

@@ -6,7 +6,7 @@
     <color name="scheme4">#574B60</color>
     <color name="scheme5">#3F334D</color>
 
-    <color name="text">#FF000000</color>
+    <color name="text">#FFFFFFFF</color>
 
     <color name="highlight">#33EAF0CE</color>
     <color name="transparent">#00000000</color>

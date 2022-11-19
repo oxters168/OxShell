@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -30,7 +31,12 @@ public class HomeContextMenu extends Dialog {
         hideSystemUI();
         refresh();
 
-        setBackgroundColor(Color.parseColor("#00000000"));
+        getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.gravity = Gravity.TOP & Gravity.LEFT;
+        // params.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        getWindow().setAttributes(params);
+        setBackgroundColor(Color.parseColor("#88000000"));
     }
 
     @Override

@@ -11,20 +11,22 @@
         android:layout_width="32px"
         android:layout_height="32px"
         android:layout_alignParentLeft="true" />
+
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="40px"
-        android:textSize="24px"
-        android:textColor="@android:color/black" />
+        android:textColor="@color/text"
+        android:textSize="24px" />
+
     <TextView
         android:id="@+id/isDir"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:text="&lt;dir&gt;"
-        android:textSize="24px"
-        android:textColor="@android:color/black" />
+        android:textColor="@color/text"
+        android:textSize="24px" />
 
 </RelativeLayout>

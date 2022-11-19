@@ -2,6 +2,7 @@ package com.OxGames.OxShell.Adapters;
 
 import android.database.DataSetObserver;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 import android.content.Context;
@@ -42,6 +43,13 @@ public class GridAdapter extends BaseAdapter {
 
         ImageView typeSuperIcon = view.findViewById(R.id.typeSuperIcon);
         typeSuperIcon.setImageDrawable(homeItem.getSuperIcon());
+
+        int[] loc = new int[2];
+        //view.getLocationInWindow(loc);
+        view.getLocationOnScreen(loc);
+        int width = view.getWidth();
+        int height = view.getHeight();
+        homeItem.dim = new Rect(loc[0], loc[1], loc[0] + width, loc[1] + height);
 
         return view;
     }
