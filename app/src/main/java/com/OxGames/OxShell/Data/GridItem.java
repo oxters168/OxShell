@@ -9,10 +9,10 @@ import java.io.Serializable;
 public class GridItem implements Serializable {
     public String title;
     public Object obj;
-    //protected transient View view;
+    public transient View view;
     public transient boolean isSelected;
     //protected transient boolean breaker;
-    public transient Rect dim;
+    //public transient Rect dim;
 
     public GridItem(String _title, Object _obj) {
         title = _title;

@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.OxGames.OxShell.Data.GridItem;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
@@ -44,12 +45,14 @@ public class GridAdapter extends BaseAdapter {
         ImageView typeSuperIcon = view.findViewById(R.id.typeSuperIcon);
         typeSuperIcon.setImageDrawable(homeItem.getSuperIcon());
 
-        int[] loc = new int[2];
+        //int[] loc = new int[2];
         //view.getLocationInWindow(loc);
-        view.getLocationOnScreen(loc);
-        int width = view.getWidth();
-        int height = view.getHeight();
-        homeItem.dim = new Rect(loc[0], loc[1], loc[0] + width, loc[1] + height);
+        //view.getLocationOnScreen(loc);
+//        int x = AndroidHelpers.getRelativeLeft(view);
+//        int y = AndroidHelpers.getRelativeTop(view);
+//        int width = view.getWidth();
+//        int height = view.getHeight();
+//        homeItem.dim = new Rect(x, y, x + width, y + height);
 
         return view;
     }

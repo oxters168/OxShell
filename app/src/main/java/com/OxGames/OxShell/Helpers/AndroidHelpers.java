@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -47,6 +48,19 @@ public class AndroidHelpers {
         } else {
             RECENT_ACTIVITY = "com.android.internal.policy.impl.RecentApplicationDialog";
         }
+    }
+
+    public static int getRelativeLeft(View view) {
+        if (view.getParent() == view.getRootView())
+            return view.getLeft();
+        else
+            return view.getLeft() + getRelativeLeft((View) view.getParent());
+    }
+    public static int getRelativeTop(View view) {
+        if (view.getParent() == view.getRootView())
+            return view.getTop();
+        else
+            return view.getTop() + getRelativeTop((View) view.getParent());
     }
 
     public static String combinePaths(String first, String second) {

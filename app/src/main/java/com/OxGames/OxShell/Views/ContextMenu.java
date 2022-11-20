@@ -20,12 +20,11 @@ import com.OxGames.OxShell.R;
 
 import java.util.concurrent.Callable;
 
-public class HomeContextMenu extends Dialog {
-    public HomeView currentHomeView; //Should change to an interface and implement the interfaces wherever context menus are needed (HomeView, ExplorerView, PackagesView...)
+public class ContextMenu extends Dialog {
     private SlideTouchListView contextListView;
     private DetailAdapter listAdapter;
 
-    public HomeContextMenu(@NonNull Context context) {
+    public ContextMenu(@NonNull Context context) {
         super(context, android.R.style.ThemeOverlay);
         setContentView(R.layout.home_context_menu);
         hideSystemUI();
@@ -33,7 +32,7 @@ public class HomeContextMenu extends Dialog {
 
         getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
         WindowManager.LayoutParams params = getWindow().getAttributes();
-        params.gravity = Gravity.TOP & Gravity.LEFT;
+        params.gravity = Gravity.TOP | Gravity.LEFT;
         // params.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
         getWindow().setAttributes(params);
         setBackgroundColor(Color.parseColor("#88000000"));
@@ -66,12 +65,13 @@ public class HomeContextMenu extends Dialog {
         // Set the content to appear under the system bars so that the content
         // doesn't resize when the system bars hide and show.
         getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+            | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        );
     }
 
     public void addButton(String label, Callable btnEvent) {
@@ -79,11 +79,10 @@ public class HomeContextMenu extends Dialog {
         listAdapter.add(new DetailItem(null, label, null, null));
         contextListView.addListener(index -> {
             if (index == matchingIndex) {
-                //Do item action here
                 try {
                     btnEvent.call();
                 } catch (Exception ex) {
-
+                    Log.e("ContextMenu", ex.getMessage());
                 }
             }
         });
@@ -92,21 +91,5 @@ public class HomeContextMenu extends Dialog {
         contextListView = findViewById(R.id.context_btns_list);
         listAdapter = new DetailAdapter(getContext());
         contextListView.setAdapter(listAdapter);
-        //Button creation will be moved to where the context menus are being created
-        addButton("Move", () -> {
-            Log.d("DialogItemSelection", "Move");
-            return null;
-        });
-        addButton("Remove", () -> {
-            currentHomeView.deleteSelection();
-            dismiss();
-            return null;
-        });
-        addButton("Uninstall", () -> {
-            currentHomeView.uninstallSelection();
-            currentHomeView.deleteSelection(); //only if uninstall was successful
-            dismiss();
-            return null;
-        });
     }
 }

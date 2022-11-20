@@ -6,8 +6,8 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.GridView;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Adapters.GridAdapter;
@@ -15,11 +15,12 @@ import com.OxGames.OxShell.Data.GridItem;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
 import java.util.ArrayList;
 
 public class HomeView extends SlideTouchGridView {
-    private HomeContextMenu overlay;
+    private ContextMenu overlay;
 
     public HomeView(Context context) {
         super(context);
@@ -29,6 +30,7 @@ public class HomeView extends SlideTouchGridView {
     }
     public HomeView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+//        setLayoutParams(new GridView.LayoutParams(256, 256));
     }
 
     @Override
@@ -39,10 +41,19 @@ public class HomeView extends SlideTouchGridView {
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
-                Log.d("HomeView", "Opening context menu for " + selectedItem.title + " with position (" + selectedItem.dim.left + ", " + selectedItem.dim.top + ")");
+                //HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+                int columns = getNumColumns();
+                int col = properPosition % columns;
+                int row = properPosition / columns;
+                int x = getPaddingLeft() + (getColumnWidth() + getHorizontalSpacing()) * col;
+                int y = getPaddingTop() + (getColumnWidth() + getVerticalSpacing()) * row;
+                Log.d("HomeView", "Opening context menu at (" + x + ", " + y + ")");
 
-                showCustomContextMenu(selectedItem.dim.left, selectedItem.dim.top);
+                // int x = AndroidHelpers.getRelativeLeft(view);
+                // int y = AndroidHelpers.getRelativeTop(view);
+                // int width = view.getWidth();
+                // int height = view.getHeight();
+                showCustomContextMenu(x, y);
                 return true;
             }
         }
@@ -91,14 +102,33 @@ public class HomeView extends SlideTouchGridView {
     }
 
     private void showCustomContextMenu(int x, int y) {
-        overlay = new HomeContextMenu(ActivityManager.getCurrentActivity());
+        overlay = new ContextMenu(ActivityManager.getCurrentActivity());
         overlay.setCancelable(true);
-        overlay.currentHomeView = this;
-        //Add buttons specific for the selected item and handle button events here
-        overlay.show();
+        overlay.addButton("Move", () -> {
+            Log.d("DialogItemSelection", "Move");
+            return null;
+        });
+        overlay.addButton("Remove", () -> {
+            deleteSelection();
+            overlay.dismiss();
+            return null;
+        });
+        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings)
+            overlay.addButton("Uninstall", () -> {
+                uninstallSelection();
+                deleteSelection(); //only if uninstall was successful
+                overlay.dismiss();
+                return null;
+            });
+        overlay.addButton("Cancel", () -> {
+            overlay.dismiss();
+            return null;
+        });
         WindowManager.LayoutParams params = overlay.getWindow().getAttributes();
         params.x = x;
         params.y = y;
         overlay.getWindow().setAttributes(params);
+        overlay.show();
     }
 }
