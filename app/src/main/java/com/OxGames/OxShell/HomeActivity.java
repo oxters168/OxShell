@@ -69,7 +69,8 @@ public class HomeActivity extends PagedActivity {
     }
 
     public void refreshHome() {
-        ((HomeView)allPages.get(ActivityManager.Page.home)).refresh();
+        //TODO: Redo refresh home view with new xmb
+        //((HomeView)allPages.get(ActivityManager.Page.home)).refresh();
     }
 
 //    public void getOverlayPermissionBtn(View view) {

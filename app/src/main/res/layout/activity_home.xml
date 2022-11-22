@@ -19,8 +19,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.OxGames.OxShell.Views.HomeView
+    <com.OxGames.OxShell.Views.XMBView
         android:id="@+id/home_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </com.OxGames.OxShell.Views.XMBView>
+
+    <com.OxGames.OxShell.Views.HomeView
+        android:id="@+id/home_view_old"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:columnWidth="256px"
@@ -28,7 +35,8 @@
         android:listSelector="#00000000"
         android:numColumns="auto_fit"
         android:padding="16px"
-        android:verticalSpacing="16px">
+        android:verticalSpacing="16px"
+        android:visibility="gone">
 
     </com.OxGames.OxShell.Views.HomeView>
 
