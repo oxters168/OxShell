@@ -56,15 +56,15 @@ public class XMBView extends View {
         addItem(new XMBItem(null, "Item2"));
     }
 
-    private Rect textRect = new Rect();
-    private int iconSize = 196;
-    private float horSpacing = 64;
-    private float verSpacing = 0;
-    private float textSize = 48;
-    private int textCushion = 16;
-    private int padding = 64;
-    private float catShift = (iconSize + horSpacing) * 2;
-    private @ColorInt int textColor = 0xFFFFFFFF;
+    private Rect reusableRect = new Rect(); //A shared rect used internally for getting the size of stuff (mostly text)
+    private int iconSize = 196; //Size of each item's icon
+    private float horSpacing = 64; //How much space to add between items horizontally
+    private float verSpacing = 0; //How much space to add between items vertically
+    private float textSize = 48; //Size of the text
+    private int textCushion = 16; //Distance between item and text
+    private int padding = 64; //Distance from the edge of the screen
+    private float catShift = (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
+    private @ColorInt int textColor = 0xFFFFFFFF; //The color of text
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -74,27 +74,16 @@ public class XMBView extends View {
         float vex = vsx / 2f; //view extents x
         float vey = vsy / 2f; //view extents y
 
-        float horShiftOffset = iconSize + horSpacing;
-        int horShiftOffsetInt = Math.round(horShiftOffset);
-        float verShiftOffset = iconSize + verSpacing;
-        int verShiftOffsetInt = Math.round(verShiftOffset);
+        int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
+        int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
 
         XMBCat currentCat = items.get(currentIndex).category;
-        float startX = padding + iconSize / 2f + catShift;
-        float startY = vey - iconSize / 2f;
-        int startXInt = Math.round(startX);
-        int startYInt = Math.round(startY);
-        int catIndex = currentCat != null ? categories.indexOf(currentCat) : categories.size() + (currentIndex - getItemCatsStartIndex());
-        drawCategories(canvas, startXInt - catIndex * horShiftOffsetInt, startYInt, horShiftOffsetInt);
+        int startX = Math.round(padding + iconSize / 2f + catShift); //Where the current item's column is along the x-axis
+        int startY = Math.round(vey - iconSize / 2f); //Where the current item's column is along the y-axis
+        int horIndex = currentCat != null ? categories.indexOf(currentCat) : categories.size() + (currentIndex - getItemCatsStartIndex()); //The index of how far we are along the columns row
+        drawCategories(canvas, startX - horIndex * horShiftOffset, startY, horShiftOffset);
         if (currentCat != null)
-            drawItems(canvas, currentIndex, startXInt, startYInt, verShiftOffsetInt);
-
-//        painter.setColor(0xFF00FF00);
-//        painter.setStrokeWidth(8);
-//        canvas.drawLine(0, vey, vex - 64, vey, painter);
-//        canvas.drawLine(vex * 2, vey, vex + 64, vey, painter);
-//        canvas.drawLine(vex, 0, vex, vey - 64, painter);
-//        canvas.drawLine(vex, vey * 2, vex, vey + 64, painter);
+            drawItems(canvas, currentIndex, startX, startY, verShiftOffset);
     }
     private int getItemCatsStartIndex() {
         int startIndex = items.size();
@@ -109,19 +98,13 @@ public class XMBView extends View {
     private void drawCategories(Canvas canvas, int startXInt, int startYInt, int horShiftOffsetInt) {
         for (int i = 0; i < categories.size(); i++) {
             XMBCat cat = categories.get(i);
-            drawCategory(canvas, painter, textRect, cat.icon, cat.title, startXInt + horShiftOffsetInt * i, startYInt, iconSize, textSize, textCushion, textColor);
+            drawCategory(canvas, painter, reusableRect, cat.icon, cat.title, startXInt + horShiftOffsetInt * i, startYInt, iconSize, textSize, textCushion, textColor);
         }
         int startIndex = getItemCatsStartIndex();
         int remStartXInt = startXInt + categories.size() * horShiftOffsetInt;
         for (int i = startIndex; i < items.size(); i++) {
             XMBItem item = items.get(i);
-            drawCategory(canvas, painter, textRect, item.icon, item.title, remStartXInt + horShiftOffsetInt * (i - startIndex), startYInt, iconSize, textSize, textCushion, textColor);
-        }
-    }
-    private void drawItemsAsCategories(Canvas canvas, int startIndex, int startXInt, int startYInt, int horShiftOffsetInt) {
-        for (int i = startIndex; i < items.size(); i++) {
-            XMBItem item = items.get(i);
-            drawCategory(canvas, painter, textRect, item.icon, item.title, startXInt + horShiftOffsetInt * (i - startIndex), startYInt, iconSize, textSize, textCushion, textColor);
+            drawCategory(canvas, painter, reusableRect, item.icon, item.title, remStartXInt + horShiftOffsetInt * (i - startIndex), startYInt, iconSize, textSize, textCushion, textColor);
         }
     }
     private void drawItems(Canvas canvas, int itemIndex, int startXInt, int startYInt, int verShiftOffsetInt) {
@@ -130,14 +113,14 @@ public class XMBView extends View {
             XMBItem item = items.get(i);
             if (item.category != currentCat)
                 break;
-            drawItem(canvas, painter, textRect, item.icon, item.title, startXInt, startYInt - verShiftOffsetInt * (((itemIndex - 1) - i) + 1), iconSize, textSize, textCushion, textColor);
+            drawItem(canvas, painter, reusableRect, item.icon, item.title, startXInt, startYInt - verShiftOffsetInt * (((itemIndex - 1) - i) + 1), iconSize, textSize, textCushion, textColor);
         }
-        painter.getTextBounds(currentCat.title, 0, currentCat.title.length(), textRect);
+        painter.getTextBounds(currentCat.title, 0, currentCat.title.length(), reusableRect);
         for (int i = itemIndex; i < items.size(); i++) {
             XMBItem item = items.get(i);
             if (item.category != currentCat)
                 break;
-            drawItem(canvas, painter, textRect, item.icon, item.title, startXInt, (startYInt + textRect.height()) + verShiftOffsetInt * ((i - itemIndex) + 1), iconSize, textSize, textCushion, textColor);
+            drawItem(canvas, painter, reusableRect, item.icon, item.title, startXInt, (startYInt + reusableRect.height()) + verShiftOffsetInt * ((i - itemIndex) + 1), iconSize, textSize, textCushion, textColor);
         }
     }
     private static void drawCategory(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
