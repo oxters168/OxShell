@@ -13,11 +13,12 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.CustomViewListener;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.SlideTouchHandler;
+import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
 import java.util.ArrayList;
 
-public class SlideTouchListView extends ListView implements SlideTouchListener {
+public class SlideTouchListView extends ListView implements SlideTouchListener, InputReceiver {
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
     private ArrayList<CustomViewListener> eventListeners = new ArrayList<>();
     int properPosition = 0;
@@ -87,6 +88,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener {
         eventListeners.add(listener);
     }
 
+    @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("SlideTouchListView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {

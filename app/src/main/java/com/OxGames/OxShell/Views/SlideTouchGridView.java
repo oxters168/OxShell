@@ -12,9 +12,10 @@ import android.widget.GridView;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.GridItem;
 import com.OxGames.OxShell.Helpers.SlideTouchHandler;
+import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
-public class SlideTouchGridView extends GridView implements SlideTouchListener {
+public class SlideTouchGridView extends GridView implements SlideTouchListener, InputReceiver {
     SlideTouchHandler slideTouch = new SlideTouchHandler();
     protected int properPosition = 0;
 
@@ -88,6 +89,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener {
         selectUpperItem();
     }
 
+    @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("SlideTouchGridView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {

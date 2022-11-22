@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Views.SlideTouchGridView;
 import com.OxGames.OxShell.Views.SlideTouchListView;
@@ -150,10 +151,8 @@ public class PagedActivity extends AppCompatActivity {
 //        }
 
         boolean childsPlay = false;
-        if (currentView instanceof SlideTouchListView)
-            childsPlay = ((SlideTouchListView)currentView).receiveKeyEvent(key_event);
-        else if (currentView instanceof SlideTouchGridView)
-            childsPlay = ((SlideTouchGridView)currentView).receiveKeyEvent(key_event);
+        if (currentView instanceof InputReceiver)
+            childsPlay = ((InputReceiver)currentView).receiveKeyEvent(key_event);
         if (childsPlay)
             return true;
         return super.dispatchKeyEvent(key_event);
@@ -279,6 +278,9 @@ public class PagedActivity extends AppCompatActivity {
     }
 
     protected void initViewsTable() {
+    }
+    public View getView(ActivityManager.Page page) {
+        return allPages.get(page);
     }
     public void goTo(ActivityManager.Page page) {
         if (currentPage != page) {

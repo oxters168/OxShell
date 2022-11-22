@@ -11,6 +11,7 @@ import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.SelectDirsView;
+import com.OxGames.OxShell.Views.XMBView;
 
 import java.io.File;
 
@@ -68,10 +69,10 @@ public class HomeActivity extends PagedActivity {
         }
     }
 
-    public void refreshHome() {
+    //public void refreshHome() {
         //TODO: Redo refresh home view with new xmb
-        //((HomeView)allPages.get(ActivityManager.Page.home)).refresh();
-    }
+        //((XMBView)allPages.get(ActivityManager.Page.home)).refresh();
+    //}
 
 //    public void getOverlayPermissionBtn(View view) {
 //        // Check if Android M or higher

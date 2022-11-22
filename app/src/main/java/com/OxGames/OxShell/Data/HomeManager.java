@@ -7,6 +7,7 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Helpers.Serialaver;
+import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
 
@@ -111,6 +112,7 @@ public class HomeManager {
         Serialaver.saveAsJSON(homeItems.toArray(), fullPath);
     }
     private static void refreshHomeItems() {
-        ((HomeActivity)ActivityManager.getInstance(HomeActivity.class)).refreshHome();
+        XMBView home = (XMBView)((HomeActivity)ActivityManager.getInstance(HomeActivity.class)).getView(ActivityManager.Page.home);
+
     }
 }

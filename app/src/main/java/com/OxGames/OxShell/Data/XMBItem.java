@@ -13,6 +13,9 @@ public class XMBItem {
     public Drawable icon;
     public XMBCat category;
 
+    public float currentX;
+    public float currentY;
+
     public XMBItem(Object _obj, String _title, Drawable _icon, XMBCat _category) {
         obj = _obj;
         title = _title;
