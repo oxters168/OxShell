@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 public class ExplorerView extends SlideTouchListView implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
-    private SlideTouchHandler slideTouch = new SlideTouchHandler();
+    //private SlideTouchHandler slideTouch = new SlideTouchHandler();
 //    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.explorer;
 
     public ExplorerView(Context context) {

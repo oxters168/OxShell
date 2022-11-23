@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.ColorInt;
@@ -15,12 +16,16 @@ import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.XMBCat;
 import com.OxGames.OxShell.Data.XMBItem;
+import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
+import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
 import java.util.ArrayList;
 
-public class XMBView extends View implements InputReceiver {
+public class XMBView extends View implements SlideTouchListener, InputReceiver {
     private Context context;
+    private SlideTouchHandler slideTouch = new SlideTouchHandler();
+
     private ArrayList<XMBCat> categories;
     private ArrayList<Integer> catIndices;
     private ArrayList<XMBItem> items;
@@ -39,6 +44,8 @@ public class XMBView extends View implements InputReceiver {
     public XMBView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.context = context;
+        slideTouch.addListener(this);
+
         painter = new Paint();
         categories = new ArrayList<>();
         catIndices = new ArrayList<>();
@@ -57,6 +64,12 @@ public class XMBView extends View implements InputReceiver {
         addItem(new XMBItem(null, "Item2"));
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        slideTouch.update(ev);
+        return true;
+    }
+
     private Rect reusableRect = new Rect(); //A shared rect used internally for getting the size of stuff (mostly text)
     private int iconSize = 196; //Size of each item's icon
     private float horSpacing = 64; //How much space to add between items horizontally
@@ -69,6 +82,8 @@ public class XMBView extends View implements InputReceiver {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
+        slideTouch.checkForEvents();
 
         if (items.size() > 0) { //If for whatever reason there are no items
             int vsx = getWidth(); //view size x
@@ -375,6 +390,31 @@ public class XMBView extends View implements InputReceiver {
     public void makeSelection() {
     }
     public void deleteSelection() {
+    }
+
+    @Override
+    public void onSwipeUp() {
+        selectUpperItem();
+    }
+    @Override
+    public void onSwipeDown() {
+        selectLowerItem();
+    }
+    @Override
+    public void onSwipeLeft() {
+        selectLeftItem();
+    }
+    @Override
+    public void onSwipeRight() {
+        selectRightItem();
+    }
+    @Override
+    public void onClick() {
+        makeSelection();
+    }
+    @Override
+    public void onRequestInvalidate() {
+        invalidate();
     }
 
     //public void refresh() {
