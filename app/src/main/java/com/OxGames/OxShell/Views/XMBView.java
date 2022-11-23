@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -81,8 +82,6 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         Log.d("XMBView", "Drawing view");
-
-        slideTouch.checkForEvents();
 
         if (items.size() > 0) { //If for whatever reason there are no items
             //int vsx = getWidth(); //view size x
@@ -463,9 +462,5 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
     @Override
     public void onClick() {
         makeSelection();
-    }
-    @Override
-    public void onRequestInvalidate() {
-        invalidate();
     }
 }

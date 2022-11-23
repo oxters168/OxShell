@@ -37,13 +37,6 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        //Log.d("SlideTouchListView", "Drawing");
-
-        slideTouch.checkForEvents();
-    }
-    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         int storedPos = properPosition;
@@ -58,10 +51,6 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
     public boolean onTouchEvent(MotionEvent ev) {
         slideTouch.update(ev);
         return true;
-    }
-    @Override
-    public void onRequestInvalidate() {
-        invalidate();
     }
     @Override
     public void onClick() {

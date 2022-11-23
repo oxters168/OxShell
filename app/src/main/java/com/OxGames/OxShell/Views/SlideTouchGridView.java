@@ -36,13 +36,6 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener, 
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-
-        slideTouch.checkForEvents();
-    }
-
-    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         int storedPos = properPosition;
@@ -64,10 +57,6 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener, 
 //        super.onMeasure(widthMeasureSpec, widthMeasureSpec); // This is the key that will make the height equivalent to its width
 //    }
 
-    @Override
-    public void onRequestInvalidate() {
-        invalidate();
-    }
     @Override
     public void onClick() {
         makeSelection();

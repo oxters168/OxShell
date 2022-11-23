@@ -6,5 +6,4 @@ public interface SlideTouchListener {
     void onSwipeLeft();
     void onSwipeRight();
     void onClick();
-    void onRequestInvalidate();
 }

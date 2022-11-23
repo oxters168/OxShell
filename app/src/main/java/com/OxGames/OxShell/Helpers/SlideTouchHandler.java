@@ -1,5 +1,6 @@
 package com.OxGames.OxShell.Helpers;
 
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
@@ -50,6 +51,17 @@ public class SlideTouchHandler {
         return data;
     }
 
+    //Source: https://stackoverflow.com/questions/35208372/ondrag-not-called-when-not-moving-finger
+    private Handler handler = new Handler();
+    private Runnable eventRunner = new Runnable() {
+        @Override
+        public void run() {
+            long millis = SystemClock.uptimeMillis();
+            checkForEvents();
+            handler.postAtTime(this, millis + 16);
+        }
+    };
+
     public void update(MotionEvent ev) {
         data.prevTouchX = data.currentTouchX;
         data.prevTouchY = data.currentTouchY;
@@ -79,8 +91,6 @@ public class SlideTouchHandler {
                 if (Math.abs(diffY) > maxYPixels * data.deadzone)
                     data.movedBeyondDeadZone = true;
 
-                for (SlideTouchListener stl : touchListeners)
-                    stl.onRequestInvalidate();
 //                Log.d("Touch", "Action_Move (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
             case MotionEvent.ACTION_DOWN:
@@ -90,9 +100,12 @@ public class SlideTouchHandler {
                 data.startY = data.currentTouchY;
                 data.movingStartTouchX = data.currentTouchX;
                 data.movingStartTouchY = data.currentTouchY;
+                handler.removeCallbacks(eventRunner);
+                handler.post(eventRunner);
 //                Log.d("Touch", "Action_Down (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
             case MotionEvent.ACTION_UP:
+                handler.removeCallbacks(eventRunner);
                 float offsetX = Math.abs(data.currentTouchX - data.startX);
                 float offsetY = Math.abs(data.currentTouchY - data.startY);
                 if (!(data.movedBeyondDeadZone || offsetX > data.deadzone * getMaxPixels() || offsetY > data.deadzone * getMaxPixels())) {
@@ -107,7 +120,7 @@ public class SlideTouchHandler {
                 break;
         }
     }
-    public void checkForEvents() {
+    private void checkForEvents() {
         if (data.moved) {
 //            Log.d("Touch", "x " + diffX + " / " + HomeActivity.displayMetrics.widthPixels + " = " + percentScrollX);
 //            Log.d("Touch", "y " + diffY + " / " + HomeActivity.displayMetrics.heightPixels + " = " + percentScrollY);
@@ -148,8 +161,6 @@ public class SlideTouchHandler {
                         stl.onSwipeUp();
                 }
             }
-            for (SlideTouchListener stl : touchListeners)
-                stl.onRequestInvalidate();
         }
     }
 
