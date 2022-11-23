@@ -11,23 +11,20 @@ import com.OxGames.OxShell.R;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class HomeItem extends GridItem implements Serializable, DirsCarrier {
+public class HomeItem extends XMBItem implements Serializable, DirsCarrier {
     public enum Type { explorer, app, assoc, settings, }
     public Type type;
     public ArrayList<String> extraData;
 
     public HomeItem(Type _type) {
-        super(null, null);
-        type = _type;
-        extraData = new ArrayList<>();
+        this(_type, null);
     }
     public HomeItem(Type _type, String _title) {
-        super(_title, null);
-        type = _type;
-        extraData = new ArrayList<>();
+        this(_type, _title, null);
     }
     public HomeItem(Type _type, String _title, Object _obj) {
-        super(_title, _obj);
+        super(_obj, _title);
+        //super(_title, _obj);
         type = _type;
         extraData = new ArrayList<>();
     }
@@ -44,13 +41,13 @@ public class HomeItem extends GridItem implements Serializable, DirsCarrier {
             icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
         return icon;
     }
-    @Override
-    public Drawable getSuperIcon() {
-        Drawable icon = null;
-        if (type == Type.assoc)
-            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_view_list_24);
-        return icon;
-    }
+//    @Override
+//    public Drawable getSuperIcon() {
+//        Drawable icon = null;
+//        if (type == Type.assoc)
+//            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_view_list_24);
+//        return icon;
+//    }
 
     public void clearDirsList() {
         extraData = new ArrayList<>();

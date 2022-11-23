@@ -96,23 +96,23 @@ public class RunningAppsView extends SlideTouchGridView {
         }
         return super.receiveKeyEvent(key_event);
     }
-    @Override
-    public void refresh() {
-//        android.app.ActivityManager am = (android.app.ActivityManager)ActivityManager.GetCurrentActivity().getSystemService(Context.ACTIVITY_SERVICE);
-//        List<android.app.ActivityManager.RunningTaskInfo> apps = am.getRunningTasks(1000);
-//        android.app.ActivityManager.RunningAppProcessInfo state = new android.app.ActivityManager.RunningAppProcessInfo();
-//        android.app.
-//        List<android.app.ActivityManager.AppTask> apps = am.getAppTasks();
-//        List<android.app.ActivityManager.RunningAppProcessInfo> runningAppProcessInfo = am.getRunningAppProcesses();
-        List<ApplicationInfo> apps = PackagesCache.getAllInstalledApplications();
-
-        ArrayList<GridItem> runningApps = new ArrayList<>();
-        for (int i = 0; i < apps.size(); i++) {
-            if (PackagesCache.isRunning(apps.get(i)) && !PackagesCache.isSystem(apps.get(i)))
-                runningApps.add(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(PackagesCache.getResolveInfo(apps.get(i).packageName)), apps.get(i).packageName));
-        }
-        GridAdapter customAdapter = new GridAdapter(getContext(), runningApps);
-        setAdapter(customAdapter);
-        super.refresh();
-    }
+//    @Override
+//    public void refresh() {
+////        android.app.ActivityManager am = (android.app.ActivityManager)ActivityManager.GetCurrentActivity().getSystemService(Context.ACTIVITY_SERVICE);
+////        List<android.app.ActivityManager.RunningTaskInfo> apps = am.getRunningTasks(1000);
+////        android.app.ActivityManager.RunningAppProcessInfo state = new android.app.ActivityManager.RunningAppProcessInfo();
+////        android.app.
+////        List<android.app.ActivityManager.AppTask> apps = am.getAppTasks();
+////        List<android.app.ActivityManager.RunningAppProcessInfo> runningAppProcessInfo = am.getRunningAppProcesses();
+//        List<ApplicationInfo> apps = PackagesCache.getAllInstalledApplications();
+//
+//        ArrayList<GridItem> runningApps = new ArrayList<>();
+//        for (int i = 0; i < apps.size(); i++) {
+//            if (PackagesCache.isRunning(apps.get(i)) && !PackagesCache.isSystem(apps.get(i)))
+//                runningApps.add(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(PackagesCache.getResolveInfo(apps.get(i).packageName)), apps.get(i).packageName));
+//        }
+//        GridAdapter customAdapter = new GridAdapter(getContext(), runningApps);
+//        setAdapter(customAdapter);
+//        super.refresh();
+//    }
 }

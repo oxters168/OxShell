@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,9 +22,10 @@ import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class XMBView extends View implements SlideTouchListener, InputReceiver {
-    private Context context;
+public class XMBView extends View implements InputReceiver, SlideTouchListener {
+    //private Context context;
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
 
     private ArrayList<XMBCat> categories;
@@ -43,7 +45,7 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
     }
     public XMBView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        this.context = context;
+        //this.context = context;
         slideTouch.addListener(this);
 
         painter = new Paint();
@@ -51,23 +53,19 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
         catIndices = new ArrayList<>();
         items = new ArrayList<>();
 
-        XMBCat cat1 = new XMBCat("Cat1");
-        XMBCat cat2 = new XMBCat("Cat2");
-        addItem(new XMBItem(null, "Item1", cat1));
-        addItem(new XMBItem(null, "Item2", cat1));
-        addItem(new XMBItem(null, "Item3", cat1));
-        addItem(new XMBItem(null, "Item1", cat2));
-        addItem(new XMBItem(null, "Item2", cat2));
-        addItem(new XMBItem(null, "Item3", cat2));
-        addItem(new XMBItem(null, "Item4", cat2));
-        addItem(new XMBItem(null, "Item1"));
-        addItem(new XMBItem(null, "Item2"));
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        slideTouch.update(ev);
-        return true;
+//        XMBCat cat1 = new XMBCat("Cat1");
+//        XMBCat cat2 = new XMBCat("Cat2");
+//        ArrayList<XMBItem> list = new ArrayList<>();
+//        list.add(new XMBItem(null, "Item1", cat1));
+//        list.add(new XMBItem(null, "Item2", cat1));
+//        list.add(new XMBItem(null, "Item3", cat1));
+//        list.add(new XMBItem(null, "Item1", cat2));
+//        list.add(new XMBItem(null, "Item2", cat2));
+//        list.add(new XMBItem(null, "Item3", cat2));
+//        list.add(new XMBItem(null, "Item4", cat2));
+//        list.add(new XMBItem(null, "Item1"));
+//        list.add(new XMBItem(null, "Item2"));
+//        addItems(list);
     }
 
     private Rect reusableRect = new Rect(); //A shared rect used internally for getting the size of stuff (mostly text)
@@ -82,13 +80,14 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        Log.d("XMBView", "Drawing view");
 
         slideTouch.checkForEvents();
 
         if (items.size() > 0) { //If for whatever reason there are no items
-            int vsx = getWidth(); //view size x
+            //int vsx = getWidth(); //view size x
+            //float vex = vsx / 2f; //view extents x
             int vsy = getHeight(); //view size y
-            float vex = vsx / 2f; //view extents x
             float vey = vsy / 2f; //view extents y
 
             int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
@@ -109,7 +108,7 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
             int expX = startXInt + horShiftOffsetInt * i;
             cat.currentX = ((expX - cat.currentX) * xmbTrans) + cat.currentX;
             cat.currentY = ((startYInt - cat.currentY) * xmbTrans) + cat.currentY;
-            drawCategory(canvas, painter, reusableRect, cat.icon, cat.title, Math.round(cat.currentX), Math.round(cat.currentY), iconSize, textSize, textCushion, textColor);
+            drawCategory(canvas, painter, reusableRect, cat.icon, cat.title, Math.round(cat.currentX), Math.round(cat.currentY), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
         }
         int startIndex = getItemCatsStartIndex();
         int remStartXInt = startXInt + categories.size() * horShiftOffsetInt;
@@ -118,7 +117,7 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
             int expX = remStartXInt + horShiftOffsetInt * (i - startIndex);
             item.currentX = ((expX - item.currentX) * xmbTrans) + item.currentX;
             item.currentY = ((startYInt - item.currentY) * xmbTrans) + item.currentY;
-            drawCategory(canvas, painter, reusableRect, item.icon, item.title, Math.round(item.currentX), Math.round(item.currentY), iconSize, textSize, textCushion, textColor);
+            drawCategory(canvas, painter, reusableRect, item.getIcon(), item.title, Math.round(item.currentX), Math.round(item.currentY), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
         }
     }
     private void drawItems(Canvas canvas, int itemIndex, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
@@ -137,30 +136,54 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
             item.currentX = ((expX - item.currentX) * xmbTrans) + item.currentX;
             item.currentY = ((expY - item.currentY) * xmbTrans) + item.currentY;
             if (item.category == origCat)
-                drawItem(canvas, painter, reusableRect, item.icon, item.title, Math.round(item.currentX), Math.round(item.currentY), iconSize, textSize, textCushion, textColor);
+                drawItem(canvas, painter, reusableRect, item.getIcon(), item.title, Math.round(item.currentX), Math.round(item.currentY), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
         }
     }
-    private static void drawCategory(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
+    private static void drawCategory(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor, int viewSizeX, int viewSizeY) {
         int halfIconSize = Math.round(iconSize / 2f);
-        icon.setBounds(x - halfIconSize, y - halfIconSize, x + halfIconSize, y + halfIconSize);
-        icon.setAlpha(255);
-        icon.draw(canvas);
-        painter.setColor(textColor);
-        painter.setTextSize(textSize);
-        painter.setTextAlign(Paint.Align.CENTER);
-        painter.getTextBounds(title, 0, title.length(), reusableRect);
-        canvas.drawText(title, x, y + cushion + halfIconSize + reusableRect.height() / 2f, painter);
+        int left = x - halfIconSize;
+        int top = y - halfIconSize;
+        int right = x + halfIconSize;
+        int bottom = y + halfIconSize;
+        boolean inBounds = left < viewSizeX || bottom > 0 || right > 0 || top < viewSizeY;
+        if (inBounds) {
+            icon.setBounds(left, top, right, bottom);
+            icon.setAlpha(255);
+            icon.draw(canvas);
+            Log.d("XMBView", "Drew category icon");
+        }
+        if (title != null) {
+            painter.setColor(textColor);
+            painter.setTextSize(textSize);
+            painter.setTextAlign(Paint.Align.CENTER);
+            painter.getTextBounds(title, 0, title.length(), reusableRect);
+            inBounds = reusableRect.left < viewSizeX || reusableRect.bottom > 0 || reusableRect.right > 0 || reusableRect.top < viewSizeY;
+            if (inBounds)
+                canvas.drawText(title, x, y + cushion + halfIconSize + reusableRect.height() / 2f, painter);
+        }
     }
-    private static void drawItem(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
+    private static void drawItem(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor, int viewSizeX, int viewSizeY) {
         int halfIconSize = Math.round(iconSize / 2f);
-        icon.setBounds(x - halfIconSize, y - halfIconSize, x + halfIconSize, y + halfIconSize);
-        icon.setAlpha(255);
-        icon.draw(canvas);
-        painter.setColor(textColor);
-        painter.setTextSize(textSize);
-        painter.setTextAlign(Paint.Align.LEFT);
-        painter.getTextBounds(title, 0, title.length(), reusableRect);
-        canvas.drawText(title, x + cushion + halfIconSize, y + reusableRect.height() / 2f, painter);
+        int left = x - halfIconSize;
+        int top = y - halfIconSize;
+        int right = x + halfIconSize;
+        int bottom = y + halfIconSize;
+        boolean inBounds = left < viewSizeX || bottom > 0 || right > 0 || top < viewSizeY;
+        if (inBounds) {
+            icon.setBounds(left, top, right, bottom);
+            icon.setAlpha(255);
+            icon.draw(canvas);
+            Log.d("XMBView", "Drew item icon");
+        }
+        if (title != null) {
+            painter.setColor(textColor);
+            painter.setTextSize(textSize);
+            painter.setTextAlign(Paint.Align.LEFT);
+            painter.getTextBounds(title, 0, title.length(), reusableRect);
+            inBounds = reusableRect.left < viewSizeX || reusableRect.bottom > 0 || reusableRect.right > 0 || reusableRect.top < viewSizeY;
+            if (inBounds)
+                canvas.drawText(title, x + cushion + halfIconSize, y + reusableRect.height() / 2f, painter);
+        }
     }
     private float xmbTrans = 1;
     ValueAnimator xmbimator = null;
@@ -187,7 +210,8 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
             if (items.get(i).category != null) {
                 startIndex = i + 1;
                 break;
-            }
+            } else
+                startIndex = i;
         }
         return startIndex;
     }
@@ -209,17 +233,25 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
     }
     public void setIndex(int index) {
         currentIndex = index;
-        XMBCat currentCat = getItemCat(currentIndex);
-        if (currentCat != null)
-            catIndices.set(categories.indexOf(currentCat), currentIndex - getCatStartIndex(currentCat)); //Cache current position in category
+        if (items.size() > 0) {
+            XMBCat currentCat = getItemCat(currentIndex);
+            if (currentCat != null)
+                catIndices.set(categories.indexOf(currentCat), currentIndex - getCatStartIndex(currentCat)); //Cache current position in category
+        }
 
         animateXMB();
         invalidate();
     }
+    public int getIndex() {
+        return currentIndex;
+    }
+    public XMBItem getSelectedItem() {
+        return items.get(getIndex());
+    }
     private int getCachedIndexOfCat(XMBCat cat) {
         return getCatStartIndex(cat) + catIndices.get(categories.indexOf(cat));
     }
-    public int addItem(XMBItem item) {
+    private int addItem(XMBItem item, boolean invalidate) {
         boolean hasCat = item.category != null;
         int itemIndex = items.size();
         if (hasCat) {
@@ -251,8 +283,20 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
             //Log.d("XMBView", item.title + " has no category so appending to end");
             items.add(item);
         }
-        invalidate();
+        if (invalidate)
+            invalidate();
         return itemIndex;
+    }
+    public int addItem(XMBItem item) {
+        return addItem(item, true);
+    }
+    public void addItems(XMBItem[] items) {
+        for (int i = 0; i < items.length; i++)
+            addItem(items[i], i == items.length - 1);
+    }
+    public void addItems(List items) {
+        for (int i = 0; i < items.size(); i++)
+            addItem((XMBItem)items.get(i), i == items.size() - 1);
     }
     public void removeItem(XMBItem item) {
         int itemIndex = items.indexOf(item);
@@ -391,7 +435,15 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
     }
     public void deleteSelection() {
     }
+    public void refresh() {
+        invalidate();
+    }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        slideTouch.update(ev);
+        return true;
+    }
     @Override
     public void onSwipeUp() {
         selectUpperItem();
@@ -416,8 +468,4 @@ public class XMBView extends View implements SlideTouchListener, InputReceiver {
     public void onRequestInvalidate() {
         invalidate();
     }
-
-    //public void refresh() {
-    //    invalidate();
-    //}
 }

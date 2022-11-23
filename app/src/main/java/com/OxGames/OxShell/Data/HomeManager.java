@@ -7,6 +7,7 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Helpers.Serialaver;
+import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
@@ -63,7 +64,7 @@ public class HomeManager {
         else
             saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
-    public static ArrayList<GridItem> getItems() {
+    public static ArrayList<XMBItem> getItems() {
         //Might be called before initialization
         return homeItems != null ? new ArrayList<>(homeItems) : null;
     }
@@ -73,9 +74,13 @@ public class HomeManager {
     private static void addExplorer() {
         addItem(new HomeItem(HomeItem.Type.explorer, "Explorer"));
     }
-    public static void addItem(HomeItem homeItem) {
+    private static void addItem(HomeItem homeItem, boolean refresh) {
         homeItems.add(homeItem);
-        refreshHomeItems();
+        if (refresh)
+            refreshHomeItems();
+    }
+    public static void addItem(HomeItem homeItem) {
+        addItem(homeItem, true);
     }
     public static void addItemAndSave(HomeItem homeItem) {
         Log.d("HomeManager", "Adding item and saving to disk");
@@ -99,7 +104,7 @@ public class HomeManager {
         HomeItem[] savedItems = Serialaver.loadFromJSON(AndroidHelpers.combinePaths(parentDir, fileName), HomeItem[].class);
         if (savedItems != null) {
             for (HomeItem savedItem : savedItems)
-                addItem(savedItem);
+                addItem(savedItem, false);
         } else
             Log.e("HomeManager", "Could not load home items, format unknown");
         refreshHomeItems();
@@ -112,7 +117,11 @@ public class HomeManager {
         Serialaver.saveAsJSON(homeItems.toArray(), fullPath);
     }
     private static void refreshHomeItems() {
-        XMBView home = (XMBView)((HomeActivity)ActivityManager.getInstance(HomeActivity.class)).getView(ActivityManager.Page.home);
-
+        ((XMBView)ActivityManager.getInstance(HomeActivity.class).getView(ActivityManager.Page.home)).refresh();
+//        XMBView home = (XMBView)ActivityManager.getInstance(HomeActivity.class).getView(ActivityManager.Page.home);
+//        int prevSelection = home.getIndex();
+//        home.clear();
+//        home.addItems(homeItems);
+//        home.setIndex(prevSelection);
     }
 }

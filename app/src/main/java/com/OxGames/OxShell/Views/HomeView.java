@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.widget.GridView;
 
+import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Adapters.GridAdapter;
 import com.OxGames.OxShell.Data.GridItem;
@@ -19,7 +20,7 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
 import java.util.ArrayList;
 
-public class HomeView extends SlideTouchGridView {
+public class HomeView extends XMBView {
     private ContextMenu overlay;
 
     public HomeView(Context context) {
@@ -42,18 +43,18 @@ public class HomeView extends SlideTouchGridView {
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
                 //HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
-                int columns = getNumColumns();
-                int col = properPosition % columns;
-                int row = properPosition / columns;
-                int x = getPaddingLeft() + (getColumnWidth() + getHorizontalSpacing()) * col;
-                int y = getPaddingTop() + (getColumnWidth() + getVerticalSpacing()) * row;
-                Log.d("HomeView", "Opening context menu at (" + x + ", " + y + ")");
+//                int columns = getNumColumns();
+//                int col = properPosition % columns;
+//                int row = properPosition / columns;
+//                int x = getPaddingLeft() + (getColumnWidth() + getHorizontalSpacing()) * col;
+//                int y = getPaddingTop() + (getColumnWidth() + getVerticalSpacing()) * row;
+//                Log.d("HomeView", "Opening context menu at (" + x + ", " + y + ")");
 
                 // int x = AndroidHelpers.getRelativeLeft(view);
                 // int y = AndroidHelpers.getRelativeTop(view);
                 // int width = view.getWidth();
                 // int height = view.getHeight();
-                showCustomContextMenu(x, y);
+                showCustomContextMenu(0, 0);
                 return true;
             }
         }
@@ -61,7 +62,7 @@ public class HomeView extends SlideTouchGridView {
     }
     @Override
     public void makeSelection() {
-        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        HomeItem selectedItem = (HomeItem)getSelectedItem();
         if (selectedItem.type == HomeItem.Type.explorer) {
             ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
@@ -77,11 +78,11 @@ public class HomeView extends SlideTouchGridView {
     }
     @Override
     public void deleteSelection() {
-        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        HomeItem selectedItem = (HomeItem)getSelectedItem();
         HomeManager.removeItem(selectedItem);
     }
     public void uninstallSelection() {
-        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        HomeItem selectedItem = (HomeItem)getSelectedItem();
         if (selectedItem.type == HomeItem.Type.app) {
             Intent intent = new Intent(Intent.ACTION_DELETE);
             intent.setData(Uri.parse("package:" + selectedItem.obj));
@@ -90,15 +91,16 @@ public class HomeView extends SlideTouchGridView {
     }
     @Override
     public void refresh() {
-        ArrayList<GridItem> homeItems = HomeManager.getItems();
+        Log.d("HomeView", "Refreshing home view");
+        ArrayList<XMBItem> homeItems = HomeManager.getItems();
         if (homeItems == null)
             homeItems = new ArrayList<>();
 
         homeItems.add(new HomeItem(HomeItem.Type.settings));
 
-        GridAdapter customAdapter = new GridAdapter(getContext(), homeItems);
-        setAdapter(customAdapter);
-        super.refresh();
+        clear();
+        addItems(homeItems);
+        //super.refresh();
     }
 
     private void showCustomContextMenu(int x, int y) {
@@ -113,7 +115,7 @@ public class HomeView extends SlideTouchGridView {
             overlay.dismiss();
             return null;
         });
-        HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
+        HomeItem selectedItem = (HomeItem)getSelectedItem();
         if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings)
             overlay.addButton("Uninstall", () -> {
                 uninstallSelection();

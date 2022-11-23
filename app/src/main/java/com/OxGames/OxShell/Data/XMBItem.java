@@ -10,11 +10,11 @@ import com.OxGames.OxShell.R;
 public class XMBItem {
     public Object obj;
     public String title;
-    public Drawable icon;
     public XMBCat category;
 
-    public float currentX;
-    public float currentY;
+    protected transient Drawable icon;
+    public transient float currentX;
+    public transient float currentY;
 
     public XMBItem(Object _obj, String _title, Drawable _icon, XMBCat _category) {
         obj = _obj;
@@ -30,5 +30,9 @@ public class XMBItem {
     }
     public XMBItem(Object _obj, String _title) {
         this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24));
+    }
+
+    public Drawable getIcon() {
+        return icon;
     }
 }

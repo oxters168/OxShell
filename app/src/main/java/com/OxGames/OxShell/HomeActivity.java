@@ -48,6 +48,11 @@ public class HomeActivity extends PagedActivity {
 
         // Log.d("HomeActivity", ShellCommander.run("mount"));
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshHome();
+    }
 
     @Override
     protected void initViewsTable() {
@@ -69,10 +74,10 @@ public class HomeActivity extends PagedActivity {
         }
     }
 
-    //public void refreshHome() {
+    public void refreshHome() {
         //TODO: Redo refresh home view with new xmb
-        //((XMBView)allPages.get(ActivityManager.Page.home)).refresh();
-    //}
+        ((XMBView)allPages.get(ActivityManager.Page.home)).refresh();
+    }
 
 //    public void getOverlayPermissionBtn(View view) {
 //        // Check if Android M or higher
