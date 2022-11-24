@@ -117,11 +117,6 @@ public class HomeManager {
         Serialaver.saveAsJSON(homeItems.toArray(), fullPath);
     }
     private static void refreshHomeItems() {
-        ((XMBView)ActivityManager.getInstance(HomeActivity.class).getView(ActivityManager.Page.home)).refresh();
-//        XMBView home = (XMBView)ActivityManager.getInstance(HomeActivity.class).getView(ActivityManager.Page.home);
-//        int prevSelection = home.getIndex();
-//        home.clear();
-//        home.addItems(homeItems);
-//        home.setIndex(prevSelection);
+        //((XMBView)ActivityManager.getInstance(HomeActivity.class).getView(ActivityManager.Page.home)).refresh();
     }
 }

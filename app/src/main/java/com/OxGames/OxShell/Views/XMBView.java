@@ -81,7 +81,7 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Log.d("XMBView", "Drawing view");
+        //Log.d("XMBView", "Drawing view");
 
         if (items.size() > 0) { //If for whatever reason there are no items
             //int vsx = getWidth(); //view size x
@@ -149,7 +149,7 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
             icon.setBounds(left, top, right, bottom);
             icon.setAlpha(255);
             icon.draw(canvas);
-            Log.d("XMBView", "Drew category icon");
+            //Log.d("XMBView", "Drew category icon");
         }
         if (title != null) {
             painter.setColor(textColor);
@@ -172,7 +172,7 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
             icon.setBounds(left, top, right, bottom);
             icon.setAlpha(255);
             icon.draw(canvas);
-            Log.d("XMBView", "Drew item icon");
+            //Log.d("XMBView", "Drew item icon");
         }
         if (title != null) {
             painter.setColor(textColor);
