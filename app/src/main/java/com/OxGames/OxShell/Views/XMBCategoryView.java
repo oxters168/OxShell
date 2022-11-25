@@ -11,7 +11,7 @@ import android.view.View;
 import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 
-public class XMBItemView extends View {
+public class XMBCategoryView extends View {
     public Drawable icon;
     public String title;
     private final Paint painter;
@@ -20,15 +20,16 @@ public class XMBItemView extends View {
     public int iconSize = 196; //Size of each item's icon
     public float textSize = 48; //Size of the text
     public int textCushion = 16; //Distance between item and text
-    public @ColorInt int textColor = 0xFFFFFFFF; //The color of text
+    public @ColorInt
+    int textColor = 0xFFFFFFFF; //The color of text
 
-    public XMBItemView(Context context) {
+    public XMBCategoryView(Context context) {
         this(context, null);
     }
-    public XMBItemView(Context context, @Nullable AttributeSet attrs) {
+    public XMBCategoryView(Context context, @Nullable AttributeSet attrs) {
         this(context, attrs, 0);
     }
-    public XMBItemView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public XMBCategoryView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         painter = new Paint();
         reusableRect = new Rect();
@@ -42,14 +43,15 @@ public class XMBItemView extends View {
     }
     public int getFullWidth() {
         getTextBounds(reusableRect);
-        return iconSize + textCushion + reusableRect.width();
+        return Math.max(iconSize, reusableRect.width());
     }
     public int getFullHeight() {
-        return iconSize;
+        getTextBounds(reusableRect);
+        return iconSize + textCushion + reusableRect.height();
     }
     public void getTextBounds(Rect rect) {
         painter.setTextSize(textSize);
-        painter.setTextAlign(Paint.Align.LEFT);
+        painter.setTextAlign(Paint.Align.CENTER);
         painter.getTextBounds(title, 0, title.length(), rect);
     }
 
@@ -61,10 +63,10 @@ public class XMBItemView extends View {
         canvas.drawLine(0, 0, getWidth(), getHeight(), painter);
         canvas.drawLine(0, getHeight(), getWidth(), 0, painter);
 
-        drawItem(canvas, painter, reusableRect, icon, title, 0, 0, iconSize, textSize, textCushion, textColor);
+        drawCategory(canvas, painter, reusableRect, icon, title, 0, 0, iconSize, textSize, textCushion, textColor);
     }
 
-    private static void drawItem(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
+    private static void drawCategory(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
         int right = x + iconSize;
         int bottom = y + iconSize;
         icon.setBounds(x, y, right, bottom);
@@ -73,9 +75,9 @@ public class XMBItemView extends View {
         if (title != null) {
             painter.setColor(textColor);
             painter.setTextSize(textSize);
-            painter.setTextAlign(Paint.Align.LEFT);
+            painter.setTextAlign(Paint.Align.CENTER);
             painter.getTextBounds(title, 0, title.length(), reusableRect);
-            canvas.drawText(title, x + cushion + iconSize, y + iconSize / 2f + reusableRect.height() / 2f, painter);
+            canvas.drawText(title, x + iconSize / 2f, y + cushion + iconSize + reusableRect.height() / 2f, painter);
         }
     }
 }

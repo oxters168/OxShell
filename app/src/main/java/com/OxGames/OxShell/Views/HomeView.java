@@ -100,6 +100,7 @@ public class HomeView extends XMBView {
 
         clear();
         addItems(homeItems);
+
         //super.refresh();
     }
 

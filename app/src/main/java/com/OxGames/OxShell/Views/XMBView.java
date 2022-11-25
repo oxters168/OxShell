@@ -83,7 +83,7 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
         super.onDraw(canvas);
         //Log.d("XMBView", "Drawing view");
 
-        if (items.size() > 0) { //If for whatever reason there are no items
+        if (items.size() > 0) { //If for whatever reason there are no items (we can have only items, but we can never have only categories)
             //int vsx = getWidth(); //view size x
             //float vex = vsx / 2f; //view extents x
             int vsy = getHeight(); //view size y
