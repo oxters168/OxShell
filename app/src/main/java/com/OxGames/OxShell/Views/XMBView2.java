@@ -12,26 +12,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.core.content.ContextCompat;
-
 import com.OxGames.OxShell.Data.XMBCat;
 import com.OxGames.OxShell.Data.XMBItem;
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Queue;
+import java.util.Stack;
 
 public class XMBView2 extends ViewGroup implements InputReceiver {
     private Context context;
 
-    private Queue<XMBCategoryView> goneCatViews;
-    private ArrayList<XMBCategoryView> visibleCatViews;
-    private Queue<XMBItemView> goneItemViews;
-    private ArrayList<XMBItemView> visibleItemViews;
+    private Stack<XMBCategoryView> goneCatViews;
+    private HashMap<Integer, XMBCategoryView> usedCatViews;
+    private Stack<XMBItemView> goneItemViews;
+    private HashMap<Integer, XMBItemView> usedItemViews;
 
     private ArrayList<XMBCat> categories;
     private ArrayList<Integer> catIndices;
@@ -43,9 +42,16 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
     private float horSpacing = 64; //How much space to add between items horizontally
     private float verSpacing = 0; //How much space to add between items vertically
     private float catShift = (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
+    private int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
+    private int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
 
     int currentIndex = 0;
 
+    private final Rect reusableRect = new Rect();
+    private final ArrayList<Integer> reusableIndices = new ArrayList<>();
+    private final Paint painter = new Paint();
+
+    //XMBItemView testView;
     public XMBView2(Context context) {
         this(context, null);
     }
@@ -56,13 +62,20 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         super(context, attrs, defStyleAttr);
         this.context = context;
 
-        goneCatViews = new ArrayDeque<>();
-        visibleCatViews = new ArrayList<>();
-        goneItemViews = new ArrayDeque<>();
-        visibleItemViews = new ArrayList<>();
+        goneCatViews = new Stack<>();
+        usedCatViews = new HashMap<>();
+        goneItemViews = new Stack<>();
+        usedItemViews = new HashMap<>();
         categories = new ArrayList<>();
         catIndices = new ArrayList<>();
         items = new ArrayList<>();
+
+//        LayoutInflater layoutInflater = LayoutInflater.from(context);
+//        testView = (XMBItemView) layoutInflater.inflate(R.layout.xmb_item, null);
+//        testView.title = "Test";
+//        testView.icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_source_24);
+//        //testView.setVisibility(GONE);
+//        addView(testView);
 
         XMBCat cat1 = new XMBCat("Cat1");
         XMBCat cat2 = new XMBCat("Cat2");
@@ -77,6 +90,14 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         list.add(new XMBItem(null, "Item1"));
         list.add(new XMBItem(null, "Item2"));
         addItems(list);
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        removeViews();
+        createViews();
+        setViews();
     }
 
     private int getStartX() {
@@ -97,43 +118,191 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         Log.d("XMBView2", "onLayout called");
 
-        if (items.size() > 0) {
-            int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
-            int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
-            drawCategories(getStartX(), getStartY(), horShiftOffset);
-            drawItems(currentIndex, getStartX(), getStartY(), horShiftOffset, verShiftOffset);
+        for (int i = 0; i < getChildCount(); i++) {
+            View view = getChildAt(i);
+
+            if (view.getVisibility() == GONE)
+                continue;
+
+            //TODO: Possibly make a base class for both views that share some methods
+            if (view instanceof XMBItemView) {
+                XMBItemView itemView = (XMBItemView)view;
+                int expX = 0;
+                int expY = 0;
+                int right = expX + itemView.getFullWidth();
+                int bottom = expY + itemView.getFullHeight();
+                view.layout(expX, expY, right, bottom);
+            } else if (view instanceof XMBCategoryView) {
+                XMBCategoryView catView = (XMBCategoryView)view;
+                int expX = 0;
+                int expY = 0;
+                int right = expX + catView.getFullWidth();
+                int bottom = expY + catView.getFullHeight();
+                view.layout(expX, expY, right, bottom);
+            }
         }
+    }
+    private void removeViews() {
+        returnAllCatViews();
+        returnAllItemViews();
+        while (!goneCatViews.isEmpty())
+            removeView(goneCatViews.pop());
+        while (!goneItemViews.isEmpty())
+            removeView(goneItemViews.pop());
+    }
+    private void createViews() {
+        Log.d("XMBView2", getWidth() + ", " + getHeight());
+        int colCount = (int)Math.ceil(getWidth() / (float)horShiftOffset) + 1; //+1 for off screen animating into on screen
+        int rowCount = ((int)Math.ceil(getHeight() / (float)verShiftOffset) + 1) * 2; //+1 for off screen to on screen animating, *2 for column to column fade
+        for (int i = 0; i < colCount; i++) {
+            Log.d("XMBView2", "Creating cat view");
+            XMBCategoryView view;
+            LayoutInflater layoutInflater = LayoutInflater.from(context);
+            view = (XMBCategoryView) layoutInflater.inflate(R.layout.xmb_category, null);
+            view.setVisibility(GONE);
+            addView(view);
+            goneCatViews.push(view);
+        }
+        for (int i = 0; i < rowCount; i++) {
+            Log.d("XMBView2", "Creating item view");
+            XMBItemView view;
+            LayoutInflater layoutInflater = LayoutInflater.from(context);
+            view = (XMBItemView) layoutInflater.inflate(R.layout.xmb_item, null);
+            view.setVisibility(GONE);
+            addView(view);
+            goneItemViews.push(view);
+        }
+    }
+    private void returnCatView(int catIndex) {
+        if (usedCatViews.containsKey(catIndex)) {
+            XMBCategoryView catView = usedCatViews.get(catIndex);
+            catView.setVisibility(GONE);
+            goneCatViews.push(catView);
+            usedCatViews.remove(catIndex);
+        }
+    }
+    private void returnItemView(int itemIndex) {
+        if (usedItemViews.containsKey(itemIndex)) {
+            XMBItemView itemView = usedItemViews.get(itemIndex);
+            itemView.setVisibility(GONE);
+            goneItemViews.push(itemView);
+            usedItemViews.remove(itemIndex);
+        }
+    }
+    private void returnAllCatViews() {
+        for (XMBCategoryView catView : usedCatViews.values())
+            catView.setVisibility(GONE);
+        //for (int i = usedCatViews.size() - 1; i >= 0; i--)
+        //    usedCatViews.get(i).setVisibility(GONE);
+        goneCatViews.addAll(usedCatViews.values());
+        usedCatViews.clear();
+    }
+    private void returnAllItemViews() {
+        for (XMBItemView itemView : usedItemViews.values())
+            itemView.setVisibility(GONE);
+        //for (int i = usedItemViews.size() - 1; i >= 0; i--)
+        //    usedItemViews.get(i).setVisibility(GONE);
+        goneItemViews.addAll(usedItemViews.values());
+        usedItemViews.clear();
+    }
+    private XMBCategoryView getCatView(XMBCat cat) {
+        XMBCategoryView view = null;
+        int index = categories.indexOf(cat);
+        if (usedCatViews.containsKey(index)) {
+            Log.d("XMBView2", "Requested cat on " + index);
+            view = usedCatViews.get(index);
+        } else if (!goneCatViews.isEmpty()) {
+            Log.d("XMBView2", "Requested nonexistant cat");
+            view = goneCatViews.pop();
+            view.setVisibility(VISIBLE);
+            view.title = cat.title;
+            view.icon = cat.icon;
+            usedCatViews.put(index, view);
+        }
+
+        return view;
+    }
+    private XMBCategoryView getCatView(XMBItem item) {
+        XMBCategoryView view = null;
+        int index = getItemCatIndex(item);
+        if (usedCatViews.containsKey(index)) {
+            Log.d("XMBView2", "Requested itemcat on " + index);
+            view = usedCatViews.get(index);
+        } else if (!goneCatViews.isEmpty()) {
+            Log.d("XMBView2", "Requested nonexistant itemcat");
+            view = goneCatViews.pop();
+            view.setVisibility(VISIBLE);
+            view.title = item.title;
+            view.icon = item.getIcon();
+            usedCatViews.put(index, view);
+        }
+
+        return view;
+    }
+    private XMBItemView getItemView(XMBItem item) {
+        XMBItemView view = null;
+        int index = items.indexOf(item);
+        if (usedItemViews.containsKey(index)) {
+            Log.d("XMBView2", "Requested item on " + index);
+            view = usedItemViews.get(index);
+        } else if (!goneItemViews.isEmpty()) {
+            Log.d("XMBView2", "Requested nonexistant item");
+            view = goneItemViews.pop();
+            view.setVisibility(VISIBLE);
+            view.title = item.title;
+            view.icon = item.getIcon();
+            usedItemViews.put(index, view);
+        }
+        return view;
+    }
+    private void setViews() {
+        Log.d("XMBView2", "Setting view positions");
+        //returnAllCatViews();
+        //returnAllItemViews();
+        int startX = getStartX() - getHorIndex() * horShiftOffset;
+        int startY = getStartY();
+        drawCategories(startX, startY, horShiftOffset);
+        drawItems(currentIndex, startX, startY, horShiftOffset, verShiftOffset);
     }
     private void drawCategories(int startXInt, int startYInt, int horShiftOffsetInt) {
         int viewWidth = getWidth();
         int viewHeight = getHeight();
-        Rect rect = new Rect();
+        reusableIndices.clear();
         for (int i = 0; i < categories.size(); i++) {
-            XMBCat cat = categories.get(i);
-            getTextBounds(painter, cat.title, textSize, rect);
-            int expX = startXInt + horShiftOffsetInt * i;
-            int expY = startYInt;
-            int right = expX + Math.max(iconSize, rect.width());
-            int bottom = expY + iconSize + textCushion + rect.height();
-            boolean inBounds = expX < viewWidth || bottom > 0 || right > 0 || expY < viewHeight;
-            if (inBounds) {
-                XMBCategoryView view = addViewForCategory(cat);
-                view.layout(expX, expY, right, bottom);
+            getCatRect(startXInt, startYInt, horShiftOffsetInt, i, reusableRect);
+            boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
+            if (!inBounds)
+                returnCatView(i);
+            else
+                reusableIndices.add(i);
+        }
+        int itemsIndexStart = reusableIndices.size();
+        int startIndex = getItemCatsStartIndex();
+        for (int i = startIndex; i < items.size(); i++) {
+            getItemCatRect(startXInt, startYInt, horShiftOffsetInt, i, reusableRect);
+            boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
+            if (!inBounds)
+                returnCatView(toCatIndex(i));
+            else
+                reusableIndices.add(i);
+        }
+
+        for (int i = 0; i < itemsIndexStart; i++) {
+            int catIndex = reusableIndices.get(i);
+            getCatRect(startXInt, startYInt, horShiftOffsetInt, catIndex, reusableRect);
+            XMBCategoryView catView = getCatView(categories.get(catIndex));
+            if (catView != null) {
+                catView.setX(reusableRect.left);
+                catView.setY(reusableRect.top);
             }
         }
-        int startIndex = getItemCatsStartIndex();
-        int remStartXInt = startXInt + categories.size() * horShiftOffsetInt;
-        for (int i = startIndex; i < items.size(); i++) {
-            XMBItem item = items.get(i);
-            getTextBounds(painter, item.title, textSize, rect);
-            int expX = remStartXInt + horShiftOffsetInt * (i - startIndex);
-            int expY = startYInt;
-            int right = expX + Math.max(iconSize, rect.width());
-            int bottom = expY + iconSize + textCushion + rect.height();
-            boolean inBounds = expX < viewWidth || bottom > 0 || right > 0 || expY < viewHeight;
-            if (inBounds) {
-                XMBCategoryView view = addViewForCategory(item);
-                view.layout(expX, expY, right, bottom);
+        for (int i = itemsIndexStart; i < reusableIndices.size(); i++) {
+            int itemCatIndex = reusableIndices.get(i);
+            getItemCatRect(startXInt, startYInt, horShiftOffsetInt, itemCatIndex, reusableRect);
+            XMBCategoryView catView = getCatView(items.get(itemCatIndex));
+            if (catView != null) {
+                catView.setX(reusableRect.left);
+                catView.setY(reusableRect.top);
             }
         }
     }
@@ -141,36 +310,74 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         XMBCat origCat = items.get(itemIndex).category;
         int viewWidth = getWidth();
         int viewHeight = getHeight();
-        Rect rect = new Rect();
+
+        reusableIndices.clear();
         for (int i = 0; i < items.size(); i++) {
             XMBItem item = items.get(i);
             XMBCat currentCat = item.category;
             if (currentCat == null) //This means it should be drawn with the categories, not here
                 continue;
-            int currentCatIndex = categories.indexOf(currentCat);
-            int itemCatIndex = getCachedIndexOfCat(currentCat);
-            int expX = startXInt + horShiftOffsetInt * currentCatIndex;
-            getTextBounds(painter, item.title, textSize, rect);
-            int expY = (startYInt + rect.height()) + verShiftOffsetInt * ((i - itemCatIndex) + 1);
-            if (i < itemCatIndex)
-                expY = startYInt - verShiftOffsetInt * (((itemCatIndex - 1) - i) + 1);
-            int right = expX + iconSize + textCushion + rect.width();
-            int bottom = expY + iconSize;
-            boolean inBounds = expX < viewWidth || bottom > 0 || right > 0 || expY < viewHeight;
-            if (item.category == origCat && inBounds) {
-                XMBItemView view = addViewForItem(item);
-                view.layout(expX, expY, right, bottom);
+            getItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, i, reusableRect);
+            boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
+            if (item.category != origCat || !inBounds)
+                returnItemView(i);
+            else
+                reusableIndices.add(i);
+        }
+        for (int i = 0; i < reusableIndices.size(); i++) {
+            int index = reusableIndices.get(i);
+            getItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, index, reusableRect);
+            XMBItemView itemView = getItemView(items.get(index));
+            if (itemView != null) {
+                itemView.setX(reusableRect.left);
+                itemView.setY(reusableRect.top);
             }
         }
     }
 
+    private void getCatRect(int startX, int startY, int horShiftOffset, int catIndex, Rect rect) {
+        //Gets the bounds of the category view
+        XMBCat cat = categories.get(catIndex);
+        getTextBounds(painter, cat.title, textSize, rect);
+        int expX = startX + horShiftOffset * catIndex;
+        int expY = startY;
+        int right = expX + Math.max(iconSize, rect.width());
+        int bottom = expY + iconSize + textCushion + rect.height();
+        rect.set(expX, expY, right, bottom);
+    }
+    private void getItemCatRect(int startX, int startY, int horShiftOffset, int catIndex, Rect rect) {
+        //Gets the bounds of the item category view
+        XMBItem itemCat = items.get(catIndex);
+        getTextBounds(painter, itemCat.title, textSize, rect);
+        int expX = startX + horShiftOffset * getItemCatIndex(itemCat);
+        int expY = startY;
+        int right = expX + Math.max(iconSize, rect.width());
+        int bottom = expY + iconSize + textCushion + rect.height();
+        rect.set(expX, expY, right, bottom);
+    }
+    private void getItemRect(int startX, int startY, int horShiftOffset, int verShiftOffset, int itemIndex, Rect rect) {
+        XMBItem item = items.get(itemIndex);
+        XMBCat currentCat = item.category;
+        int currentCatIndex = categories.indexOf(currentCat);
+        int itemCatIndex = getCachedIndexOfCat(currentCat);
+        int expX = startX + horShiftOffset * currentCatIndex;
+        getTextBounds(painter, item.title, textSize, rect);
+        int expY = (startY + rect.height()) + verShiftOffset * ((itemIndex - itemCatIndex) + 1);
+        if (itemIndex < itemCatIndex)
+            expY = startY - verShiftOffset * (((itemCatIndex - 1) - itemIndex) + 1);
+        int right = expX + iconSize + textCushion + rect.width();
+        int bottom = expY + iconSize;
+        rect.set(expX, expY, right, bottom);
+    }
+    private static boolean inView(Rect rect, int viewWidth, int viewHeight) {
+        return rect.left < viewWidth || rect.top < viewHeight || rect.right > 0 || rect.bottom > 0;
+    }
     public static void getTextBounds(Paint painter, String text, float textSize, Rect rect) {
         painter.setTextSize(textSize);
         //painter.setTextAlign(Paint.Align.CENTER);
         painter.getTextBounds(text, 0, text.length(), rect);
     }
 
-    Paint painter = new Paint();
 //    @Override
 //    protected void dispatchDraw(Canvas canvas) {
 //        //Log.d("XMBView2", "dispatchDraw called");
@@ -213,7 +420,16 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         //invalidate();
     }
 
+    private int getItemCatIndex(XMBItem item) {
+        //Gets the item's index relative to the categories (items are categories when they do not have a category themselves)
+        return toCatIndex(items.indexOf(item));
+    }
+    private int toCatIndex(int itemIndex) {
+        //Converts an item category's index to be relative to the categories
+        return categories.size() + (itemIndex - getItemCatsStartIndex());
+    }
     private int getItemCatsStartIndex() {
+        //Gets the first item without a category (item categories are grouped together at the end of the items list)
         int startIndex = items.size();
         for (int i = startIndex - 1; i >= 0; i--) {
             if (items.get(i).category != null) {
@@ -225,12 +441,14 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         return startIndex;
     }
     private int getCatStartIndex(XMBCat cat) {
+        //Gets the first item's index with the specified category (items with the same category are grouped together in the list)
         for (int i = 0; i < items.size(); i++)
             if (items.get(i).category == cat)
                 return i;
         return -1;
     }
     private int getCatSize(XMBCat cat) {
+        //Gets the number of items that are a part of the given category
         int size = 0;
         for (int i = 0; i < items.size(); i++)
             if (items.get(i).category == cat)
@@ -248,7 +466,8 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
                 catIndices.set(categories.indexOf(currentCat), currentIndex - getCatStartIndex(currentCat)); //Cache current position in category
         }
 
-        animateXMB();
+        setViews();
+        //animateXMB();
         //invalidate();
     }
     public int getIndex() {
@@ -258,6 +477,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         return items.get(getIndex());
     }
     private int getCachedIndexOfCat(XMBCat cat) {
+        //Retrieves the position the user was on within the category
         return getCatStartIndex(cat) + catIndices.get(categories.indexOf(cat));
     }
     private int addItem(XMBItem item) {//, boolean invalidate) {
@@ -315,7 +535,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         int adjustedIndex = currentIndex;
         if (removeCat) {
             int catIndex = categories.indexOf(item.category);
-            removeViewForCategory(catIndex);
+            //removeViewForCategory(catIndex);
             catIndices.remove(catIndex);
             categories.remove(item.category);
             if (adjustedIndex >= items.size())
@@ -331,93 +551,18 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
             adjustedIndex = catStartIndex + relIndex;
         }
 
-        removeViewForItem(itemIndex);
+        //removeViewForItem(itemIndex);
         items.remove(item);
         setIndex(adjustedIndex);
-    }
-    private XMBCategoryView addViewForCategory(XMBCat category) {
-        XMBCategoryView view;
-        if (goneCatViews.isEmpty()) {
-            LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = (XMBCategoryView) layoutInflater.inflate(R.layout.xmb_category, null);
-            view.title = category.title;
-            view.icon = category.icon;
-            addView(view);
-        } else {
-            view = goneCatViews.poll();
-            view.title = category.title;
-            view.icon = category.icon;
-            view.setVisibility(VISIBLE);
-        }
-        int index = categories.indexOf(category);
-        if (index >= visibleCatViews.size())
-            visibleCatViews.add(view);
-        else
-            visibleCatViews.add(index, view);
-        return view;
-    }
-    private XMBCategoryView addViewForCategory(XMBItem category) {
-        XMBCategoryView view;
-        if (goneCatViews.isEmpty()) {
-            LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = (XMBCategoryView) layoutInflater.inflate(R.layout.xmb_category, null);
-            view.title = category.title;
-            view.icon = category.getIcon();
-            addView(view);
-        } else {
-            view = goneCatViews.poll();
-            view.title = category.title;
-            view.icon = category.getIcon();
-            view.setVisibility(VISIBLE);
-        }
-        //int index = categories.indexOf(category);
-        //if (index >= visibleCatViews.size())
-            visibleCatViews.add(view);
-        //else
-        //    visibleCatViews.add(index, view);
-        return view;
-    }
-    private XMBItemView addViewForItem(XMBItem item) {
-        XMBItemView view;
-        if (goneItemViews.isEmpty()) {
-            LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = (XMBItemView) layoutInflater.inflate(R.layout.xmb_item, null);
-            view.title = item.title;
-            view.icon = item.getIcon();
-            addView(view);
-        } else {
-            view = goneItemViews.poll();
-            view.title = item.title;
-            view.icon = item.getIcon();
-            view.setVisibility(VISIBLE);
-        }
-        int index = items.indexOf(item);
-        if (index >= visibleItemViews.size())
-            visibleItemViews.add(view);
-        else
-            visibleItemViews.add(index, view);
-        return view;
-    }
-    private void removeViewForItem(int itemIndex) {
-        XMBItemView toBeRemoved = visibleItemViews.get(itemIndex);
-        visibleItemViews.remove(itemIndex);
-        toBeRemoved.setVisibility(GONE);
-        goneItemViews.add(toBeRemoved);
-    }
-    private void removeViewForCategory(int catIndex) {
-        XMBCategoryView toBeRemoved = visibleCatViews.get(catIndex);
-        visibleCatViews.remove(catIndex);
-        toBeRemoved.setVisibility(GONE);
-        goneCatViews.add(toBeRemoved);
     }
     public void removeItem(int index) {
         removeItem(items.get(index));
     }
     public void clear() {
-        for (int i = items.size() - 1; i >= 0; i--)
-            removeViewForItem(i);
-        for (int i = categories.size() - 1; i >= 0; i--)
-            removeViewForCategory(i);
+//        for (int i = items.size() - 1; i >= 0; i--)
+//            removeViewForItem(i);
+//        for (int i = categories.size() - 1; i >= 0; i--)
+//            removeViewForCategory(i);
         categories.clear();
         catIndices.clear();
         items.clear();
@@ -458,25 +603,17 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
     }
     public void selectLowerItem() {
         //Log.d("XMBView", "Received move down signal");
+        //testView.setVisibility(testView.getVisibility() == VISIBLE ? GONE : VISIBLE);
+        //testView.setVisibility(GONE);
         XMBCat currentCat = items.get(currentIndex).category;
         if (currentCat != null && currentIndex + 1 < items.size() && items.get(currentIndex + 1).category == currentCat)
             setIndex(currentIndex + 1);
-//        clearAnimation();
-//        Animation animDown = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
-//        setAnimation(animDown);
-//        animDown.startNow();
-        //animateXMB();
     }
     public void selectUpperItem() {
         //Log.d("XMBView", "Received move up signal");
         XMBCat currentCat = items.get(currentIndex).category;
         if (currentCat != null && currentIndex - 1 >= 0 && items.get(currentIndex - 1).category == currentCat)
             setIndex(currentIndex - 1);
-//        clearAnimation();
-//        Animation animUp = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
-//        setAnimation(animUp);
-//        animUp.startNow();
-        //animateXMB();
     }
     public void selectRightItem() {
         //Log.d("XMBView", "Received move right signal");

@@ -48,9 +48,12 @@ public class XMBItemView extends View {
         return iconSize;
     }
     public void getTextBounds(Rect rect) {
-        painter.setTextSize(textSize);
-        painter.setTextAlign(Paint.Align.LEFT);
-        painter.getTextBounds(title, 0, title.length(), rect);
+        if (title != null) {
+            painter.setTextSize(textSize);
+            painter.setTextAlign(Paint.Align.LEFT);
+            painter.getTextBounds(title, 0, title.length(), rect);
+        } else
+            rect.set(0, 0, 0, 0);
     }
 
     @Override
@@ -67,9 +70,11 @@ public class XMBItemView extends View {
     private static void drawItem(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
         int right = x + iconSize;
         int bottom = y + iconSize;
-        icon.setBounds(x, y, right, bottom);
-        icon.setAlpha(255);
-        icon.draw(canvas);
+        if (icon != null) {
+            icon.setBounds(x, y, right, bottom);
+            icon.setAlpha(255);
+            icon.draw(canvas);
+        }
         if (title != null) {
             painter.setColor(textColor);
             painter.setTextSize(textSize);
