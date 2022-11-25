@@ -20,7 +20,7 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
 import java.util.ArrayList;
 
-public class HomeView extends XMBView {
+public class HomeView extends XMBView2 {
     private ContextMenu overlay;
 
     public HomeView(Context context) {
@@ -101,7 +101,7 @@ public class HomeView extends XMBView {
         clear();
         addItems(homeItems);
 
-        //super.refresh();
+        super.refresh();
     }
 
     private void showCustomContextMenu(int x, int y) {

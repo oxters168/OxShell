@@ -19,11 +19,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <com.OxGames.OxShell.Views.XMBView2
+    <com.OxGames.OxShell.Views.HomeView
         android:id="@+id/home_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </com.OxGames.OxShell.Views.XMBView2>
+    </com.OxGames.OxShell.Views.HomeView>
 
     <com.OxGames.OxShell.Views.PackagesView
         android:id="@+id/packages_list"

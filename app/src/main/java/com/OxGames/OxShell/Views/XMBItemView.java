@@ -59,10 +59,10 @@ public class XMBItemView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        painter.setColor(0xFFFF0000);
-        painter.setStrokeWidth(8);
-        canvas.drawLine(0, 0, getWidth(), getHeight(), painter);
-        canvas.drawLine(0, getHeight(), getWidth(), 0, painter);
+//        painter.setColor(0xFFFF0000);
+//        painter.setStrokeWidth(8);
+//        canvas.drawLine(0, 0, getWidth(), getHeight(), painter);
+//        canvas.drawLine(0, getHeight(), getWidth(), 0, painter);
 
         drawItem(canvas, painter, reusableRect, icon, title, 0, 0, iconSize, textSize, textCushion, textColor);
     }
