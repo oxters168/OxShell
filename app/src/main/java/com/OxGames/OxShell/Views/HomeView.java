@@ -80,6 +80,7 @@ public class HomeView extends XMBView2 {
     public void deleteSelection() {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
         HomeManager.removeItem(selectedItem);
+        refresh();
     }
     public void uninstallSelection() {
         HomeItem selectedItem = (HomeItem)getSelectedItem();

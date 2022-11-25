@@ -13,9 +13,10 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.GridItem;
 import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
+import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
-public class SlideTouchGridView extends GridView implements SlideTouchListener, InputReceiver {
+public class SlideTouchGridView extends GridView implements SlideTouchListener, InputReceiver, Refreshable {
     SlideTouchHandler slideTouch = new SlideTouchHandler();
     protected int properPosition = 0;
 
@@ -168,6 +169,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener, 
     public void deleteSelection() {
     }
 
+    @Override
     public void refresh() {
         setProperPosition(properPosition);
     }

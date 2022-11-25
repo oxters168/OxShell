@@ -17,6 +17,7 @@ import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
+import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Views.SlideTouchGridView;
 import com.OxGames.OxShell.Views.SlideTouchListView;
 import com.appspell.shaderview.ShaderView;
@@ -289,16 +290,12 @@ public class PagedActivity extends AppCompatActivity {
                 entry.getValue().setVisibility(page == entry.getKey() ? View.VISIBLE : View.GONE);
                 if (page == entry.getKey()) {
                     View nextPage = entry.getValue();
-                    if (nextPage instanceof SlideTouchListView)
-                        ((SlideTouchListView)nextPage).refresh();
-                    else if (nextPage instanceof SlideTouchGridView)
-                        ((SlideTouchGridView)nextPage).refresh();
+                    if (nextPage instanceof Refreshable)
+                        ((Refreshable)nextPage).refresh();
                     nextPage.requestFocusFromTouch();
 
-                    if (nextPage instanceof SlideTouchListView)
-                        ((SlideTouchListView)nextPage).refresh();
-                    else if (nextPage instanceof SlideTouchGridView)
-                        ((SlideTouchGridView)nextPage).refresh();
+                    if (nextPage instanceof Refreshable)
+                        ((Refreshable)nextPage).refresh();
                     currentPage = page;
                 }
             }

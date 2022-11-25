@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import com.OxGames.OxShell.Data.XMBCat;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
+import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayDeque;
@@ -24,7 +25,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
 
-public class XMBView2 extends ViewGroup implements InputReceiver {
+public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
     private Context context;
 
     private Stack<XMBCategoryView> goneCatViews;
@@ -50,6 +51,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
     private final Rect reusableRect = new Rect();
     private final ArrayList<Integer> reusableIndices = new ArrayList<>();
     private final Paint painter = new Paint();
+    private float xmbTrans = 1; //Animation transition value
 
     //XMBItemView testView;
     public XMBView2(Context context) {
@@ -118,7 +120,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        Log.d("XMBView2", "onLayout called");
+        //Log.d("XMBView2", "onLayout called");
 
         for (int i = 0; i < getChildCount(); i++) {
             View view = getChildAt(i);
@@ -153,11 +155,11 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
             removeView(goneItemViews.pop());
     }
     private void createViews() {
-        Log.d("XMBView2", getWidth() + ", " + getHeight());
+        //Log.d("XMBView2", getWidth() + ", " + getHeight());
         int colCount = (int)Math.ceil(getWidth() / (float)horShiftOffset) + 1; //+1 for off screen animating into on screen
         int rowCount = ((int)Math.ceil(getHeight() / (float)verShiftOffset) + 1) * 3; //+1 for off screen to on screen animating, *3 for column to column fade
         for (int i = 0; i < colCount; i++) {
-            Log.d("XMBView2", "Creating cat view");
+            //Log.d("XMBView2", "Creating cat view");
             XMBCategoryView view;
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             view = (XMBCategoryView) layoutInflater.inflate(R.layout.xmb_category, null);
@@ -166,7 +168,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
             goneCatViews.push(view);
         }
         for (int i = 0; i < rowCount; i++) {
-            Log.d("XMBView2", "Creating item view");
+            //Log.d("XMBView2", "Creating item view");
             XMBItemView view;
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             view = (XMBItemView) layoutInflater.inflate(R.layout.xmb_item, null);
@@ -211,10 +213,10 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         XMBCategoryView view = null;
         int index = categories.indexOf(cat);
         if (usedCatViews.containsKey(index)) {
-            Log.d("XMBView2", "Requested cat on " + index);
+            //Log.d("XMBView2", "Requested cat on " + index);
             view = usedCatViews.get(index);
         } else if (!goneCatViews.isEmpty()) {
-            Log.d("XMBView2", "Requested nonexistant cat");
+            //Log.d("XMBView2", "Requested nonexistant cat");
             view = goneCatViews.pop();
             view.title = cat.title;
             view.icon = cat.icon;
@@ -258,55 +260,73 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         return view;
     }
     private void setViews() {
-        Log.d("XMBView2", "Setting view positions");
-        //returnAllCatViews();
-        //returnAllItemViews();
+        //Log.d("XMBView2", "Setting view positions");
+        returnAllCatViews();
+        returnAllItemViews();
         if (items.size() > 0) {
             int startX = getStartX() - getHorIndex() * horShiftOffset;
             int startY = getStartY();
+            //returnUnusedViews();
             drawCategories(startX, startY, horShiftOffset);
             drawItems(currentIndex, startX, startY, horShiftOffset, verShiftOffset);
         }
     }
+//    private void returnUnusedViews() {
+//
+//    }
     private void drawCategories(int startXInt, int startYInt, int horShiftOffsetInt) {
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         reusableIndices.clear();
         for (int i = 0; i < categories.size(); i++) {
             getCatRect(startXInt, startYInt, horShiftOffsetInt, i, reusableRect);
+            XMBCat cat = categories.get(i);
+            cat.currentX = lerp(cat.currentX, reusableRect.left, xmbTrans);
+            cat.currentY = lerp(cat.currentY, reusableRect.top, xmbTrans);
+            reusableRect.left = Math.round(cat.currentX);
+            reusableRect.top = Math.round(cat.currentY);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            if (!inBounds)
-                returnCatView(i);
-            else
+            //if (!inBounds)
+            //    returnCatView(i);
+            //else
+            if (inBounds)
                 reusableIndices.add(i);
         }
         int itemsIndexStart = reusableIndices.size();
         int startIndex = getItemCatsStartIndex();
         for (int i = startIndex; i < items.size(); i++) {
             getItemCatRect(startXInt, startYInt, horShiftOffsetInt, i, reusableRect);
+            XMBItem itemCat = items.get(i);
+            itemCat.currentX = lerp(itemCat.currentX, reusableRect.left, xmbTrans);
+            itemCat.currentY = lerp(itemCat.currentY, reusableRect.top, xmbTrans);
+            reusableRect.left = Math.round(itemCat.currentX);
+            reusableRect.top = Math.round(itemCat.currentY);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            if (!inBounds)
-                returnCatView(toCatIndex(i));
-            else
+            //if (!inBounds)
+            //    returnCatView(toCatIndex(i));
+            //else
+            if (inBounds)
                 reusableIndices.add(i);
         }
 
         for (int i = 0; i < itemsIndexStart; i++) {
             int catIndex = reusableIndices.get(i);
-            getCatRect(startXInt, startYInt, horShiftOffsetInt, catIndex, reusableRect);
+            //getCatRect(startXInt, startYInt, horShiftOffsetInt, catIndex, reusableRect);
             XMBCategoryView catView = getCatView(categories.get(catIndex));
             if (catView != null) {
-                catView.setX(lerp(catView.getX(), reusableRect.left, xmbTrans));
-                catView.setY(lerp(catView.getY(), reusableRect.top, xmbTrans));
+                XMBCat cat = categories.get(catIndex);
+                catView.setX(cat.currentX);
+                catView.setY(cat.currentY);
             }
         }
         for (int i = itemsIndexStart; i < reusableIndices.size(); i++) {
             int itemCatIndex = reusableIndices.get(i);
-            getItemCatRect(startXInt, startYInt, horShiftOffsetInt, itemCatIndex, reusableRect);
+            //getItemCatRect(startXInt, startYInt, horShiftOffsetInt, itemCatIndex, reusableRect);
             XMBCategoryView itemCatView = getCatView(items.get(itemCatIndex));
             if (itemCatView != null) {
-                itemCatView.setX(lerp(itemCatView.getX(), reusableRect.left, xmbTrans));
-                itemCatView.setY(lerp(itemCatView.getY(), reusableRect.top, xmbTrans));
+                XMBItem itemCat = items.get(itemCatIndex);
+                itemCatView.setX(itemCat.currentX);
+                itemCatView.setY(itemCat.currentY);
             }
         }
     }
@@ -322,22 +342,29 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
             if (currentCat == null) //This means it should be drawn with the categories, not here
                 continue;
             getItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, i, reusableRect);
+            XMBItemView itemView = getItemView(items.get(i));
+            item.currentX = lerp(itemView.getX(), reusableRect.left, xmbTrans);
+            item.currentY = lerp(itemView.getY(), reusableRect.top, xmbTrans);
+            reusableRect.left = Math.round(item.currentX);
+            reusableRect.top = Math.round(item.currentY);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            if (item.category != origCat || !inBounds)
-                returnItemView(i);
-            else
+            //if (item.category != origCat || !inBounds)
+            //    returnItemView(i);
+            //else
+            if (item.category == origCat && inBounds)
                 reusableIndices.add(i);
         }
         for (int i = 0; i < reusableIndices.size(); i++) {
             int index = reusableIndices.get(i);
-            getItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, index, reusableRect);
+            //getItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, index, reusableRect);
             XMBItemView itemView = getItemView(items.get(index));
             if (itemView != null) {
                 //TODO: change the from value to be able to translate column
                 // (possible solution would be to get their column's x value and use that)
                 // (another would be to draw the other columns invisibly)
-                itemView.setX(lerp(itemView.getX(), reusableRect.left, xmbTrans));
-                itemView.setY(lerp(itemView.getY(), reusableRect.top, xmbTrans));
+                XMBItem item = items.get(index);
+                itemView.setX(item.currentX);
+                itemView.setY(item.currentY);
             }
         }
     }
@@ -407,7 +434,6 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         //TODO: loop through all XMBItemViews and set their iconSize to this value
     }
 
-    private float xmbTrans = 1;
     ValueAnimator xmbimator = null;
     private void animateXMB() {
         if (xmbimator != null)
@@ -531,6 +557,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
         //if (invalidate)
         //    invalidate();
         //addViewForItem(item, itemIndex);
+        animateXMB();
         return itemIndex;
     }
 //    public int addItem(XMBItem item) {
@@ -691,6 +718,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver {
     }
     public void deleteSelection() {
     }
+    @Override
     public void refresh() {
         //invalidate();
         removeViews();

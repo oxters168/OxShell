@@ -14,11 +14,12 @@ import com.OxGames.OxShell.Interfaces.CustomViewListener;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
+import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 
 import java.util.ArrayList;
 
-public class SlideTouchListView extends ListView implements SlideTouchListener, InputReceiver {
+public class SlideTouchListView extends ListView implements SlideTouchListener, InputReceiver, Refreshable {
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
     private ArrayList<CustomViewListener> eventListeners = new ArrayList<>();
     int properPosition = 0;
@@ -126,6 +127,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
         DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
         setSelectionFromTop(pos, (int)(displayMetrics.heightPixels * 0.5));
     }
+    @Override
     public void refresh() {
         setProperPosition(properPosition);
     }
