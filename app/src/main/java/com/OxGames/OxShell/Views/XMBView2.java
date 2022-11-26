@@ -51,7 +51,8 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
     private final Rect reusableRect = new Rect();
     private final ArrayList<Integer> reusableIndices = new ArrayList<>();
     private final Paint painter = new Paint();
-    private float xmbTrans = 1; //Animation transition value
+    //private float xmbTrans = 1; //Animation transition value
+    private boolean createdJustNow = false;
 
     //XMBItemView testView;
     public XMBView2(Context context) {
@@ -156,8 +157,8 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
     }
     private void createViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
-        int colCount = (int)Math.ceil(getWidth() / (float)horShiftOffset) + 1; //+1 for off screen animating into on screen
-        int rowCount = ((int)Math.ceil(getHeight() / (float)verShiftOffset) + 1) * 3; //+1 for off screen to on screen animating, *3 for column to column fade
+        int colCount = (int)Math.ceil(getWidth() / (float)horShiftOffset) + 2; //+2 for off screen animating into on screen
+        int rowCount = ((int)Math.ceil(getHeight() / (float)verShiftOffset) + 2) * 3; //+2 for off screen to on screen animating, *3 for column to column fade
         for (int i = 0; i < colCount; i++) {
             //Log.d("XMBView2", "Creating cat view");
             XMBCategoryView view;
@@ -214,9 +215,11 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
         int index = categories.indexOf(cat);
         if (usedCatViews.containsKey(index)) {
             //Log.d("XMBView2", "Requested cat on " + index);
+            cat.skipAnim = false;
             view = usedCatViews.get(index);
         } else if (!goneCatViews.isEmpty()) {
             //Log.d("XMBView2", "Requested nonexistant cat");
+            cat.skipAnim = true;
             view = goneCatViews.pop();
             view.title = cat.title;
             view.icon = cat.icon;
@@ -231,9 +234,11 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
         int index = getItemCatIndex(item);
         if (usedCatViews.containsKey(index)) {
             //Log.d("XMBView2", "Requested itemcat on " + index);
+            item.skipAnim = false;
             view = usedCatViews.get(index);
         } else if (!goneCatViews.isEmpty()) {
             //Log.d("XMBView2", "Requested nonexistant itemcat");
+            item.skipAnim = true;
             view = goneCatViews.pop();
             view.title = item.title;
             view.icon = item.getIcon();
@@ -248,9 +253,11 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
         int index = items.indexOf(item);
         if (usedItemViews.containsKey(index)) {
             //Log.d("XMBView2", "Requested item on " + index);
+            item.skipAnim = false;
             view = usedItemViews.get(index);
         } else if (!goneItemViews.isEmpty()) {
             //Log.d("XMBView2", "Requested nonexistant item");
+            item.skipAnim = true;
             view = goneItemViews.pop();
             view.title = item.title;
             view.icon = item.getIcon();
@@ -261,8 +268,8 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
     }
     private void setViews() {
         //Log.d("XMBView2", "Setting view positions");
-        returnAllCatViews();
-        returnAllItemViews();
+        //returnAllCatViews();
+        //returnAllItemViews();
         if (items.size() > 0) {
             int startX = getStartX() - getHorIndex() * horShiftOffset;
             int startY = getStartY();
@@ -281,15 +288,17 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
         for (int i = 0; i < categories.size(); i++) {
             getCatRect(startXInt, startYInt, horShiftOffsetInt, i, reusableRect);
             XMBCat cat = categories.get(i);
-            cat.currentX = lerp(cat.currentX, reusableRect.left, xmbTrans);
-            cat.currentY = lerp(cat.currentY, reusableRect.top, xmbTrans);
-            reusableRect.left = Math.round(cat.currentX);
-            reusableRect.top = Math.round(cat.currentY);
+            cat.currentX = reusableRect.left;
+            cat.currentY = reusableRect.top;
+            //cat.currentX = lerp(cat.currentX, reusableRect.left, xmbTrans);
+            //cat.currentY = lerp(cat.currentY, reusableRect.top, xmbTrans);
+            //reusableRect.left = Math.round(cat.currentX);
+            //reusableRect.top = Math.round(cat.currentY);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            //if (!inBounds)
-            //    returnCatView(i);
-            //else
-            if (inBounds)
+            if (!inBounds)
+                returnCatView(i);
+            else
+            //if (inBounds)
                 reusableIndices.add(i);
         }
         int itemsIndexStart = reusableIndices.size();
@@ -297,15 +306,17 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
         for (int i = startIndex; i < items.size(); i++) {
             getItemCatRect(startXInt, startYInt, horShiftOffsetInt, i, reusableRect);
             XMBItem itemCat = items.get(i);
-            itemCat.currentX = lerp(itemCat.currentX, reusableRect.left, xmbTrans);
-            itemCat.currentY = lerp(itemCat.currentY, reusableRect.top, xmbTrans);
-            reusableRect.left = Math.round(itemCat.currentX);
-            reusableRect.top = Math.round(itemCat.currentY);
+            itemCat.currentX = reusableRect.left;
+            itemCat.currentY = reusableRect.top;
+            //itemCat.currentX = lerp(itemCat.currentX, reusableRect.left, xmbTrans);
+            //itemCat.currentY = lerp(itemCat.currentY, reusableRect.top, xmbTrans);
+            //reusableRect.left = Math.round(itemCat.currentX);
+            //reusableRect.top = Math.round(itemCat.currentY);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            //if (!inBounds)
-            //    returnCatView(toCatIndex(i));
-            //else
-            if (inBounds)
+            if (!inBounds)
+                returnCatView(toCatIndex(i));
+            else
+            //if (inBounds)
                 reusableIndices.add(i);
         }
 
@@ -315,8 +326,18 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
             XMBCategoryView catView = getCatView(categories.get(catIndex));
             if (catView != null) {
                 XMBCat cat = categories.get(catIndex);
-                catView.setX(cat.currentX);
-                catView.setY(cat.currentY);
+                if (cat.skipAnim) {
+                    catView.setX(cat.currentX);
+                    catView.setY(cat.currentY);
+                } else {
+                    catView.animate().setDuration(300);
+                    catView.animate().xBy(cat.currentX - catView.getX());
+                    catView.animate().yBy(cat.currentY - catView.getY());
+                }
+                //catView.animate().x(cat.currentX);
+                //catView.animate().y(cat.currentY);
+                //catView.setX(cat.currentX);
+                //catView.setY(cat.currentY);
             }
         }
         for (int i = itemsIndexStart; i < reusableIndices.size(); i++) {
@@ -325,8 +346,18 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
             XMBCategoryView itemCatView = getCatView(items.get(itemCatIndex));
             if (itemCatView != null) {
                 XMBItem itemCat = items.get(itemCatIndex);
-                itemCatView.setX(itemCat.currentX);
-                itemCatView.setY(itemCat.currentY);
+                if (itemCat.skipAnim) {
+                    itemCatView.setX(itemCat.currentX);
+                    itemCatView.setY(itemCat.currentY);
+                } else {
+                    itemCatView.animate().setDuration(300);
+                    itemCatView.animate().xBy(itemCat.currentX - itemCatView.getX());
+                    itemCatView.animate().yBy(itemCat.currentY - itemCatView.getY());
+                }
+                //itemCatView.animate().x(itemCat.currentX);
+                //itemCatView.animate().y(itemCat.currentY);
+                //itemCatView.setX(itemCat.currentX);
+                //itemCatView.setY(itemCat.currentY);
             }
         }
     }
@@ -342,16 +373,18 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
             if (currentCat == null) //This means it should be drawn with the categories, not here
                 continue;
             getItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, i, reusableRect);
-            XMBItemView itemView = getItemView(items.get(i));
-            item.currentX = lerp(itemView.getX(), reusableRect.left, xmbTrans);
-            item.currentY = lerp(itemView.getY(), reusableRect.top, xmbTrans);
-            reusableRect.left = Math.round(item.currentX);
-            reusableRect.top = Math.round(item.currentY);
+            //XMBItemView itemView = getItemView(items.get(i));
+            item.currentX = reusableRect.left;
+            item.currentY = reusableRect.top;
+            //item.currentX = lerp(itemView.getX(), reusableRect.left, xmbTrans);
+            //item.currentY = lerp(itemView.getY(), reusableRect.top, xmbTrans);
+            //reusableRect.left = Math.round(item.currentX);
+            //reusableRect.top = Math.round(item.currentY);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            //if (item.category != origCat || !inBounds)
-            //    returnItemView(i);
-            //else
-            if (item.category == origCat && inBounds)
+            if (item.category != origCat || !inBounds)
+                returnItemView(i);
+            else
+            //if (item.category == origCat && inBounds)
                 reusableIndices.add(i);
         }
         for (int i = 0; i < reusableIndices.size(); i++) {
@@ -363,8 +396,18 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
                 // (possible solution would be to get their column's x value and use that)
                 // (another would be to draw the other columns invisibly)
                 XMBItem item = items.get(index);
-                itemView.setX(item.currentX);
-                itemView.setY(item.currentY);
+                if (item.skipAnim) {
+                    itemView.setX(item.currentX);
+                    itemView.setY(item.currentY);
+                } else {
+                    itemView.animate().setDuration(300);
+                    itemView.animate().xBy(item.currentX - itemView.getX());
+                    itemView.animate().yBy(item.currentY - itemView.getY());
+                }
+                //itemView.animate().x(item.currentX);
+                //itemView.animate().y(item.currentY);
+                //itemView.setX(item.currentX);
+                //itemView.setY(item.currentY);
             }
         }
     }
@@ -434,32 +477,32 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
         //TODO: loop through all XMBItemViews and set their iconSize to this value
     }
 
-    ValueAnimator xmbimator = null;
-    private void animateXMB() {
-        if (xmbimator != null)
-            xmbimator.cancel();
-
-        //catTransX = 0;
-        xmbimator = ValueAnimator.ofFloat(0, 1);
-        xmbimator.addUpdateListener(valueAnimator -> {
-            xmbTrans = ((Float)valueAnimator.getAnimatedValue());
-            setViews();
-//            for (int i = 0; i < getChildCount(); i++) {
-//                XMBItemView child = (XMBItemView)getChildAt(i);
-//                float nextY = (i + currentIndex) * child.getItemHeight();
-//                float transY = (nextY - child.getY()) * xmbTrans + child.getY();
-//                child.setY(transY);
-//            }
-            //Log.d("XMBView2", "Animation value " + xmbTrans);
-            //Log.d("XMBView", "Animating " + catTransX);
-            //XMBView.this.invalidate();
-        });
-        //Log.d("XMBView", "Starting animation");
-        //setAnimation(xmbimator);
-        xmbimator.setDuration(300);
-        xmbimator.start();
-        //invalidate();
-    }
+//    ValueAnimator xmbimator = null;
+//    private void animateXMB() {
+//        if (xmbimator != null)
+//            xmbimator.cancel();
+//
+//        //catTransX = 0;
+//        xmbimator = ValueAnimator.ofFloat(0, 1);
+//        xmbimator.addUpdateListener(valueAnimator -> {
+//            xmbTrans = ((Float)valueAnimator.getAnimatedValue());
+//            setViews();
+////            for (int i = 0; i < getChildCount(); i++) {
+////                XMBItemView child = (XMBItemView)getChildAt(i);
+////                float nextY = (i + currentIndex) * child.getItemHeight();
+////                float transY = (nextY - child.getY()) * xmbTrans + child.getY();
+////                child.setY(transY);
+////            }
+//            //Log.d("XMBView2", "Animation value " + xmbTrans);
+//            //Log.d("XMBView", "Animating " + catTransX);
+//            //XMBView.this.invalidate();
+//        });
+//        //Log.d("XMBView", "Starting animation");
+//        //setAnimation(xmbimator);
+//        xmbimator.setDuration(300);
+//        xmbimator.start();
+//        //invalidate();
+//    }
 
     private int getItemCatIndex(XMBItem item) {
         //Gets the item's index relative to the categories (items are categories when they do not have a category themselves)
@@ -507,8 +550,8 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
                 catIndices.set(categories.indexOf(currentCat), currentIndex - getCatStartIndex(currentCat)); //Cache current position in category
         }
 
-        //setViews();
-        animateXMB();
+        setViews();
+        //animateXMB();
         //invalidate();
     }
     public int getIndex() {
@@ -557,7 +600,8 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
         //if (invalidate)
         //    invalidate();
         //addViewForItem(item, itemIndex);
-        animateXMB();
+        //animateXMB();
+        setViews();
         return itemIndex;
     }
 //    public int addItem(XMBItem item) {
@@ -721,6 +765,7 @@ public class XMBView2 extends ViewGroup implements InputReceiver, Refreshable {
     @Override
     public void refresh() {
         //invalidate();
+        createdJustNow = true;
         removeViews();
         createViews();
         setViews();

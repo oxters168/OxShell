@@ -15,6 +15,7 @@ public class XMBItem {
     protected transient Drawable icon;
     public transient float currentX;
     public transient float currentY;
+    public transient boolean skipAnim;
 
     public XMBItem(Object _obj, String _title, Drawable _icon, XMBCat _category) {
         obj = _obj;

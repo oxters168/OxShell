@@ -13,8 +13,9 @@ public class XMBCat {
     public String title;
     public Drawable icon;
 
-    public float currentX;
-    public float currentY;
+    public transient float currentX;
+    public transient float currentY;
+    public transient boolean skipAnim;
 
     public XMBCat(String _title, Drawable _icon) {
         title = _title;
