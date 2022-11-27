@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.widget.GridView;
 
+import com.OxGames.OxShell.Data.XMBCat;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Adapters.GridAdapter;
@@ -99,8 +100,15 @@ public class HomeView extends XMBView2 {
 
         homeItems.add(new HomeItem(HomeItem.Type.settings));
 
+//        XMBCat mainCat = new XMBCat("Apps");
+//        for (XMBItem homeItem : homeItems)
+//            if (((HomeItem)homeItem).type == HomeItem.Type.app)
+//                homeItem.category = mainCat;
+
+        int cachedIndex = currentIndex;
         clear();
         addItems(homeItems);
+        setIndex(cachedIndex);
 
         super.refresh();
     }

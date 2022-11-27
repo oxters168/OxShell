@@ -105,18 +105,18 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
         for (int i = 0; i < categories.size(); i++) {
             XMBCat cat = categories.get(i);
             int expX = startXInt + horShiftOffsetInt * i;
-            cat.currentX = ((expX - cat.currentX) * xmbTrans) + cat.currentX;
-            cat.currentY = ((startYInt - cat.currentY) * xmbTrans) + cat.currentY;
-            drawCategory(canvas, painter, reusableRect, cat.icon, cat.title, Math.round(cat.currentX), Math.round(cat.currentY), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
+            cat.setX(((expX - cat.getX()) * xmbTrans) + cat.getX());
+            cat.setY(((startYInt - cat.getY()) * xmbTrans) + cat.getY());
+            drawCategory(canvas, painter, reusableRect, cat.icon, cat.title, Math.round(cat.getX()), Math.round(cat.getY()), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
         }
         int startIndex = getItemCatsStartIndex();
         int remStartXInt = startXInt + categories.size() * horShiftOffsetInt;
         for (int i = startIndex; i < items.size(); i++) {
             XMBItem item = items.get(i);
             int expX = remStartXInt + horShiftOffsetInt * (i - startIndex);
-            item.currentX = ((expX - item.currentX) * xmbTrans) + item.currentX;
-            item.currentY = ((startYInt - item.currentY) * xmbTrans) + item.currentY;
-            drawCategory(canvas, painter, reusableRect, item.getIcon(), item.title, Math.round(item.currentX), Math.round(item.currentY), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
+            item.setX(((expX - item.getX()) * xmbTrans) + item.getX());
+            item.setY(((startYInt - item.getY()) * xmbTrans) + item.getY());
+            drawCategory(canvas, painter, reusableRect, item.getIcon(), item.title, Math.round(item.getX()), Math.round(item.getY()), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
         }
     }
     private void drawItems(Canvas canvas, int itemIndex, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
@@ -132,10 +132,10 @@ public class XMBView extends View implements InputReceiver, SlideTouchListener {
             int expY = (startYInt + reusableRect.height()) + verShiftOffsetInt * ((i - itemCatIndex) + 1);
             if (i < itemCatIndex)
                 expY = startYInt - verShiftOffsetInt * (((itemCatIndex - 1) - i) + 1);
-            item.currentX = ((expX - item.currentX) * xmbTrans) + item.currentX;
-            item.currentY = ((expY - item.currentY) * xmbTrans) + item.currentY;
+            item.setX(((expX - item.getX()) * xmbTrans) + item.getX());
+            item.setY(((expY - item.getY()) * xmbTrans) + item.getY());
             if (item.category == origCat)
-                drawItem(canvas, painter, reusableRect, item.getIcon(), item.title, Math.round(item.currentX), Math.round(item.currentY), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
+                drawItem(canvas, painter, reusableRect, item.getIcon(), item.title, Math.round(item.getX()), Math.round(item.getY()), iconSize, textSize, textCushion, textColor, getWidth(), getHeight());
         }
     }
     private static void drawCategory(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor, int viewSizeX, int viewSizeY) {

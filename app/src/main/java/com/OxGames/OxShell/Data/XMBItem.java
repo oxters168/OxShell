@@ -13,9 +13,11 @@ public class XMBItem {
     public XMBCat category;
 
     protected transient Drawable icon;
-    public transient float currentX;
-    public transient float currentY;
-    public transient boolean skipAnim;
+    private transient float currentX;
+    private transient float currentY;
+    private transient float prevX;
+    private transient float prevY;
+    //public transient boolean skipAnim;
 
     public XMBItem(Object _obj, String _title, Drawable _icon, XMBCat _category) {
         obj = _obj;
@@ -35,5 +37,26 @@ public class XMBItem {
 
     public Drawable getIcon() {
         return icon;
+    }
+
+    public float getX() {
+        return currentX;
+    }
+    public float getY() {
+        return currentY;
+    }
+    public float getPrevX() {
+        return prevX;
+    }
+    public float getPrevY() {
+        return prevY;
+    }
+    public void setX(float x) {
+        prevX = currentX;
+        currentX = x;
+    }
+    public void setY(float y) {
+        prevY = currentY;
+        currentY = y;
     }
 }
