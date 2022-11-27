@@ -11,7 +11,6 @@ import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.SelectDirsView;
-import com.OxGames.OxShell.Views.XMBView;
 
 import java.io.File;
 

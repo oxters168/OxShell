@@ -72,6 +72,8 @@ public class PackagesView extends SlideTouchListView {
     public void makeSelection() {
         DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
         ResolveInfo rsvInfo = PackagesCache.getResolveInfo((String)currentItem.obj);
+        //rsvInfo.activityInfo.applicationInfo.category
+
         Log.d("PackagesView", (String)currentItem.obj);
         HomeManager.addItemAndSave(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(rsvInfo), (String)currentItem.obj));
         Toast.makeText(ActivityManager.getCurrentActivity(), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();

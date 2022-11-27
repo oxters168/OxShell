@@ -7,21 +7,16 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
-import android.widget.GridView;
 
-import com.OxGames.OxShell.Data.XMBCat;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Adapters.GridAdapter;
-import com.OxGames.OxShell.Data.GridItem;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
 import java.util.ArrayList;
 
-public class HomeView extends XMBView2 {
+public class HomeView extends XMBView {
     private ContextMenu overlay;
 
     public HomeView(Context context) {
@@ -81,7 +76,7 @@ public class HomeView extends XMBView2 {
     public void deleteSelection() {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
         HomeManager.removeItem(selectedItem);
-        refresh();
+        //refresh();
     }
     public void uninstallSelection() {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
@@ -89,6 +84,7 @@ public class HomeView extends XMBView2 {
             Intent intent = new Intent(Intent.ACTION_DELETE);
             intent.setData(Uri.parse("package:" + selectedItem.obj));
             ActivityManager.getCurrentActivity().startActivity(intent);
+            //TODO: Figure out how to get on uninstalled event and remove item when fired
         }
     }
     @Override
