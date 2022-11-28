@@ -42,7 +42,8 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     private int textCushion = 16; //Distance between item and text
     private float horSpacing = 64; //How much space to add between items horizontally
     private float verSpacing = 0; //How much space to add between items vertically
-    private float catShift = (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
+    //private float catShift = horSpacing + (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
+    private float catShift = horSpacing; //How much to shift the categories bar horizontally
     private int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
     private int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
 
@@ -95,7 +96,8 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
 
     private int getStartX() {
         int padding = getPaddingLeft();
-        return Math.round(padding + iconSize / 2f + catShift); //Where the current item's column is along the x-axis
+        //padding = 0;
+        return Math.round(padding + catShift); //Where the current item's column is along the x-axis
     }
     private int getStartY() {
         int vsy = getHeight(); //view size y
@@ -149,8 +151,9 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     }
     private void createViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
-        int colCount = (int)Math.ceil(getWidth() / (float)horShiftOffset) + 2; //+2 for off screen animating into on screen
-        int rowCount = ((int)Math.ceil(getHeight() / (float)verShiftOffset) + 2) * 3; //+2 for off screen to on screen animating, *3 for column to column fade
+        int colCount = (int)Math.ceil(getWidth() / (float)horShiftOffset) + 4; //+4 for off screen animating into on screen
+        int rowCount = ((int)Math.ceil(getHeight() / (float)verShiftOffset) + 4) * 3; //+4 for off screen to on screen animating, *3 for column to column fade
+        catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
         for (int i = 0; i < colCount; i++) {
             //Log.d("XMBView2", "Creating cat view");
             XMBCategoryView view;
@@ -281,6 +284,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             setIndex(currentIndex);
             int startX = getStartX() - getHorIndex() * horShiftOffset;
             int startY = getStartY();
+            //Log.d("XMBView", "Drawing views starting from " + getStartX());
             drawCategories(startX, startY, horShiftOffset);
             drawItems(currentIndex, startX, startY, horShiftOffset, verShiftOffset);
         }
@@ -410,8 +414,12 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         int bottom = expY + iconSize;
         rect.set(expX, expY, right, bottom);
     }
-    private static boolean inView(Rect rect, int viewWidth, int viewHeight) {
-        return ((rect.left < viewWidth && rect.left > 0) || (rect.right > 0 && rect.right < viewWidth)) && ((rect.top < viewHeight && rect.top > 0) || (rect.bottom > 0 && rect.bottom < viewHeight));
+    private boolean inView(Rect rect, int viewWidth, int viewHeight) {
+        int left = -horShiftOffset;
+        int right = viewWidth + horShiftOffset;
+        int top = -verShiftOffset;
+        int bottom = viewHeight + verShiftOffset;
+        return ((rect.left < right && rect.left > left) || (rect.right > left && rect.right < right)) && ((rect.top < bottom && rect.top > top) || (rect.bottom > top && rect.bottom < bottom));
     }
     public static void getTextBounds(Paint painter, String text, float textSize, Rect rect) {
         if (text != null) {
