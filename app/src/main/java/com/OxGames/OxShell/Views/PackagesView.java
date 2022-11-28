@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -14,9 +15,9 @@ import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.Interfaces.PkgListener;
 import com.OxGames.OxShell.PagedActivity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PackagesView extends SlideTouchListView {
@@ -88,16 +89,23 @@ public class PackagesView extends SlideTouchListView {
             mainIntent.addCategory(categories[i]);
 
         //Needs some clean up (use common PackagesCache function to get all apps)
-        ArrayList<DetailItem> intentNames = new ArrayList<>();
+        //ArrayList<DetailItem> intentNames = new ArrayList<>();
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        Log.d("PackagesView", currentActivity.toString());
+        //Log.d("PackagesView", "Querying apps");
         List<ResolveInfo> pkgAppsList = currentActivity.getPackageManager().queryIntentActivities(mainIntent, 0);
-        for (int i = 0; i < pkgAppsList.size(); i++) {
-            ResolveInfo currentPkg = pkgAppsList.get(i);
-            intentNames.add(new DetailItem(PackagesCache.getPackageIcon(currentPkg), PackagesCache.getAppLabel(currentPkg), null, currentPkg.activityInfo.packageName));
-        }
-        DetailAdapter intentsAdapter = new DetailAdapter(getContext(), intentNames);
+        //Log.d("PackagesView", "Listing apps");
+        DetailAdapter intentsAdapter = new DetailAdapter(getContext());
         setAdapter(intentsAdapter);
+        for (int i = 0; i < pkgAppsList.size(); i++) {
+            //Log.d("PackagesView", "Resolving pkg " + i);
+            ResolveInfo currentPkg = pkgAppsList.get(i);
+            PackagesCache.requestPackageIcon(currentPkg, drawable -> currentActivity.runOnUiThread(() -> {
+                intentsAdapter.add(new DetailItem(drawable, PackagesCache.getAppLabel(currentPkg), null, currentPkg.activityInfo.packageName));
+                PackagesView.this.invalidateViews();
+            }));
+            //intentNames.add(new DetailItem(PackagesCache.getPackageIcon(currentPkg), PackagesCache.getAppLabel(currentPkg), null, currentPkg.activityInfo.packageName));
+        }
+        //Log.d("PackagesView", "Finished listing apps");
         super.refresh();
     }
 }

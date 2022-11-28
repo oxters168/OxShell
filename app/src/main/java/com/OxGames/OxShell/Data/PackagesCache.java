@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Interfaces.PkgListener;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.Hashtable;
@@ -16,6 +17,12 @@ public class PackagesCache {
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
     private static Hashtable<String, ApplicationInfo> appInfos = new Hashtable<>();
     private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
+
+//    public abstract class OnIconLoaded implements Runnable {
+//        private Drawable drawable;
+//        @Override
+//        public abstract void run();
+//    }
 
     public static boolean isRunning(String packageName) {
         return isRunning(getPackageInfo(packageName));
@@ -56,6 +63,18 @@ public class PackagesCache {
     public static Drawable getPackageIcon(ResolveInfo rslvInfo) {
         String pkgName = rslvInfo.activityInfo.packageName;
         return getPackageIcon(pkgName);
+    }
+    public static void requestPackageIcon(String packageName, PkgListener pkgListener) {
+        Thread thread = new Thread(() -> {
+            Drawable icon = getPackageIcon(packageName);
+            if (pkgListener != null)
+                pkgListener.onIconLoaded(icon);
+        });
+        thread.start();
+    }
+    public static void requestPackageIcon(ResolveInfo rslvInfo, PkgListener pkgListener) {
+        String pkgName = rslvInfo.activityInfo.packageName;
+        requestPackageIcon(pkgName, pkgListener);
     }
     public static ApplicationInfo getPackageInfo(String packageName) {
         ApplicationInfo appInfo = null;

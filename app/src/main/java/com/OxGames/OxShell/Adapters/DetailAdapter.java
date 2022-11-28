@@ -35,6 +35,7 @@ public class DetailAdapter implements ListAdapter {
 
     public void add(DetailItem detailItem) {
         detailItems.add(detailItem);
+        //notifyDataSetChanged();
     }
 
     public void setHighlightedIndex(int index) {

@@ -101,12 +101,16 @@ public class HomeManager {
     private static void loadHomeItemsFromFile(String parentDir, String fileName) {
         homeItems = new ArrayList<>();
         // Object[] savedItems = (Object[])Serialaver.loadFile(AndroidHelpers.combinePaths(parentDir, fileName));
-        HomeItem[] savedItems = Serialaver.loadFromJSON(AndroidHelpers.combinePaths(parentDir, fileName), HomeItem[].class);
-        if (savedItems != null) {
-            for (HomeItem savedItem : savedItems)
-                addItem(savedItem, false);
+        String path = AndroidHelpers.combinePaths(parentDir, fileName);
+        if (AndroidHelpers.fileExists(path)) {
+            HomeItem[] savedItems = Serialaver.loadFromJSON(path, HomeItem[].class);
+            if (savedItems != null) {
+                for (HomeItem savedItem : savedItems)
+                    addItem(savedItem, false);
+            } else
+                Log.e("HomeManager", "Could not load home items, format unknown");
         } else
-            Log.e("HomeManager", "Could not load home items, format unknown");
+            Log.e("HomeManager", "Attempted to read missing home items @ " + path);
         refreshHomeItems();
     }
     private static void saveHomeItemsToFile(String parentDir, String fileName) {
