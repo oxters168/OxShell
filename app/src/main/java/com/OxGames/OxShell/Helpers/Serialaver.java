@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Type;
 
 public class Serialaver {
     public static void saveFile(Serializable obj, String path) {
@@ -55,5 +56,11 @@ public class Serialaver {
         String json = AndroidHelpers.readFile(absPath);
         //Log.d("Serialaver", "Read json from " + absPath + ":\n" + json);
         return gson.fromJson(json, tClass);
+    }
+    public static <T> T loadFromJSON(String absPath, Type tType) {
+        Gson gson = new Gson();
+        String json = AndroidHelpers.readFile(absPath);
+        //Log.d("Serialaver", "Read json from " + absPath + ":\n" + json);
+        return gson.fromJson(json, tType);
     }
 }

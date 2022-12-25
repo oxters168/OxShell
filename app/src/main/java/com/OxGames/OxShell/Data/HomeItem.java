@@ -11,7 +11,7 @@ import com.OxGames.OxShell.R;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class HomeItem extends XMBItem implements Serializable, DirsCarrier {
+public class HomeItem<T> extends XMBItem<T> implements Serializable, DirsCarrier {
     public enum Type { explorer, app, assoc, settings, }
     public Type type;
     public ArrayList<String> extraData;
@@ -22,7 +22,7 @@ public class HomeItem extends XMBItem implements Serializable, DirsCarrier {
     public HomeItem(Type _type, String _title) {
         this(_type, _title, null);
     }
-    public HomeItem(Type _type, String _title, Object _obj) {
+    public HomeItem(Type _type, String _title, T _obj) {
         super(_obj, _title);
         //super(_title, _obj);
         type = _type;
@@ -40,6 +40,10 @@ public class HomeItem extends XMBItem implements Serializable, DirsCarrier {
         else if (type == Type.assoc)
             icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
         return icon;
+    }
+    @Override
+    public String toString() {
+        return "title: " + title + " item type: " + type.toString() + " type of obj: " + (obj != null ? obj.getClass() : "null");
     }
 //    @Override
 //    public Drawable getSuperIcon() {

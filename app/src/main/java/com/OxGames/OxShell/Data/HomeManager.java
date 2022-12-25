@@ -9,8 +9,11 @@ import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.XMBView;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class HomeManager {
     //private static boolean initialized = false;
@@ -103,10 +106,16 @@ public class HomeManager {
         // Object[] savedItems = (Object[])Serialaver.loadFile(AndroidHelpers.combinePaths(parentDir, fileName));
         String path = AndroidHelpers.combinePaths(parentDir, fileName);
         if (AndroidHelpers.fileExists(path)) {
-            HomeItem[] savedItems = Serialaver.loadFromJSON(path, HomeItem[].class);
-            if (savedItems != null) {
-                for (HomeItem savedItem : savedItems)
+            ArrayList<HomeItem> savedItems = new ArrayList<>();
+            Collections.addAll(savedItems, Serialaver.loadFromJSON(path + Paths.HOME_ITEMS_DEFAULTS, HomeItem[].class));
+            Collections.addAll(savedItems, Serialaver.loadFromJSON(path + Paths.HOME_ITEMS_APPS, new TypeToken<HomeItem<String>[]>(){}.getType()));
+            Collections.addAll(savedItems, Serialaver.loadFromJSON(path + Paths.HOME_ITMES_ASSOCS, new TypeToken<HomeItem<IntentLaunchData>[]>(){}.getType()));
+            //HomeItem[] savedItems = Serialaver.loadFromJSON(path, HomeItem[].class);
+            if (savedItems.size() > 0) {
+                for (HomeItem savedItem : savedItems) {
+                    Log.d("HomeManager", savedItem.toString());
                     addItem(savedItem, false);
+                }
             } else
                 Log.e("HomeManager", "Could not load home items, format unknown");
         } else
@@ -118,7 +127,20 @@ public class HomeManager {
         String fullPath = AndroidHelpers.combinePaths(parentDir, fileName);
         AndroidHelpers.makeFile(fullPath);
         // Serialaver.saveFile(homeItems.toArray(), fullPath);
-        Serialaver.saveAsJSON(homeItems.toArray(), fullPath);
+        ArrayList<HomeItem> defaults = new ArrayList<>();
+        ArrayList<HomeItem<IntentLaunchData>> assocs = new ArrayList<>();
+        ArrayList<HomeItem<String>> apps = new ArrayList<>();
+        for (HomeItem homeItem : homeItems)
+            if (homeItem.type == HomeItem.Type.app)
+                apps.add(homeItem);
+            else if (homeItem.type == HomeItem.Type.assoc)
+                assocs.add(homeItem);
+            else
+                defaults.add(homeItem);
+        Serialaver.saveAsJSON(defaults.toArray(), fullPath + Paths.HOME_ITEMS_DEFAULTS);
+        Serialaver.saveAsJSON(apps.toArray(), fullPath + Paths.HOME_ITEMS_APPS);
+        Serialaver.saveAsJSON(assocs.toArray(), fullPath + Paths.HOME_ITMES_ASSOCS);
+        //Serialaver.saveAsJSON(homeItems.toArray(), fullPath);
     }
     private static void refreshHomeItems() {
         ((HomeView)ActivityManager.getInstance(HomeActivity.class).getView(ActivityManager.Page.home)).refresh();
