@@ -10,29 +10,25 @@ import com.OxGames.OxShell.R;
 public class XMBItem<T> {
     public T obj;
     public String title;
-    //public XMBCat category;
+    // meant for when reloading items from file to keep their correct positions in the menu
+    private int colIndex;
+    private int localIndex;
 
     protected transient Drawable icon;
     private transient float currentX;
     private transient float currentY;
     private transient float prevX;
     private transient float prevY;
-    //public transient boolean skipAnim;
 
-    public XMBItem(T _obj, String _title, Drawable _icon) {
+    public XMBItem(T _obj, String _title, Drawable _icon, int _colIndex, int _localIndex) {
         obj = _obj;
         title = _title;
         icon = _icon;
-        //category = _category;
+        colIndex = _colIndex;
+        localIndex = _localIndex;
     }
-//    public XMBItem(T _obj, String _title, XMBCat _category) {
-//        this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24), _category);
-//    }
-//    public XMBItem(T _obj, String _title, Drawable _icon) {
-//        this(_obj, _title, _icon, null);
-//    }
     public XMBItem(T _obj, String _title) {
-        this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24));
+        this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24), -1, -1);
     }
 
     public Drawable getIcon() {
