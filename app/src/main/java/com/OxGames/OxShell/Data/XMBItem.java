@@ -10,9 +10,9 @@ import com.OxGames.OxShell.R;
 public class XMBItem<T> {
     public T obj;
     public String title;
-    // meant for when reloading items from file to keep their correct positions in the menu
-    private int colIndex;
-    private int localIndex;
+    // meant for when reloading items from file to keep their correct positions in the menu (do not set this manually)
+    public int colIndex;
+    public int localIndex;
 
     protected transient Drawable icon;
     private transient float currentX;
@@ -27,8 +27,11 @@ public class XMBItem<T> {
         colIndex = _colIndex;
         localIndex = _localIndex;
     }
+    public XMBItem(T _obj, String _title, int _colIndex, int _localIndex) {
+        this(_obj, _title, null, _colIndex, _localIndex);
+    }
     public XMBItem(T _obj, String _title) {
-        this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24), -1, -1);
+        this(_obj, _title, null, -1, -1);
     }
 
     public Drawable getIcon() {

@@ -520,6 +520,14 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     private int getCachedIndexOfCat(int colIndex) {
         return catIndices.get(colIndex);
     }
+    public void addSubItems(XMBItem[] items) {
+        for (XMBItem item : items)
+            addSubItem(item, item.colIndex);
+    }
+    public void addSubItems(List<XMBItem> items) {
+        for (XMBItem item : items)
+            addSubItem(item, item.colIndex);
+    }
     public void addSubItem(XMBItem item, int colIndex) {
         addSubItem(item, colIndex, true);
     }
@@ -527,7 +535,16 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         addSubItem(item, getColIndex(cat));
     }
     private void addSubItem(XMBItem item, int colIndex, boolean refresh) {
-        items.get(colIndex).add(item);
+        ArrayList<XMBItem> cat = items.get(colIndex);
+        item.colIndex = colIndex;
+        if (item.localIndex >= 0 && item.localIndex <= cat.size()) {
+            // if the local index given is within the correct range then insert the item there
+            cat.add(item.localIndex, item);
+        } else {
+            // if the local index is not within range then place the item at the end and set its local index to reflect that
+            item.localIndex = cat.size();
+            cat.add(item);
+        }
         if (refresh)
             setViews();
     }
@@ -547,8 +564,19 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     private void addCatItem(XMBItem item, boolean refresh) {
         ArrayList<XMBItem> cat = new ArrayList<>();
         cat.add(item);
-        catIndices.add(0);
-        items.add(cat);
+        // since this item is a cat item then set its local index to 0
+        item.localIndex = 0;
+        if (item.colIndex >= 0 && item.colIndex <= items.size()) {
+            // if the col index is within range then insert into the given position
+            items.add(item.colIndex, cat);
+            catIndices.add(item.colIndex, 0);
+        } else {
+            // if the col index is not within the range of the items list then add to the end and update value
+            item.colIndex = items.size();
+            items.add(cat);
+            catIndices.add(0);
+        }
+
         if (refresh)
             setViews();
     }

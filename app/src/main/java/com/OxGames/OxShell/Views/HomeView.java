@@ -15,6 +15,8 @@ import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class HomeView extends XMBView {
     private ContextMenu overlay;
@@ -94,7 +96,76 @@ public class HomeView extends XMBView {
         if (homeItems == null)
             homeItems = new ArrayList<>();
 
-        homeItems.add(new HomeItem(HomeItem.Type.settings));
+        // reorder items based on their indices so there is no issue when adding them all at once
+        ArrayList<XMBItem> columns = new ArrayList<>();
+        ArrayList<XMBItem> unsortedCols = new ArrayList<>();
+        HashMap<Integer, ArrayList<XMBItem>> sortedSubItems = new HashMap<>();
+        HashMap<Integer, ArrayList<XMBItem>> unsortedSubItems = new HashMap<>();
+        for (int i = 0; i < homeItems.size(); i++) {
+            XMBItem currentItem = homeItems.get(i);
+            Log.d("HomeView", "Sorting " + currentItem.title + " col: " + currentItem.colIndex + " loc: " + currentItem.localIndex);
+            if (currentItem.colIndex >= 0) {
+                if (currentItem.localIndex == 0) {
+                    // if the current item is at the top of the sub items then it is a category item and should be added to the columns list
+                    if (currentItem.colIndex > columns.size())
+                        // if the current item is not within the current range of the columns list then insert into the end of the list
+                        columns.add(currentItem);
+                    else
+                        // if the col index is within the current range of the columns list then insert into the proper position
+                        columns.add(currentItem.colIndex, currentItem);
+                } else if (currentItem.localIndex > 0) {
+                    // if this item has a local index then start figuring out how to add it to sortedSubItems
+                    if (!sortedSubItems.containsKey(currentItem.colIndex))
+                        sortedSubItems.put(currentItem.localIndex, new ArrayList<>());
+                    ArrayList<XMBItem> colSubItems = sortedSubItems.get(currentItem.colIndex);
+
+                    if (currentItem.localIndex > colSubItems.size()) {
+                        // if the local index is not within the correct range then place the item before another item that has a larger local index, which if it does not exist then add the item at the end
+                        boolean inserted = false;
+                        for (int j = colSubItems.size() - 1; j >= 0; j--) {
+                            if (currentItem.localIndex < colSubItems.get(j).localIndex) {
+                                colSubItems.add(j, currentItem);
+                                inserted = true;
+                                break;
+                            }
+                        }
+                        if (!inserted)
+                            colSubItems.add(currentItem);
+                    }
+                    else
+                        // if the local index given is within the correct range then insert the item there
+                        colSubItems.add(currentItem.localIndex, currentItem);
+                } else {
+                    // this item does not have a local index so add it to the unsortedSubItems
+                    if (!unsortedSubItems.containsKey(currentItem.colIndex))
+                        unsortedSubItems.put(currentItem.localIndex, new ArrayList<>());
+                    ArrayList<XMBItem> colSubItems = unsortedSubItems.get(currentItem.colIndex);
+
+                    colSubItems.add(currentItem);
+                }
+            } else {
+                Log.d("HomeView", "Adding " + currentItem.title + " to unsorted cols");
+                // if the col index has not been set then just add item as column in a separate list to be combined at the end of the main list later
+                unsortedCols.add(currentItem);
+            }
+        }
+        columns.addAll(unsortedCols);
+        //homeItems.add(new HomeItem(HomeItem.Type.settings));
+        columns.add(new HomeItem(HomeItem.Type.settings));
+
+        ArrayList<XMBItem> subItems = new ArrayList<>();
+        // get all column indices that exist
+        HashSet<Integer> keys = new HashSet<>(sortedSubItems.keySet());
+        keys.addAll(unsortedSubItems.keySet());
+        for (Integer key : keys) {
+            // add sub items with local indices first to the aggregated list
+            if (sortedSubItems.containsKey(key))
+                subItems.addAll(sortedSubItems.get(key));
+            // then add the sub items without local indices of the same col index to the aggregated list
+            if (unsortedSubItems.containsKey(key))
+                subItems.addAll(unsortedSubItems.get(key));
+        }
+        Log.d("HomeView", "Total sub items is " + subItems.size());
 
 //        XMBCat mainCat = new XMBCat("Apps");
 //        for (XMBItem homeItem : homeItems)
@@ -103,7 +174,9 @@ public class HomeView extends XMBView {
 
         int cachedIndex = currentIndex;
         clear();
-        addCatItems(homeItems);
+        addCatItems(columns);
+        if (subItems.size() > 0)
+            addSubItems(subItems);
         //addItems(homeItems);
         setIndex(cachedIndex);
 
