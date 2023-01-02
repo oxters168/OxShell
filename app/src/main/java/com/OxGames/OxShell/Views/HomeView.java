@@ -58,7 +58,7 @@ public class HomeView extends XMBView {
     }
     @Override
     public void makeSelection() {
-        HomeItem selectedItem = (HomeItem)getSelectedItem();
+        HomeItem selectedItem = (HomeItem) getSelectedItem();
         if (selectedItem.type == HomeItem.Type.explorer) {
             ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
@@ -74,12 +74,12 @@ public class HomeView extends XMBView {
     }
     @Override
     public void deleteSelection() {
-        HomeItem selectedItem = (HomeItem)getSelectedItem();
+        HomeItem selectedItem = (HomeItem) getSelectedItem();
         HomeManager.removeItem(selectedItem);
         //refresh();
     }
     public void uninstallSelection() {
-        HomeItem selectedItem = (HomeItem)getSelectedItem();
+        HomeItem selectedItem = (HomeItem) getSelectedItem();
         if (selectedItem.type == HomeItem.Type.app) {
             Intent intent = new Intent(Intent.ACTION_DELETE);
             intent.setData(Uri.parse("package:" + selectedItem.obj));
@@ -103,7 +103,8 @@ public class HomeView extends XMBView {
 
         int cachedIndex = currentIndex;
         clear();
-        addItems(homeItems);
+        addCatItems(homeItems);
+        //addItems(homeItems);
         setIndex(cachedIndex);
 
         super.refresh();
@@ -121,7 +122,7 @@ public class HomeView extends XMBView {
             overlay.dismiss();
             return null;
         });
-        HomeItem selectedItem = (HomeItem)getSelectedItem();
+        HomeItem selectedItem = (HomeItem) getSelectedItem();
         if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings)
             overlay.addButton("Uninstall", () -> {
                 uninstallSelection();

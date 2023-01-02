@@ -10,7 +10,7 @@ import com.OxGames.OxShell.R;
 public class XMBItem<T> {
     public T obj;
     public String title;
-    public XMBCat category;
+    //public XMBCat category;
 
     protected transient Drawable icon;
     private transient float currentX;
@@ -19,18 +19,18 @@ public class XMBItem<T> {
     private transient float prevY;
     //public transient boolean skipAnim;
 
-    public XMBItem(T _obj, String _title, Drawable _icon, XMBCat _category) {
+    public XMBItem(T _obj, String _title, Drawable _icon) {
         obj = _obj;
         title = _title;
         icon = _icon;
-        category = _category;
+        //category = _category;
     }
-    public XMBItem(T _obj, String _title, XMBCat _category) {
-        this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24), _category);
-    }
-    public XMBItem(T _obj, String _title, Drawable _icon) {
-        this(_obj, _title, _icon, null);
-    }
+//    public XMBItem(T _obj, String _title, XMBCat _category) {
+//        this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24), _category);
+//    }
+//    public XMBItem(T _obj, String _title, Drawable _icon) {
+//        this(_obj, _title, _icon, null);
+//    }
     public XMBItem(T _obj, String _title) {
         this(_obj, _title, ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24));
     }

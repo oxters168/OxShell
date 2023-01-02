@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.ColorInt;
@@ -14,6 +15,7 @@ import androidx.annotation.Nullable;
 public class XMBItemView extends View {
     public Drawable icon;
     public String title;
+    public boolean isCategory;
     private final Paint painter;
     private final Rect reusableRect;
 
@@ -42,10 +44,16 @@ public class XMBItemView extends View {
     }
     public int getFullWidth() {
         getTextBounds(reusableRect);
-        return iconSize + textCushion + reusableRect.width();
+        int width = iconSize + textCushion + reusableRect.width();
+        if (isCategory)
+            width = Math.max(iconSize, reusableRect.width());
+        return width;
     }
     public int getFullHeight() {
-        return iconSize;
+        int height = iconSize;
+        if (isCategory)
+            height = iconSize + textCushion + reusableRect.height();
+        return height;
     }
     public void getTextBounds(Rect rect) {
         if (title != null) {
@@ -64,10 +72,14 @@ public class XMBItemView extends View {
 //        canvas.drawLine(0, 0, getWidth(), getHeight(), painter);
 //        canvas.drawLine(0, getHeight(), getWidth(), 0, painter);
 
-        drawItem(canvas, painter, reusableRect, icon, title, 0, 0, iconSize, textSize, textCushion, textColor);
+        if (!isCategory)
+            drawItem(canvas, painter, reusableRect, icon, title, 0, 0, iconSize, textSize, textCushion, textColor);
+        else
+            drawCategory(canvas, painter, reusableRect, icon, title, 0, 0, iconSize, textSize, textCushion, textColor);
     }
 
     private static void drawItem(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
+        //Log.d("XMBItemView", "Drawing " + title + " as item");
         int right = x + iconSize;
         int bottom = y + iconSize;
         if (icon != null) {
@@ -81,6 +93,23 @@ public class XMBItemView extends View {
             painter.setTextAlign(Paint.Align.LEFT);
             painter.getTextBounds(title, 0, title.length(), reusableRect);
             canvas.drawText(title, x + cushion + iconSize, y + iconSize / 2f + reusableRect.height() / 2f, painter);
+        }
+    }
+    private static void drawCategory(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {
+        //Log.d("XMBItemView", "Drawing " + title + " as category");
+        int right = x + iconSize;
+        int bottom = y + iconSize;
+        if (icon != null) {
+            icon.setBounds(x, y, right, bottom);
+            icon.setAlpha(255);
+            icon.draw(canvas);
+        }
+        if (title != null) {
+            painter.setColor(textColor);
+            painter.setTextSize(textSize);
+            painter.setTextAlign(Paint.Align.CENTER);
+            painter.getTextBounds(title, 0, title.length(), reusableRect);
+            canvas.drawText(title, x + iconSize / 2f, y + cushion + iconSize + reusableRect.height() / 2f, painter);
         }
     }
 }

@@ -43,11 +43,13 @@ public class XMBCategoryView extends View {
     }
     public int getFullWidth() {
         getTextBounds(reusableRect);
-        return Math.max(iconSize, reusableRect.width());
+        int width = Math.max(iconSize, reusableRect.width());
+        return width;
     }
     public int getFullHeight() {
         getTextBounds(reusableRect);
-        return iconSize + textCushion + reusableRect.height();
+        int height = iconSize + textCushion + reusableRect.height();
+        return height;
     }
     public void getTextBounds(Rect rect) {
         if (title != null) {
