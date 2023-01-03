@@ -478,6 +478,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
                 if (cat != null) {
                     if (currentPos < cat.size()) {
                         item = cat.get(currentPos);
+                        break;
                     } else if (cat.size() == 1)
                         currentPos -= 1;
                     else if (cat.size() > 1)
@@ -686,7 +687,6 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     public void selectUpperItem() {
         int colIndex = getColIndexFromTraversable(currentIndex);
         if (columnHasSubItems(colIndex)) {
-            //int colSize = getColCount(colIndex);
             int localIndex = traversableToLocalIndex(currentIndex);
             if (localIndex - 1 >= 0) {
                 setIndex(currentIndex - 1);

@@ -61,6 +61,7 @@ public class HomeView extends XMBView {
     @Override
     public void makeSelection() {
         HomeItem selectedItem = (HomeItem) getSelectedItem();
+        Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
         if (selectedItem.type == HomeItem.Type.explorer) {
             ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
@@ -96,14 +97,32 @@ public class HomeView extends XMBView {
         if (homeItems == null)
             homeItems = new ArrayList<>();
 
-        // reorder items based on their indices so there is no issue when adding them all at once
         ArrayList<XMBItem> columns = new ArrayList<>();
+        ArrayList<XMBItem> subItems = new ArrayList<>();
+        sortItems(homeItems, columns, subItems);
+        //homeItems.add(new HomeItem(HomeItem.Type.settings));
+        columns.add(0, new HomeItem(HomeItem.Type.settings));
+
+        int cachedIndex = currentIndex;
+        clear();
+        addCatItems(columns);
+        if (subItems.size() > 0)
+            addSubItems(subItems);
+        //addItems(homeItems);
+        setIndex(cachedIndex);
+
+        super.refresh();
+    }
+
+    private void sortItems(ArrayList<XMBItem> unsortedItems, ArrayList<XMBItem> columns, ArrayList<XMBItem> subItems) {
+        // reorder items based on their indices so there is no issue when adding them all at once
+        //ArrayList<XMBItem> columns = new ArrayList<>();
         ArrayList<XMBItem> unsortedCols = new ArrayList<>();
         HashMap<Integer, ArrayList<XMBItem>> sortedSubItems = new HashMap<>();
         HashMap<Integer, ArrayList<XMBItem>> unsortedSubItems = new HashMap<>();
-        for (int i = 0; i < homeItems.size(); i++) {
-            XMBItem currentItem = homeItems.get(i);
-            Log.d("HomeView", "Sorting " + currentItem.title + " col: " + currentItem.colIndex + " loc: " + currentItem.localIndex);
+        for (int i = 0; i < unsortedItems.size(); i++) {
+            XMBItem currentItem = unsortedItems.get(i);
+            //Log.d("HomeView", "Sorting " + currentItem.title + " col: " + currentItem.colIndex + " loc: " + currentItem.localIndex);
             if (currentItem.colIndex >= 0) {
                 if (currentItem.localIndex == 0) {
                     // if the current item is at the top of the sub items then it is a category item and should be added to the columns list
@@ -144,16 +163,14 @@ public class HomeView extends XMBView {
                     colSubItems.add(currentItem);
                 }
             } else {
-                Log.d("HomeView", "Adding " + currentItem.title + " to unsorted cols");
+                //Log.d("HomeView", "Adding " + currentItem.title + " to unsorted cols");
                 // if the col index has not been set then just add item as column in a separate list to be combined at the end of the main list later
                 unsortedCols.add(currentItem);
             }
         }
         columns.addAll(unsortedCols);
-        //homeItems.add(new HomeItem(HomeItem.Type.settings));
-        columns.add(new HomeItem(HomeItem.Type.settings));
 
-        ArrayList<XMBItem> subItems = new ArrayList<>();
+        //ArrayList<XMBItem> subItems = new ArrayList<>();
         // get all column indices that exist
         HashSet<Integer> keys = new HashSet<>(sortedSubItems.keySet());
         keys.addAll(unsortedSubItems.keySet());
@@ -166,21 +183,6 @@ public class HomeView extends XMBView {
                 subItems.addAll(unsortedSubItems.get(key));
         }
         Log.d("HomeView", "Total sub items is " + subItems.size());
-
-//        XMBCat mainCat = new XMBCat("Apps");
-//        for (XMBItem homeItem : homeItems)
-//            if (((HomeItem)homeItem).type == HomeItem.Type.app)
-//                homeItem.category = mainCat;
-
-        int cachedIndex = currentIndex;
-        clear();
-        addCatItems(columns);
-        if (subItems.size() > 0)
-            addSubItems(subItems);
-        //addItems(homeItems);
-        setIndex(cachedIndex);
-
-        super.refresh();
     }
 
     private void showCustomContextMenu(int x, int y) {
