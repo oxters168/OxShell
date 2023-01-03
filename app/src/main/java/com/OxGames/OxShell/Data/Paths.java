@@ -15,9 +15,10 @@ public class Paths {
     public static final String HOME_ITEMS_FILE_NAME = "HomeItems";
     public static final String HOME_ITEMS_EXTERNAL_PATH = AndroidHelpers.combinePaths(STORAGE_DIR_EXTERNAL, HOME_ITEMS_FILE_NAME);
     public static final String HOME_ITEMS_INTERNAL_PATH = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, HOME_ITEMS_FILE_NAME);
+    public static final String HOME_ITEMS_CATS = "_cats";
     public static final String HOME_ITEMS_DEFAULTS = "_defaults";
     public static final String HOME_ITEMS_APPS = "_apps";
-    public static final String HOME_ITMES_ASSOCS = "_assocs";
+    public static final String HOME_ITEMS_ASSOCS = "_assocs";
 
     public static final String SETTINGS_INTERNAL_PATH = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Settings");
 }

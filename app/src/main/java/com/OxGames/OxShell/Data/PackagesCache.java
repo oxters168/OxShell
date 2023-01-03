@@ -1,5 +1,6 @@
 package com.OxGames.OxShell.Data;
 
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -7,7 +8,8 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Interfaces.PkgListener;
+import com.OxGames.OxShell.Interfaces.PkgAppsListener;
+import com.OxGames.OxShell.Interfaces.PkgIconListener;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.Hashtable;
@@ -48,11 +50,7 @@ public class PackagesCache {
             try {
                 pkgIcon = ActivityManager.getCurrentActivity().getPackageManager().getApplicationIcon(packageName);
                 packageIcons.put(packageName, pkgIcon);
-            }
-            catch (PackageManager.NameNotFoundException e) {
-                Log.e("PackageCache", e.getMessage());
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 Log.e("PackageCache", e.getMessage());
             }
         } else
@@ -64,17 +62,31 @@ public class PackagesCache {
         String pkgName = rslvInfo.activityInfo.packageName;
         return getPackageIcon(pkgName);
     }
-    public static void requestPackageIcon(String packageName, PkgListener pkgListener) {
+    public static void requestInstalledPackages(String action, String[] categories, PkgAppsListener pkgAppsListener) {
         Thread thread = new Thread(() -> {
-            Drawable icon = getPackageIcon(packageName);
-            if (pkgListener != null)
-                pkgListener.onIconLoaded(icon);
+            Intent mainIntent = new Intent(action, null);
+            for (String category : categories)
+                mainIntent.addCategory(category);
+            PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+            List<ResolveInfo> pkgAppsList = currentActivity.getPackageManager().queryIntentActivities(mainIntent, 0);
+            if (pkgAppsListener != null)
+                pkgAppsListener.onQueryApps(pkgAppsList);
+            //Log.d("PackagesView", "Listing apps");
         });
         thread.start();
     }
-    public static void requestPackageIcon(ResolveInfo rslvInfo, PkgListener pkgListener) {
+    public static void requestPackageIcon(String packageName, PkgIconListener pkgIconListener) {
+        //Log.d("PackagesCache", "Requesting icon for " + packageName);
+        Thread thread = new Thread(() -> {
+            Drawable icon = getPackageIcon(packageName);
+            if (pkgIconListener != null)
+                pkgIconListener.onIconLoaded(icon);
+        });
+        thread.start();
+    }
+    public static void requestPackageIcon(ResolveInfo rslvInfo, PkgIconListener pkgIconListener) {
         String pkgName = rslvInfo.activityInfo.packageName;
-        requestPackageIcon(pkgName, pkgListener);
+        requestPackageIcon(pkgName, pkgIconListener);
     }
     public static ApplicationInfo getPackageInfo(String packageName) {
         ApplicationInfo appInfo = null;

@@ -157,7 +157,7 @@ public class HomeView extends XMBView {
                 } else {
                     // this item does not have a local index so add it to the unsortedSubItems
                     if (!unsortedSubItems.containsKey(currentItem.colIndex))
-                        unsortedSubItems.put(currentItem.localIndex, new ArrayList<>());
+                        unsortedSubItems.put(currentItem.colIndex, new ArrayList<>());
                     ArrayList<XMBItem> colSubItems = unsortedSubItems.get(currentItem.colIndex);
 
                     colSubItems.add(currentItem);

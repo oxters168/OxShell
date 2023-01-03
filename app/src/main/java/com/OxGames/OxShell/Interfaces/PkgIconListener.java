@@ -1,7 +1,10 @@
 package com.OxGames.OxShell.Interfaces;
 
+import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 
-public interface PkgListener {
+import java.util.List;
+
+public interface PkgIconListener {
     void onIconLoaded(Drawable drawable);
 }

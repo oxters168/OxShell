@@ -46,7 +46,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     int currentIndex = 0;
 
     private final Rect reusableRect = new Rect();
-    //private final ArrayList<Integer> reusableIndices = new ArrayList<>();
+    private final ArrayList<Integer> reusableIndices = new ArrayList<>();
     private final Paint painter = new Paint();
     //private float xmbTrans = 1; //Animation transition value
 
@@ -103,10 +103,6 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             // Go through each column subtracting the amount of items there from the index until the index becomes zero or less
             // meaning we've reached our column
             for (int i = 0; i < items.size(); i++) {
-                if (currentPos <= 0) {
-                    index = i;
-                    break;
-                }
                 ArrayList<XMBItem> cat = items.get(i);
                 if (cat.size() == 1)
                     currentPos -= 1;
@@ -114,6 +110,11 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
                     currentPos -= (cat.size() - 1);
                 else
                     Log.e("XMBView", "Category list @" + i + " is empty");
+
+                if (currentPos < 0) {
+                    index = i;
+                    break;
+                }
             }
         }
         return index;
@@ -183,6 +184,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     }
     private void returnItemView(int totalIndex) {
         if (usedItemViews.containsKey(totalIndex)) {
+            //Log.d("XMBView", "Returning view id " + totalIndex);
             XMBItemView itemView = usedItemViews.get(totalIndex);
             itemView.setVisibility(GONE);
             goneItemViews.push(itemView);
@@ -218,12 +220,12 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     private XMBItemView getItemView(XMBItem item) {
         XMBItemView view = null;
         int index = getTotalIndex(item);
-        //Log.d("XMBView", "Total index of " + item.title + " is " + index);
+        //Log.d("XMBView", "Retrieving view of " + item.title + " whose total index is " + index);
         if (usedItemViews.containsKey(index)) {
-            //Log.d("XMBView2", "Requested item on " + index);
+            //Log.d("XMBView", "View already visible");
             view = usedItemViews.get(index);
         } else if (!goneItemViews.isEmpty()) {
-            //Log.d("XMBView2", "Requested nonexistant item");
+            //Log.d("XMBView", "Requesting new view");
             view = goneItemViews.pop();
             view.title = item.title;
             view.icon = item.getIcon();
@@ -330,7 +332,8 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             // meaning we've reached our column
             for (int i = 0; i < items.size(); i++) {
                 ArrayList<XMBItem> cat = items.get(i);
-                if (currentPos < cat.size()) {
+                boolean hasSubItems = cat.size() > 1;
+                if ((hasSubItems && currentPos < cat.size() - 1) || (!hasSubItems && currentPos < cat.size())) {
                     index = currentPos;
                     break;
                 } else if (cat.size() > 1)
@@ -434,13 +437,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             return items.get(colIndex).size();
     }
     private boolean columnHasSubItems(int colIndex) {
-        boolean isColumn = false;
-        ArrayList<XMBItem> column = items.get(colIndex);
-        if (column != null)
-            isColumn = column.size() > 1;
-        else
-            Log.e("XMBView", "Column @" + colIndex + " is null");
-        return isColumn;
+        return items.get(colIndex).size() > 1;
     }
     public void setIndex(int index) {
         if (items.size() > 0) {
@@ -454,6 +451,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             //If the column has multiple items, set the index cache of the column as well
             if (columnHasSubItems(colIndex)) {
                 int localIndex = traversableToLocalIndex(currentIndex);
+                Log.d("XMBView", "Setting traversable to " + index + " setting col " + colIndex + " cache to " + localIndex);
                 catIndices.set(colIndex, localIndex);
             }
         }
@@ -476,8 +474,9 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             for (int i = 0; i < items.size(); i++) {
                 ArrayList<XMBItem> cat = items.get(i);
                 if (cat != null) {
-                    if (currentPos < cat.size()) {
-                        item = cat.get(currentPos);
+                    boolean colHasSubItems = cat.size() > 1;
+                    if ((colHasSubItems && currentPos < cat.size() - 1) || (!colHasSubItems && currentPos < cat.size())) {
+                        item = cat.get(colHasSubItems ? currentPos + 1 : currentPos);
                         break;
                     } else if (cat.size() == 1)
                         currentPos -= 1;
@@ -506,13 +505,14 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         int index = 0;
         boolean found = false;
         for (int i = 0; i < items.size(); i++) {
-            int localIndex = items.get(i).indexOf(item);
+            ArrayList<XMBItem> column = items.get(i);
+            int localIndex = column.indexOf(item);
             if (localIndex >= 0) {
                 found = true;
                 index += localIndex;
                 break;
             } else
-                index += items.size();
+                index += column.size();
         }
         if (!found)
             index = -1;
@@ -527,7 +527,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     }
     public void addSubItems(List<XMBItem> items) {
         for (XMBItem item : items)
-            addSubItem(item, item.colIndex);
+            addSubItem(item, item.colIndex, false);
     }
     public void addSubItem(XMBItem item, int colIndex) {
         addSubItem(item, colIndex, true);
@@ -699,6 +699,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         if (colIndex + 1 < getTotalColCount()) {
             int localIndex = getCachedIndexOfCat(colIndex + 1);
             int nextIndex = localToTraversableIndex(localIndex, colIndex + 1);
+            Log.d("XMBView", "Right => colFrom: " + colIndex + " colTo: " + (colIndex + 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
             setIndex(nextIndex);
             setViews();
         }
@@ -708,6 +709,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         if (colIndex - 1 >= 0) {
             int localIndex = getCachedIndexOfCat(colIndex - 1);
             int nextIndex = localToTraversableIndex(localIndex, colIndex - 1);
+            Log.d("XMBView", "Left => colFrom: " + colIndex + " colTo: " + (colIndex - 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
             setIndex(nextIndex);
             setViews();
         }

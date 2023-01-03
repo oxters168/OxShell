@@ -79,7 +79,7 @@ public class XMBItemView extends View {
         if (!isCategory)
             drawItem(canvas, painter, reusableRect, icon != null ? icon : ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_hide_image_24), title, 0, 0, iconSize, textSize, textCushion, textColor);
         else
-            drawCategory(canvas, painter, reusableRect, icon != null ? icon : ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_source_24), title, 0, 0, iconSize, textSize, textCushion, textColor);
+            drawCategory(canvas, painter, reusableRect, icon != null ? icon : ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_view_list_24), title, 0, 0, iconSize, textSize, textCushion, textColor);
     }
 
     private static void drawItem(Canvas canvas, Paint painter, Rect reusableRect, Drawable icon, String title, int x, int y, int iconSize, float textSize, float cushion, @ColorInt int textColor) {

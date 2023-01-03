@@ -28,6 +28,17 @@ public class HomeItem<T> extends XMBItem<T> implements Serializable, DirsCarrier
         type = _type;
         extraData = new ArrayList<>();
     }
+    public HomeItem(Type _type, Drawable _icon, String _title) {
+        this(_type, _icon, _title, null, -1, -1);
+    }
+    public HomeItem(Type _type, Drawable _icon, String _title, T _obj) {
+        this(_type, _icon, _title, _obj, -1, -1);
+    }
+    public HomeItem(Type _type, Drawable _icon, String _title, T _obj, int _colIndex, int _localIndex) {
+        super(_obj, _title, _icon, _colIndex, _localIndex);
+        type = _type;
+        extraData = new ArrayList<>();
+    }
     @Override
     public Drawable getIcon() {
         Drawable icon = null;

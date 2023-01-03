@@ -55,10 +55,9 @@ public class PagedActivity extends AppCompatActivity {
         ActivityManager.instanceCreated(this);
 
         SettingsKeeper.loadOrCreateSettings();
-        if (SettingsKeeper.fileDidNotExist()) {
+        if (SettingsKeeper.fileDidNotExist())
             ShortcutsCache.createAndStoreDefaults();
-            //TODO: Create home items from apps and sort them
-        } else
+        else
             ShortcutsCache.readIntentsFromDisk();
 
         //HideActionBar();
