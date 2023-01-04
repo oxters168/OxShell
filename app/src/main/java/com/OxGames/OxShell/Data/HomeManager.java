@@ -79,6 +79,8 @@ public class HomeManager {
             PagedActivity currentActivity = ActivityManager.getCurrentActivity();
             PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, new String[] { Intent.CATEGORY_LAUNCHER }, apps -> currentActivity.runOnUiThread(() -> {
                 // go through all apps creating HomeItems for them and sorting them into their categories
+//                for (ResolveInfo app : apps)
+//                    addItem(new HomeItem(HomeItem.Type.app, PackagesCache.getPackageIcon(app), PackagesCache.getAppLabel(app), app.activityInfo.packageName), false);
                 for (int i = 0; i < apps.size(); i++) {
                     ResolveInfo currentPkg = apps.get(i);
                     int category = -1;
@@ -98,9 +100,9 @@ public class HomeManager {
                     int catIndex = existingCategories.get(index);
                     if (catIndex == -1)
                         catIndex = categories.length - 1;
-                    addItem(new XMBItem(null, categories[catIndex], index + 1, 0), false);
+                    addItem(new XMBItem(null, categories[catIndex], index + 2, 0), false);
                     for (XMBItem app : sortedApps.get(existingCategories.get(index))) {
-                        app.colIndex = index + 1;
+                        app.colIndex = index + 2;
                         addItem(app, false);
                     }
                 }

@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
@@ -147,7 +148,6 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             if (view.getVisibility() == GONE)
                 continue;
 
-            //TODO: Possibly make a base class for both views that share some methods
             if (view instanceof XMBItemView) {
                 XMBItemView itemView = (XMBItemView)view;
                 int expX = 0;
@@ -224,8 +224,10 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         if (usedItemViews.containsKey(index)) {
             //Log.d("XMBView", "View already visible");
             view = usedItemViews.get(index);
+            //Log.d("XMBView", "Retrieving view for " + item.title + " whose value is already set to " + view.title);
         } else if (!goneItemViews.isEmpty()) {
             //Log.d("XMBView", "Requesting new view");
+            //Log.d("XMBView", "Setting view values for " + item.title);
             view = goneItemViews.pop();
             view.title = item.title;
             view.icon = item.getIcon();
@@ -245,11 +247,13 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             //Log.d("XMBView", "Drawing views starting from " + getStartX());
             drawCategories(startX, startY, horShiftOffset);
             drawItems(currentIndex, startX, startY, horShiftOffset, verShiftOffset);
+            //invalidate();
         }
     }
     private void drawCategories(int startXInt, int startYInt, int horShiftOffsetInt) {
         int viewWidth = getWidth();
         int viewHeight = getHeight();
+        //Log.d("XMBView", "Drawing categories");
         for (int i = 0; i < getTotalColCount(); i++) {
             XMBItem cat = getCat(i);
             calcCatRect(startXInt, startYInt, horShiftOffsetInt, i, reusableRect);
@@ -260,7 +264,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             if (inBounds) {
                 XMBItemView catView = getItemView(cat);
                 if (catView != null) {
-                    //Log.d("XMBView", "Retrieved view for " + cat.title + " whose title was set to " + catView.title);
+                    //Log.d("XMBView", "Setting cat " + cat.title);
                     catView.isCategory = true;
                     catView.setX(cat.getPrevX());
                     catView.setY(cat.getPrevY());
@@ -278,6 +282,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         int traversableCount = getTraversableCount();
+        //Log.d("XMBView", "Drawing items");
         for (int i = 0; i < traversableCount; i++) {
             XMBItem item = getTraversableItem(i);
             int itemColIndex = getColIndexFromTraversable(i);
@@ -292,6 +297,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             if (itemColIndex == origColIndex && inBounds) {
                 XMBItemView itemView = getItemView(item);
                 if (itemView != null) {
+                    //Log.d("XMBView", "Setting item " + item.title);
                     itemView.isCategory = false;
                     itemView.setX(item.getPrevX());
                     itemView.setY(item.getPrevY());
@@ -318,7 +324,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     private int traversableToTotalIndex(int traversableIndex) {
         int colIndex = getColIndexFromTraversable(traversableIndex);
         int index = traversableIndex;
-        for (int i = 0; i < colIndex; i++) {
+        for (int i = 0; i <= colIndex; i++) {
             if (items.get(i).size() > 1)
                 index += 1;
         }
@@ -388,10 +394,14 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         rect.set(expX, expY, right, bottom);
     }
     private boolean inView(Rect rect, int viewWidth, int viewHeight) {
-        int left = -horShiftOffset;
-        int right = viewWidth + horShiftOffset;
-        int top = -verShiftOffset;
-        int bottom = viewHeight + verShiftOffset;
+        int left = 0;
+        int right = viewWidth;
+        int top = 0;
+        int bottom = viewHeight;
+//        int left = -horShiftOffset;
+//        int right = viewWidth + horShiftOffset;
+//        int top = -verShiftOffset;
+//        int bottom = viewHeight + verShiftOffset;
         return ((rect.left < right && rect.left > left) || (rect.right > left && rect.right < right)) && ((rect.top < bottom && rect.top > top) || (rect.bottom > top && rect.bottom < bottom));
     }
     public static void getTextBounds(Paint painter, String text, float textSize, Rect rect) {
@@ -451,7 +461,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             //If the column has multiple items, set the index cache of the column as well
             if (columnHasSubItems(colIndex)) {
                 int localIndex = traversableToLocalIndex(currentIndex);
-                Log.d("XMBView", "Setting traversable to " + index + " setting col " + colIndex + " cache to " + localIndex);
+                //Log.d("XMBView", "Setting traversable to " + index + " setting col " + colIndex + " cache to " + localIndex);
                 catIndices.set(colIndex, localIndex);
             }
         }
@@ -552,12 +562,10 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     public void addCatItems(XMBItem[] items) {
         for (int i = 0; i < items.length; i++)
             addCatItem(items[i], false);
-        setViews();
     }
     public void addCatItems(List<XMBItem> items) {
         for (int i = 0; i < items.size(); i++)
             addCatItem(items.get(i), false);
-        setViews();
     }
     public void addCatItem(XMBItem item) {
         addCatItem(item, true);
@@ -699,7 +707,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         if (colIndex + 1 < getTotalColCount()) {
             int localIndex = getCachedIndexOfCat(colIndex + 1);
             int nextIndex = localToTraversableIndex(localIndex, colIndex + 1);
-            Log.d("XMBView", "Right => colFrom: " + colIndex + " colTo: " + (colIndex + 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
+            //Log.d("XMBView", "Right => colFrom: " + colIndex + " colTo: " + (colIndex + 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
             setIndex(nextIndex);
             setViews();
         }
@@ -709,7 +717,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         if (colIndex - 1 >= 0) {
             int localIndex = getCachedIndexOfCat(colIndex - 1);
             int nextIndex = localToTraversableIndex(localIndex, colIndex - 1);
-            Log.d("XMBView", "Left => colFrom: " + colIndex + " colTo: " + (colIndex - 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
+            //Log.d("XMBView", "Left => colFrom: " + colIndex + " colTo: " + (colIndex - 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
             setIndex(nextIndex);
             setViews();
         }
