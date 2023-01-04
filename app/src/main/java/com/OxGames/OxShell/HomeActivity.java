@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.SelectDirsView;
 
@@ -27,14 +28,6 @@ public class HomeActivity extends PagedActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        currentPage = ActivityManager.Page.home;
-        ActivityManager.setCurrent(currentPage);
-        setContentView(R.layout.activity_home);
-        initViewsTable();
-
-        HomeManager.init();
-        goTo(ActivityManager.Page.home);
-        showAnnoyingDialog();
 
         Log.d("HomeActivity", "external-path " + Environment.getExternalStorageDirectory());
         Log.d("HomeActivity", "external-files-path " + getExternalFilesDir(null));
@@ -44,8 +37,20 @@ public class HomeActivity extends PagedActivity {
         File[] extMediaDirs = getExternalMediaDirs();
         for (int i = 0; i < extMediaDirs.length; i++)
             Log.d("HomeActivity", "external-media-path_" + i + ": " + extMediaDirs[i]);
-
         // Log.d("HomeActivity", ShellCommander.run("mount"));
+//        ExplorerBehaviour beh = new ExplorerBehaviour();
+//        beh.setDirectory(getFilesDir().getPath());
+//        for (File subPath : beh.listContents())
+//            Log.d("HomeActivity", "DataContents: " + subPath);
+
+        currentPage = ActivityManager.Page.home;
+        ActivityManager.setCurrent(currentPage);
+        setContentView(R.layout.activity_home);
+        initViewsTable();
+
+        HomeManager.init();
+        goTo(ActivityManager.Page.home);
+        showAnnoyingDialog();
     }
     @Override
     protected void onResume() {

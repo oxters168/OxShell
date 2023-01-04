@@ -55,10 +55,16 @@ public class PagedActivity extends AppCompatActivity {
         ActivityManager.instanceCreated(this);
 
         SettingsKeeper.loadOrCreateSettings();
-        if (SettingsKeeper.fileDidNotExist())
+        if (SettingsKeeper.fileDidNotExist()) {
             ShortcutsCache.createAndStoreDefaults();
-        else
+            Log.d("PagedActivity", "Settings did not exist, first time launch");
+        } else {
             ShortcutsCache.readIntentsFromDisk();
+            int timesLoaded = 0;
+            if (SettingsKeeper.hasValue(SettingsKeeper.TIMES_LOADED))
+                timesLoaded = (int)SettingsKeeper.getValue(SettingsKeeper.TIMES_LOADED);
+            Log.d("PagedActivity", "Settings existed, app launched " + timesLoaded + " time(s)");
+        }
 
         //HideActionBar();
 

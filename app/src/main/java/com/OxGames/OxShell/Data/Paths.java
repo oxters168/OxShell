@@ -7,7 +7,8 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
 public class Paths {
     public static final String STORAGE_DIR_EXTERNAL = Environment.getExternalStorageDirectory() + "/OxShell";
-    public static final String STORAGE_DIR_INTERNAL = ActivityManager.getCurrentActivity().getFilesDir().toString();
+    public static final String STORAGE_DIR_INTERNAL = ActivityManager.getCurrentActivity().getExternalFilesDir(null).toString();
+    //public static final String STORAGE_DIR_INTERNAL = ActivityManager.getCurrentActivity().getFilesDir().toString();
 
     public static final String SHORTCUTS_DIR_EXTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_EXTERNAL, "Intents");
     public static final String SHORTCUTS_DIR_INTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Intents");

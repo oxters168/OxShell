@@ -6,6 +6,7 @@ import com.OxGames.OxShell.Helpers.Serialaver;
 import java.util.HashMap;
 
 public class SettingsKeeper {
+    public static final String TIMES_LOADED = "times_loaded";
     private static boolean fileDidExist;
     private static HashMap<String, Object> settingsCache;
 
@@ -16,9 +17,15 @@ public class SettingsKeeper {
         load();
         if (settingsCache == null) {
             settingsCache = new HashMap<>();
-            save();
-        } else
+            SettingsKeeper.setValueAndSave(TIMES_LOADED, Integer.valueOf(1));
+            //save();
+        } else {
             fileDidExist = true;
+            if (SettingsKeeper.hasValue(TIMES_LOADED)) {
+                int timesLoaded = ((Double)SettingsKeeper.getValue(TIMES_LOADED)).intValue(); // even if saved as Integer for some reason it comes back as Double
+                SettingsKeeper.setValueAndSave(TIMES_LOADED, timesLoaded + 1);
+            }
+        }
     }
     public static void load() {
         if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))
@@ -38,5 +45,8 @@ public class SettingsKeeper {
     }
     public static Object getValue(String key) {
         return settingsCache.get(key);
+    }
+    public static boolean hasValue(String key) {
+        return settingsCache.containsKey(key);
     }
 }
