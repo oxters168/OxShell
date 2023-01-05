@@ -45,6 +45,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     private int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
 
     int currentIndex = 0;
+    private int prevIndex = 0;
 
     private final Rect reusableRect = new Rect();
     private final ArrayList<Integer> reusableIndices = new ArrayList<>();
@@ -264,30 +265,15 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             cat.setY(reusableRect.top);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
             //Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
-            if (inBounds) {
-                XMBItemView[] catViewHolder = new XMBItemView[1];
-                boolean isNewView = getItemView(cat, catViewHolder);
-                XMBItemView catView = catViewHolder[0];
-                if (catView != null) {
-                    catView.isCategory = true;
-                    if (isNewView) {
-                        catView.setX(cat.getX());
-                        catView.setY(cat.getY());
-                    } else {
-                        catView.setX(cat.getPrevX());
-                        catView.setY(cat.getPrevY());
-                        catView.animate().setDuration(300);
-                        catView.animate().xBy(cat.getX() - cat.getPrevX());
-                        catView.animate().yBy(cat.getY() - cat.getPrevY());
-                    }
-                } else
-                    Log.w("XMBView", "Missing item view for category @" + i + ", skipped for now");
-            } else
+            if (inBounds)
+                drawItem(cat, true, FADE_VISIBLE);
+            else
                 returnItemView(getTotalIndexOfCol(i));
         }
     }
     private void drawItems(int itemIndex, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
         int origColIndex = getColIndexFromTraversable(itemIndex);
+        int prevColIndex = getColIndexFromTraversable(prevIndex);
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         int traversableCount = getTraversableCount();
@@ -295,36 +281,78 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         for (int i = 0; i < traversableCount; i++) {
             XMBItem item = getTraversableItem(i);
             int itemColIndex = getColIndexFromTraversable(i);
+            // skip items that belong to a column with one item, those are drawn with the categories
             if (!columnHasSubItems(itemColIndex))
                 continue;
             calcItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, i, reusableRect);
+            int top = reusableRect.top;
+            int width = reusableRect.width();
+            int height = reusableRect.height();
+            calcCatRect(startXInt, startYInt, horShiftOffsetInt, itemColIndex, reusableRect);
+            reusableRect.right = reusableRect.left + width;
+            reusableRect.top = top;
+            reusableRect.bottom = reusableRect.top + height;
             item.setX(reusableRect.left);
             item.setY(reusableRect.top);
-            //Log.d("XMBView", "Setting item " + i + " title: " + item.title);
+
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            //TODO: include immediate columns to allow for alpha transition
-            if (itemColIndex == origColIndex && inBounds) {
-                XMBItemView[] itemViewHolder = new XMBItemView[1];
-                boolean isNewView = getItemView(item, itemViewHolder);
-                XMBItemView itemView = itemViewHolder[0];
-                if (itemView != null) {
-                    //Log.d("XMBView", "Setting item " + item.title);
-                    itemView.isCategory = false;
-                    if (isNewView) {
-                        itemView.setX(item.getX());
-                        itemView.setY(item.getY());
-                    } else {
-                        itemView.setX(item.getPrevX());
-                        itemView.setY(item.getPrevY());
-                        itemView.animate().setDuration(300);
-                        itemView.animate().xBy(item.getX() - item.getPrevX());
-                        itemView.animate().yBy(item.getY() - item.getPrevY());
-                    }
-                } else
-                    Log.w("XMBView", "Missing item view for item @" + i + ", skipped for now");
-            } else
+            int fadeTransition = FADE_VISIBLE;
+            if (itemColIndex == origColIndex && prevColIndex != origColIndex)
+                fadeTransition = FADE_IN;
+            else if (itemColIndex != origColIndex && itemColIndex == prevColIndex)
+                fadeTransition = FADE_OUT;
+            else if (itemColIndex != origColIndex && itemColIndex != prevColIndex)
+                fadeTransition = FADE_INVISIBLE;
+            //Log.d("XMBView", "item: " + item.title + " col: " + itemColIndex + " prevCol: " + prevColIndex + " transition: " + fadeTransition);
+            if (itemColIndex >= origColIndex - 1 && itemColIndex <= origColIndex + 1 && inBounds)
+                drawItem(item, false, fadeTransition);
+            else
                 returnItemView(traversableToTotalIndex(i));
         }
+    }
+    private static final int FADE_VISIBLE = 0;
+    private static final int FADE_INVISIBLE = 1;
+    private static final int FADE_OUT = 2;
+    private static final int FADE_IN = 3;
+    private void drawItem(XMBItem item, boolean isCat, int fadeTransition) {
+        XMBItemView[] itemViewHolder = new XMBItemView[1];
+        boolean isNewView = getItemView(item, itemViewHolder);
+        XMBItemView itemView = itemViewHolder[0];
+        if (itemView != null) {
+            //Log.d("XMBView", "Setting item " + item.title);
+            itemView.isCategory = isCat;
+            if (isCat && isNewView) {
+                // if the view just popped into existence then set its position to the final position rather than transitioning
+                itemView.setX(item.getX());
+                itemView.setY(item.getY());
+            } else {
+                // if this view already existed then animate it from where it was to the final position
+                switch (fadeTransition) {
+                    case FADE_VISIBLE:
+                        itemView.setAlpha(1);
+                        break;
+                    case FADE_INVISIBLE:
+                        itemView.setAlpha(0);
+                        break;
+                    case FADE_OUT:
+                        itemView.setAlpha(1);
+                        itemView.animate().setDuration(300);
+                        itemView.animate().alphaBy(-1);
+                        break;
+                    case FADE_IN:
+                        itemView.setAlpha(0);
+                        itemView.animate().setDuration(300);
+                        itemView.animate().alphaBy(1);
+                        break;
+                }
+                itemView.setX(item.getPrevX());
+                itemView.setY(item.getPrevY());
+                itemView.animate().setDuration(300);
+                itemView.animate().xBy(item.getX() - item.getPrevX());
+                itemView.animate().yBy(item.getY() - item.getPrevY());
+            }
+        } else
+            Log.w("XMBView", "Missing item view for " + item.title + ", skipped for now");
     }
 
     private void calcCatRect(int startX, int startY, int horShiftOffset, int colIndex, Rect rect) {
@@ -462,12 +490,15 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         return items.get(colIndex).size() > 1;
     }
     public void setIndex(int index) {
-        if (items.size() > 0) {
+        // added index != currentIndex to allow alpha transition and potentially future transitions to work properly
+        if (index != currentIndex && items.size() > 0) {
             int traversableSize = getTraversableCount();
             if (index < 0)
                 index = 0;
             if (index >= traversableSize)
                 index = traversableSize - 1;
+            //Log.d("XMBView", "Setting index to " + index + " and prevIndex to " + currentIndex);
+            prevIndex = currentIndex;
             currentIndex = index;
             int colIndex = getColIndexFromTraversable(currentIndex);
             //If the column has multiple items, set the index cache of the column as well
