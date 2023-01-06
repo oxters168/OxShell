@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">OxShell</string>
     <string name="title_activity_explorer">ExplorerActivity</string>
+    <string name="wallpaper_desc">OxPaper</string>
 </resources>
