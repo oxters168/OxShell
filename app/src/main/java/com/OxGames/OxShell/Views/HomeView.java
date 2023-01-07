@@ -61,7 +61,7 @@ public class HomeView extends XMBView {
     @Override
     public void makeSelection() {
         HomeItem selectedItem = (HomeItem) getSelectedItem();
-        Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
+        //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
         if (selectedItem.type == HomeItem.Type.explorer) {
             ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
@@ -92,7 +92,7 @@ public class HomeView extends XMBView {
     }
     @Override
     public void refresh() {
-        Log.d("HomeView", "Refreshing home view");
+        //Log.d("HomeView", "Refreshing home view");
         ArrayList<XMBItem> homeItems = HomeManager.getItems();
         if (homeItems == null)
             homeItems = new ArrayList<>();
@@ -182,7 +182,7 @@ public class HomeView extends XMBView {
             if (unsortedSubItems.containsKey(key))
                 subItems.addAll(unsortedSubItems.get(key));
         }
-        Log.d("HomeView", "Total sub items is " + subItems.size());
+        //Log.d("HomeView", "Total sub items is " + subItems.size());
     }
 
     private void showCustomContextMenu(int x, int y) {
