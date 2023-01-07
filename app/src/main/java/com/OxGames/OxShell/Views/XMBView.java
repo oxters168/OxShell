@@ -264,7 +264,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             cat.setX(reusableRect.left);
             cat.setY(reusableRect.top);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            //Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
+            Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
             if (inBounds)
                 drawItem(cat, true, FADE_VISIBLE);
             else
@@ -327,29 +327,29 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
                 itemView.setY(item.getY());
             } else {
                 // if this view already existed then animate it from where it was to the final position
-                switch (fadeTransition) {
-                    case FADE_VISIBLE:
-                        itemView.setAlpha(1);
-                        break;
-                    case FADE_INVISIBLE:
-                        itemView.setAlpha(0);
-                        break;
-                    case FADE_OUT:
-                        itemView.setAlpha(1);
-                        itemView.animate().setDuration(300);
-                        itemView.animate().alphaBy(-1);
-                        break;
-                    case FADE_IN:
-                        itemView.setAlpha(0);
-                        itemView.animate().setDuration(300);
-                        itemView.animate().alphaBy(1);
-                        break;
-                }
                 itemView.setX(item.getPrevX());
                 itemView.setY(item.getPrevY());
                 itemView.animate().setDuration(300);
                 itemView.animate().xBy(item.getX() - item.getPrevX());
                 itemView.animate().yBy(item.getY() - item.getPrevY());
+            }
+            switch (fadeTransition) {
+                case FADE_VISIBLE:
+                    itemView.setAlpha(1);
+                    break;
+                case FADE_INVISIBLE:
+                    itemView.setAlpha(0);
+                    break;
+                case FADE_OUT:
+                    itemView.setAlpha(1);
+                    itemView.animate().setDuration(300);
+                    itemView.animate().alphaBy(-1);
+                    break;
+                case FADE_IN:
+                    itemView.setAlpha(0);
+                    itemView.animate().setDuration(300);
+                    itemView.animate().alphaBy(1);
+                    break;
             }
         } else
             Log.w("XMBView", "Missing item view for " + item.title + ", skipped for now");
