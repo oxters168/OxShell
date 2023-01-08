@@ -1,9 +1,14 @@
 package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -35,6 +40,7 @@ public class AndroidHelpers {
     public static final int READ_EXTERNAL_STORAGE = 100;
     public static final int WRITE_EXTERNAL_STORAGE = 101;
     public static final int MANAGE_EXTERNAL_STORAGE = 102;
+    private static WallpaperManager wallpaperManager;
 
     public static final String RECENT_ACTIVITY;
     static {
@@ -48,6 +54,32 @@ public class AndroidHelpers {
         } else {
             RECENT_ACTIVITY = "com.android.internal.policy.impl.RecentApplicationDialog";
         }
+    }
+
+    public static void setWallpaper(Context context, int resId) {
+        if (wallpaperManager == null)
+            wallpaperManager = WallpaperManager.getInstance(context);
+        try { wallpaperManager.setResource(resId); } catch (IOException e) { e.printStackTrace(); }
+    }
+    public static void setWallpaper(Context context, Bitmap bitmap) {
+        if (wallpaperManager == null)
+            wallpaperManager = WallpaperManager.getInstance(context);
+        try { wallpaperManager.setBitmap(bitmap); } catch (IOException e) { e.printStackTrace(); }
+    }
+    public static void setWallpaper(Context context, Bitmap bitmap, Rect visibleCropHint, boolean allowBackup) {
+        if (wallpaperManager == null)
+            wallpaperManager = WallpaperManager.getInstance(context);
+        try { wallpaperManager.setBitmap(bitmap, visibleCropHint, allowBackup); } catch (IOException e) { e.printStackTrace(); }
+    }
+    public static void setWallpaper(Context context, Bitmap bitmap, Rect visibleCropHint, boolean allowBackup, int which) {
+        // source: https://stackoverflow.com/questions/53466302/is-there-any-way-of-changing-lockscreen-wallpaper-photo-in-android-programmatica
+        // the 'which' parameter can be set to WallpaperManager.FLAG_LOCK to set the lockscreen wallpaper, the rect can be set to null and allowBackup to true
+        if (wallpaperManager == null)
+            wallpaperManager = WallpaperManager.getInstance(context);
+        try { wallpaperManager.setBitmap(bitmap, visibleCropHint, allowBackup, which); } catch (IOException e) { e.printStackTrace(); }
+    }
+    public static Bitmap bitmapFromResource(Resources res, int resId) {
+        return BitmapFactory.decodeResource(res, resId);
     }
 
     public static int getRelativeLeft(View view) {

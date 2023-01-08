@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/fullscreenBackgroundColor"
+    android:background="@color/white"
     android:theme="@style/ThemeOverlay.OxShell.FullscreenContainer"
     tools:context=".HomeActivity">
 
@@ -17,13 +17,12 @@
     <com.appspell.shaderview.ShaderView
         android:id="@+id/bgShader"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
     <com.OxGames.OxShell.Views.HomeView
         android:id="@+id/home_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </com.OxGames.OxShell.Views.HomeView>
+        android:layout_height="match_parent"></com.OxGames.OxShell.Views.HomeView>
 
     <com.OxGames.OxShell.Views.PackagesView
         android:id="@+id/packages_list"
@@ -32,8 +31,7 @@
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="gone">
-    </com.OxGames.OxShell.Views.PackagesView>
+        android:visibility="gone"></com.OxGames.OxShell.Views.PackagesView>
 
     <com.OxGames.OxShell.Views.SettingsView
         android:id="@+id/settings_view"
@@ -42,8 +40,7 @@
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="gone">
-    </com.OxGames.OxShell.Views.SettingsView>
+        android:visibility="gone"></com.OxGames.OxShell.Views.SettingsView>
 
     <com.OxGames.OxShell.Views.CustomizeHomeView
         android:id="@+id/customize_home_view"
@@ -52,8 +49,7 @@
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="gone">
-    </com.OxGames.OxShell.Views.CustomizeHomeView>
+        android:visibility="gone"></com.OxGames.OxShell.Views.CustomizeHomeView>
 
     <com.OxGames.OxShell.Views.AssocListView
         android:id="@+id/assoc_list_view"
@@ -62,8 +58,7 @@
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="gone">
-    </com.OxGames.OxShell.Views.AssocListView>
+        android:visibility="gone"></com.OxGames.OxShell.Views.AssocListView>
 
     <com.OxGames.OxShell.Views.SelectDirsView
         android:id="@+id/selectdirs_view"
@@ -72,8 +67,7 @@
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="gone">
-    </com.OxGames.OxShell.Views.SelectDirsView>
+        android:visibility="gone"></com.OxGames.OxShell.Views.SelectDirsView>
 
     <com.OxGames.OxShell.Views.IntentShortcutsView
         android:id="@+id/shortcuts_view"
@@ -82,7 +76,6 @@
         android:fadeScrollbars="false"
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset"
-        android:visibility="gone">
-    </com.OxGames.OxShell.Views.IntentShortcutsView>
+        android:visibility="gone"></com.OxGames.OxShell.Views.IntentShortcutsView>
 
 </FrameLayout>

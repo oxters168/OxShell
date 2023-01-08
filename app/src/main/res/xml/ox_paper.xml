@@ -3,4 +3,4 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:thumbnail="@mipmap/ic_launcher"
     android:description="@string/wallpaper_desc"
-    android:settingsActivity="de.vogella.android.wallpaper.MyPreferencesActivity"/>
+    android:settingsActivity="com.OxGames.OxShell.SetWallpaperActivity"/>

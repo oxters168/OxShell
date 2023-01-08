@@ -75,8 +75,7 @@ public class OxPaperService extends WallpaperService {
         }
 
         @Override
-        public void onSurfaceChanged(SurfaceHolder holder, int format,
-                                     int width, int height) {
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             this.width = width;
             this.height = height;
             super.onSurfaceChanged(holder, format, width, height);
