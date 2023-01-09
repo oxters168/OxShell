@@ -29,6 +29,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class AndroidHelpers {
     public static final char[] ILLEGAL_FAT_CHARS = new char[] { '"', '*', '/', ':', '<', '>', '?', '\\', '|', 0x7F };
@@ -80,6 +82,24 @@ public class AndroidHelpers {
     }
     public static Bitmap bitmapFromResource(Resources res, int resId) {
         return BitmapFactory.decodeResource(res, resId);
+    }
+
+    public static String readAssetAsString(Context context, String asset) {
+        String assetData = null;
+        try {
+            InputStream inputStream = context.getAssets().open(asset);
+            BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuilder total = new StringBuilder();
+            String line;
+            while ((line = r.readLine()) != null) {
+                total.append(line).append('\n');
+            }
+            assetData = total.toString();
+        } catch (IOException ex) {
+            Log.e("Reading_Asset_Error", ex.toString());
+        }
+        //Log.d("Asset", assetData);
+        return assetData;
     }
 
     public static int getRelativeLeft(View view) {

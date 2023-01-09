@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
@@ -206,8 +207,8 @@ public class PagedActivity extends AppCompatActivity {
         ShaderView shaderView = getBackground();
         Log.d("Paged Activity", "Shader view null: " + (shaderView == null));
         if (shaderView != null) {
-            shaderView.setFragmentShader(readAssetAsString(this, "xmb.fsh"));
-            shaderView.setVertexShader(readAssetAsString(this, "default.vsh"));
+            shaderView.setFragmentShader(AndroidHelpers.readAssetAsString(this, "xmb.fsh"));
+            shaderView.setVertexShader(AndroidHelpers.readAssetAsString(this, "default.vsh"));
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
             DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
@@ -223,23 +224,6 @@ public class PagedActivity extends AppCompatActivity {
                 return null;
             });
         }
-    }
-    private static String readAssetAsString(Context context, String asset) {
-        String assetData = null;
-        try {
-            InputStream inputStream = context.getAssets().open(asset);
-            BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder total = new StringBuilder();
-            String line;
-            while ((line = r.readLine()) != null) {
-                total.append(line).append('\n');
-            }
-            assetData = total.toString();
-        } catch (IOException ex) {
-            Log.e("Reading_Asset_Error", ex.toString());
-        }
-        //Log.d("Asset", assetData);
-        return assetData;
     }
 
     public void addPermissionListener(PermissionsListener listener) {
