@@ -33,7 +33,7 @@ public class GLWallpaperService extends WallpaperService {
         @Override
         public void onVisibilityChanged(boolean visible) {
             super.onVisibilityChanged(visible);
-            Log.d("GLEngine", "Is visible " + visible + " renderer is set " + rendererHasBeenSet);
+            //Log.d("GLEngine", "Is visible " + visible + " renderer is set " + rendererHasBeenSet);
 
             if (rendererHasBeenSet) {
                 if (visible) {
