@@ -81,7 +81,6 @@ public class Shader {
             + "   fragColor = vec4(abs(vec3(loop) - col.xyz), 1);                                     \n"   // Pass the color directly through the pipeline.
             + "}                                                                                      \n";
 
-    //TODO: when creating a new shader with given code, should use fallback if it fails
     public Shader(int glVersion) {
         initValues(glVersion);
 
