@@ -17,9 +17,17 @@
         android:name="android.software.live_wallpaper"
         android:required="false" />
     <uses-feature
+        android:glEsVersion="0x00030002"
+        android:required="false" />
+    <uses-feature
+        android:glEsVersion="0x00030001"
+        android:required="false" />
+    <uses-feature
         android:glEsVersion="0x00030000"
         android:required="false" />
-
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -88,7 +96,7 @@
             </intent-filter>
         </service>
         <service
-            android:name=".Wallpaper.OpenGLES3WallpaperService"
+            android:name=".Wallpaper.GLWallpaperService"
             android:enabled="true"
             android:label="Ox Paper"
             android:permission="android.permission.BIND_WALLPAPER"

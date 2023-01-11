@@ -23,6 +23,17 @@ public class GLWallpaperService extends WallpaperService {
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
             glSurfaceView = new WallpaperGLSurfaceView(GLWallpaperService.this);
+
+            final ActivityManager activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
+            final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+            int glVersion = configurationInfo.reqGlEsVersion;
+
+            setEGLContextClientVersion(glVersion >= 0x30000 ? 3 : (glVersion >= 0x20000 ? 2 : 1));
+            // On Honeycomb+ devices, this improves the performance when
+            // leaving and resuming the live wallpaper.
+            //setPreserveEGLContextOnPause(true); // when not set, causes values/animation to reset when switching apps and locking screen
+            // Set the renderer to our user-defined renderer.
+            setRenderer(new GLRenderer(glVersion));
         }
         @Override
         public void onDestroy() {
