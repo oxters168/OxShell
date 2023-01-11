@@ -28,7 +28,13 @@ public class HomeManager {
             homeItems = new ArrayList<>();
             //initialized = true;
             boolean requestingAccess = false;
-            if (AndroidHelpers.fileExists(Paths.HOME_ITEMS_EXTERNAL_PATH)) {
+            String home_items_dir = AndroidHelpers.combinePaths(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+            boolean home_items_exist =
+                AndroidHelpers.fileExists(home_items_dir + Paths.HOME_ITEMS_CATS)
+                || AndroidHelpers.fileExists(home_items_dir + Paths.HOME_ITEMS_DEFAULTS)
+                || AndroidHelpers.fileExists(home_items_dir + Paths.HOME_ITEMS_APPS)
+                || AndroidHelpers.fileExists(home_items_dir + Paths.HOME_ITEMS_DEFAULTS);
+            if (home_items_exist) {
                 // the home items file exists in the phone storage so attempt to read
                 if (!AndroidHelpers.hasReadStoragePermission()) {
                     // we do not have permission to read the file so request it
@@ -44,8 +50,8 @@ public class HomeManager {
                             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                                 // if storage permission is granted then read the file from the phone storage and save it to the data folder
                                 Log.d("HomeManager", "Read permission granted, loading HomeItems from disk");
-                                loadHomeItemsFromFile(Paths.STORAGE_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-                                saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                                loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                                saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
                             } else {
                                 // if storage permission is denied then just use the internal data folder
                                 Log.e("HomeManager", "Read storage permission denied");
@@ -56,8 +62,8 @@ public class HomeManager {
                 } else {
                     // since we have storage permission then read the file from the phone storage and save it to the data folder
                     Log.d("HomeManager", "HomeItems exists in phone storage and we have permission to read, loading HomeItems from disk");
-                    loadHomeItemsFromFile(Paths.STORAGE_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-                    saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                    loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                    saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
                 }
             } else {
                 Log.d("HomeManager", "HomeItems did not exist in phone storage");
@@ -69,7 +75,7 @@ public class HomeManager {
             Log.d("HomeManager", "homeItems not null, so not reading from disk");
     }
     private static void initInternal() {
-        if (!AndroidHelpers.fileExists(Paths.HOME_ITEMS_INTERNAL_PATH)) {
+        if (!AndroidHelpers.fileExists(Paths.HOME_ITEMS_DIR_INTERNAL)) {
             // if no file exists then we can ask the user if they want to add their apps to the home then save
             Log.d("HomeManager", "Home items does not exist in data folder, creating...");
             addExplorer();
@@ -107,13 +113,13 @@ public class HomeManager {
                     }
                 }
                 refreshHomeItems();
-                saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
             }));
         }
         else {
             // if the file exists in the data folder then read it
             Log.d("HomeManager", "Home items exists in data folder, reading...");
-            loadHomeItemsFromFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+            loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
         }
     }
     public static ArrayList<XMBItem> getItems() {
@@ -137,17 +143,17 @@ public class HomeManager {
     public static void addItemAndSave(XMBItem homeItem) {
         Log.d("HomeManager", "Adding item and saving to disk");
         addItem(homeItem);
-        saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+        saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
         //TODO: add settings toggle for storing data externally and use that as a condition as well
         if (AndroidHelpers.hasWriteStoragePermission())
-            saveHomeItemsToFile(Paths.STORAGE_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
     public static void removeItem(XMBItem homeItem) {
         homeItems.remove(homeItem);
         refreshHomeItems();
-        saveHomeItemsToFile(Paths.STORAGE_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+        saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
         if (AndroidHelpers.hasWriteStoragePermission())
-            saveHomeItemsToFile(Paths.STORAGE_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
 
     private static void loadHomeItemsFromFile(String parentDir, String fileName) {
@@ -175,7 +181,7 @@ public class HomeManager {
     private static void saveHomeItemsToFile(String parentDir, String fileName) {
         AndroidHelpers.makeDir(parentDir);
         String fullPath = AndroidHelpers.combinePaths(parentDir, fileName);
-        AndroidHelpers.makeFile(fullPath);
+        //AndroidHelpers.makeFile(fullPath);
         // Serialaver.saveFile(homeItems.toArray(), fullPath);
         ArrayList<XMBItem> cats = new ArrayList<>();
         ArrayList<XMBItem> defaults = new ArrayList<>();
