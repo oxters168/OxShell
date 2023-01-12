@@ -9,6 +9,8 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -82,6 +84,12 @@ public class AndroidHelpers {
     }
     public static Bitmap bitmapFromResource(Resources res, int resId) {
         return BitmapFactory.decodeResource(res, resId);
+    }
+    public static Bitmap bitmapFromFile(String path) {
+        return BitmapFactory.decodeFile(path);
+    }
+    public static Drawable bitmapToDrawable(Context context, Bitmap bitmap) {
+        return new BitmapDrawable(context.getResources(), bitmap);
     }
 
     public static String readAssetAsString(Context context, String asset) {

@@ -1,22 +1,30 @@
 package com.OxGames.OxShell.Wallpaper;
 
+import android.graphics.Bitmap;
 import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.GLES31;
 import android.opengl.GLES32;
+import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
+
+import com.appspell.shaderview.gl.params.TextureParam;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Queue;
 
 public class Shader {
+    private static final int GL_DEFAULT_VERSION = 0x30002;
+    public final static int MAX_TEXTURE_COUNT = 32; // Couldn't find a good way to get the count
     private static final int UNKNOWN_ATTRIBUTE = -1;
     private static final int UNKNOWN_PROGRAM = 0;
     // built-in shader attribute names
@@ -27,15 +35,20 @@ public class Shader {
     private static final String VERTEX_SHADER_UNIFORM_MATRIX_STM = "uSTMatrix";
     private static final String FRAGMENT_SHADER_UNIFORM_TIME = "iTime";
     private static final String FRAGMENT_SHADER_UNIFORM_RESOLUTION = "iResolution";
+    private static final String FRAGMENT_SHADER_UNIFORM_MOUSE = "iMouse";
 
-    private FloatBuffer quadVertices;
-    private final float[] matrixMVP = new float[16];
-    private final float[] matrixSTM = new float[16];
     private static final int FLOAT_SIZE_BYTES = 4;
     private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
     private static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
     private static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
 
+    private int targetFPS = 30;
+    private long startTime;
+    //private long prevTime;
+
+    private FloatBuffer quadVertices;
+    private final float[] matrixMVP = new float[16];
+    private final float[] matrixSTM = new float[16];
     // built-in shader attribute handles
     //private int inPositionHandle = UNKNOWN_ATTRIBUTE;
     //private int inTextureHandle = UNKNOWN_ATTRIBUTE;
@@ -44,13 +57,12 @@ public class Shader {
     private int mSTMatrixHandle = UNKNOWN_ATTRIBUTE;
     private int iTimeHandle = UNKNOWN_ATTRIBUTE;
     private int iResolutionHandle = UNKNOWN_ATTRIBUTE;
-
-    private int targetFPS = 30;
-    private long startTime;
-    //private long prevTime;
+    private int iMouseHandle = UNKNOWN_ATTRIBUTE;
 
     private Class<? extends GLES20> glClass;
-    private static final int GL_DEFAULT_VERSION = 0x30002;
+
+    private Queue<Integer> availableTexUnits;
+    private HashMap<String, Integer> texHandleUnits;
 
     private int programHandle;
     private static final String fallbackVertex =
@@ -66,19 +78,35 @@ public class Shader {
             + "   textureCoord = (uSTMatrix * vec4(inTextureCoord.xy, 0, 0)).xy;   \n"
             + "}                                                                   \n";
     // when precision is set to mediump, animating with mod on iTime causes 'slowdown' after a few minutes
+//    private static final String fallbackFragment =
+//            "#version 300 es                                                                          \n"
+//            + "precision highp float;                                                                 \n"   // Set the default precision to medium. We don't need as high of a
+//                                                                                                            // precision in the fragment shader.
+//            + "uniform float iTime;                                                                   \n"
+//            + "uniform vec2 iResolution;                                                              \n"
+//            + "in vec2 textureCoord;                                                                  \n"
+//            + "out vec4 fragColor;                                                                    \n"
+//            + "void main()                                                                            \n"   // The entry point for our fragment shader.
+//            + "{                                                                                      \n"
+//            + "   float loop = sin(mod(iTime / 2., 3.14));                                            \n"
+//            + "   vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
+//            + "   fragColor = vec4(abs(vec3(loop) - col.xyz), 1);                                     \n"   // Pass the color directly through the pipeline.
+//            + "}                                                                                      \n";
     private static final String fallbackFragment =
             "#version 300 es                                                                          \n"
             + "precision highp float;                                                                 \n"   // Set the default precision to medium. We don't need as high of a
-                                                                                                            // precision in the fragment shader.
+            // precision in the fragment shader.
+            + "uniform sampler2D iChannel0;                                                           \n"
             + "uniform float iTime;                                                                   \n"
             + "uniform vec2 iResolution;                                                              \n"
             + "in vec2 textureCoord;                                                                  \n"
             + "out vec4 fragColor;                                                                    \n"
             + "void main()                                                                            \n"   // The entry point for our fragment shader.
             + "{                                                                                      \n"
-            + "   float loop = sin(mod(iTime / 2., 3.14));                                            \n"
-            + "   vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
-            + "   fragColor = vec4(abs(vec3(loop) - col.xyz), 1);                                     \n"   // Pass the color directly through the pipeline.
+            + "   //float loop = sin(mod(iTime / 2., 3.14));                                            \n"
+            + "   //vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
+            + "   vec4 col = vec4(texture(iChannel0, textureCoord.xy).rgb, 1.);                                     \n"   // Pass the color directly through the pipeline.
+            + "   fragColor = col;                                                               \n"
             + "}                                                                                      \n";
 
     public Shader(int glVersion) {
@@ -95,8 +123,10 @@ public class Shader {
         try { shaderCode.put((int)glClass.getField("GL_FRAGMENT_SHADER").get(null), fragmentCode); } catch(Exception e) { Log.e("Shader", e.toString()); }
 
         programHandle = createProgram(glClass, shaderCode);
-        if (programHandle == UNKNOWN_PROGRAM)
-            programHandle = createProgram(glClass,null);
+        if (programHandle == UNKNOWN_PROGRAM) {
+            Log.w("Shader", "Creating shader failed, using fallback shader");
+            programHandle = createProgram(glClass, null);
+        }
         prepHandles();
     }
     public Shader(int glVersion, HashMap<Integer, String> shaderCode) {
@@ -164,14 +194,62 @@ public class Shader {
             Thread.sleep(sleepMillis);
         } catch(Exception e) { Log.e("Shader", e.toString()); }
     }
-    protected void setViewportSize(int width, int height) {
+    public void setViewportSize(int width, int height) {
         // Set the OpenGL viewport to the same size as the surface.
         //Log.d("Shader", width + ", " + height);
         try {
             glClass.getMethod("glViewport", int.class, int.class, int.class, int.class).invoke(null, 0, 0, width, height);
-            if (iResolutionHandle != UNKNOWN_ATTRIBUTE)
-                glClass.getMethod("glUniform2f", int.class, float.class, float.class).invoke(null, iResolutionHandle, width, height);
         } catch(Exception e) { Log.e("Shader", e.toString()); }
+
+        if (iResolutionHandle != UNKNOWN_ATTRIBUTE) {
+            try {
+                glClass.getMethod("glUniform2f", int.class, float.class, float.class).invoke(null, iResolutionHandle, width, height);
+            } catch (Exception e) { Log.e("Shader", e.toString()); }
+        }
+    }
+    public void setMousePos(float x, float y) {
+        if (iMouseHandle != UNKNOWN_ATTRIBUTE) {
+            try {
+                //Log.d("Shader", "Setting iMouse: " + iMouseHandle + " to " + x + ", " + y);
+                //TODO: figure out if mouse isn't just working with planet.fsh or any shader that uses iMouse
+                glClass.getMethod("glUniform2f", int.class, float.class, float.class).invoke(null, iMouseHandle, x, y);
+            } catch (Exception e) { Log.e("Shader", e.toString()); }
+        }
+    }
+//    public int getMaxTextureCount() {
+//        int count = 0;
+//        try {
+//            //count = GLES32.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS;
+//            count = (int)glClass.getField("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS").get(null);
+//        } catch(Exception e) { Log.e("Shader", e.toString()); }
+//        return count;
+//    }
+    // source: https://www.learnopengles.com/android-lesson-four-introducing-basic-texturing/
+    public void bindTexture(Bitmap texture, String handleName) {
+        Log.d("Shader", "Binding " + handleName);
+        try {
+            // Check to see the handle name exists in the shader
+            int texHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), handleName);
+            if (texHandle != UNKNOWN_ATTRIBUTE) {
+                if (!availableTexUnits.isEmpty()) {
+                    // Get a unit number for the texture that the shader can use to reference it
+                    int texIndex = availableTexUnits.poll();
+                    // Cache the unit number of the texture in case we need it later (to delete or change the texture or something)
+                    texHandleUnits.put(handleName, texIndex);
+
+                    // Bind to the texture in OpenGL
+                    glClass.getMethod("glBindTexture", int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), texHandle);
+                    // Set filtering
+                    glClass.getMethod("glTexParameteri", int.class, int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), glClass.getField("GL_TEXTURE_MIN_FILTER").get(null), glClass.getField("GL_NEAREST").get(null));
+                    glClass.getMethod("glTexParameteri", int.class, int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), glClass.getField("GL_TEXTURE_MAG_FILTER").get(null), glClass.getField("GL_NEAREST").get(null));
+
+                    // Load the bitmap into the bound texture
+                    GLUtils.texImage2D((int)glClass.getField("GL_TEXTURE_2D").get(null), 0, texture, 0);
+                } else
+                    throw new UnsupportedOperationException("Could not bind a new texture to " + handleName + ", exceeded max texture count of " + MAX_TEXTURE_COUNT);
+            } else
+                Log.w("Shader", "Could not bind texture to non-existent handle " + handleName);
+        } catch (Exception e) { Log.e("Shader", e.toString()); }
     }
 
     /**
@@ -222,6 +300,11 @@ public class Shader {
             default:
                 throw new UnsupportedOperationException("OpenGL version " + glVersion + " (convert to hex) is not supported");
         }
+
+        availableTexUnits = new ArrayDeque<>();
+        texHandleUnits = new HashMap<>();
+        for (int i = 0; i < MAX_TEXTURE_COUNT; i++)
+            availableTexUnits.offer(i);
 
         startTime = System.currentTimeMillis();
         //prevTime = 0;
@@ -317,6 +400,7 @@ public class Shader {
             // built-in helper uniforms (similar to Shadertoy)
             iTimeHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_TIME);
             iResolutionHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_RESOLUTION);
+            iMouseHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_MOUSE);
             //Log.d("Shader", "mvpMatrixHandle: " + mMVPMatrixHandle + " stMatrixHandle: " + mSTMatrixHandle + " iTimeHandle: " + iTimeHandle + " iResolutionHandle: " + iResolutionHandle);
         } catch(Exception e) { Log.e("Shader", e.toString()); }
     }

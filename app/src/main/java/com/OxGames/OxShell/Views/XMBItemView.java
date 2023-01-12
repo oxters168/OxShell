@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -13,7 +14,9 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
 
 public class XMBItemView extends View {
@@ -27,6 +30,7 @@ public class XMBItemView extends View {
     public float textSize = 48; //Size of the text
     public int textCushion = 16; //Distance between item and text
     public @ColorInt int textColor = 0xFFFFFFFF; //The color of text
+    //private static Drawable test;
 
     public XMBItemView(Context context) {
         this(context, null);
@@ -38,6 +42,14 @@ public class XMBItemView extends View {
         super(context, attrs, defStyleAttr);
         painter = new Paint();
         reusableRect = new Rect();
+//        if (test == null) {
+//            String currentImagePath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png");
+//            if (AndroidHelpers.fileExists(currentImagePath)) {
+//                Bitmap bitmap = AndroidHelpers.bitmapFromFile(currentImagePath);
+//                test = AndroidHelpers.bitmapToDrawable(context, bitmap);
+//                //bitmap.recycle();
+//            }
+//        }
     }
 
     public int getItemWidth() {
@@ -91,6 +103,11 @@ public class XMBItemView extends View {
             icon.setAlpha(255);
             icon.draw(canvas);
         }
+//        if (test != null) {
+//            test.setBounds(x, y, right, bottom);
+//            test.setAlpha(255);
+//            test.draw(canvas);
+//        }
         if (title != null) {
             painter.setColor(textColor);
             painter.setTextSize(textSize);
@@ -108,6 +125,11 @@ public class XMBItemView extends View {
             icon.setAlpha(255);
             icon.draw(canvas);
         }
+//        if (test != null) {
+//            test.setBounds(x, y, right, bottom);
+//            test.setAlpha(255);
+//            test.draw(canvas);
+//        }
         if (title != null) {
             painter.setColor(textColor);
             painter.setTextSize(textSize);
