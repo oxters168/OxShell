@@ -78,36 +78,36 @@ public class Shader {
             + "   textureCoord = (uSTMatrix * vec4(inTextureCoord.xy, 0, 0)).xy;   \n"
             + "}                                                                   \n";
     // when precision is set to mediump, animating with mod on iTime causes 'slowdown' after a few minutes
-//    private static final String fallbackFragment =
-//            "#version 300 es                                                                          \n"
-//            + "precision highp float;                                                                 \n"   // Set the default precision to medium. We don't need as high of a
-//                                                                                                            // precision in the fragment shader.
-//            + "uniform float iTime;                                                                   \n"
-//            + "uniform vec2 iResolution;                                                              \n"
-//            + "in vec2 textureCoord;                                                                  \n"
-//            + "out vec4 fragColor;                                                                    \n"
-//            + "void main()                                                                            \n"   // The entry point for our fragment shader.
-//            + "{                                                                                      \n"
-//            + "   float loop = sin(mod(iTime / 2., 3.14));                                            \n"
-//            + "   vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
-//            + "   fragColor = vec4(abs(vec3(loop) - col.xyz), 1);                                     \n"   // Pass the color directly through the pipeline.
-//            + "}                                                                                      \n";
     private static final String fallbackFragment =
             "#version 300 es                                                                          \n"
             + "precision highp float;                                                                 \n"   // Set the default precision to medium. We don't need as high of a
-            // precision in the fragment shader.
-            + "uniform sampler2D iChannel0;                                                           \n"
+                                                                                                            // precision in the fragment shader.
             + "uniform float iTime;                                                                   \n"
             + "uniform vec2 iResolution;                                                              \n"
             + "in vec2 textureCoord;                                                                  \n"
             + "out vec4 fragColor;                                                                    \n"
             + "void main()                                                                            \n"   // The entry point for our fragment shader.
             + "{                                                                                      \n"
-            + "   //float loop = sin(mod(iTime / 2., 3.14));                                            \n"
-            + "   //vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
-            + "   vec4 col = vec4(texture(iChannel0, textureCoord.xy).rgb, 1.);                                     \n"   // Pass the color directly through the pipeline.
-            + "   fragColor = col;                                                               \n"
+            + "   float loop = sin(mod(iTime / 2., 3.14));                                            \n"
+            + "   vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
+            + "   fragColor = vec4(abs(vec3(loop) - col.xyz), 1);                                     \n"   // Pass the color directly through the pipeline.
             + "}                                                                                      \n";
+//    private static final String fallbackFragment =
+//            "#version 300 es                                                                          \n"
+//            + "precision highp float;                                                                 \n"   // Set the default precision to medium. We don't need as high of a
+//            // precision in the fragment shader.
+//            + "uniform sampler2D iChannel0;                                                           \n"
+//            + "uniform float iTime;                                                                   \n"
+//            + "uniform vec2 iResolution;                                                              \n"
+//            + "in vec2 textureCoord;                                                                  \n"
+//            + "out vec4 fragColor;                                                                    \n"
+//            + "void main()                                                                            \n"   // The entry point for our fragment shader.
+//            + "{                                                                                      \n"
+//            + "   //float loop = sin(mod(iTime / 2., 3.14));                                            \n"
+//            + "   //vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
+//            + "   vec4 col = vec4(texture(iChannel0, textureCoord.xy).rgb, 1.);                                     \n"   // Pass the color directly through the pipeline.
+//            + "   fragColor = col;                                                               \n"
+//            + "}                                                                                      \n";
 
     public Shader(int glVersion) {
         initValues(glVersion);
@@ -249,7 +249,7 @@ public class Shader {
                     throw new UnsupportedOperationException("Could not bind a new texture to " + handleName + ", exceeded max texture count of " + MAX_TEXTURE_COUNT);
             } else
                 Log.w("Shader", "Could not bind texture to non-existent handle " + handleName);
-        } catch (Exception e) { Log.e("Shader", e.toString()); }
+        } catch (Exception e) { Log.e("Shader", "Error binding texture: " + e.toString()); }
     }
 
     /**

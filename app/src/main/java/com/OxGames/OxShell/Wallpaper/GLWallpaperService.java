@@ -12,7 +12,6 @@ import android.service.wallpaper.WallpaperService;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
@@ -22,6 +21,7 @@ public class GLWallpaperService extends WallpaperService {
 
     @Override
     public Engine onCreateEngine() {
+        Log.d("GLWallpaperService", "onCreateEngine");
         context = this;
         return new GLEngine();
     }
@@ -57,6 +57,7 @@ public class GLWallpaperService extends WallpaperService {
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
+            Log.d("GLEngine", "Creating...");
             glSurfaceView = new WallpaperGLSurfaceView(GLWallpaperService.this);
 
             final ActivityManager activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
@@ -68,13 +69,14 @@ public class GLWallpaperService extends WallpaperService {
             // leaving and resuming the live wallpaper.
             setPreserveEGLContextOnPause(true); // when not set, causes values/animation to reset when switching apps and locking screen
             // Set the renderer to our user-defined renderer.
-            setRenderer(new GLRenderer(glVersion));
+            setRenderer(new GLRenderer(context, glVersion));
 
             registerSensors();
         }
         @Override
         public void onDestroy() {
             super.onDestroy();
+            Log.d("GLEngine", "Destroying...");
             glSurfaceView.onDestroy();
             unregisterSensors();
         }
