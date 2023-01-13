@@ -76,12 +76,12 @@ public class Shader {
             + "{                                                                   \n"
             + "   gl_Position = uMVPMatrix * vec4(inPosition.xyz, 1);              \n"   // gl_Position is a special variable used to store the final position.
             + "   textureCoord = (uSTMatrix * vec4(inTextureCoord.xy, 0, 0)).xy;   \n"
+            + "   textureCoord = vec2(textureCoord.x, 1. - textureCoord.y);        \n"   // Flipped to have parity with Shadertoy
             + "}                                                                   \n";
     // when precision is set to mediump, animating with mod on iTime causes 'slowdown' after a few minutes
     private static final String fallbackFragment =
             "#version 300 es                                                                          \n"
-            + "precision highp float;                                                                 \n"   // Set the default precision to medium. We don't need as high of a
-                                                                                                            // precision in the fragment shader.
+            + "precision highp float;                                                                 \n"
             + "uniform float iTime;                                                                   \n"
             + "uniform vec2 iResolution;                                                              \n"
             + "in vec2 textureCoord;                                                                  \n"
@@ -93,21 +93,31 @@ public class Shader {
             + "   fragColor = vec4(abs(vec3(loop) - col.xyz), 1);                                     \n"   // Pass the color directly through the pipeline.
             + "}                                                                                      \n";
 //    private static final String fallbackFragment =
-//            "#version 300 es                                                                          \n"
-//            + "precision highp float;                                                                 \n"   // Set the default precision to medium. We don't need as high of a
-//            // precision in the fragment shader.
-//            + "uniform sampler2D iChannel0;                                                           \n"
-//            + "uniform float iTime;                                                                   \n"
-//            + "uniform vec2 iResolution;                                                              \n"
-//            + "in vec2 textureCoord;                                                                  \n"
-//            + "out vec4 fragColor;                                                                    \n"
-//            + "void main()                                                                            \n"   // The entry point for our fragment shader.
-//            + "{                                                                                      \n"
-//            + "   //float loop = sin(mod(iTime / 2., 3.14));                                            \n"
-//            + "   //vec3 col = vec3(vec2(1) - textureCoord.xy, (textureCoord.x + textureCoord.y) / 2.); \n"
-//            + "   vec4 col = vec4(texture(iChannel0, textureCoord.xy).rgb, 1.);                                     \n"   // Pass the color directly through the pipeline.
-//            + "   fragColor = col;                                                               \n"
-//            + "}                                                                                      \n";
+//            "#version 300 es                                                                                              \n"
+//            + "precision highp float;                                                                                     \n"
+//            + "uniform sampler2D iChannel0;                                                                               \n"
+//            + "uniform sampler2D iChannel1;                                                                               \n"
+//            + "uniform sampler2D iChannel2;                                                                               \n"
+//            + "uniform sampler2D iChannel3;                                                                               \n"
+//            + "uniform float iTime;                                                                                       \n"
+//            + "uniform vec2 iResolution;                                                                                  \n"
+//            + "in vec2 textureCoord;                                                                                      \n"
+//            + "out vec4 fragColor;                                                                                        \n"
+//            + "void main()                                                                                                \n"   // The entry point for our fragment shader.
+//            + "{                                                                                                          \n"
+//            + "   float multX = 1.;                                                                                       \n"
+//            + "   float multY = 1.;                                                                                       \n"
+//            + "   if (iResolution.x > iResolution.y) {                                                                    \n"
+//            + "      multX = iResolution.x / iResolution.y;                                                               \n"
+//            + "   } else if (iResolution.y > iResolution.x) {                                                             \n"
+//            + "      multY = iResolution.y / iResolution.x;                                                               \n"
+//            + "   }                                                                                                       \n"
+//            + "   if (textureCoord.x * multX > 1. || textureCoord.y * multY > 1.) {                                       \n"
+//            + "      fragColor = vec4(1.);                                                                                \n"   // Set bg color to white.
+//            + "   } else {                                                                                                \n"
+//            + "      fragColor = vec4(texture(iChannel2, vec2(textureCoord.x * multX, textureCoord.y * multY)).rgb, 1.);  \n"
+//            + "   }                                                                                                       \n"
+//            + "}                                                                                                          \n";
 
     public Shader(int glVersion) {
         initValues(glVersion);
@@ -119,8 +129,8 @@ public class Shader {
         initValues(glVersion);
 
         HashMap<Integer, String> shaderCode = new HashMap<>();
-        try { shaderCode.put((int)glClass.getField("GL_VERTEX_SHADER").get(null), vertexCode); } catch(Exception e) { Log.e("Shader", e.toString()); }
-        try { shaderCode.put((int)glClass.getField("GL_FRAGMENT_SHADER").get(null), fragmentCode); } catch(Exception e) { Log.e("Shader", e.toString()); }
+        try { shaderCode.put((int)glClass.getField("GL_VERTEX_SHADER").get(null), vertexCode); } catch(Exception e) { Log.e("Shader", "Failed to retrieve constant GL_VERTEX_SHADER: " + e.toString()); }
+        try { shaderCode.put((int)glClass.getField("GL_FRAGMENT_SHADER").get(null), fragmentCode); } catch(Exception e) { Log.e("Shader", "Failed to retrieve constant GL_FRAGMENT_SHADER: " + e.toString()); }
 
         programHandle = createProgram(glClass, shaderCode);
         if (programHandle == UNKNOWN_PROGRAM) {
@@ -186,7 +196,7 @@ public class Shader {
             checkGlError("glDrawArrays");
 
             glClass.getMethod("glFinish").invoke(null);
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to draw: " + e.toString()); }
 
         try {
             long sleepMillis = (long)((1f / targetFPS) * 1000f * 0.88f); //Added *0.88f since for some reason the sleep is slightly off
@@ -199,12 +209,12 @@ public class Shader {
         //Log.d("Shader", width + ", " + height);
         try {
             glClass.getMethod("glViewport", int.class, int.class, int.class, int.class).invoke(null, 0, 0, width, height);
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to set viewport: " + e.toString()); }
 
         if (iResolutionHandle != UNKNOWN_ATTRIBUTE) {
             try {
                 glClass.getMethod("glUniform2f", int.class, float.class, float.class).invoke(null, iResolutionHandle, width, height);
-            } catch (Exception e) { Log.e("Shader", e.toString()); }
+            } catch (Exception e) { Log.e("Shader", "Failed to set resolution: " + e.toString()); }
         }
     }
     public void setMousePos(float x, float y) {
@@ -213,7 +223,7 @@ public class Shader {
                 //Log.d("Shader", "Setting iMouse: " + iMouseHandle + " to " + x + ", " + y);
                 //TODO: figure out if mouse isn't just working with planet.fsh or any shader that uses iMouse
                 glClass.getMethod("glUniform2f", int.class, float.class, float.class).invoke(null, iMouseHandle, x, y);
-            } catch (Exception e) { Log.e("Shader", e.toString()); }
+            } catch (Exception e) { Log.e("Shader", "Failed to set mouse position: " + e.toString()); }
         }
     }
 //    public int getMaxTextureCount() {
@@ -239,9 +249,23 @@ public class Shader {
 
                     // Bind to the texture in OpenGL
                     glClass.getMethod("glBindTexture", int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), texHandle);
+//                    String minFilter = "GL_NEAREST";
+//                    int width = texture.getWidth();
+//                    int height = texture.getHeight();
+//                    if (width == height) {
+//                        double log2Result = Math.log(width) / Math.log(2);
+//                        boolean isPowerOfTwo = log2Result == Math.floor(log2Result);
+//                        //Log.d("Shader", width + " == " + height + " 2^" + log2Result + " isPowerOfTwo: " + isPowerOfTwo);
+//                        if (isPowerOfTwo) {
+//                            // if the texture's dimensions are power of two then generate mip maps
+//                            GLES32.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+//                            minFilter = "GL_LINEAR_MIPMAP_LINEAR";
+//                            //Log.d("Shader", "Generating mipmaps");
+//                        }
+//                    }
                     // Set filtering
                     glClass.getMethod("glTexParameteri", int.class, int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), glClass.getField("GL_TEXTURE_MIN_FILTER").get(null), glClass.getField("GL_NEAREST").get(null));
-                    glClass.getMethod("glTexParameteri", int.class, int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), glClass.getField("GL_TEXTURE_MAG_FILTER").get(null), glClass.getField("GL_NEAREST").get(null));
+                    glClass.getMethod("glTexParameteri", int.class, int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), glClass.getField("GL_TEXTURE_MAG_FILTER").get(null), glClass.getField("GL_LINEAR").get(null));
 
                     // Load the bitmap into the bound texture
                     GLUtils.texImage2D((int)glClass.getField("GL_TEXTURE_2D").get(null), 0, texture, 0);
@@ -260,7 +284,7 @@ public class Shader {
         try {
             attrLocation = (int)glClass.getMethod("glGetAttribLocation", int.class, String.class).invoke(null, getProgramHandle(), attrName);
             checkGlError("glGetAttribLocation " + attrName);
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to get attribute location of " + attrName + ": " + e.toString()); }
         return attrLocation;
     }
     /**
@@ -276,7 +300,7 @@ public class Shader {
             checkGlError("glVertexAttribPointer " + attrName);
             glClass.getMethod("glEnableVertexAttribArray", int.class).invoke(null, attrLocation);
             checkGlError("glEnableVertexAttribArray " + attrName);
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to set attribute " + attrName + ": " + e.toString()); }
     }
 
     private void initValues(int glVersion) {
@@ -329,7 +353,7 @@ public class Shader {
             try {
                 handles.add(loadShader(glClass, (int)glClass.getField("GL_VERTEX_SHADER").get(null), fallbackVertex));
                 handles.add(loadShader(glClass, (int)glClass.getField("GL_FRAGMENT_SHADER").get(null), fallbackFragment));
-            } catch(Exception e) { Log.e("Shader", e.toString()); }
+            } catch(Exception e) { Log.e("Shader", "Failed to load fallback shaders: " + e.toString()); }
         }
 
         try {
@@ -356,7 +380,7 @@ public class Shader {
                 }
             } else
                 Log.e("Shader", "Failed to create shader program due to unknown issue");
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to create shader program: " + e.toString()); }
         return programHandle;
     }
     private static int loadShader(Class<? extends GLES20> glClass, int shaderType, String shaderCode) {
@@ -380,7 +404,7 @@ public class Shader {
                     //throw new RuntimeException("Error compiling shader (type " + shaderType + ")");
                 }
             }
-        } catch (Exception e) { Log.e("Shader", e.toString()); }
+        } catch (Exception e) { Log.e("Shader", "Failed to load shader of type " + shaderType + ": " + e.toString() + "\n" + shaderCode); }
         return shaderHandle;
     }
     private void prepHandles() {
@@ -402,7 +426,7 @@ public class Shader {
             iResolutionHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_RESOLUTION);
             iMouseHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_MOUSE);
             //Log.d("Shader", "mvpMatrixHandle: " + mMVPMatrixHandle + " stMatrixHandle: " + mSTMatrixHandle + " iTimeHandle: " + iTimeHandle + " iResolutionHandle: " + iResolutionHandle);
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "An issue occurred while retrieving handles: " + e.toString()); }
     }
 
     private void checkGlError(String op) {
@@ -411,7 +435,7 @@ public class Shader {
         try {
             error = (int)glClass.getMethod("glGetError").invoke(null);
             glNoErrorCode = (int)glClass.getField("GL_NO_ERROR").get(null);
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to check error for " + op + ": " + e.toString()); }
         if (error != glNoErrorCode) {
             //Log.e("GLRenderer", op + ": glError " + error);
             throw new RuntimeException(op + ": glError " + error);
