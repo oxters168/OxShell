@@ -23,6 +23,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     private Shader shader;
     private int glVersion;
     private int width, height;
+    private boolean mouseDown;
 
     public GLRenderer(Context context, int glVersion) {
         this.glVersion = glVersion;
@@ -37,8 +38,18 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     }
 
     public void onTouchEvent(MotionEvent ev) {
-        //Log.d("GLRenderer", ev.getRawX() + ", " + ev.getRawY());
-        shader.setMousePos(ev.getX(), height - ev.getY());
+        float z = -1;
+        float w = -1;
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            // if the user is just pressing without moving their finger then onTouchEvent doesn't keep getting called
+            // so z=1, w=1 will stay that way in the shader
+            z = 1;
+            w = 1;
+        } else if (ev.getAction() == MotionEvent.ACTION_MOVE)
+            z = 1;
+
+        //Log.d("GLRenderer", z + ", " + w + ", " + ev.toString());
+        shader.setMousePos(ev.getX(), height - ev.getY(), z, w);
     }
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {

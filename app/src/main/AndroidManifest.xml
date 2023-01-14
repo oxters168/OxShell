@@ -37,7 +37,7 @@
         android:resizeableActivity="false"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.OxShell">
+        android:theme="@style/Theme.OxShell" >
         <!--android:hardwareAccelerated="true"-->
 <!--        <provider-->
 <!--            android:name="androidx.core.content.FileProvider"-->

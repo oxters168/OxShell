@@ -55,6 +55,12 @@ public class GLWallpaperService extends WallpaperService {
         }
 
         @Override
+        public void onSurfaceDestroyed(SurfaceHolder holder) {
+            Log.d("GLEngine", "onSurfaceDestroyed");
+            super.onSurfaceDestroyed(holder);
+        }
+
+        @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
             Log.d("GLEngine", "Creating...");
@@ -167,6 +173,7 @@ public class GLWallpaperService extends WallpaperService {
                 return getSurfaceHolder();
             }
             public void onDestroy() {
+                Log.d("WallpaperGLSurfaceView", "onDestroy");
                 super.onDetachedFromWindow();
             }
         }

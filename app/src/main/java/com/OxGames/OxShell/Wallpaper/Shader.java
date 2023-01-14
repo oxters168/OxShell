@@ -1,7 +1,6 @@
 package com.OxGames.OxShell.Wallpaper;
 
 import android.graphics.Bitmap;
-import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.opengl.GLES31;
@@ -10,12 +9,9 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import com.appspell.shaderview.gl.params.TextureParam;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +22,7 @@ public class Shader {
     private static final int GL_DEFAULT_VERSION = 0x30002;
     public final static int MAX_TEXTURE_COUNT = 32; // Couldn't find a good way to get the count
     private static final int UNKNOWN_ATTRIBUTE = -1;
+    private static final int UNKNOWN_UNIFORM = 0;
     private static final int UNKNOWN_PROGRAM = 0;
     // built-in shader attribute names
     private static final String VERTEX_SHADER_IN_POSITION = "inPosition";
@@ -33,9 +30,12 @@ public class Shader {
     // built-in shader uniform names
     private static final String VERTEX_SHADER_UNIFORM_MATRIX_MVP = "uMVPMatrix";
     private static final String VERTEX_SHADER_UNIFORM_MATRIX_STM = "uSTMatrix";
-    private static final String FRAGMENT_SHADER_UNIFORM_TIME = "iTime";
     private static final String FRAGMENT_SHADER_UNIFORM_RESOLUTION = "iResolution";
+    private static final String FRAGMENT_SHADER_UNIFORM_TIME = "iTime";
+    private static final String FRAGMENT_SHADER_UNIFORM_TIME_DELTA = "iTimeDelta";
+    private static final String FRAGMENT_SHADER_UNIFORM_FRAME_RATE = "iFrameRate";
     private static final String FRAGMENT_SHADER_UNIFORM_MOUSE = "iMouse";
+    private static final String FRAGMENT_SHADER_UNIFORM_FRAME = "iFrame";
 
     private static final int FLOAT_SIZE_BYTES = 4;
     private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
@@ -44,7 +44,8 @@ public class Shader {
 
     private int targetFPS = 30;
     private long startTime;
-    //private long prevTime;
+    private int frame;
+    private long prevTime;
 
     private FloatBuffer quadVertices;
     private final float[] matrixMVP = new float[16];
@@ -52,17 +53,38 @@ public class Shader {
     // built-in shader attribute handles
     //private int inPositionHandle = UNKNOWN_ATTRIBUTE;
     //private int inTextureHandle = UNKNOWN_ATTRIBUTE;
+    //    Shader Inputs
+    //
+    //    uniform vec3      iResolution;           // viewport resolution (in pixels) (the z value is the pixel aspect ratio https://stackoverflow.com/questions/27888323/what-does-iresolution-mean-in-a-shader)
+    //    uniform float     iTime;                 // shader playback time (in seconds)
+    //    uniform float     iTimeDelta;            // render time (in seconds)
+    //    uniform float     iFrameRate;            // shader frame rate
+    //    uniform int       iFrame;                // shader playback frame
+    //    uniform float     iChannelTime[4];       // channel playback time (in seconds)
+    //    uniform vec3      iChannelResolution[4]; // channel resolution (in pixels)
+    //    uniform vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
+    //    uniform samplerXX iChannel0..3;          // input channel. XX = 2D/Cube
+    //    uniform vec4      iDate;                 // (year, month, day, time in seconds)
+    //    uniform float     iSampleRate;           // sound sample rate (i.e., 44100)
     // built-in shader uniform handles
-    private int mMVPMatrixHandle = UNKNOWN_ATTRIBUTE;
-    private int mSTMatrixHandle = UNKNOWN_ATTRIBUTE;
-    private int iTimeHandle = UNKNOWN_ATTRIBUTE;
-    private int iResolutionHandle = UNKNOWN_ATTRIBUTE;
-    private int iMouseHandle = UNKNOWN_ATTRIBUTE;
+    private int mMVPMatrixHandle = UNKNOWN_UNIFORM;
+    private int mSTMatrixHandle = UNKNOWN_UNIFORM;
+    private int iResolutionHandle = UNKNOWN_UNIFORM;
+    private int iTimeHandle = UNKNOWN_UNIFORM;
+    private int iTimeDeltaHandle = UNKNOWN_UNIFORM;
+    private int iFrameRateHandle = UNKNOWN_UNIFORM;
+    private int iFrameHandle = UNKNOWN_UNIFORM;
+    private int iChannelTimeHandle = UNKNOWN_UNIFORM;
+    private int iChannelResolutionHandle = UNKNOWN_UNIFORM;
+    private int iMouseHandle = UNKNOWN_UNIFORM;
+    private int iDateHandle = UNKNOWN_UNIFORM;
 
     private Class<? extends GLES20> glClass;
 
     private Queue<Integer> availableTexUnits;
     private HashMap<String, Integer> texHandleUnits;
+    //private int setWidth = 1, setHeight = 1;
+    private float mousex = 0, mousey = 0, mousez = -1, mousew = -1;
 
     private int programHandle;
     private static final String fallbackVertex =
@@ -95,28 +117,30 @@ public class Shader {
 //    private static final String fallbackFragment =
 //            "#version 300 es                                                                                              \n"
 //            + "precision highp float;                                                                                     \n"
-//            + "uniform sampler2D iChannel0;                                                                               \n"
-//            + "uniform sampler2D iChannel1;                                                                               \n"
-//            + "uniform sampler2D iChannel2;                                                                               \n"
-//            + "uniform sampler2D iChannel3;                                                                               \n"
-//            + "uniform float iTime;                                                                                       \n"
+//            //+ "uniform sampler2D iChannel0;                                                                               \n"
+//            //+ "uniform sampler2D iChannel1;                                                                               \n"
+//            //+ "uniform sampler2D iChannel2;                                                                               \n"
+//            //+ "uniform sampler2D iChannel3;                                                                               \n"
+//            //+ "uniform float iTime;                                                                                       \n"
+//            + "uniform vec4 iMouse;                                                                                       \n"
 //            + "uniform vec2 iResolution;                                                                                  \n"
 //            + "in vec2 textureCoord;                                                                                      \n"
 //            + "out vec4 fragColor;                                                                                        \n"
 //            + "void main()                                                                                                \n"   // The entry point for our fragment shader.
 //            + "{                                                                                                          \n"
-//            + "   float multX = 1.;                                                                                       \n"
-//            + "   float multY = 1.;                                                                                       \n"
-//            + "   if (iResolution.x > iResolution.y) {                                                                    \n"
-//            + "      multX = iResolution.x / iResolution.y;                                                               \n"
-//            + "   } else if (iResolution.y > iResolution.x) {                                                             \n"
-//            + "      multY = iResolution.y / iResolution.x;                                                               \n"
-//            + "   }                                                                                                       \n"
-//            + "   if (textureCoord.x * multX > 1. || textureCoord.y * multY > 1.) {                                       \n"
-//            + "      fragColor = vec4(1.);                                                                                \n"   // Set bg color to white.
-//            + "   } else {                                                                                                \n"
-//            + "      fragColor = vec4(texture(iChannel2, vec2(textureCoord.x * multX, textureCoord.y * multY)).rgb, 1.);  \n"
-//            + "   }                                                                                                       \n"
+//            + "   //float multX = 1.;                                                                                       \n"
+//            + "   //float multY = 1.;                                                                                       \n"
+//            + "   //if (iResolution.x > iResolution.y) {                                                                    \n"
+//            + "   //   multX = iResolution.x / iResolution.y;                                                               \n"
+//            + "   //} else if (iResolution.y > iResolution.x) {                                                             \n"
+//            + "   //   multY = iResolution.y / iResolution.x;                                                               \n"
+//            + "   //}                                                                                                       \n"
+//            + "   //if (textureCoord.x * multX > 1. || textureCoord.y * multY > 1.) {                                       \n"
+//            + "   //   fragColor = vec4(1.);                                                                                \n"   // Set bg color to white.
+//            + "   //} else {                                                                                                \n"
+//            + "   //   fragColor = vec4(texture(iChannel2, vec2(textureCoord.x * multX, textureCoord.y * multY)).rgb, 1.);  \n"
+//            + "   //}                                                                                                       \n"
+//            + "   fragColor = vec4(iMouse.xy / iResolution.xy, 0., 1.);                                                   \n"
 //            + "}                                                                                                          \n";
 
     public Shader(int glVersion) {
@@ -168,61 +192,92 @@ public class Shader {
     }
 
     protected void draw() {
+        frame++;
+        long currentTime = System.currentTimeMillis() - startTime;
+        float deltaTime = (currentTime - prevTime) / 1000f;
+        prevTime = currentTime;
+        float fps = 1 / deltaTime;
+        float secondsElapsed = (currentTime) / 1000f; // will be input into shader as iTime
+        //Log.d("GLRenderer", "Drawing frame, timeElapsed: " + secondsElapsed + "s deltaTime: " + deltaTime + "s fps: " + fps);
         try {
-            long currentTime = System.currentTimeMillis() - startTime;
-            //float deltaTime = (currentTime - prevTime) / 1000f;
-            //prevTime = currentTime;
-            //float fps = 1 / deltaTime;
-            float secondsElapsed = (currentTime) / 1000f; // will be input into shader as iTime
-            //Log.d("GLRenderer", "Drawing frame, timeElapsed: " + secondsElapsed + "s deltaTime: " + deltaTime + "s fps: " + fps);
             glClass.getMethod("glClearColor", float.class, float.class, float.class, float.class).invoke(null, 0.0f, 0.0f, 0.0f, 0.0f);
-            glClass.getMethod("glClear", int.class).invoke(null, ((int)glClass.getField("GL_DEPTH_BUFFER_BIT").get(null)) | ((int)glClass.getField("GL_COLOR_BUFFER_BIT").get(null)));
-
+            glClass.getMethod("glClear", int.class).invoke(null, ((int) glClass.getField("GL_DEPTH_BUFFER_BIT").get(null)) | ((int) glClass.getField("GL_COLOR_BUFFER_BIT").get(null)));
+        } catch(Exception e) { Log.e("Shader", "Failed to clear during draw: " + e.toString()); }
+        try {
             glClass.getMethod("glUseProgram", int.class).invoke(null, getProgramHandle());
             checkGlError("glUseProgram");
-
+        } catch(Exception e) { Log.e("Shader", "Failed to reference shader in draw: " + e.toString()); }
+        try {
             // built-in matrix uniforms
             glClass.getMethod("glUniformMatrix4fv", int.class, int.class, boolean.class, float[].class, int.class).invoke(null, mMVPMatrixHandle, 1, false, matrixMVP, 0);
             glClass.getMethod("glUniformMatrix4fv", int.class, int.class, boolean.class, float[].class, int.class).invoke(null, mSTMatrixHandle, 1, false, matrixSTM, 0);
-
+        } catch(Exception e) { Log.e("Shader", "Failed to set matrices during draw: " + e.toString()); }
+        try {
             // built-in helper uniforms (similar to Shadertoy)
-            if (iTimeHandle != UNKNOWN_ATTRIBUTE)
+            if (iTimeHandle != UNKNOWN_UNIFORM)
                 glClass.getMethod("glUniform1f", int.class, float.class).invoke(null, iTimeHandle, secondsElapsed);
-
+            if (iFrameHandle != UNKNOWN_UNIFORM)
+                glClass.getMethod("glUniform1i", int.class, int.class).invoke(null, iFrameHandle, frame);
+            if (iMouseHandle != UNKNOWN_UNIFORM)
+                glClass.getMethod("glUniform4f", int.class, float.class, float.class, float.class, float.class).invoke(null, iMouseHandle, mousex, mousey, mousez, mousew);
+            if (iTimeDeltaHandle != UNKNOWN_UNIFORM)
+                glClass.getMethod("glUniform1f", int.class, float.class).invoke(null, iTimeDeltaHandle, deltaTime);
+            if (iFrameRateHandle != UNKNOWN_UNIFORM)
+                glClass.getMethod("glUniform1f", int.class, float.class).invoke(null, iFrameRateHandle, fps);
+            //iChannelTimeHandle;
+            //iChannelResolutionHandle;
+            //iDateHandle
+        } catch(Exception e) { Log.e("Shader", "Failed to set built-in uniforms during draw: " + e.toString()); }
+        try {
             glClass.getMethod("glBlendFunc", int.class, int.class).invoke(null, glClass.getField("GL_SRC_ALPHA").get(null), glClass.getField("GL_ONE_MINUS_SRC_ALPHA").get(null));
             glClass.getMethod("glEnable", int.class).invoke(null, glClass.getField("GL_BLEND").get(null));
-
+        } catch(Exception e) { Log.e("Shader", "Failed to set and enable blend func during draw: " + e.toString()); }
+        try {
             glClass.getMethod("glDrawArrays", int.class, int.class, int.class).invoke(null, glClass.getField("GL_TRIANGLE_STRIP").get(null), 0, 4);
             checkGlError("glDrawArrays");
-
+        } catch(Exception e) { Log.e("Shader", "Failed to draw arrays: " + e.toString()); }
+        try {
             glClass.getMethod("glFinish").invoke(null);
-        } catch(Exception e) { Log.e("Shader", "Failed to draw: " + e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to finish draw: " + e.toString()); }
 
         try {
             long sleepMillis = (long)((1f / targetFPS) * 1000f * 0.88f); //Added *0.88f since for some reason the sleep is slightly off
             //Log.d("GLRenderer", "Sleep time " + sleepMillis + "ms");
             Thread.sleep(sleepMillis);
-        } catch(Exception e) { Log.e("Shader", e.toString()); }
+        } catch(Exception e) { Log.e("Shader", "Failed to sleep: " + e.toString()); }
     }
     public void setViewportSize(int width, int height) {
         // Set the OpenGL viewport to the same size as the surface.
         //Log.d("Shader", width + ", " + height);
+        double scale = 1.0;
+        int resizedWidth = (int)Math.floor(width * scale);
+        int resizedHeight = (int)Math.floor(height * scale);
+        //setWidth = resizedWidth;
+        //setHeight = resizedHeight;
         try {
-            glClass.getMethod("glViewport", int.class, int.class, int.class, int.class).invoke(null, 0, 0, width, height);
+            glClass.getMethod("glViewport", int.class, int.class, int.class, int.class).invoke(null, 0, 0, resizedWidth, resizedHeight);
         } catch(Exception e) { Log.e("Shader", "Failed to set viewport: " + e.toString()); }
 
-        if (iResolutionHandle != UNKNOWN_ATTRIBUTE) {
+        if (iResolutionHandle != UNKNOWN_UNIFORM) {
             try {
-                glClass.getMethod("glUniform2f", int.class, float.class, float.class).invoke(null, iResolutionHandle, width, height);
+                glClass.getMethod("glUniform3f", int.class, float.class, float.class, float.class).invoke(null, iResolutionHandle, resizedWidth, resizedHeight, 1); //TODO: figure out how to calculate pixel aspect ratio
             } catch (Exception e) { Log.e("Shader", "Failed to set resolution: " + e.toString()); }
         }
     }
-    public void setMousePos(float x, float y) {
-        if (iMouseHandle != UNKNOWN_ATTRIBUTE) {
+    public void setMousePos(float x, float y, float z, float w) {
+        if (iMouseHandle != UNKNOWN_UNIFORM) {
             try {
-                //Log.d("Shader", "Setting iMouse: " + iMouseHandle + " to " + x + ", " + y);
                 //TODO: figure out if mouse isn't just working with planet.fsh or any shader that uses iMouse
-                glClass.getMethod("glUniform2f", int.class, float.class, float.class).invoke(null, iMouseHandle, x, y);
+                //glClass.getMethod("glUniform4f", int.class, float.class, float.class, float.class, float.class).invoke(null, iMouseHandle, x, y, z, w);
+                //iMouseHandle = GLES32.glGetUniformLocation(getProgramHandle(), FRAGMENT_SHADER_UNIFORM_MOUSE);
+                //GLES32.glUseProgram(getProgramHandle());
+                //GLES32.glUniform4f(iMouseHandle, x, y, z, w);
+                //GLES32.glProgramUniform4f(getProgramHandle(), iMouseHandle, x, y, z, w);
+                //Log.d("Shader", "Setting iMouse: " + iMouseHandle + " to " + x + ", " + y);
+                mousex = x;
+                mousey = y;
+                mousez = z;
+                mousew = w;
             } catch (Exception e) { Log.e("Shader", "Failed to set mouse position: " + e.toString()); }
         }
     }
@@ -240,7 +295,7 @@ public class Shader {
         try {
             // Check to see the handle name exists in the shader
             int texHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), handleName);
-            if (texHandle != UNKNOWN_ATTRIBUTE) {
+            if (texHandle != UNKNOWN_UNIFORM) {
                 if (!availableTexUnits.isEmpty()) {
                     // Get a unit number for the texture that the shader can use to reference it
                     int texIndex = availableTexUnits.poll();
@@ -331,7 +386,8 @@ public class Shader {
             availableTexUnits.offer(i);
 
         startTime = System.currentTimeMillis();
-        //prevTime = 0;
+        frame = 0;
+        prevTime = 0;
 
         // set array of Quad vertices
         float[] quadVerticesData = new float[] {
@@ -398,9 +454,9 @@ public class Shader {
                 glClass.getMethod("glGetShaderiv", int.class, int.class, int[].class, int.class).invoke(null, shaderHandle, (int)glClass.getField("GL_COMPILE_STATUS").get(null), compileStatus, 0);
                 // If the compilation failed, delete the shader.
                 if (compileStatus[0] == 0) {
-                    glClass.getMethod("glDeleteShader", int.class).invoke(null, shaderHandle);
-                    shaderHandle = 0;
                     Log.e("Shader", "Error compiling shader (type " + shaderType + ")");
+                    shaderHandle = 0;
+                    glClass.getMethod("glDeleteShader", int.class).invoke(null, shaderHandle);
                     //throw new RuntimeException("Error compiling shader (type " + shaderType + ")");
                 }
             }
@@ -425,6 +481,9 @@ public class Shader {
             iTimeHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_TIME);
             iResolutionHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_RESOLUTION);
             iMouseHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_MOUSE);
+            iFrameHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_FRAME);
+            iTimeDeltaHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_TIME_DELTA);
+            iFrameRateHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_FRAME_RATE);
             //Log.d("Shader", "mvpMatrixHandle: " + mMVPMatrixHandle + " stMatrixHandle: " + mSTMatrixHandle + " iTimeHandle: " + iTimeHandle + " iResolutionHandle: " + iResolutionHandle);
         } catch(Exception e) { Log.e("Shader", "An issue occurred while retrieving handles: " + e.toString()); }
     }
