@@ -12,6 +12,7 @@ import android.util.Log;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ public class Shader {
     private static final String FRAGMENT_SHADER_UNIFORM_FRAME_RATE = "iFrameRate";
     private static final String FRAGMENT_SHADER_UNIFORM_MOUSE = "iMouse";
     private static final String FRAGMENT_SHADER_UNIFORM_FRAME = "iFrame";
+    private static final String FRAGMENT_SHADER_UNIFORM_DATE = "iDate";
 
     private static final int FLOAT_SIZE_BYTES = 4;
     private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
@@ -198,6 +200,14 @@ public class Shader {
         prevTime = currentTime;
         float fps = 1 / deltaTime;
         float secondsElapsed = (currentTime) / 1000f; // will be input into shader as iTime
+        //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        LocalDateTime localDateTime = LocalDateTime.now();
+        int year = localDateTime.getYear();
+        int month = localDateTime.getMonthValue();
+        int day = localDateTime.getDayOfMonth();
+        int seconds = localDateTime.getHour() * 3600 + localDateTime.getMinute() * 60 + localDateTime.getSecond();
+        //Log.d("Shader", month + "/" + day + "/" + year + " " + seconds);
+        //}
         //Log.d("GLRenderer", "Drawing frame, timeElapsed: " + secondsElapsed + "s deltaTime: " + deltaTime + "s fps: " + fps);
         try {
             glClass.getMethod("glClearColor", float.class, float.class, float.class, float.class).invoke(null, 0.0f, 0.0f, 0.0f, 0.0f);
@@ -224,9 +234,10 @@ public class Shader {
                 glClass.getMethod("glUniform1f", int.class, float.class).invoke(null, iTimeDeltaHandle, deltaTime);
             if (iFrameRateHandle != UNKNOWN_UNIFORM)
                 glClass.getMethod("glUniform1f", int.class, float.class).invoke(null, iFrameRateHandle, fps);
+            if (iDateHandle != UNKNOWN_UNIFORM)
+                glClass.getMethod("glUniform4f", int.class, float.class, float.class, float.class, float.class).invoke(null, iDateHandle, year, month, day, seconds);
             //iChannelTimeHandle;
             //iChannelResolutionHandle;
-            //iDateHandle
         } catch(Exception e) { Log.e("Shader", "Failed to set built-in uniforms during draw: " + e.toString()); }
         try {
             glClass.getMethod("glBlendFunc", int.class, int.class).invoke(null, glClass.getField("GL_SRC_ALPHA").get(null), glClass.getField("GL_ONE_MINUS_SRC_ALPHA").get(null));
@@ -291,7 +302,7 @@ public class Shader {
 //    }
     // source: https://www.learnopengles.com/android-lesson-four-introducing-basic-texturing/
     public void bindTexture(Bitmap texture, String handleName) {
-        Log.d("Shader", "Binding " + handleName);
+        Log.i("Shader", "Binding " + handleName);
         try {
             // Check to see the handle name exists in the shader
             int texHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), handleName);
@@ -361,19 +372,19 @@ public class Shader {
     private void initValues(int glVersion) {
         switch(glVersion) {
             case 0x30002:
-                Log.d("Shader", "Using GLES32");
+                Log.i("Shader", "Using GLES32");
                 glClass = GLES32.class;
                 break;
             case 0x30001:
-                Log.d("Shader", "Using GLES31");
+                Log.i("Shader", "Using GLES31");
                 glClass = GLES31.class;
                 break;
             case 0x30000:
-                Log.d("Shader", "Using GLES30");
+                Log.i("Shader", "Using GLES30");
                 glClass = GLES30.class;
                 break;
             case 0x20000:
-                Log.d("Shader", "Using GLES20");
+                Log.i("Shader", "Using GLES20");
                 glClass = GLES20.class;
                 break;
             default:
@@ -484,6 +495,7 @@ public class Shader {
             iFrameHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_FRAME);
             iTimeDeltaHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_TIME_DELTA);
             iFrameRateHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_FRAME_RATE);
+            iDateHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_DATE);
             //Log.d("Shader", "mvpMatrixHandle: " + mMVPMatrixHandle + " stMatrixHandle: " + mSTMatrixHandle + " iTimeHandle: " + iTimeHandle + " iResolutionHandle: " + iResolutionHandle);
         } catch(Exception e) { Log.e("Shader", "An issue occurred while retrieving handles: " + e.toString()); }
     }

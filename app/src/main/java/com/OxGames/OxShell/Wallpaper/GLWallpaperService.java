@@ -15,15 +15,34 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.LogcatHelper;
+
 //Source: https://www.learnopengles.com/how-to-use-opengl-es-2-in-an-android-live-wallpaper/
 public class GLWallpaperService extends WallpaperService {
     private Context context;
 
     @Override
     public Engine onCreateEngine() {
-        Log.d("GLWallpaperService", "onCreateEngine");
-        context = this;
+        Log.i("GLWallpaperService", "onCreateEngine");
+//        String STORAGE_DIR_INTERNAL = context.getExternalFilesDir(null).toString();
+//        String SHADER_ITEMS_DIR_INTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Shader");
+//        Process process = Runtime.getRuntime().exec("logcat -f " + (SHADER_ITEMS_DIR_INTERNAL + "/log.txt"));
         return new GLEngine();
+    }
+
+    @Override
+    public void onCreate() {
+        Log.i("GLWallpaperService", "onCreate");
+        context = this;
+        super.onCreate();
+        LogcatHelper.getInstance(context).start();
+    }
+    @Override
+    public void onDestroy() {
+        Log.i("GLWallpaperService", "onDestroy");
+        super.onDestroy();
+        LogcatHelper.getInstance(context).stop();
     }
 
     public class GLEngine extends WallpaperService.Engine implements SensorEventListener {
@@ -63,7 +82,7 @@ public class GLWallpaperService extends WallpaperService {
         @Override
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
-            Log.d("GLEngine", "Creating...");
+            Log.i("GLEngine", "Creating...");
             glSurfaceView = new WallpaperGLSurfaceView(GLWallpaperService.this);
 
             final ActivityManager activityManager = (ActivityManager)getSystemService(Context.ACTIVITY_SERVICE);
@@ -82,7 +101,7 @@ public class GLWallpaperService extends WallpaperService {
         @Override
         public void onDestroy() {
             super.onDestroy();
-            Log.d("GLEngine", "Destroying...");
+            Log.i("GLEngine", "Destroying...");
             glSurfaceView.onDestroy();
             unregisterSensors();
         }

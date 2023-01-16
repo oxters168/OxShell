@@ -16,6 +16,7 @@ import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
@@ -58,14 +59,18 @@ public class PagedActivity extends AppCompatActivity {
         SettingsKeeper.loadOrCreateSettings();
         if (SettingsKeeper.fileDidNotExist()) {
             ShortcutsCache.createAndStoreDefaults();
-            Log.d("PagedActivity", "Settings did not exist, first time launch");
+            Log.i("PagedActivity", "Settings did not exist, first time launch");
         } else {
             ShortcutsCache.readIntentsFromDisk();
             int timesLoaded = 0;
             if (SettingsKeeper.hasValue(SettingsKeeper.TIMES_LOADED))
                 timesLoaded = (int)SettingsKeeper.getValue(SettingsKeeper.TIMES_LOADED);
-            Log.d("PagedActivity", "Settings existed, app launched " + timesLoaded + " time(s)");
+            Log.i("PagedActivity", "Settings existed, activity launched " + timesLoaded + " time(s)");
         }
+
+        LogcatHelper.getInstance(this).start();
+        //int mPId = android.os.Process.myPid();
+        //Log.d("PagedActivity", "pid: " + mPId);
 
         //HideActionBar();
 
@@ -75,7 +80,7 @@ public class PagedActivity extends AppCompatActivity {
 
 
 //        HomeManager.Init();
-        Log.d("PagedActivity", "OnCreate " + this);
+        Log.i("PagedActivity", "OnCreate " + this);
     }
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
@@ -92,28 +97,29 @@ public class PagedActivity extends AppCompatActivity {
         hideActionBar();
         hideSystemUI();
         resumeBackground();
-        Log.d("PagedActivity", "OnResume " + this);
+        Log.i("PagedActivity", "OnResume " + this);
     }
     @Override
     protected void onPause() {
-        Log.d("PagedActivity", "OnPause " + this);
+        Log.i("PagedActivity", "OnPause " + this);
         pauseBackground();
         super.onPause();
     }
     @Override
     protected void onStop() {
-        Log.d("PagedActivity", "OnStop " + this);
+        Log.i("PagedActivity", "OnStop " + this);
         super.onStop();
     }
     @Override
     protected void onDestroy() {
-        Log.d("PagedActivity", "OnDestroy " + this);
+        Log.i("PagedActivity", "OnDestroy " + this);
+        LogcatHelper.getInstance(this).stop();
         super.onDestroy();
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        Log.d("PagedActivity", "OnWindowFocusChanged " + this);
+        Log.i("PagedActivity", "OnWindowFocusChanged " + this);
         super.onWindowFocusChanged(hasFocus);
         hideSystemUI();
     }
