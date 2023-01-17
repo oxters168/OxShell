@@ -17,6 +17,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 public class Shader {
@@ -38,6 +39,9 @@ public class Shader {
     private static final String FRAGMENT_SHADER_UNIFORM_MOUSE = "iMouse";
     private static final String FRAGMENT_SHADER_UNIFORM_FRAME = "iFrame";
     private static final String FRAGMENT_SHADER_UNIFORM_DATE = "iDate";
+    //private static final String FRAGMENT_SHADER_UNIFORM_CHANNEL_TIME = "iChannelTime";
+    private static final String FRAGMENT_SHADER_UNIFORM_CHANNEL_RES = "iChannelResolution";
+    private static final String FRAGMENT_SHADER_UNIFORM_BATTERY = "iBattery";
 
     private static final int FLOAT_SIZE_BYTES = 4;
     private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
@@ -55,7 +59,7 @@ public class Shader {
     // built-in shader attribute handles
     //private int inPositionHandle = UNKNOWN_ATTRIBUTE;
     //private int inTextureHandle = UNKNOWN_ATTRIBUTE;
-    //    Shader Inputs
+    //    Shadertoy Inputs
     //
     //    uniform vec3      iResolution;           // viewport resolution (in pixels) (the z value is the pixel aspect ratio https://stackoverflow.com/questions/27888323/what-does-iresolution-mean-in-a-shader)
     //    uniform float     iTime;                 // shader playback time (in seconds)
@@ -68,6 +72,10 @@ public class Shader {
     //    uniform samplerXX iChannel0..3;          // input channel. XX = 2D/Cube
     //    uniform vec4      iDate;                 // (year, month, day, time in seconds)
     //    uniform float     iSampleRate;           // sound sample rate (i.e., 44100)
+    //    OxShell Added Inputs
+    //    uniform vec3     iBattery;               // x=battery percent 0-1, y=[not charging -1, charging 1, full battery 2], z=[not charging -1, ac 1, usb 2, wireless_or_otherwise 3]
+    //    uniform vec3?     iGyro;                 // values taken directly from the gyroscope/accelerometer
+    
     // built-in shader uniform handles
     private int mMVPMatrixHandle = UNKNOWN_UNIFORM;
     private int mSTMatrixHandle = UNKNOWN_UNIFORM;
@@ -76,17 +84,19 @@ public class Shader {
     private int iTimeDeltaHandle = UNKNOWN_UNIFORM;
     private int iFrameRateHandle = UNKNOWN_UNIFORM;
     private int iFrameHandle = UNKNOWN_UNIFORM;
-    private int iChannelTimeHandle = UNKNOWN_UNIFORM;
+    //private int iChannelTimeHandle = UNKNOWN_UNIFORM;
     private int iChannelResolutionHandle = UNKNOWN_UNIFORM;
     private int iMouseHandle = UNKNOWN_UNIFORM;
     private int iDateHandle = UNKNOWN_UNIFORM;
+    private int iBattery = UNKNOWN_UNIFORM;
 
     private Class<? extends GLES20> glClass;
 
     private Queue<Integer> availableTexUnits;
-    private HashMap<String, Integer> texHandleUnits;
+    private HashMap<String, TextureInfo> texHandleUnits;
     //private int setWidth = 1, setHeight = 1;
     private float mousex = 0, mousey = 0, mousez = -1, mousew = -1;
+    private BatteryInfo batteryInfo;
 
     private int programHandle;
     private static final String fallbackVertex =
@@ -144,6 +154,33 @@ public class Shader {
 //            + "   //}                                                                                                       \n"
 //            + "   fragColor = vec4(iMouse.xy / iResolution.xy, 0., 1.);                                                   \n"
 //            + "}                                                                                                          \n";
+
+    private class TextureInfo {
+        public int unit;
+        public int width;
+        public int height;
+        public TextureInfo(int _unit, int _width, int _height) {
+            unit = _unit;
+            width = _width;
+            height = _height;
+        }
+    }
+    public static class BatteryInfo {
+        float percent;
+        boolean full;
+        boolean charging;
+        boolean wall;
+        boolean usb;
+        boolean wireless;
+        public BatteryInfo(float percent, boolean full, boolean charging, boolean wall, boolean usb, boolean wireless) {
+            this.percent = percent;
+            this.full = full;
+            this.charging = charging;
+            this.wall = wall;
+            this.usb = usb;
+            this.wireless = wireless;
+        }
+    }
 
     public Shader(int glVersion) {
         initValues(glVersion);
@@ -236,8 +273,9 @@ public class Shader {
                 glClass.getMethod("glUniform1f", int.class, float.class).invoke(null, iFrameRateHandle, fps);
             if (iDateHandle != UNKNOWN_UNIFORM)
                 glClass.getMethod("glUniform4f", int.class, float.class, float.class, float.class, float.class).invoke(null, iDateHandle, year, month, day, seconds);
+            if (iBattery != UNKNOWN_UNIFORM)
+                glClass.getMethod("glUniform3f", int.class, float.class, float.class, float.class).invoke(null, iBattery, batteryInfo.percent, batteryInfo.charging ? 1 : batteryInfo.full ? 2 : -1, batteryInfo.charging || batteryInfo.full ? batteryInfo.wall ? 1 : batteryInfo.usb ? 2 : 3 : -1);
             //iChannelTimeHandle;
-            //iChannelResolutionHandle;
         } catch(Exception e) { Log.e("Shader", "Failed to set built-in uniforms during draw: " + e.toString()); }
         try {
             glClass.getMethod("glBlendFunc", int.class, int.class).invoke(null, glClass.getField("GL_SRC_ALPHA").get(null), glClass.getField("GL_ONE_MINUS_SRC_ALPHA").get(null));
@@ -276,21 +314,13 @@ public class Shader {
         }
     }
     public void setMousePos(float x, float y, float z, float w) {
-        if (iMouseHandle != UNKNOWN_UNIFORM) {
-            try {
-                //TODO: figure out if mouse isn't just working with planet.fsh or any shader that uses iMouse
-                //glClass.getMethod("glUniform4f", int.class, float.class, float.class, float.class, float.class).invoke(null, iMouseHandle, x, y, z, w);
-                //iMouseHandle = GLES32.glGetUniformLocation(getProgramHandle(), FRAGMENT_SHADER_UNIFORM_MOUSE);
-                //GLES32.glUseProgram(getProgramHandle());
-                //GLES32.glUniform4f(iMouseHandle, x, y, z, w);
-                //GLES32.glProgramUniform4f(getProgramHandle(), iMouseHandle, x, y, z, w);
-                //Log.d("Shader", "Setting iMouse: " + iMouseHandle + " to " + x + ", " + y);
-                mousex = x;
-                mousey = y;
-                mousez = z;
-                mousew = w;
-            } catch (Exception e) { Log.e("Shader", "Failed to set mouse position: " + e.toString()); }
-        }
+        mousex = x;
+        mousey = y;
+        mousez = z;
+        mousew = w;
+    }
+    public void setBatteryInfo(BatteryInfo battInfo) {
+        batteryInfo = battInfo;
     }
 //    public int getMaxTextureCount() {
 //        int count = 0;
@@ -311,7 +341,7 @@ public class Shader {
                     // Get a unit number for the texture that the shader can use to reference it
                     int texIndex = availableTexUnits.poll();
                     // Cache the unit number of the texture in case we need it later (to delete or change the texture or something)
-                    texHandleUnits.put(handleName, texIndex);
+                    texHandleUnits.put(handleName, new TextureInfo(texIndex, texture.getWidth(), texture.getHeight()));
 
                     // Bind to the texture in OpenGL
                     glClass.getMethod("glBindTexture", int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), texHandle);
@@ -335,6 +365,17 @@ public class Shader {
 
                     // Load the bitmap into the bound texture
                     GLUtils.texImage2D((int)glClass.getField("GL_TEXTURE_2D").get(null), 0, texture, 0);
+                    // update resolutions of channels in shader
+                    if (iChannelResolutionHandle != UNKNOWN_UNIFORM) {
+                        float[] iChannelRes = new float[MAX_TEXTURE_COUNT * 3];
+                        for (Map.Entry<String, TextureInfo> entry : texHandleUnits.entrySet()) {
+                            TextureInfo texInfo = entry.getValue();
+                            iChannelRes[texInfo.unit] = texInfo.width;
+                            iChannelRes[texInfo.unit + 1] = texInfo.height;
+                            iChannelRes[texInfo.unit + 2] = 1; // I believe this is similar to iResolution where the third value is the pixel aspect ratio, need to check further
+                        }
+                        glClass.getMethod("glUniform2fv", int.class, int.class, FloatBuffer.class).invoke(null, iChannelResolutionHandle, MAX_TEXTURE_COUNT * 3, FloatBuffer.wrap(iChannelRes));
+                    }
                 } else
                     throw new UnsupportedOperationException("Could not bind a new texture to " + handleName + ", exceeded max texture count of " + MAX_TEXTURE_COUNT);
             } else
@@ -496,6 +537,8 @@ public class Shader {
             iTimeDeltaHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_TIME_DELTA);
             iFrameRateHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_FRAME_RATE);
             iDateHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_DATE);
+            iChannelResolutionHandle = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_CHANNEL_RES);
+            iBattery = (int)glClass.getMethod("glGetUniformLocation", int.class, String.class).invoke(null, getProgramHandle(), FRAGMENT_SHADER_UNIFORM_BATTERY);
             //Log.d("Shader", "mvpMatrixHandle: " + mMVPMatrixHandle + " stMatrixHandle: " + mSTMatrixHandle + " iTimeHandle: " + iTimeHandle + " iResolutionHandle: " + iResolutionHandle);
         } catch(Exception e) { Log.e("Shader", "An issue occurred while retrieving handles: " + e.toString()); }
     }

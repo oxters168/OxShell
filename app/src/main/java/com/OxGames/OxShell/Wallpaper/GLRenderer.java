@@ -37,6 +37,8 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         return glVersion;
     }
 
+    public void onBatteryReceive(Shader.BatteryInfo battInfo) {
+    }
     public void onTouchEvent(MotionEvent ev) {
         float z = -1;
         float w = -1;

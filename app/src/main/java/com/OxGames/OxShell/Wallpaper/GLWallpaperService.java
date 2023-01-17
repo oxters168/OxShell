@@ -1,13 +1,17 @@
 package com.OxGames.OxShell.Wallpaper;
 
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ConfigurationInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
+import android.os.BatteryManager;
 import android.service.wallpaper.WallpaperService;
 import android.util.Log;
 import android.view.Display;
@@ -21,6 +25,27 @@ import com.OxGames.OxShell.Helpers.LogcatHelper;
 //Source: https://www.learnopengles.com/how-to-use-opengl-es-2-in-an-android-live-wallpaper/
 public class GLWallpaperService extends WallpaperService {
     private Context context;
+    private Engine currentEngine;
+
+    private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive(Context ctxt, Intent intent) {
+            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+            int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+            int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+            int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+            float percent = level / (float)scale;
+            boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+            boolean full = status == BatteryManager.BATTERY_STATUS_FULL;
+            boolean usb = plugged == BatteryManager.BATTERY_PLUGGED_USB;
+            boolean wall = plugged == BatteryManager.BATTERY_PLUGGED_AC;
+            boolean wireless = plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS;
+
+            //Log.d("GLWallpaperService", "battery " + percent + " charging " + charging + " ac " + wall + " usb " + usb + " wireless " + wireless);
+            if (currentEngine instanceof GLEngine)
+                ((GLEngine)currentEngine).onBatteryReceive(new Shader.BatteryInfo(percent, full, charging, wall, usb, wireless));
+        }
+    };
 
     @Override
     public Engine onCreateEngine() {
@@ -28,13 +53,15 @@ public class GLWallpaperService extends WallpaperService {
 //        String STORAGE_DIR_INTERNAL = context.getExternalFilesDir(null).toString();
 //        String SHADER_ITEMS_DIR_INTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Shader");
 //        Process process = Runtime.getRuntime().exec("logcat -f " + (SHADER_ITEMS_DIR_INTERNAL + "/log.txt"));
-        return new GLEngine();
+        currentEngine = new GLEngine();
+        return currentEngine;
     }
 
     @Override
     public void onCreate() {
         Log.i("GLWallpaperService", "onCreate");
         context = this;
+        registerReceiver(mBatInfoReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         super.onCreate();
         LogcatHelper.getInstance(context).start();
     }
@@ -42,6 +69,7 @@ public class GLWallpaperService extends WallpaperService {
     public void onDestroy() {
         Log.i("GLWallpaperService", "onDestroy");
         super.onDestroy();
+        currentEngine = null;
         LogcatHelper.getInstance(context).stop();
     }
 
@@ -120,14 +148,17 @@ public class GLWallpaperService extends WallpaperService {
             }
         }
 
+        public void onBatteryReceive(Shader.BatteryInfo battInfo) {
+            if (rendererHasBeenSet)
+                if (renderer instanceof GLRenderer)
+                    ((GLRenderer)renderer).onBatteryReceive(battInfo);
+        }
         @Override
         public void onTouchEvent(MotionEvent event) {
             super.onTouchEvent(event);
-            if (rendererHasBeenSet) {
-                if (renderer instanceof GLRenderer) {
+            if (rendererHasBeenSet)
+                if (renderer instanceof GLRenderer)
                     ((GLRenderer)renderer).onTouchEvent(event);
-                }
-            }
         }
         @Override
         public void onSensorChanged(SensorEvent event) {
