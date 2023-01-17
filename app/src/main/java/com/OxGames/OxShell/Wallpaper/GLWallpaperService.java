@@ -30,20 +30,8 @@ public class GLWallpaperService extends WallpaperService {
     private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context ctxt, Intent intent) {
-            int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-            int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-            int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-            int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
-            float percent = level / (float)scale;
-            boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING;
-            boolean full = status == BatteryManager.BATTERY_STATUS_FULL;
-            boolean usb = plugged == BatteryManager.BATTERY_PLUGGED_USB;
-            boolean wall = plugged == BatteryManager.BATTERY_PLUGGED_AC;
-            boolean wireless = plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS;
-
-            //Log.d("GLWallpaperService", "battery " + percent + " charging " + charging + " ac " + wall + " usb " + usb + " wireless " + wireless);
-            if (currentEngine instanceof GLEngine)
-                ((GLEngine)currentEngine).onBatteryReceive(new Shader.BatteryInfo(percent, full, charging, wall, usb, wireless));
+            if (currentEngine instanceof GLWallpaperService.GLEngine)
+                ((GLWallpaperService.GLEngine)currentEngine).onBatteryReceive(context, intent);
         }
     };
 
@@ -148,10 +136,10 @@ public class GLWallpaperService extends WallpaperService {
             }
         }
 
-        public void onBatteryReceive(Shader.BatteryInfo battInfo) {
+        public void onBatteryReceive(Context context, Intent intent) {
             if (rendererHasBeenSet)
                 if (renderer instanceof GLRenderer)
-                    ((GLRenderer)renderer).onBatteryReceive(battInfo);
+                    ((GLRenderer)renderer).onBatteryReceive(context, intent);
         }
         @Override
         public void onTouchEvent(MotionEvent event) {

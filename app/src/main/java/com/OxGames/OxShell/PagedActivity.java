@@ -1,16 +1,21 @@
 package com.OxGames.OxShell;
 
+import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
@@ -37,7 +42,7 @@ import java.util.Set;
 
 public class PagedActivity extends AppCompatActivity {
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
-//    private static PagedActivity instance;
+    //    private static PagedActivity instance;
 //    public static DisplayMetrics displayMetrics;
     private List<PermissionsListener> permissionListeners = new ArrayList<>();
     protected ActivityManager.Page currentPage;
@@ -64,7 +69,7 @@ public class PagedActivity extends AppCompatActivity {
             ShortcutsCache.readIntentsFromDisk();
             int timesLoaded = 0;
             if (SettingsKeeper.hasValue(SettingsKeeper.TIMES_LOADED))
-                timesLoaded = (int)SettingsKeeper.getValue(SettingsKeeper.TIMES_LOADED);
+                timesLoaded = (int) SettingsKeeper.getValue(SettingsKeeper.TIMES_LOADED);
             Log.i("PagedActivity", "Settings existed, activity launched " + timesLoaded + " time(s)");
         }
 
@@ -82,11 +87,13 @@ public class PagedActivity extends AppCompatActivity {
 //        HomeManager.Init();
         Log.i("PagedActivity", "OnCreate " + this);
     }
+
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        initBackground();
+        //initBackground();
     }
+
     @Override
     protected void onResume() {
         ActivityManager.setCurrent(currentPage);
@@ -96,13 +103,29 @@ public class PagedActivity extends AppCompatActivity {
         //HideStatusBar();
         hideActionBar();
         hideSystemUI();
-        resumeBackground();
+        //resumeBackground();
+        final WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            Log.d("PagedActivity", "Getting wallpaper drawable");
+            final Drawable wallpaperDrawable = wallpaperManager.getDrawable();
+            ImageView bg = findViewById(R.id.bgView);
+            bg.setBackground(wallpaperDrawable);
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            //return;
+        }
+
         Log.i("PagedActivity", "OnResume " + this);
     }
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
-        pauseBackground();
+        //pauseBackground();
         super.onPause();
     }
     @Override

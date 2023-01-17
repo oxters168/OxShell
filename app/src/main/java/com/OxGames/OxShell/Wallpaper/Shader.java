@@ -59,6 +59,7 @@ public class Shader {
     // built-in shader attribute handles
     //private int inPositionHandle = UNKNOWN_ATTRIBUTE;
     //private int inTextureHandle = UNKNOWN_ATTRIBUTE;
+
     //    Shadertoy Inputs
     //
     //    uniform vec3      iResolution;           // viewport resolution (in pixels) (the z value is the pixel aspect ratio https://stackoverflow.com/questions/27888323/what-does-iresolution-mean-in-a-shader)
@@ -72,10 +73,12 @@ public class Shader {
     //    uniform samplerXX iChannel0..3;          // input channel. XX = 2D/Cube
     //    uniform vec4      iDate;                 // (year, month, day, time in seconds)
     //    uniform float     iSampleRate;           // sound sample rate (i.e., 44100)
+    //
     //    OxShell Added Inputs
+    //
     //    uniform vec3     iBattery;               // x=battery percent 0-1, y=[not charging -1, charging 1, full battery 2], z=[not charging -1, ac 1, usb 2, wireless_or_otherwise 3]
     //    uniform vec3?     iGyro;                 // values taken directly from the gyroscope/accelerometer
-    
+
     // built-in shader uniform handles
     private int mMVPMatrixHandle = UNKNOWN_UNIFORM;
     private int mSTMatrixHandle = UNKNOWN_UNIFORM;
@@ -96,7 +99,7 @@ public class Shader {
     private HashMap<String, TextureInfo> texHandleUnits;
     //private int setWidth = 1, setHeight = 1;
     private float mousex = 0, mousey = 0, mousez = -1, mousew = -1;
-    private BatteryInfo batteryInfo;
+    private BatteryInfo batteryInfo = new BatteryInfo();
 
     private int programHandle;
     private static final String fallbackVertex =
@@ -172,7 +175,15 @@ public class Shader {
         boolean wall;
         boolean usb;
         boolean wireless;
-        public BatteryInfo(float percent, boolean full, boolean charging, boolean wall, boolean usb, boolean wireless) {
+        public BatteryInfo() {
+            percent = 0.5f;
+            full = false;
+            charging = false;
+            wall = false;
+            usb = false;
+            wireless = false;
+        }
+        public void set(float percent, boolean full, boolean charging, boolean wall, boolean usb, boolean wireless) {
             this.percent = percent;
             this.full = full;
             this.charging = charging;
@@ -319,8 +330,8 @@ public class Shader {
         mousez = z;
         mousew = w;
     }
-    public void setBatteryInfo(BatteryInfo battInfo) {
-        batteryInfo = battInfo;
+    public void setBatteryInfo(float percent, boolean full, boolean charging, boolean wall, boolean usb, boolean wireless) {
+        batteryInfo.set(percent, full, charging, wall, usb, wireless);
     }
 //    public int getMaxTextureCount() {
 //        int count = 0;

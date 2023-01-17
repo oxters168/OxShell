@@ -1,8 +1,10 @@
 package com.OxGames.OxShell.Wallpaper;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
+import android.os.BatteryManager;
 import android.os.Environment;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -37,7 +39,21 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         return glVersion;
     }
 
-    public void onBatteryReceive(Shader.BatteryInfo battInfo) {
+    public void onBatteryReceive(Context context, Intent intent) {
+        int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+        int plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
+        float percent = level / (float)scale;
+        boolean charging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+        boolean full = status == BatteryManager.BATTERY_STATUS_FULL;
+        boolean usb = plugged == BatteryManager.BATTERY_PLUGGED_USB;
+        boolean wall = plugged == BatteryManager.BATTERY_PLUGGED_AC;
+        boolean wireless = plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS;
+
+        //Log.d("GLWallpaperService", "battery " + percent + " charging " + charging + " ac " + wall + " usb " + usb + " wireless " + wireless);
+
+        shader.setBatteryInfo(percent, full, charging, wall, usb, wireless);
     }
     public void onTouchEvent(MotionEvent ev) {
         float z = -1;
