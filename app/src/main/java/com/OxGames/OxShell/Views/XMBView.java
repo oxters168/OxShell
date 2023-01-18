@@ -1,7 +1,6 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
@@ -13,10 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.OxGames.OxShell.Data.XMBItem;
-import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
-import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
@@ -24,9 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListener, Refreshable {
+public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//, SlideTouchListener {
     private final Context context;
-    private final SlideTouchHandler slideTouch;
+    //private final SlideTouchHandler slideTouch;
 
     private final Stack<XMBItemView> goneItemViews; //The views whose visibility are set to gone since they are not currently used
     private final HashMap<Integer, XMBItemView> usedItemViews; //The views that are currently displayed and the total index of the item they represent as their key
@@ -44,7 +41,20 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     private int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
     private int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
 
-    int currentIndex = 0;
+    private float startTouchX = 0;
+    private float pseudoStartX = 0;
+    private float startTouchY = 0;
+    private float pseudoStartY = 0;
+    private float touchDeadzone = 10;
+    private boolean movingHor = false;
+    private boolean movingVer = false;
+    private int startTouchIndex = 0;
+
+    // traversable index means the indices that can actually be stepped on
+    // col index are the indices that represent the columns
+    // total index includes all indices even the ones that cannot be stepped on (which are the top column items of columns with multiple items)
+    // local index are the indices within a column
+    int currentIndex = 0; // this is the traversable index
     private int prevIndex = 0;
 
     private final Rect reusableRect = new Rect();
@@ -61,8 +71,8 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     public XMBView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
-        slideTouch = new SlideTouchHandler();
-        slideTouch.addListener(this);
+        //slideTouch = new SlideTouchHandler();
+        //slideTouch.addListener(this);
 
         goneItemViews = new Stack<>();
         usedItemViews = new HashMap<>();
@@ -76,7 +86,59 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
     }
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        slideTouch.update(ev);
+        //Log.d("XMBView", ev.toString());
+        //slideTouch.update(ev);
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            Log.d("XMBView", "Touchdown");
+            startTouchX = ev.getRawX();
+            startTouchY = ev.getRawY();
+        } else if (ev.getAction() == MotionEvent.ACTION_MOVE) {
+            float currentX = ev.getRawX();
+            float currentY = ev.getRawY();
+            if (!movingVer && !movingHor && Math.abs(currentX - startTouchX) >= touchDeadzone) {
+                startTouchIndex = getColIndexFromTraversable(currentIndex);
+                pseudoStartX = Math.signum(currentX - startTouchX) * touchDeadzone + startTouchX;
+                movingHor = true;
+            }
+            // only acknowledge moving vertically if there are items to move vertically through
+            if (!movingHor && !movingVer && Math.abs(currentY - startTouchY) >= touchDeadzone && columnHasSubItems(getColIndexFromTraversable(currentIndex))) {
+                startTouchIndex = currentIndex;
+                pseudoStartY = Math.signum(currentY - startTouchY) * touchDeadzone + startTouchY;
+                movingVer = true;
+            }
+
+            if (movingHor) {
+                float diffX = pseudoStartX - currentX;
+                int offsetIndex = Math.round(diffX / iconSize); // convert the user drag amount to indices offset
+                int nextColIndex = Math.min(Math.max(startTouchIndex + offsetIndex, 0), getTotalColCount() - 1); // clamp the col index
+                int nextIndex = localToTraversableIndex(getCachedIndexOfCat(nextColIndex), nextColIndex); // get the offset column's local index then convert it to a traversable index
+                if (nextIndex != currentIndex) {
+                    setIndex(nextIndex);
+                    setViews();
+                }
+                //Log.d("XMBView", "Moving hor " + diffX + " offsetIndex " + offsetIndex + ", " + startTouchIndex + " => " + nextColIndex);
+            }
+            if (movingVer) {
+                float diffY = pseudoStartY - currentY;
+                int offsetIndex = Math.round(diffY / iconSize);
+                int colIndex = getColIndexFromTraversable(startTouchIndex);
+                //if (columnHasSubItems(colIndex)) {
+                int colSize = getColCount(colIndex);
+                int nextIndex = localToTraversableIndex(Math.min(Math.max(traversableToLocalIndex(startTouchIndex) + offsetIndex, 0), colSize - 1), colIndex); // clamp the local index then convert it back to a traversable index
+                if (nextIndex != currentIndex) {
+                    setIndex(nextIndex);
+                    setViews();
+                }
+                Log.d("XMBView", "Moving ver " + diffY + " offsetIndex " + offsetIndex + ", " + startTouchIndex + " => " + nextIndex);
+                //}
+            }
+        } else if (ev.getAction() == MotionEvent.ACTION_UP) {
+            Log.d("XMBView", "Touchup");
+            movingHor = false;
+            movingVer = false;
+            if (Math.abs(startTouchX - ev.getRawX()) < touchDeadzone && Math.abs(startTouchY - ev.getRawY()) < touchDeadzone)
+                makeSelection();
+        }
         return true;
     }
 
@@ -264,7 +326,7 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
             cat.setX(reusableRect.left);
             cat.setY(reusableRect.top);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
+            //Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
             if (inBounds)
                 drawItem(cat, true, FADE_VISIBLE);
             else
@@ -675,26 +737,26 @@ public class XMBView extends ViewGroup implements InputReceiver, SlideTouchListe
         setViews();
     }
 
-    @Override
-    public void onClick() {
-        makeSelection();
-    }
-    @Override
-    public void onSwipeDown() {
-        selectLowerItem();
-    }
-    @Override
-    public void onSwipeLeft() {
-        selectLeftItem();
-    }
-    @Override
-    public void onSwipeRight() {
-        selectRightItem();
-    }
-    @Override
-    public void onSwipeUp() {
-        selectUpperItem();
-    }
+//    @Override
+//    public void onClick() {
+//        makeSelection();
+//    }
+//    @Override
+//    public void onSwipeDown() {
+//        selectLowerItem();
+//    }
+//    @Override
+//    public void onSwipeLeft() {
+//        selectLeftItem();
+//    }
+//    @Override
+//    public void onSwipeRight() {
+//        selectRightItem();
+//    }
+//    @Override
+//    public void onSwipeUp() {
+//        selectUpperItem();
+//    }
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("XMBView2", key_event.toString());
