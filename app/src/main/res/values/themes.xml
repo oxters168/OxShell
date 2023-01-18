@@ -2,28 +2,31 @@
     <!-- Base application theme. -->
     <style name="Theme.OxShell" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/scheme3</item>
-        <item name="colorPrimaryVariant">@color/scheme4</item>
-        <item name="colorOnPrimary">@color/scheme1</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/scheme4</item>
-        <item name="colorSecondaryVariant">@color/scheme5</item>
-        <item name="colorOnSecondary">@color/scheme1</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+<!--        <item name="colorPrimary">@color/scheme3</item>-->
+<!--        <item name="colorPrimaryVariant">@color/scheme4</item>-->
+<!--        <item name="colorOnPrimary">@color/scheme1</item>-->
+<!--        &lt;!&ndash; Secondary brand color. &ndash;&gt;-->
+<!--        <item name="colorSecondary">@color/scheme4</item>-->
+<!--        <item name="colorSecondaryVariant">@color/scheme5</item>-->
+<!--        <item name="colorOnSecondary">@color/scheme1</item>-->
+<!--        &lt;!&ndash; Status bar color. &ndash;&gt;-->
+<!--        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>-->
         <!-- Customize your theme here. -->
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
-    <style name="Theme.OxShell.Fullscreen" parent="Theme.OxShell">
-        <item name="android:actionBarStyle">
-            @style/Widget.Theme.OxShell.ActionBar.Fullscreen
-        </item>
-        <item name="android:windowActionBarOverlay">true</item>
-        <item name="android:windowBackground">@null</item>
-    </style>
+<!--    <style name="Theme.OxShell.Fullscreen" parent="Theme.OxShell">-->
+<!--        <item name="android:actionBarStyle">-->
+<!--            @style/Widget.Theme.OxShell.ActionBar.Fullscreen-->
+<!--        </item>-->
+<!--        <item name="android:windowActionBarOverlay">true</item>-->
+<!--        <item name="android:windowShowWallpaper">true</item>-->
+<!--        <item name="android:windowBackground">@android:color/transparent</item>-->
+<!--    </style>-->
 
-    <style name="ThemeOverlay.OxShell.FullscreenContainer" parent="">
-        <item name="fullscreenBackgroundColor">@color/scheme2</item>
-        <item name="fullscreenTextColor">@color/text</item>
-    </style>
+<!--    <style name="ThemeOverlay.OxShell.FullscreenContainer" parent="">-->
+<!--        <item name="fullscreenBackgroundColor">@color/scheme2</item>-->
+<!--        <item name="fullscreenTextColor">@color/text</item>-->
+<!--    </style>-->
 </resources>

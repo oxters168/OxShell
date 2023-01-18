@@ -132,8 +132,8 @@
         <activity
             android:name=".HomeActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:exported="true"
-            android:theme="@style/Theme.OxShell.Fullscreen"> <!-- @android:style/Theme.Holo.NoActionBar.Fullscreen -->
+            android:exported="true">
+<!--            android:theme="@style/Theme.OxShell.Fullscreen"> &lt;!&ndash; @android:style/Theme.Holo.NoActionBar.Fullscreen &ndash;&gt;-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

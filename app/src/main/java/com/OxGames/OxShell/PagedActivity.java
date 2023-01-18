@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.app.WallpaperInfo;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -104,21 +105,24 @@ public class PagedActivity extends AppCompatActivity {
         hideActionBar();
         hideSystemUI();
         //resumeBackground();
-        final WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-            Log.d("PagedActivity", "Getting wallpaper drawable");
-            final Drawable wallpaperDrawable = wallpaperManager.getDrawable();
-            ImageView bg = findViewById(R.id.bgView);
-            bg.setBackground(wallpaperDrawable);
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            //return;
-        }
+//        final WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
+//        if (AndroidHelpers.hasReadStoragePermission()) {
+//            //Log.d("PagedActivity", "Getting wallpaper drawable");
+//            WallpaperInfo info = wallpaperManager.getWallpaperInfo();
+//            Log.d("PagedActivity", "Wallpaper info: " + info);
+//            final Drawable wallpaperDrawable;
+//            if (info != null) {
+//                wallpaperDrawable = info.loadIcon(getPackageManager());
+//            } else
+//                wallpaperDrawable = wallpaperManager.getDrawable();
+//
+//            ImageView bg = findViewById(R.id.bgView);
+//            bg.setBackground(wallpaperDrawable);
+//        } else {
+//            final Drawable wallpaperDrawable = wallpaperManager.getBuiltInDrawable();
+//            ImageView bg = findViewById(R.id.bgView);
+//            bg.setBackground(wallpaperDrawable);
+//        }
 
         Log.i("PagedActivity", "OnResume " + this);
     }
