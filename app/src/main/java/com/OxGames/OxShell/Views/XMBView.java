@@ -3,6 +3,8 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.OxGames.OxShell.Data.XMBItem;
+import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.R;
@@ -41,13 +44,20 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
     private int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
     private int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
 
+    private long touchMoveStartTime = 0;
+    private float touchMoveDir = 0;
+    private float momentumDeceleration = 10000; // pixels per second per second
+    private float momentumTravelDistX = 0;
+    private float momentumTravelDistY = 0;
     private float startTouchX = 0;
     private float pseudoStartX = 0;
+    private float momentumX = 0;
     private float startTouchY = 0;
     private float pseudoStartY = 0;
+    private float momentumY = 0;
     private float touchDeadzone = 10;
-    private boolean movingHor = false;
-    private boolean movingVer = false;
+    private boolean touchHor = false;
+    private boolean touchVer = false;
     private int startTouchIndex = 0;
 
     // traversable index means the indices that can actually be stepped on
@@ -89,58 +99,168 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
         //Log.d("XMBView", ev.toString());
         //slideTouch.update(ev);
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            Log.d("XMBView", "Touchdown");
+            //Log.d("XMBView", "Touchdown");
+            touchMoveStartTime = SystemClock.uptimeMillis();
+            stopMomentum();
             startTouchX = ev.getRawX();
             startTouchY = ev.getRawY();
         } else if (ev.getAction() == MotionEvent.ACTION_MOVE) {
             float currentX = ev.getRawX();
             float currentY = ev.getRawY();
-            if (!movingVer && !movingHor && Math.abs(currentX - startTouchX) >= touchDeadzone) {
-                startTouchIndex = getColIndexFromTraversable(currentIndex);
-                pseudoStartX = Math.signum(currentX - startTouchX) * touchDeadzone + startTouchX;
-                movingHor = true;
+            if (!touchVer && !touchHor && Math.abs(currentX - startTouchX) >= touchDeadzone) {
+                startTouchIndex = currentIndex;
+                touchMoveDir = Math.signum(currentX - startTouchX);
+                touchMoveStartTime = SystemClock.uptimeMillis();
+                pseudoStartX = touchMoveDir * touchDeadzone + startTouchX;
+                touchHor = true;
             }
             // only acknowledge moving vertically if there are items to move vertically through
-            if (!movingHor && !movingVer && Math.abs(currentY - startTouchY) >= touchDeadzone && columnHasSubItems(getColIndexFromTraversable(currentIndex))) {
+            if (!touchHor && !touchVer && Math.abs(currentY - startTouchY) >= touchDeadzone && columnHasSubItems(getColIndexFromTraversable(currentIndex))) {
                 startTouchIndex = currentIndex;
-                pseudoStartY = Math.signum(currentY - startTouchY) * touchDeadzone + startTouchY;
-                movingVer = true;
+                touchMoveDir = Math.signum(currentY - startTouchY);
+                touchMoveStartTime = SystemClock.uptimeMillis();
+                pseudoStartY = touchMoveDir * touchDeadzone + startTouchY;
+                touchVer = true;
             }
 
-            if (movingHor) {
+            if (touchHor) {
                 float diffX = pseudoStartX - currentX;
-                int offsetIndex = Math.round(diffX / iconSize); // convert the user drag amount to indices offset
-                int nextColIndex = Math.min(Math.max(startTouchIndex + offsetIndex, 0), getTotalColCount() - 1); // clamp the col index
-                int nextIndex = localToTraversableIndex(getCachedIndexOfCat(nextColIndex), nextColIndex); // get the offset column's local index then convert it to a traversable index
-                if (nextIndex != currentIndex) {
-                    setIndex(nextIndex);
-                    setViews();
+                if (touchMoveDir != Math.signum(diffX)) {
+                    // if the movement direction changed, then update the start time to reflect when the change happened
+                    touchMoveDir = Math.signum(diffX);
+                    touchMoveStartTime = SystemClock.uptimeMillis();
                 }
+                shiftX(startTouchIndex, diffX);
                 //Log.d("XMBView", "Moving hor " + diffX + " offsetIndex " + offsetIndex + ", " + startTouchIndex + " => " + nextColIndex);
             }
-            if (movingVer) {
+            if (touchVer) {
                 float diffY = pseudoStartY - currentY;
-                int offsetIndex = Math.round(diffY / iconSize);
-                int colIndex = getColIndexFromTraversable(startTouchIndex);
-                //if (columnHasSubItems(colIndex)) {
-                int colSize = getColCount(colIndex);
-                int nextIndex = localToTraversableIndex(Math.min(Math.max(traversableToLocalIndex(startTouchIndex) + offsetIndex, 0), colSize - 1), colIndex); // clamp the local index then convert it back to a traversable index
-                if (nextIndex != currentIndex) {
-                    setIndex(nextIndex);
-                    setViews();
+                if (touchMoveDir != Math.signum(diffY)) {
+                    // if the movement direction changed, then update the start time to reflect when the change happened
+                    touchMoveDir = Math.signum(diffY);
+                    touchMoveStartTime = SystemClock.uptimeMillis();
                 }
-                Log.d("XMBView", "Moving ver " + diffY + " offsetIndex " + offsetIndex + ", " + startTouchIndex + " => " + nextIndex);
-                //}
+                shiftY(startTouchIndex, diffY);
+                //Log.d("XMBView", "Moving ver " + diffY + " offsetIndex " + offsetIndex + ", " + startTouchIndex + " => " + nextIndex);
             }
         } else if (ev.getAction() == MotionEvent.ACTION_UP) {
-            Log.d("XMBView", "Touchup");
-            movingHor = false;
-            movingVer = false;
-            if (Math.abs(startTouchX - ev.getRawX()) < touchDeadzone && Math.abs(startTouchY - ev.getRawY()) < touchDeadzone)
+            //Log.d("XMBView", "Touchup");
+            stopMomentum();
+            //float movedDiffX;
+            //float movedDiffY;
+            if (!touchHor && !touchVer && Math.abs(startTouchX - ev.getRawX()) < touchDeadzone && Math.abs(startTouchY - ev.getRawY()) < touchDeadzone) {
+                // if the user did not scroll horizontally or vertically and they're still within the deadzone then make selection
                 makeSelection();
+            } else if (Math.abs(pseudoStartX - ev.getRawX()) >= iconSize || Math.abs(pseudoStartY - ev.getRawY()) >= iconSize) {
+                // else keep the momentum of where the user was scrolling
+                long touchupTime = SystemClock.uptimeMillis();
+                float totalTime = (touchupTime - touchMoveStartTime) / 1000f;
+                if (touchHor)
+                    momentumX = (pseudoStartX - ev.getRawX()) / totalTime; // pixels per second
+                if (touchVer)
+                    momentumY = (pseudoStartY - ev.getRawY()) / totalTime; // pixels per second
+                if ((touchHor && Math.abs(momentumX) > 0) || (touchVer && Math.abs(momentumY) > 0))
+                    handler.post(momentumRunner);
+                Log.d("XMBView", momentumX + ", " + momentumY);
+            }
+            touchHor = false;
+            touchVer = false;
         }
         return true;
     }
+    private void shiftX(float amount) {
+        shiftX(currentIndex, amount);
+    }
+    private void shiftX(int fromIndex, float amount) {
+        int offsetIndex = Math.round(amount / iconSize); // convert the user drag amount to indices offset
+        shiftX(fromIndex, offsetIndex);
+    }
+    private void shiftX(int amount) {
+        shiftX(currentIndex, amount);
+    }
+    private void shiftX(int fromIndex, int amount) {
+        if (Math.abs(amount) > 0) {
+            // clamp the col index
+            int nextColIndex = Math.min(Math.max(getColIndexFromTraversable(fromIndex) + amount, 0), getTotalColCount() - 1);
+            // get the offset column's local index then convert it to a traversable index
+            int nextIndex = localToTraversableIndex(getCachedIndexOfCat(nextColIndex), nextColIndex);
+            setIndex(nextIndex);
+            setViews();
+        }
+    }
+    private void shiftY(float amount) {
+        shiftY(currentIndex, amount);
+    }
+    private void shiftY(int fromIndex, float amount) {
+        int offsetIndex = Math.round(amount / iconSize);
+        shiftY(fromIndex, offsetIndex);
+    }
+    private void shiftY(int amount) {
+        shiftY(currentIndex, amount);
+    }
+    private void shiftY(int fromIndex, int amount) {
+        if (Math.abs(amount) > 0) {
+            int colIndex = getColIndexFromTraversable(fromIndex);
+            int colSize = getColCount(colIndex);
+            // clamp the local index then convert it back to a traversable index
+            int nextIndex = localToTraversableIndex(Math.min(Math.max(traversableToLocalIndex(fromIndex) + amount, 0), colSize - 1), colIndex);
+            setIndex(nextIndex);
+            setViews();
+        }
+    }
+    private void stopMomentum() {
+        momentumX = 0;
+        momentumY = 0;
+        momentumTravelDistX = 0;
+        momentumTravelDistY = 0;
+        handler.removeCallbacks(momentumRunner);
+    }
+    private Handler handler = new Handler();
+    private Runnable momentumRunner = new Runnable() {
+        @Override
+        public void run() {
+            int milliInterval = Math.round((1f / 60) * 1000);
+
+            boolean hasMomentumX = Math.abs(momentumX) > 0;
+            boolean hasMomentumY = Math.abs(momentumY) > 0;
+            if (hasMomentumX) {
+                // how many items have we passed already
+                int preMomentumOffset = (int)(momentumTravelDistX / iconSize);
+                // calculate travel distance based on current momentum
+                momentumTravelDistX += momentumX * (milliInterval / 1000f);
+                // decelerate the momentum
+                if (momentumX > 0)
+                    momentumX = Math.max(momentumX - momentumDeceleration * (milliInterval / 1000f), 0);
+                else
+                    momentumX = Math.min(momentumX + momentumDeceleration * (milliInterval / 1000f), 0);
+                //momentumX -= Math.signum(momentumX) * momentumDeceleration * (milliInterval / 1000f);
+                // how many items we've passed now that the momentum has been applied
+                int postMomentumOffset = (int)(momentumTravelDistX / iconSize);
+                Log.d("XMBView", "dist " + momentumTravelDistX + " momentum " + momentumX + " offset " + postMomentumOffset);
+                // get the difference between the items passed to see what should be applied this moment
+                shiftX(postMomentumOffset - preMomentumOffset);
+            }
+            if (hasMomentumY) {
+                // how many items have we passed already
+                int preMomentumOffset = (int)(momentumTravelDistY / iconSize);
+                // calculate travel distance based on current momentum
+                momentumTravelDistY += momentumY * (milliInterval / 1000f);
+                // decelerate the momentum
+                if (momentumY > 0)
+                    momentumY = Math.max(momentumY - momentumDeceleration * (milliInterval / 1000f), 0);
+                else
+                    momentumY = Math.min(momentumY + momentumDeceleration * (milliInterval / 1000f), 0);
+                // how many items we've passed now that the momentum has been applied
+                int postMomentumOffset = (int)(momentumTravelDistY / iconSize);
+                // get the difference between the items passed to see what should be applied this moment
+                shiftY(postMomentumOffset - preMomentumOffset);
+            }
+            if (hasMomentumX || hasMomentumY) {
+                long millis = SystemClock.uptimeMillis();
+                handler.postAtTime(this, millis + milliInterval);
+            }
+        }
+    };
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -762,22 +882,27 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
         //Log.d("XMBView2", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
+                stopMomentum();
                 makeSelection();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+                stopMomentum();
                 selectLowerItem();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+                stopMomentum();
                 selectUpperItem();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
+                stopMomentum();
                 selectLeftItem();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                stopMomentum();
                 selectRightItem();
                 return true;
             }
@@ -787,45 +912,16 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
         return key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B;
     }
     public void selectLowerItem() {
-        int colIndex = getColIndexFromTraversable(currentIndex);
-        if (columnHasSubItems(colIndex)) {
-            int colSize = getColCount(colIndex);
-            int localIndex = traversableToLocalIndex(currentIndex);
-            if (localIndex + 1 < colSize) {
-                setIndex(currentIndex + 1);
-                setViews();
-            }
-        }
+        shiftY(1);
     }
     public void selectUpperItem() {
-        int colIndex = getColIndexFromTraversable(currentIndex);
-        if (columnHasSubItems(colIndex)) {
-            int localIndex = traversableToLocalIndex(currentIndex);
-            if (localIndex - 1 >= 0) {
-                setIndex(currentIndex - 1);
-                setViews();
-            }
-        }
+        shiftY(-1);
     }
     public void selectRightItem() {
-        int colIndex = getColIndexFromTraversable(currentIndex);
-        if (colIndex + 1 < getTotalColCount()) {
-            int localIndex = getCachedIndexOfCat(colIndex + 1);
-            int nextIndex = localToTraversableIndex(localIndex, colIndex + 1);
-            //Log.d("XMBView", "Right => colFrom: " + colIndex + " colTo: " + (colIndex + 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
-            setIndex(nextIndex);
-            setViews();
-        }
+        shiftX(1);
     }
     public void selectLeftItem() {
-        int colIndex = getColIndexFromTraversable(currentIndex);
-        if (colIndex - 1 >= 0) {
-            int localIndex = getCachedIndexOfCat(colIndex - 1);
-            int nextIndex = localToTraversableIndex(localIndex, colIndex - 1);
-            //Log.d("XMBView", "Left => colFrom: " + colIndex + " colTo: " + (colIndex - 1) + " localTo: " + localIndex + " traversableTo: " + nextIndex + " traversableFrom: " + currentIndex);
-            setIndex(nextIndex);
-            setViews();
-        }
+        shiftX(-1);
     }
     public void makeSelection() {
     }
