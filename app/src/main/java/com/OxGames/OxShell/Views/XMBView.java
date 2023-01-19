@@ -33,6 +33,10 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
     private final ArrayList<Integer> catIndices;
     private final ArrayList<ArrayList<XMBItem>> items; //Each arraylist represents a column, the first item in the arraylist represents the category item
 
+    // for fine control of the menu
+    private float shiftX = 0; // goes from 0 to (getTotalColCount() - 1) * getHorShiftOffset()
+    private float localShiftY = 0; // goes from 0 to (getColCount(colIndex) - 1) * getVerShiftOffset()
+
     private int iconSize = 196;
     private float textSize = 48; //Size of the text
     private int textCushion = 16; //Distance between item and text
@@ -40,28 +44,70 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
     private float verSpacing = 0; //How much space to add between items vertically
     //private float catShift = horSpacing + (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
     private float catShift = horSpacing; //How much to shift the categories bar horizontally
-    private int horShiftOffset = Math.round(iconSize + horSpacing); //How far apart each item is from center to center
-    private int verShiftOffset = Math.round(iconSize + verSpacing); //How far apart each item is from center to center
+    private float getHorShiftOffset() {
+        // how far apart each item is from center to center
+        return iconSize + horSpacing;
+    }
+    private float getVerShiftOffset() {
+        // how far apart each item is from center to center
+        return iconSize + verSpacing;
+    }
+    private int xToIndex(float xValue) {
+        // finds the column index closest to the current x value then clamps it to be within the proper range
+        return Math.min(Math.max(Math.round(xValue / getHorShiftOffset()), 0), getTotalColCount() - 1);
+    }
+    private float toNearestColumn(float xValue) {
+        // finds the column index nearest to the pixel location then turns the index back into pixel location
+        return xToIndex(xValue) * getHorShiftOffset();
+    }
+    private int yToIndex(float yValue, int colIndex) {
+        // finds the local index closest to the current y value then clamps it to be within the proper range
+        return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), getColCount(colIndex) - 1);
+    }
+    private float toNearestColumnItem(float yValue, int colIndex) {
+        // finds the local index nearest to the pixel location then turns the index back into pixel location
+        return yToIndex(yValue, colIndex) * getVerShiftOffset();
+    }
+    private void setShiftX(float xValue) {
+        if (Math.abs(shiftX - xValue) > 0.0001f) {
+            shiftX = Math.min(Math.max(xValue, 0), (getTotalColCount() - 1) * getHorShiftOffset());
+            int colIndex = xToIndex(shiftX);
+            setIndex(localToTraversableIndex(getCachedIndexOfCat(colIndex), colIndex));
+            setViews();
+        }
+    }
+    private void setShiftX(int colIndex) {
+        float newX = Math.min(Math.max(colIndex, 0), getTotalColCount() - 1) * getHorShiftOffset();
+        setShiftX(newX);
+    }
+    private void setShiftXToNearestColumn() {
+        setShiftX(toNearestColumn(shiftX));
+    }
+    private void shiftX(float amount) {
+        setShiftX(shiftX + amount);
+    }
 
     private float touchMarginTop = 50;
     private float touchMarginLeft = 50;
     private float touchMarginRight = 50;
     private float touchMarginBottom = 50;
+    private float momentumDeceleration = 10000; // pixels per second per second
+    private float touchDeadzone = 10;
     private boolean touchInsideBorders = false;
+    private boolean touchHor = false;
+    private boolean touchVer = false;
     private long touchMoveStartTime = 0;
     private float touchMoveDir = 0;
-    private float momentumDeceleration = 10000; // pixels per second per second
     private float momentumTravelDistX = 0;
     private float momentumTravelDistY = 0;
     private float startTouchX = 0;
     private float pseudoStartX = 0;
     private float momentumX = 0;
+    private float prevX = 0;
     private float startTouchY = 0;
     private float pseudoStartY = 0;
     private float momentumY = 0;
-    private float touchDeadzone = 10;
-    private boolean touchHor = false;
-    private boolean touchVer = false;
+    private float prevY = 0;
     private int startTouchIndex = 0;
 
     // traversable index means the indices that can actually be stepped on
@@ -98,15 +144,24 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         return true;
     }
+
+    @Override
+    public boolean onCapturedPointerEvent(MotionEvent event) {
+        Log.d("XMBView", "Pointer event " + event);
+        return super.onCapturedPointerEvent(event);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        //Log.d("XMBView", ev.toString());
+        //Log.d("XMBView", "Touch event " + ev);
         //slideTouch.update(ev);
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             //Log.d("XMBView", "Touchdown");
             touchMoveStartTime = SystemClock.uptimeMillis();
             startTouchX = ev.getRawX();
             startTouchY = ev.getRawY();
+            prevX = startTouchX;
+            prevY = startTouchY;
             touchInsideBorders = startTouchX > touchMarginLeft && startTouchX < getWidth() - touchMarginRight && startTouchY > touchMarginTop && startTouchY < getHeight() - touchMarginBottom;
             if (touchInsideBorders)
                 stopMomentum();
@@ -130,17 +185,19 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
             }
 
             if (touchHor) {
-                // TODO: fix issue where shifting always shifts from the start index rather than the previous index causing animations to not work and holding finger down to twitch between two items
-                float diffX = pseudoStartX - currentX;
-                if (touchMoveDir != Math.signum(diffX)) {
+                if (touchMoveDir != Math.signum(pseudoStartX - currentX)) {
                     // if the movement direction changed, then update the start time to reflect when the change happened
-                    touchMoveDir = Math.signum(diffX);
+                    touchMoveDir = Math.signum(pseudoStartX - currentX);
                     touchMoveStartTime = SystemClock.uptimeMillis();
                 }
-                int newIndex = shiftX(startTouchIndex, diffX);
-                if (newIndex != startTouchIndex) {
+                float diffX = prevX - currentX;
+                //Log.d("XMBView", "Diffx " + diffX);
+                shiftX(diffX);// * 0.2f);
+                //int newIndex = shiftXDisc(startTouchIndex, diffX);
+                if (currentIndex != startTouchIndex) {
+                    // if the index changed then set our drag start value to be where we are right now
                     pseudoStartX = currentX;
-                    startTouchIndex = newIndex;
+                    startTouchIndex = currentIndex;
                 }
                 //Log.d("XMBView", "Moving hor " + diffX + " offsetIndex " + offsetIndex + ", " + startTouchIndex + " => " + nextColIndex);
             }
@@ -151,13 +208,16 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
                     touchMoveDir = Math.signum(diffY);
                     touchMoveStartTime = SystemClock.uptimeMillis();
                 }
-                int newIndex = shiftY(startTouchIndex, diffY);
+                int newIndex = shiftYDisc(startTouchIndex, diffY);
                 if (newIndex != startTouchIndex) {
+                    // if the index changed then set our drag start value to be where we are right now
                     pseudoStartY = currentY;
                     startTouchIndex = newIndex;
                 }
                 //Log.d("XMBView", "Moving ver " + diffY + " offsetIndex " + offsetIndex + ", " + startTouchIndex + " => " + nextIndex);
             }
+            prevX = currentX;
+            prevY = currentY;
         } else if (ev.getAction() == MotionEvent.ACTION_UP && touchInsideBorders) {
             //Log.d("XMBView", "Touchup");
             stopMomentum();
@@ -176,24 +236,26 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
                     momentumY = (startTouchY - ev.getRawY()) / totalTime; // pixels per second
                 if ((touchHor && Math.abs(momentumX) > 0) || (touchVer && Math.abs(momentumY) > 0))
                     handler.post(momentumRunner);
-                Log.d("XMBView", momentumX + ", " + momentumY);
+                //Log.d("XMBView", momentumX + ", " + momentumY);
+            } else {
+                setShiftXToNearestColumn();
             }
             touchHor = false;
             touchVer = false;
         }
         return true;
     }
-    private int shiftX(float amount) {
-        return shiftX(currentIndex, amount);
+    private int shiftXDisc(float amount) {
+        return shiftXDisc(currentIndex, amount);
     }
-    private int shiftX(int fromIndex, float amount) {
+    private int shiftXDisc(int fromIndex, float amount) {
         int offsetIndex = (int)(amount / iconSize); // convert the user drag amount to indices offset
-        return shiftX(fromIndex, offsetIndex);
+        return shiftXDisc(fromIndex, offsetIndex);
     }
-    private int shiftX(int amount) {
-        return shiftX(currentIndex, amount);
+    private int shiftXDisc(int amount) {
+        return shiftXDisc(currentIndex, amount);
     }
-    private int shiftX(int fromIndex, int amount) {
+    private int shiftXDisc(int fromIndex, int amount) {
         int nextIndex = fromIndex;
         if (Math.abs(amount) > 0) {
             int currentColIndex = getColIndexFromTraversable(fromIndex);
@@ -203,23 +265,24 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
             nextIndex = localToTraversableIndex(getCachedIndexOfCat(nextColIndex), nextColIndex);
             if (fromIndex != nextIndex) {
                 Log.d("XMBView", "Shifting from " + currentColIndex + " to " + nextColIndex + ", " + fromIndex + " => " + nextIndex);
-                setIndex(nextIndex);
-                setViews();
+                setShiftX(getColIndexFromTraversable(nextIndex));
+                //setIndex(nextIndex);
+                //setViews();
             }
         }
         return nextIndex;
     }
-    private int shiftY(float amount) {
-        return shiftY(currentIndex, amount);
+    private int shiftYDisc(float amount) {
+        return shiftYDisc(currentIndex, amount);
     }
-    private int shiftY(int fromIndex, float amount) {
+    private int shiftYDisc(int fromIndex, float amount) {
         int offsetIndex = (int)(amount / iconSize);
-        return shiftY(fromIndex, offsetIndex);
+        return shiftYDisc(fromIndex, offsetIndex);
     }
-    private int shiftY(int amount) {
-        return shiftY(currentIndex, amount);
+    private int shiftYDisc(int amount) {
+        return shiftYDisc(currentIndex, amount);
     }
-    private int shiftY(int fromIndex, int amount) {
+    private int shiftYDisc(int fromIndex, int amount) {
         int nextIndex = fromIndex;
         if (Math.abs(amount) > 0) {
             int colIndex = getColIndexFromTraversable(fromIndex);
@@ -252,7 +315,8 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
                 // how many items have we passed already
                 int preMomentumOffset = (int)(momentumTravelDistX / iconSize);
                 // calculate travel distance based on current momentum
-                momentumTravelDistX += momentumX * (milliInterval / 1000f);
+                float momentumOffsetX = momentumX * (milliInterval / 1000f);
+                momentumTravelDistX += momentumOffsetX;
                 // decelerate the momentum
                 if (momentumX > 0)
                     momentumX = Math.max(momentumX - momentumDeceleration * (milliInterval / 1000f), 0);
@@ -263,7 +327,8 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
                 int postMomentumOffset = (int)(momentumTravelDistX / iconSize);
                 //Log.d("XMBView", "dist " + momentumTravelDistX + " momentum " + momentumX + " offset " + postMomentumOffset);
                 // get the difference between the items passed to see what should be applied this moment
-                shiftX(postMomentumOffset - preMomentumOffset);
+                shiftX(momentumOffsetX);
+                //shiftXDisc(postMomentumOffset - preMomentumOffset);
             }
             if (hasMomentumY) {
                 // how many items have we passed already
@@ -278,11 +343,13 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
                 // how many items we've passed now that the momentum has been applied
                 int postMomentumOffset = (int)(momentumTravelDistY / iconSize);
                 // get the difference between the items passed to see what should be applied this moment
-                shiftY(postMomentumOffset - preMomentumOffset);
+                shiftYDisc(postMomentumOffset - preMomentumOffset);
             }
             if (hasMomentumX || hasMomentumY) {
                 long millis = SystemClock.uptimeMillis();
                 handler.postAtTime(this, millis + milliInterval);
+            } else {
+                setShiftXToNearestColumn();
             }
         }
     };
@@ -367,6 +434,22 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
                 Log.e("XMBView", "Child view @" + i + " is not of type XMBItemView");
         }
     }
+    private void setViews() {
+        //Log.d("XMBView2", "Setting view positions");
+        if (items.size() > 0) {
+            setIndex(currentIndex);
+            int colIndex = getColIndexFromTraversable(currentIndex);
+            int startX = getStartX() - Math.round(shiftX);// - colIndex * horShiftOffset;
+            int startY = getStartY();
+            //Log.d("XMBView", "Current col index " + colIndex + " x: " + startX + " y: " + startY);
+            //Log.d("XMBView", "Drawing views starting from " + getStartX());
+            int horShiftOffset = Math.round(getHorShiftOffset());
+            int verShiftOffset = Math.round(getVerShiftOffset());
+            drawCategories(startX, startY, horShiftOffset);
+            drawItems(currentIndex, startX, startY, horShiftOffset, verShiftOffset);
+            //invalidate();
+        }
+    }
     private void removeViews() {
         returnAllItemViews();
         while (!goneItemViews.isEmpty())
@@ -374,8 +457,8 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
     }
     private void createViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
-        int colCount = (int)Math.ceil(getWidth() / (float)horShiftOffset) + 4; //+4 for off screen animating into on screen
-        int rowCount = ((int)Math.ceil(getHeight() / (float)verShiftOffset) + 4) * 3; //+4 for off screen to on screen animating, *3 for column to column fade
+        int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
+        int rowCount = ((int)Math.ceil(getHeight() / getVerShiftOffset()) + 4) * 3; //+4 for off screen to on screen animating, *3 for column to column fade
         catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
         for (int i = 0; i < (colCount + rowCount); i++) {
             //Log.d("XMBView2", "Creating item view");
@@ -446,20 +529,6 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
         }
         itemView[0] = view;
         return isNew;
-    }
-    private void setViews() {
-        //Log.d("XMBView2", "Setting view positions");
-        if (items.size() > 0) {
-            setIndex(currentIndex);
-            int colIndex = getColIndexFromTraversable(currentIndex);
-            int startX = getStartX() - colIndex * horShiftOffset;
-            int startY = getStartY();
-            //Log.d("XMBView", "Current col index " + colIndex + " x: " + startX + " y: " + startY);
-            //Log.d("XMBView", "Drawing views starting from " + getStartX());
-            drawCategories(startX, startY, horShiftOffset);
-            drawItems(currentIndex, startX, startY, horShiftOffset, verShiftOffset);
-            //invalidate();
-        }
     }
     private void drawCategories(int startXInt, int startYInt, int horShiftOffsetInt) {
         int viewWidth = getWidth();
@@ -566,10 +635,34 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
         //Gets the bounds of the category view
         XMBItem cat = getCat(colIndex);
         getTextBounds(painter, cat.title, textSize, rect);
+        // get the horizontal pixel position of the item
         int expX = startX + horShiftOffset * colIndex;
+        // the vertical pixel position is the same since the categories go along a straight line
         int expY = startY;
+        // get the right and bottom values of the item relative to the left and top values and apply them to the rect
         int right = expX + Math.max(iconSize, rect.width());
         int bottom = expY + iconSize + textCushion + rect.height();
+        rect.set(expX, expY, right, bottom);
+    }
+    private void calcItemRect(int startX, int startY, int horShiftOffset, int verShiftOffset, int itemIndex, Rect rect) {
+        XMBItem item = getTraversableItem(itemIndex);
+        // get what column the item is in
+        int colIndex = getColIndexFromTraversable(itemIndex);
+        // get the index within the column of the item we are currently calculating the rect for
+        int localIndex = traversableToLocalIndex(itemIndex);
+        // get the index of what is actually highlighted currently within the column
+        int itemCatIndex = getCachedIndexOfCat(colIndex);
+        // get the horizontal pixel position of the item
+        int expX = startX + horShiftOffset * colIndex;
+        getTextBounds(painter, item.title, textSize, rect);
+        // get the vertical pixel position of the item
+        int expY = (startY + rect.height()) + verShiftOffset * ((localIndex - itemCatIndex) + 1);
+        if (localIndex < itemCatIndex)
+            // if the item is chronologically before the currently highlighted item, then take into account the column item by placing the y value above it
+            expY = startY - verShiftOffset * (((itemCatIndex - 1) - localIndex) + 1);
+        // get the right and bottom values of the item relative to the left and top values and apply them to the rect
+        int right = expX + iconSize + textCushion + rect.width();
+        int bottom = expY + iconSize;
         rect.set(expX, expY, right, bottom);
     }
     private int traversableToTotalIndex(int traversableIndex) {
@@ -630,21 +723,9 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
         }
         return index;
     }
-    private void calcItemRect(int startX, int startY, int horShiftOffset, int verShiftOffset, int itemIndex, Rect rect) {
-        XMBItem item = getTraversableItem(itemIndex);
-        int colIndex = getColIndexFromTraversable(itemIndex);
-        int localIndex = traversableToLocalIndex(itemIndex);
-        int itemCatIndex = getCachedIndexOfCat(colIndex); //What is actually highlighted currently within the column
-        int expX = startX + horShiftOffset * colIndex;
-        getTextBounds(painter, item.title, textSize, rect);
-        int expY = (startY + rect.height()) + verShiftOffset * ((localIndex - itemCatIndex) + 1);
-        if (localIndex < itemCatIndex)
-            expY = startY - verShiftOffset * (((itemCatIndex - 1) - localIndex) + 1);
-        int right = expX + iconSize + textCushion + rect.width();
-        int bottom = expY + iconSize;
-        rect.set(expX, expY, right, bottom);
-    }
     private boolean inView(Rect rect, int viewWidth, int viewHeight) {
+        int horShiftOffset = Math.round(getHorShiftOffset());
+        int verShiftOffset = Math.round(getVerShiftOffset());
         int left = -horShiftOffset;
         int right = viewWidth + horShiftOffset;
         int top = -verShiftOffset;
@@ -937,16 +1018,16 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
         return key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B;
     }
     public void selectLowerItem() {
-        shiftY(1);
+        shiftYDisc(1);
     }
     public void selectUpperItem() {
-        shiftY(-1);
+        shiftYDisc(-1);
     }
     public void selectRightItem() {
-        shiftX(1);
+        shiftXDisc(1);
     }
     public void selectLeftItem() {
-        shiftX(-1);
+        shiftXDisc(-1);
     }
     public void makeSelection() {
     }
