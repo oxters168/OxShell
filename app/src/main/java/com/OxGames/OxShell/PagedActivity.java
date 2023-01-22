@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -103,7 +104,7 @@ public class PagedActivity extends AppCompatActivity {
         //Add an if statement later to have a setting for hiding status bar
         //HideStatusBar();
         hideActionBar();
-        hideSystemUI();
+        //hideSystemUI();
         //resumeBackground();
 //        final WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
 //        if (AndroidHelpers.hasReadStoragePermission()) {
@@ -126,6 +127,14 @@ public class PagedActivity extends AppCompatActivity {
 
         Log.i("PagedActivity", "OnResume " + this);
     }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        // TODO: store non-persistent data (like where we are in the app and other stuff) for when leaving the app temporarily
+        // use outState.putFloat, putInt, putString...
+        super.onSaveInstanceState(outState);
+    }
+
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
@@ -148,7 +157,8 @@ public class PagedActivity extends AppCompatActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         Log.i("PagedActivity", "OnWindowFocusChanged " + this);
         super.onWindowFocusChanged(hasFocus);
-        hideSystemUI();
+        //hideSystemUI();
+        hideActionBar();
     }
 
     @Override
@@ -224,7 +234,8 @@ public class PagedActivity extends AppCompatActivity {
     }
 
     public ShaderView getBackground() {
-        return findViewById(R.id.bgShader);
+        return null;
+        //return findViewById(R.id.bgShader);
     }
     private void pauseBackground() {
         ShaderView shaderView = getBackground();
