@@ -24,6 +24,7 @@ import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.ShortcutsCache;
+import com.OxGames.OxShell.OxShellApp;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -146,7 +147,7 @@ public class AndroidHelpers {
         return combined.toString();
     }
     public static boolean hasPermission(String permType) {
-        return ContextCompat.checkSelfPermission(ActivityManager.getCurrentActivity(), permType) == PackageManager.PERMISSION_GRANTED;
+        return ContextCompat.checkSelfPermission(OxShellApp.getContext(), permType) == PackageManager.PERMISSION_GRANTED;
     }
     public static boolean hasReadStoragePermission() {
         Log.d("FileHelpers", "Checking has read permission");
@@ -179,75 +180,25 @@ public class AndroidHelpers {
             ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
     }
 
-    public static Uri uriFromFile(Context context, File file) {
+    public static Uri uriFromFile(File file) {
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //Unnecessary since version code is always over 24
-            return FileProvider.getUriForFile(context, BuildConfig.DOCUMENTS_AUTHORITY, file);
+            return Uri.parse(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.DOCUMENTS_AUTHORITY, file).toString().replace("%2F", "/"));
         //} else {
         //    return Uri.fromFile(file);
         //}
     }
+    public static Uri uriFromPath(String path) {
+        return uriFromFile(new File(path));
+    }
 
     public static void install(String path) {
-        final Uri contentUri = uriFromFile(ActivityManager.getCurrentActivity(), new File(path));
+        Context context = OxShellApp.getContext();
+        final Uri contentUri = uriFromPath(path);
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        ActivityManager.getCurrentActivity().startActivity(intent);
-    }
-    public static void tryRun(File file) {
-        String absPath = file.getAbsolutePath();
-        if (!isDirectory(absPath)) {
-            String extension = AndroidHelpers.getExtension(absPath);
-            if (extension != null) {
-                IntentLaunchData fileLaunchIntent = ShortcutsCache.getLaunchDataForExtension(extension);
-
-                if (fileLaunchIntent != null) {
-                    String nameWithExt = file.getName();
-                    String nameWithoutExt = AndroidHelpers.removeExtension(nameWithExt);
-
-                    String[] extrasValues = null;
-                    IntentPutExtra[] extras = fileLaunchIntent.getExtras();
-                    if (extras != null && extras.length > 0) {
-                        extrasValues = new String[extras.length];
-                        for (int i = 0; i < extras.length; i++) {
-                            IntentPutExtra current = extras[i];
-                            if (current.getExtraType() == IntentLaunchData.DataType.AbsolutePath)
-                                extrasValues[i] = absPath;
-                            else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithExt)
-                                extrasValues[i] = nameWithExt;
-                            else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
-                                extrasValues[i] = nameWithoutExt;
-//                        else if (current.GetExtraType() == IntentLaunchData.DataType.Uri) {
-//                            String uri = Uri.parse(absPath).getScheme();
-//                            Log.d("Explorer", "Passing " + uri);
-//                            extrasValues[i] = uri;
-//                        }
-                        }
-                    }
-
-                    String data = null;
-                    if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.AbsolutePath)
-                        data = absPath;
-                    else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithExt)
-                        data = nameWithExt;
-                    else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
-                        data = nameWithoutExt;
-//                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.Uri) {
-//                    String uri = Uri.parse(absPath).getScheme();
-//                    Log.d("Explorer", "Passing " + uri);
-//                    data = uri;
-//                }
-
-                    fileLaunchIntent.launch(data, extrasValues);
-                } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
-                    AndroidHelpers.install(absPath);
-                } else
-                    Log.e("Explorer", "No launch intent associated with extension " + extension);
-            } else
-                Log.e("Explorer", "Missing extension, could not identify file");
-        } else
-            Log.e("Explorer", "Cannot run a directory");
+        context.startActivity(intent);
     }
 
     public static File[] listContents(String dirName) {

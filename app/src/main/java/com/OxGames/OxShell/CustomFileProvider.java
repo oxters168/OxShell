@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -122,7 +123,7 @@ public class CustomFileProvider extends DocumentsProvider {
     }
 
     public static Uri getUriForFile(String path) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        //PagedActivity currentActivity = ActivityManager.getCurrentActivity();
 //        Uri fileUri = FileProvider.getUriForFile(currentActivity, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
 //        ParcelFileDescriptor data = null;
 //        try {
@@ -131,12 +132,13 @@ public class CustomFileProvider extends DocumentsProvider {
 //            Log.d("FileChooser", ex.getMessage());
 //        }
 
+        Context context = OxShellApp.getContext();
         Uri.Builder uriBuilder = new Uri.Builder();
         uriBuilder.scheme("content");
         uriBuilder.encodedAuthority(BuildConfig.DOCUMENTS_AUTHORITY);
         uriBuilder.encodedPath(path);
         Uri fileUri = uriBuilder.build();
-        currentActivity.grantUriPermission(currentActivity.getPackageName(), fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION  | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        context.grantUriPermission(context.getPackageName(), fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION  | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
 //        ContentResolver resolver = currentActivity.getContentResolver();
 //        Cursor curses = resolver.query(Uri.parse(path), null, null, null);

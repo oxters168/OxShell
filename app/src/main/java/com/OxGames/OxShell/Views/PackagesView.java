@@ -17,6 +17,7 @@ import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Interfaces.PkgAppsListener;
 import com.OxGames.OxShell.Interfaces.PkgIconListener;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.List;
@@ -78,15 +79,14 @@ public class PackagesView extends SlideTouchListView {
 
         Log.d("PackagesView", (String)currentItem.obj);
         HomeManager.addItemAndSave(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(rsvInfo), (String)currentItem.obj));
-        Toast.makeText(ActivityManager.getCurrentActivity(), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();
     }
     @Override
     public void refresh() {
         refresh(new String[] { Intent.CATEGORY_LAUNCHER });
     }
     public void refresh(String[] categories) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, categories, apps -> currentActivity.runOnUiThread(() -> {
+        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, categories, apps -> ActivityManager.getCurrentActivity().runOnUiThread(() -> {
             DetailAdapter intentsAdapter = new DetailAdapter(getContext());
             setAdapter(intentsAdapter);
             for (int i = 0; i < apps.size(); i++) {

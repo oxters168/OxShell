@@ -10,6 +10,7 @@ import android.util.Log;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.PkgAppsListener;
 import com.OxGames.OxShell.Interfaces.PkgIconListener;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.Hashtable;
@@ -39,19 +40,26 @@ public class PackagesCache {
         return (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
     public static List<ApplicationInfo> getAllInstalledApplications() {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        List<ApplicationInfo> appsList = currentActivity.getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
+        List<ApplicationInfo> appsList = OxShellApp.getContext().getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
         return appsList;
+    }
+    public static boolean isPackageInstalled(String packageName) {
+        try {
+            OxShellApp.getContext().getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
     public static Drawable getPackageIcon(String packageName) {
         Drawable pkgIcon = null;
         if (!packageIcons.containsKey(packageName)) {
             try {
-                pkgIcon = ActivityManager.getCurrentActivity().getPackageManager().getApplicationIcon(packageName);
+                pkgIcon = OxShellApp.getContext().getPackageManager().getApplicationIcon(packageName);
                 packageIcons.put(packageName, pkgIcon);
             } catch (Exception e) {
-                Log.e("PackageCache", e.getMessage());
+                Log.e("PackageCache", "Failed to retrieve icon for " + packageName + ": " + e);
             }
         } else
             pkgIcon = packageIcons.get(packageName);
@@ -67,8 +75,7 @@ public class PackagesCache {
             Intent mainIntent = new Intent(action, null);
             for (String category : categories)
                 mainIntent.addCategory(category);
-            PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-            List<ResolveInfo> pkgAppsList = currentActivity.getPackageManager().queryIntentActivities(mainIntent, 0);
+            List<ResolveInfo> pkgAppsList = OxShellApp.getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
             if (pkgAppsListener != null)
                 pkgAppsListener.onQueryApps(pkgAppsList);
             //Log.d("PackagesView", "Listing apps");
@@ -91,7 +98,7 @@ public class PackagesCache {
     public static ApplicationInfo getPackageInfo(String packageName) {
         ApplicationInfo appInfo = null;
         if (!appInfos.containsKey(packageName)) {
-            PackageManager packageManager = ActivityManager.getCurrentActivity().getPackageManager();
+            PackageManager packageManager = OxShellApp.getContext().getPackageManager();
             try {
                 appInfo = packageManager.getApplicationInfo(packageName, 0);
                 appInfos.put(packageName, appInfo);
@@ -105,7 +112,7 @@ public class PackagesCache {
     public static String getAppLabel(ApplicationInfo appInfo) {
         String appLabel = null;
         if (!appLabels.containsKey(appInfo)) {
-            PackageManager packageManager = ActivityManager.getCurrentActivity().getPackageManager();
+            PackageManager packageManager = OxShellApp.getContext().getPackageManager();
             appLabel = (String)packageManager.getApplicationLabel(appInfo);
             if (appLabel != null)
                 appLabels.put(appInfo, appLabel);
@@ -128,7 +135,7 @@ public class PackagesCache {
     public static ResolveInfo getResolveInfo(String packageName) {
         ResolveInfo rsvInfo = null;
         try {
-            rsvInfo = ActivityManager.getCurrentActivity().getPackageManager().resolveActivity(IntentLaunchData.createFromPackage(packageName).buildIntent(), 0);
+            rsvInfo = OxShellApp.getContext().getPackageManager().resolveActivity(IntentLaunchData.createFromPackage(packageName).buildIntent(), 0);
         } catch (NullPointerException ex) {
             Log.e("PackagesCache", "Unable to resolve package " + packageName);
         }

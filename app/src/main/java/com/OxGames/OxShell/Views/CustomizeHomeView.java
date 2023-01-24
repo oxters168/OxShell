@@ -10,6 +10,7 @@ import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
+import com.OxGames.OxShell.OxShellApp;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -63,7 +64,7 @@ public class CustomizeHomeView extends SlideTouchListView {
         HomeItem.Type selectedItem = (HomeItem.Type)((DetailItem)getItemAtPosition(properPosition)).obj;
         if (selectedItem == HomeItem.Type.explorer) {
             HomeManager.addExplorerAndSave();
-            Toast.makeText(ActivityManager.getCurrentActivity(), "Added explorer to home", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Added explorer to home", Toast.LENGTH_SHORT).show();
         }
         else if (selectedItem == HomeItem.Type.app)
             ActivityManager.goTo(ActivityManager.Page.pkgList);

@@ -9,6 +9,8 @@ import android.view.KeyEvent;
 
 import androidx.core.content.ContextCompat;
 
+import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Adapters.DetailAdapter;
@@ -23,6 +25,7 @@ import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ExplorerView extends SlideTouchListView implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
@@ -63,6 +66,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         Log.d("ExplorerView", key_event.toString());
+        // TODO: make context menu that allows for copying/cutting/pasting/deleting and creating launch intent for file type
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
@@ -96,9 +100,67 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
                     ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(file.getAbsolutePath());
                 else
-                    AndroidHelpers.tryRun(((File)clickedItem.obj));
+                    tryRun(((File)clickedItem.obj));
             }
         }
+    }
+    public static void tryRun(File file) {
+        String absPath = file.getAbsolutePath();
+        if (!AndroidHelpers.isDirectory(absPath)) {
+            String extension = AndroidHelpers.getExtension(absPath);
+            if (extension != null) {
+                List<IntentLaunchData> fileLaunchIntents = ShortcutsCache.getLaunchDatasForExtension(extension);
+                if (fileLaunchIntents.size() > 0) {
+                    // TODO: show options if more than one launch intent found and none are set as default
+                    IntentLaunchData fileLaunchIntent = fileLaunchIntents.get(0);
+                    if (PackagesCache.isPackageInstalled(fileLaunchIntent.getPackageName())) {
+                        String nameWithExt = file.getName();
+                        String nameWithoutExt = AndroidHelpers.removeExtension(nameWithExt);
+
+                        String[] extrasValues = null;
+                        IntentPutExtra[] extras = fileLaunchIntent.getExtras();
+                        if (extras != null && extras.length > 0) {
+                            extrasValues = new String[extras.length];
+                            for (int i = 0; i < extras.length; i++) {
+                                IntentPutExtra current = extras[i];
+                                if (current.getExtraType() == IntentLaunchData.DataType.AbsolutePath)
+                                    extrasValues[i] = absPath;
+                                else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithExt)
+                                    extrasValues[i] = nameWithExt;
+                                else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                                    extrasValues[i] = nameWithoutExt;
+//                        else if (current.GetExtraType() == IntentLaunchData.DataType.Uri) {
+//                            String uri = Uri.parse(absPath).getScheme();
+//                            Log.d("Explorer", "Passing " + uri);
+//                            extrasValues[i] = uri;
+//                        }
+                            }
+                        }
+
+                        String data = null;
+                        if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.AbsolutePath)
+                            data = absPath;
+                        else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithExt)
+                            data = nameWithExt;
+                        else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
+                            data = nameWithoutExt;
+//                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.Uri) {
+//                    String uri = Uri.parse(absPath).getScheme();
+//                    Log.d("Explorer", "Passing " + uri);
+//                    data = uri;
+//                }
+
+                        fileLaunchIntent.launch(data, extrasValues);
+                    } else
+                        Log.e("Explorer", "Failed to launch, " + fileLaunchIntent.getPackageName() + " is not installed on the device");
+                } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
+                    AndroidHelpers.install(absPath);
+                } else
+                    Log.e("Explorer", "No launch intent associated with extension " + extension);
+            } else
+                Log.e("Explorer", "Missing extension, could not identify file");
+        } else
+            Log.e("Explorer", "Cannot run a directory");
     }
 
     public void goUp() {

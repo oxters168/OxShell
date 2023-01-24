@@ -3,8 +3,9 @@ package com.OxGames.OxShell.Helpers;
 import android.content.Context;
 import android.util.Log;
 
+import com.OxGames.OxShell.Data.Paths;
+
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 // source: https://stackoverflow.com/questions/45229996/how-do-i-get-the-app-log-from-a-real-android-device
 public class LogcatHelper {
     private static final HashMap<String, LogcatHelper> helpers = new HashMap<>();
-    private final String STORAGE_DIR_INTERNAL;
+    //private final String STORAGE_DIR_INTERNAL;
     private final String PATH_LOGCAT;
     private LogDumper mLogDumper = null;
     private final int pid;
@@ -34,8 +35,8 @@ public class LogcatHelper {
     }
 
     private LogcatHelper(Context context) {
-        STORAGE_DIR_INTERNAL = AndroidHelpers.combinePaths(context.getExternalFilesDir(null).toString(), "Logs");
-        PATH_LOGCAT = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, getFileName() + ".log");
+        //STORAGE_DIR_INTERNAL = AndroidHelpers.combinePaths(context.getExternalFilesDir(null).toString(), "Logs");
+        PATH_LOGCAT = AndroidHelpers.combinePaths(Paths.LOGCAT_DIR_INTERNAL, createFileName() + ".log");
         pkgName = context.getPackageName();
         pid = android.os.Process.myPid();
     }
@@ -76,9 +77,11 @@ public class LogcatHelper {
             //mPID = pid;
             Log.i("LogcatHelper", "pid " + pid);
             try {
-                File dir = new File(STORAGE_DIR_INTERNAL);
-                if (!dir.exists())
-                    dir.mkdirs();
+                if (!AndroidHelpers.dirExists(Paths.LOGCAT_DIR_INTERNAL))
+                    AndroidHelpers.makeDir(Paths.LOGCAT_DIR_INTERNAL);
+//                File dir = new File(STORAGE_DIR_INTERNAL);
+//                if (!dir.exists())
+//                    dir.mkdirs();
 //                File file = new File(PATH_LOGCAT);
 //                if (!file.exists())
 //                    file.createNewFile();
@@ -148,7 +151,7 @@ public class LogcatHelper {
 
     }
 
-    public static String getFileName() {
+    public static String createFileName() {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         String date = format.format(new Date(System.currentTimeMillis()));
         return date;

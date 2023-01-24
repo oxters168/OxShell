@@ -2,6 +2,7 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.core.content.ContextCompat;
@@ -12,6 +13,7 @@ import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Interfaces.DirsCarrier;
 import com.OxGames.OxShell.Interfaces.DirsViewListener;
 import com.OxGames.OxShell.HomeActivity;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
@@ -121,6 +123,7 @@ public class SelectDirsView extends SlideTouchListView {
         goBack();
     }
     public void addToList(String dir) {
+        //Log.i("SelectDirsView", "Adding " + dir);
         currentMod.addToDirsList(dir);
         refresh();
     }
@@ -140,10 +143,11 @@ public class SelectDirsView extends SlideTouchListView {
                 addDirsItems.add(new DetailItem(null, dirs[i], null, dirs[i]));
             }
         }
-        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Choose directory", null, 0));
-        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_cancel_24), "Cancel", null, 1));
-        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_check_24), "Done", null, 2));
-        DetailAdapter addAdapter = new DetailAdapter(getContext(), addDirsItems);
+        Context context = getContext();
+        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(context, R.drawable.ic_baseline_add_circle_outline_24), "Choose directory", null, 0));
+        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(context, R.drawable.ic_baseline_cancel_24), "Cancel", null, 1));
+        addDirsItems.add(new DetailItem(ContextCompat.getDrawable(context, R.drawable.ic_baseline_check_24), "Done", null, 2));
+        DetailAdapter addAdapter = new DetailAdapter(context, addDirsItems);
         setAdapter(addAdapter);
         super.refresh();
     }

@@ -13,6 +13,7 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.OxShellApp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,7 +87,7 @@ public class HomeView extends XMBView {
         if (selectedItem.type == HomeItem.Type.app) {
             Intent intent = new Intent(Intent.ACTION_DELETE);
             intent.setData(Uri.parse("package:" + selectedItem.obj));
-            ActivityManager.getCurrentActivity().startActivity(intent);
+            getContext().startActivity(intent);
             //TODO: Figure out how to get on uninstalled event and remove item when fired
         }
     }
@@ -186,7 +187,7 @@ public class HomeView extends XMBView {
     }
 
     private void showCustomContextMenu(int x, int y) {
-        overlay = new ContextMenu(ActivityManager.getCurrentActivity());
+        overlay = new ContextMenu(getContext());
         overlay.setCancelable(true);
         overlay.addButton("Move", () -> {
             Log.d("DialogItemSelection", "Move");

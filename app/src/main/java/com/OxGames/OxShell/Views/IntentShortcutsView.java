@@ -5,6 +5,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Adapters.DetailAdapter;
@@ -67,7 +68,11 @@ public class IntentShortcutsView extends SlideTouchListView {
     @Override
     public void makeSelection() {
         File selectedItem = (File)((DetailItem)getItemAtPosition(properPosition)).obj;
-        ((IntentLaunchData)currentIntent.obj).launch(selectedItem.getAbsolutePath());
+        IntentLaunchData launcher = (IntentLaunchData)currentIntent.obj;
+        if (PackagesCache.isPackageInstalled(launcher.getPackageName()))
+            launcher.launch(selectedItem.getAbsolutePath());
+        else
+            Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
     }
 
     public static void setLaunchItem(HomeItem intent) {

@@ -88,6 +88,15 @@ public class ShortcutsCache {
         }
         return null;
     }
+    public static List<IntentLaunchData> getLaunchDatasForExtension(String extension) {
+        ArrayList<IntentLaunchData> launchDatas = new ArrayList<>();
+        for (int i = 0; i < launchIntents.size(); i++) {
+            IntentLaunchData currentLaunchIntent = launchIntents.get(i);
+            if (currentLaunchIntent.containsExtension(extension))
+                launchDatas.add(currentLaunchIntent);
+        }
+        return launchDatas;
+    }
 
     public static String getPackageNameForExtension(String extension) {
         for (int i = 0; i < launchIntents.size(); i++) {

@@ -8,7 +8,10 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.OxShellApp;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,7 +128,7 @@ public class IntentLaunchData implements Serializable {
         if (action != null && !action.isEmpty()) {
             intent = new Intent(action);
         } else {
-            intent = ActivityManager.getCurrentActivity().getPackageManager().getLaunchIntentForPackage(packageName);
+            intent = OxShellApp.getContext().getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent == null)
                 intent = new Intent(Intent.ACTION_MAIN);
             else
@@ -141,7 +144,8 @@ public class IntentLaunchData implements Serializable {
         for (int i = 0; i < extras.size(); i++)
             intent.putExtra(extras.get(i).getName(), extrasValues[i]);
         if (data != null && !data.isEmpty())
-            intent.setData(Uri.parse(data));
+            intent.setData(AndroidHelpers.uriFromPath(data));
+            //intent.setData(Uri.parse(data));
         if (flags > 0)
             intent.setFlags(flags);
 
@@ -174,8 +178,8 @@ public class IntentLaunchData implements Serializable {
         //IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
         //launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
         Intent intent = buildIntent(data, extrasValues);
-        Log.d("IntentLaunchData", intent.toString());
-        startActivity(ActivityManager.getCurrentActivity(), intent, null);
+        Log.i("IntentLaunchData", intent.toString());
+        startActivity(OxShellApp.getContext(), intent, null);
     }
     public void launch(String data) {
         String dataEntry = null;

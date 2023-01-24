@@ -18,7 +18,7 @@ import java.io.File;
 public class HomeActivity extends PagedActivity {
     public ActivityResultLauncher<String> getDir = registerForActivityResult(new ActivityResultContracts.GetContent(),
             uri -> {
-                Log.d("ActivityResult", uri.toString());
+                Log.i("ActivityResult", uri.toString());
                 SelectDirsView dirsView = (SelectDirsView)allPages.get(ActivityManager.Page.selectDirs);
                 //dirsView.addToList(ProviderHelpers.getRealPathFromURI(this, uri));
                 dirsView.addToList(uri.getPath());

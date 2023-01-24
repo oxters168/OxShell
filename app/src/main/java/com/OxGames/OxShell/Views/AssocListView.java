@@ -2,6 +2,7 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -16,6 +17,7 @@ import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 
@@ -70,7 +72,7 @@ public class AssocListView extends SlideTouchListView {
             SelectDirsView.addResultListener((resultCode, output) -> {
                 if (resultCode == SelectDirsView.RESULT_DONE) {
                     HomeManager.addItemAndSave(addedItem);
-                    Toast.makeText(ActivityManager.getCurrentActivity(), "Added " + selectedItem.getDisplayName() + " to home", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Added " + selectedItem.getDisplayName() + " to home", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -82,11 +84,19 @@ public class AssocListView extends SlideTouchListView {
         ArrayList<DetailItem> intentItems = new ArrayList<>();
         for (int i = 0; i < intents.length; i++) {
             ResolveInfo rsv = PackagesCache.getResolveInfo(intents[i].getPackageName());
-            if (rsv != null)
-                intentItems.add(new DetailItem(PackagesCache.getPackageIcon(rsv), intents[i].getDisplayName(), "<" + PackagesCache.getAppLabel(rsv) + ">", intents[i]));
+            Drawable pkgIcon;
+            String pkgLabel;
+            if (rsv != null) {
+                pkgIcon = PackagesCache.getPackageIcon(rsv);
+                pkgLabel = PackagesCache.getAppLabel(rsv);
+            } else {
+                pkgIcon = ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_hide_image_24);
+                pkgLabel = "not_installed";
+            }
+            intentItems.add(new DetailItem(pkgIcon, intents[i].getDisplayName(), "<" + pkgLabel + ">", intents[i]));
         }
-        intentItems.add(new DetailItem(ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_add_circle_outline_24), "Create new", null, null));
         Log.d("AssocListView", "Found " + intentItems.size() + " associations");
+        intentItems.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_add_circle_outline_24), "Create new", null, null));
         DetailAdapter addAdapter = new DetailAdapter(getContext(), intentItems);
         setAdapter(addAdapter);
         super.refresh();

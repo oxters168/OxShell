@@ -10,6 +10,7 @@ import com.OxGames.OxShell.Adapters.GridAdapter;
 import com.OxGames.OxShell.Data.GridItem;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.OxShellApp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,7 @@ public class RunningAppsView extends SlideTouchGridView {
 //        ActivityManager.GetCurrentActivity().startActivity(startMain);
 
 //        android.app.ActivityManager.AppTask appTask = (android.app.ActivityManager.AppTask)((HomeItem)getItemAtPosition(properPosition)).obj;
-        android.app.ActivityManager am = (android.app.ActivityManager) ActivityManager.getCurrentActivity().getSystemService(Context.ACTIVITY_SERVICE);
+        android.app.ActivityManager am = (android.app.ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
 //        android.app.ActivityManager.RunningTaskInfo taskInfo = (android.app.ActivityManager.RunningTaskInfo)((GridItem)getItemAtPosition(properPosition)).obj;
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 //            Log.d("RunningApps", "Killing " + taskInfo.baseIntent.getPackage());
@@ -69,7 +70,7 @@ public class RunningAppsView extends SlideTouchGridView {
         String pkgName = (String)((HomeItem)getItemAtPosition(properPosition)).obj;
 //        int pid = Integer.parseInt(ShellCommander.Run("pidof " + pkgName));
         int pid = 29140;
-        android.app.ActivityManager am = (android.app.ActivityManager)ActivityManager.getCurrentActivity().getSystemService(Context.ACTIVITY_SERVICE);
+        android.app.ActivityManager am = (android.app.ActivityManager)getContext().getSystemService(Context.ACTIVITY_SERVICE);
 //        int tid = PackagesCache.GetPackageInfo(pkgName).uid;
         am.moveTaskToFront(pid, 0, null);
     }

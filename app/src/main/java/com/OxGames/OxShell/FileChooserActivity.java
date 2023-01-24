@@ -34,13 +34,13 @@ public class FileChooserActivity extends PagedActivity {
     }
 
     public void sendResult(String path) {
-        final Uri data = AndroidHelpers.uriFromFile(this, new File(path));
+        final Uri data = AndroidHelpers.uriFromPath(path);
         Intent returnIntent = new Intent();
         returnIntent.setData(data);
         returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         returnIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         setResult(Activity.RESULT_OK, returnIntent);
-        Log.d("FileChooser", "Called from " + getCallingActivity() + " giving result " + data);
+        Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + data);
         finish();
     }
 }

@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.DirsCarrier;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.Serializable;
@@ -43,11 +44,11 @@ public class HomeItem<T> extends XMBItem<T> implements Serializable, DirsCarrier
     public Drawable getIcon() {
         Drawable icon = null;
         if (type == Type.explorer)
-            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_source_24);
+            icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
         else if (type == Type.app)
             icon = PackagesCache.getPackageIcon((String)obj);
         else if (type == Type.settings)
-            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_settings_24);
+            icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_settings_24);
         else if (type == Type.assoc)
             icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
         return icon;
