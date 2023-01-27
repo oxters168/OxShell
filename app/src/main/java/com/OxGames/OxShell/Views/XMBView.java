@@ -1041,6 +1041,13 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
 //    public void onSwipeUp() {
 //        selectUpperItem();
 //    }
+
+//    @Override
+//    public boolean receiveMotionEvent(MotionEvent motion_event) {
+//        float horizontal = motion_event.getAxisValue(MotionEvent.AXIS_X) + motion_event.getAxisValue(MotionEvent.AXIS_HAT_X);
+//        return false;
+//    }
+
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("XMBView2", key_event.toString());

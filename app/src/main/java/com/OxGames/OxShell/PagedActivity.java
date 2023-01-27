@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.ImageView;
@@ -161,6 +162,13 @@ public class PagedActivity extends AppCompatActivity {
         hideActionBar();
     }
 
+    // TODO: Add more customizability for controls
+//    @Override
+//    public boolean dispatchGenericMotionEvent(MotionEvent ev) {
+//        // source: https://stackoverflow.com/questions/34536195/how-to-differentiate-a-d-pad-movement-from-a-joystick-movement/58510631#58510631
+//        Log.d("PagedActivity", "x: " + ev.getAxisValue(MotionEvent.AXIS_X) + " y: " + ev.getAxisValue(MotionEvent.AXIS_Y) + " z: " + ev.getAxisValue(MotionEvent.AXIS_Z) + " rz: " + ev.getAxisValue(MotionEvent.AXIS_RZ));
+//        return super.dispatchGenericMotionEvent(ev);
+//    }
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
