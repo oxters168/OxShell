@@ -75,4 +75,12 @@
         android:scrollbarStyle="insideInset"
         android:visibility="gone" />
 
+    <FrameLayout
+        android:id="@+id/settings_drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="#8000A6FF">
+    </FrameLayout>
+
 </FrameLayout>

@@ -15,6 +15,7 @@ import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
+import com.OxGames.OxShell.OxShellApp;
 
 public class SlideTouchGridView extends GridView implements SlideTouchListener, InputReceiver, Refreshable {
     SlideTouchHandler slideTouch = new SlideTouchHandler();
@@ -161,8 +162,8 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener, 
     public void setProperPosition(int pos) {
         properPosition = pos;
         highlightSelection();
-        DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
-        setSelectionFromTop(pos, displayMetrics != null ? (int)(displayMetrics.heightPixels * 0.5) : 0);
+        //DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
+        setSelectionFromTop(pos, (int)(OxShellApp.getDisplayHeight() * 0.5));
     }
     public void makeSelection() {
     }

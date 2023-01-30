@@ -16,6 +16,7 @@ import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
+import com.OxGames.OxShell.OxShellApp;
 
 import java.util.ArrayList;
 
@@ -124,8 +125,9 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
 //        Log.d("Explorer", "Setting position to " + pos);
         properPosition = pos; //Probably should clamp properPosition here
         highlightSelection();
-        DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
-        setSelectionFromTop(pos, (int)(displayMetrics.heightPixels * 0.5));
+        //DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
+        setSelectionFromTop(pos, (int)(OxShellApp.getDisplayHeight() * 0.5));
+
     }
     @Override
     public void refresh() {

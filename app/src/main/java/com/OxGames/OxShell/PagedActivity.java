@@ -1,24 +1,17 @@
 package com.OxGames.OxShell;
 
-import android.app.WallpaperInfo;
-import android.app.WallpaperManager;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
-import android.widget.ImageView;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
@@ -28,15 +21,9 @@ import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
-import com.OxGames.OxShell.Views.SlideTouchGridView;
-import com.OxGames.OxShell.Views.SlideTouchListView;
 import com.appspell.shaderview.ShaderView;
 import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -55,12 +42,23 @@ public class PagedActivity extends AppCompatActivity {
     //private static long prevFrameTime;
 
     //private ShaderView shaderView;
+    private View settingsDrawer;
+    private boolean settingsDrawerOpen = false;
+    private int settingsDrawerWidth = 512;
+    //private static final float SETTINGS_DRAWER_OPEN_X = 50;
+    private static final float SETTINGS_DRAWER_OPEN_Y = 0;
+    //private static final float SETTINGS_DRAWER_CLOSED_X = 0;
+    private static final float SETTINGS_DRAWER_CLOSED_Y = 0;
+    private static final long SETTINGS_DRAWER_ANIM_TIME = 300;
+
+    private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         trySetStartTime();
         super.onCreate(savedInstanceState);
 //        instance = this;
+
         ActivityManager.init();
         ActivityManager.instanceCreated(this);
 
@@ -86,7 +84,6 @@ public class PagedActivity extends AppCompatActivity {
 
 //        RefreshDisplayMetrics();
 
-
 //        HomeManager.Init();
         Log.i("PagedActivity", "OnCreate " + this);
     }
@@ -102,10 +99,15 @@ public class PagedActivity extends AppCompatActivity {
         ActivityManager.setCurrent(currentPage);
         goTo(currentPage);
         super.onResume();
+
+        settingsDrawer = findViewById(R.id.settings_drawer);
+        fixDrawerLayout();
+        //settingsDrawer.setX(settingsDrawerWidth);
         //Add an if statement later to have a setting for hiding status bar
-        //HideStatusBar();
         hideActionBar();
-        //hideSystemUI();
+        //setFullscreen(true);
+        //setNavBarHidden(true);
+        //setStatusBarHidden(true);
         //resumeBackground();
 //        final WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
 //        if (AndroidHelpers.hasReadStoragePermission()) {
@@ -127,6 +129,14 @@ public class PagedActivity extends AppCompatActivity {
 //        }
 
         Log.i("PagedActivity", "OnResume " + this);
+    }
+    private void fixDrawerLayout() {
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams)settingsDrawer.getLayoutParams();
+        //settingsDrawer.setGravity(Gravity.TOP | Gravity.END);
+        //layoutParams.gravity = Gravity.TOP | Gravity.END;
+        layoutParams.width = settingsDrawerWidth;
+        settingsDrawer.setLayoutParams(layoutParams);
+        settingsDrawer.setX(OxShellApp.getDisplayWidth());
     }
 
     @Override
@@ -158,8 +168,10 @@ public class PagedActivity extends AppCompatActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         Log.i("PagedActivity", "OnWindowFocusChanged " + this);
         super.onWindowFocusChanged(hasFocus);
-        //hideSystemUI();
         hideActionBar();
+        //setFullscreen(true);
+        //setNavBarHidden(true);
+        //setStatusBarHidden(true);
     }
 
     // TODO: Add more customizability for controls
@@ -197,6 +209,23 @@ public class PagedActivity extends AppCompatActivity {
                 //sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_DOWN);
                 //sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
                 //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP, 0);
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R1) {
+                settingsDrawerOpen = !settingsDrawerOpen;
+
+                float settingsDrawerOpenX = OxShellApp.getDisplayWidth() - settingsDrawerWidth;
+                float settingsDrawerClosedX = OxShellApp.getDisplayWidth();
+                float xDist = (settingsDrawerOpen ? settingsDrawerOpenX : settingsDrawerClosedX) - settingsDrawer.getX();
+                float yDist = (settingsDrawerOpen ? SETTINGS_DRAWER_OPEN_Y : SETTINGS_DRAWER_CLOSED_Y) - settingsDrawer.getY();
+                float alphaDist = (settingsDrawerOpen ? 1 : 0) - settingsDrawer.getAlpha();
+                long duration = Math.round(SETTINGS_DRAWER_ANIM_TIME * (Math.abs(xDist) / Math.abs(settingsDrawerClosedX - settingsDrawerOpenX)));
+                //Log.d("PagedActivity", "Settings view open: " + settingsDrawerOpen + " x: " + settingsDrawer.getX() + " xdist: " + xDist + " ydist: " + yDist + " alphadist: " + alphaDist + " duration: " + duration);
+                //fixDrawerLayout();
+                settingsDrawer.animate().setDuration(duration);
+                settingsDrawer.animate().xBy(xDist);
+                settingsDrawer.animate().yBy(yDist);
+                settingsDrawer.animate().alphaBy(alphaDist);
                 return true;
             }
         }
@@ -263,8 +292,8 @@ public class PagedActivity extends AppCompatActivity {
             shaderView.setVertexShader(AndroidHelpers.readAssetAsString(this, "default.vsh"));
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
-            DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
-            paramsBuilder.addVec2i("iResolution", new int[] { displayMetrics.widthPixels, displayMetrics.heightPixels });
+            //DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
+            paramsBuilder.addVec2i("iResolution", new int[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight() });
             shaderView.setShaderParams(paramsBuilder.build());
             shaderView.setOnDrawFrameListener(shaderParams -> {
                 //float deltaTime = (System.currentTimeMillis() - prevFrameTime) / 1000f;
@@ -286,39 +315,49 @@ public class PagedActivity extends AppCompatActivity {
 //        return instance;
 //    }
 
-    private void hideStatusBar() {
-        View decorView = getWindow().getDecorView();
-        // Hide the status bar.
-        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);
-    }
     private void hideActionBar() {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null)
             actionBar.hide();
     }
-    private void hideSystemUI() {
-        // Set the IMMERSIVE flag.
-        // Set the content to appear under the system bars so that the content
-        // doesn't resize when the system bars hide and show.
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    private void setFullscreen(boolean onOff) {
+        if (onOff)
+            systemUIVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        else
+            systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        updateSystemUIVisibility();
+    }
+    private void setStatusBarHidden(boolean onOff) {
+        if (onOff)
+            systemUIVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        else if ((systemUIVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
+            systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        else
+            systemUIVisibility &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
+        updateSystemUIVisibility();
+    }
+    private void setNavBarHidden(boolean onOff) {
+        if (onOff)
+            systemUIVisibility |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        else if ((systemUIVisibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
+            systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        else
+            systemUIVisibility &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        updateSystemUIVisibility();
+    }
+    private void updateSystemUIVisibility() {
+        getWindow().getDecorView().setSystemUiVisibility(systemUIVisibility);
     }
 
 //    public void RefreshDisplayMetrics() {
 //        displayMetrics = new DisplayMetrics();
 //        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 //    }
-    public DisplayMetrics getDisplayMetrics() {
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        return displayMetrics;
-    }
+//    public DisplayMetrics getDisplayMetrics() {
+//        DisplayMetrics displayMetrics = new DisplayMetrics();
+//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+//        return displayMetrics;
+//    }
 
     protected void initViewsTable() {
     }
