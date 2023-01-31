@@ -6,14 +6,14 @@ import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.WindowManager;
+import android.view.MotionEvent;
 
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
-import com.OxGames.OxShell.OxShellApp;
+import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,30 +34,77 @@ public class HomeView extends XMBView {
     }
 
     @Override
-    public boolean receiveKeyEvent(KeyEvent key_event) {
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2) {
-                //ActivityManager.GoTo(ActivityManager.Page.runningApps);
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                //HomeItem selectedItem = (HomeItem)getItemAtPosition(properPosition);
-//                int columns = getNumColumns();
-//                int col = properPosition % columns;
-//                int row = properPosition / columns;
-//                int x = getPaddingLeft() + (getColumnWidth() + getHorizontalSpacing()) * col;
-//                int y = getPaddingTop() + (getColumnWidth() + getVerticalSpacing()) * row;
-//                Log.d("HomeView", "Opening context menu at (" + x + ", " + y + ")");
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (!currentActivity.isContextDrawerOpen())
+            return super.onInterceptTouchEvent(ev);
+        else
+            return false;
+    }
 
-                // int x = AndroidHelpers.getRelativeLeft(view);
-                // int y = AndroidHelpers.getRelativeTop(view);
-                // int width = view.getWidth();
-                // int height = view.getHeight();
-                showCustomContextMenu(0, 0);
-                return true;
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (!currentActivity.isContextDrawerOpen())
+            return super.onTouchEvent(ev);
+        else
+            return false;
+    }
+
+    @Override
+    public boolean receiveKeyEvent(KeyEvent key_event) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (!currentActivity.isContextDrawerOpen()) {
+            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2) {
+                    //ActivityManager.GoTo(ActivityManager.Page.runningApps);
+                    return true;
+                }
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                    PagedActivity.ContextBtn moveBtn = new PagedActivity.ContextBtn("Move", () ->
+                    {
+                        Log.d("HomeView", "Move selected");
+                        //TODO: make move
+                        return null;
+                    });
+                    PagedActivity.ContextBtn deleteBtn = new PagedActivity.ContextBtn("Remove", () ->
+                    {
+                        deleteSelection();
+                        currentActivity.showContextDrawer(false);
+                        return null;
+                    });
+                    PagedActivity.ContextBtn cancelBtn = new PagedActivity.ContextBtn("Cancel", () ->
+                    {
+                        currentActivity.showContextDrawer(false);
+                        return null;
+                    });
+                    HomeItem selectedItem = (HomeItem)getSelectedItem();
+                    if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings) {
+                        PagedActivity.ContextBtn uninstallBtn = new PagedActivity.ContextBtn("Uninstall", () ->
+                        {
+                            uninstallSelection();
+                            deleteSelection(); //TODO: only if uninstall was successful
+                            currentActivity.showContextDrawer(false);
+                            return null;
+                        });
+                        currentActivity.setContextDrawerBtns(moveBtn, deleteBtn, uninstallBtn, cancelBtn);
+                    } else
+                        currentActivity.setContextDrawerBtns(moveBtn, deleteBtn, cancelBtn);
+
+                    currentActivity.showContextDrawer(true);
+                    return true;
+                }
             }
+            return super.receiveKeyEvent(key_event);
+        } else {
+            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
+                    currentActivity.showContextDrawer(false);
+                    return true;
+                }
+            }
+            return false;
         }
-        return super.receiveKeyEvent(key_event);
     }
     @Override
     public void makeSelection() {
@@ -186,34 +233,34 @@ public class HomeView extends XMBView {
         //Log.d("HomeView", "Total sub items is " + subItems.size());
     }
 
-    private void showCustomContextMenu(int x, int y) {
-        overlay = new ContextMenu(getContext());
-        overlay.setCancelable(true);
-        overlay.addButton("Move", () -> {
-            Log.d("DialogItemSelection", "Move");
-            return null;
-        });
-        overlay.addButton("Remove", () -> {
-            deleteSelection();
-            overlay.dismiss();
-            return null;
-        });
-        HomeItem selectedItem = (HomeItem) getSelectedItem();
-        if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings)
-            overlay.addButton("Uninstall", () -> {
-                uninstallSelection();
-                deleteSelection(); //only if uninstall was successful
-                overlay.dismiss();
-                return null;
-            });
-        overlay.addButton("Cancel", () -> {
-            overlay.dismiss();
-            return null;
-        });
-        WindowManager.LayoutParams params = overlay.getWindow().getAttributes();
-        params.x = x;
-        params.y = y;
-        overlay.getWindow().setAttributes(params);
-        overlay.show();
-    }
+//    private void showCustomContextMenu(int x, int y) {
+//        overlay = new ContextMenu(getContext());
+//        overlay.setCancelable(true);
+//        overlay.addButton("Move", () -> {
+//            Log.d("DialogItemSelection", "Move");
+//            return null;
+//        });
+//        overlay.addButton("Remove", () -> {
+//            deleteSelection();
+//            overlay.dismiss();
+//            return null;
+//        });
+//        HomeItem selectedItem = (HomeItem) getSelectedItem();
+//        if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings)
+//            overlay.addButton("Uninstall", () -> {
+//                uninstallSelection();
+//                deleteSelection(); //only if uninstall was successful
+//                overlay.dismiss();
+//                return null;
+//            });
+//        overlay.addButton("Cancel", () -> {
+//            overlay.dismiss();
+//            return null;
+//        });
+//        WindowManager.LayoutParams params = overlay.getWindow().getAttributes();
+//        params.x = x;
+//        params.y = y;
+//        overlay.getWindow().setAttributes(params);
+//        overlay.show();
+//    }
 }

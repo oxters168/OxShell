@@ -16,12 +16,21 @@
         android:listSelector="#00000000"
         android:scrollbarStyle="insideInset" />
 
-    <FrameLayout
+    <com.OxGames.OxShell.Views.SlideTouchListView
         android:id="@+id/settings_drawer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:alpha="0"
-        android:background="#8000A6FF">
-    </FrameLayout>
+        android:background="#80323232"
+        android:fadeScrollbars="false"
+        android:listSelector="#00000000"
+        android:scrollbarStyle="insideInset"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+    </com.OxGames.OxShell.Views.SlideTouchListView>
 
 </FrameLayout>
