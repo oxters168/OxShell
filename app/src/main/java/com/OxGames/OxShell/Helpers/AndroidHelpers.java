@@ -13,7 +13,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 
 import androidx.core.app.ActivityCompat;
@@ -292,5 +294,11 @@ public class AndroidHelpers {
             while (hasExtension(fileName))
                 fileName = fileName.substring(0, fileName.lastIndexOf("."));
         return fileName;
+    }
+
+    // source: https://stackoverflow.com/questions/8399184/convert-dip-to-px-in-android
+    public static float dipToPixels(Context context, float dipValue) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
     }
 }

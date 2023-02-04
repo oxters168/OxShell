@@ -5,6 +5,7 @@ import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.ListView;
@@ -78,10 +79,13 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
     public void addListener(CustomViewListener listener) {
         eventListeners.add(listener);
     }
+    public void clearListeners() {
+        eventListeners.clear();
+    }
 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
-        //Log.d("SlideTouchListView", key_event.toString());
+        //Log.d("SlideTouchListView", "Received key event");
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
                 makeSelection();
@@ -105,6 +109,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
         invalidateViews();
     }
     public void selectNextItem() {
+        //Log.d("SlideTouchListView", "Selecting next item");
         int total = getCount();
         int nextIndex = properPosition + 1;
         if (nextIndex >= total)
@@ -112,6 +117,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
         setProperPosition(nextIndex);
     }
     public void selectPrevItem() {
+        //Log.d("SlideTouchListView", "Selecting prev item");
         int prevIndex = properPosition - 1;
         if (prevIndex < 0)
             prevIndex = 0;

@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 
 import androidx.core.content.ContextCompat;
 
@@ -19,9 +20,9 @@ import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
+import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
-import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -52,6 +53,23 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     }
 
     @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (!currentActivity.getSettingsDrawer().isDrawerOpen())
+            return super.onInterceptTouchEvent(ev);
+        else
+            return false;
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (!currentActivity.getSettingsDrawer().isDrawerOpen())
+            return super.onTouchEvent(ev);
+        else
+            return false;
+    }
+
+    @Override
     public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -65,29 +83,98 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
-        Log.d("ExplorerView", key_event.toString());
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        //Log.d("ExplorerView", key_event.toString());
         // TODO: make context menu that allows for copying/cutting/pasting/deleting and creating launch intent for file type
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-                    ActivityManager.goTo(ActivityManager.Page.home);
+        if (!currentActivity.getSettingsDrawer().isDrawerOpen() && !currentActivity.getDynamicInput().isInputShown()) {
+            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
+                        ActivityManager.goTo(ActivityManager.Page.home);
+                        return true;
+                    }
+                }
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
+                    goUp();
+                    return true;
+                }
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                    DetailItem selectedItem = (DetailItem)getItemAtPosition(properPosition);
+                    File file = (File) selectedItem.obj;
+                    boolean isValidSelection = file != null && !selectedItem.leftAlignedText.equals("..");
+                    SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
+                    {
+                        currentActivity.getDynamicInput().setTitle("Create Folder");
+                        currentActivity.getDynamicInput().setShown(true);
+                        String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), "New Folder");
+                        boolean success = new File(newPath).mkdir();
+                        Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
+                        refresh();
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
+                    SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
+                    {
+                        currentActivity.getDynamicInput().setTitle("Copy");
+                        currentActivity.getDynamicInput().setShown(true);
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
+                    SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () ->
+                    {
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
+                    SettingsDrawer.ContextBtn pasteBtn = new SettingsDrawer.ContextBtn("Paste", () ->
+                    {
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
+                    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () ->
+                    {
+                        boolean success = file.delete();
+                        Log.d("ExplorerView", "Deleting " + file.getAbsolutePath() + " success: " + success);
+                        refresh();
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
+                    if (isValidSelection) {
+                        currentActivity.getSettingsDrawer().setButtons(newFolderBtn, copyBtn, cutBtn, pasteBtn, deleteBtn);
+                    } else
+                        currentActivity.getSettingsDrawer().setButtons(newFolderBtn, pasteBtn);
+
+                    currentActivity.getSettingsDrawer().setShown(true);
                     return true;
                 }
             }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
-                goUp();
-                return true;
+
+            return super.receiveKeyEvent(key_event);
+        } else if (currentActivity.getSettingsDrawer().isDrawerOpen()) {
+            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
+                    currentActivity.getSettingsDrawer().setShown(false);
+                    return true;
+                }
+            }
+        } else if (currentActivity.getDynamicInput().isInputShown()) {
+            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                    currentActivity.getDynamicInput().setShown(false);
+                    return true;
+                }
             }
         }
-
-        return super.receiveKeyEvent(key_event);
+        return false;
     }
 
     @Override
     public void makeSelection() {
         DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
         if (clickedItem.obj == null) {
-            ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(explorerBehaviour.getDirectory());
+            if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
+                ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(explorerBehaviour.getDirectory());
+            else
+                Log.e("ExplorerView", "Chosen item is null");
         } else {
             File file = (File)clickedItem.obj;
             if (file.isDirectory()) {

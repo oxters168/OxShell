@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -13,8 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.OxGames.OxShell.Adapters.DetailAdapter;
-import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -23,7 +22,8 @@ import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
-import com.OxGames.OxShell.Views.SlideTouchListView;
+import com.OxGames.OxShell.Views.DynamicInputView;
+import com.OxGames.OxShell.Views.SettingsDrawer;
 import com.appspell.shaderview.ShaderView;
 import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 
@@ -32,9 +32,11 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 public class PagedActivity extends AppCompatActivity {
+    private static final int SETTINGS_DRAWER_ID = 1337;
+    private static final int DYNAMIC_INPUT_ID = 1338;
+
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
     //    private static PagedActivity instance;
 //    public static DisplayMetrics displayMetrics;
@@ -46,14 +48,19 @@ public class PagedActivity extends AppCompatActivity {
     //private static long prevFrameTime;
 
     //private ShaderView shaderView;
-    private SlideTouchListView settingsDrawer;
-    private boolean settingsDrawerOpen = false;
+    private FrameLayout parentView;
+    //private View dynamicInputView;
+    private DynamicInputView dynamicInput;
+    private SettingsDrawer settingsDrawer;
+    //private SlideTouchListView settingsDrawer;
+    //private boolean inputViewOpen;
+    //private boolean settingsDrawerOpen = false;
     private int settingsDrawerWidth = 512;
     //private static final float SETTINGS_DRAWER_OPEN_X = 50;
-    private static final float SETTINGS_DRAWER_OPEN_Y = 0;
     //private static final float SETTINGS_DRAWER_CLOSED_X = 0;
-    private static final float SETTINGS_DRAWER_CLOSED_Y = 0;
-    private static final long SETTINGS_DRAWER_ANIM_TIME = 300;
+    //private static final float SETTINGS_DRAWER_OPEN_Y = 0;
+    //private static final float SETTINGS_DRAWER_CLOSED_Y = 0;
+    //private static final long SETTINGS_DRAWER_ANIM_TIME = 300;
 
     private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
@@ -104,9 +111,12 @@ public class PagedActivity extends AppCompatActivity {
         goTo(currentPage);
         super.onResume();
 
-        settingsDrawer = findViewById(R.id.settings_drawer);
-        fixDrawerLayout();
-        showContextDrawer(isContextDrawerOpen());
+        parentView = findViewById(R.id.parent_layout);
+        //dynamicInputView = findViewById(R.id.dynamic_input);
+        //settingsDrawer = findViewById(R.id.settings_drawer);
+        initSettingsDrawer();
+        initDynamicInputView();
+        //settingsDrawer.setShown(isContextDrawerOpen());
         //settingsDrawer.setX(settingsDrawerWidth);
         //Add an if statement later to have a setting for hiding status bar
         hideActionBar();
@@ -162,8 +172,10 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        fixDrawerLayout();
-        showContextDrawer(isContextDrawerOpen());
+        //fixDrawerLayout();
+        initSettingsDrawer();
+        initDynamicInputView();
+        //settingsDrawer.setShown(isContextDrawerOpen());
     }
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -210,7 +222,7 @@ public class PagedActivity extends AppCompatActivity {
 //            }
 //        }
 
-        if (isContextDrawerOpen() && settingsDrawer.receiveKeyEvent(key_event))
+        if (settingsDrawer.isDrawerOpen() && settingsDrawer.receiveKeyEvent(key_event))
             return true;
 
         boolean childsPlay = false;
@@ -231,59 +243,40 @@ public class PagedActivity extends AppCompatActivity {
         //dispatchKeyEvent(new KeyEvent(eventTime, eventTime, action, keyeventcode, 0));
     }
 
-    public static class ContextBtn {
-        String label;
-        Callable event;
-        public ContextBtn(String label, Callable event) {
-            this.label = label;
-            this.event = event;
+//    public void showDynamicInput(boolean onOff) {
+//        inputViewOpen = onOff;
+//        dynamicInputView.setVisibility(inputViewOpen ? View.VISIBLE : View.GONE);
+//    }
+//    public boolean isDynamicInputShown() {
+//        return inputViewOpen;
+//    }
+    private void initDynamicInputView() {
+        dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);
+        if (dynamicInput == null) {
+            Log.d("PagedActivity", "Dynamic input not found, creating...");
+            dynamicInput = new DynamicInputView(this);
+            dynamicInput.setId(DYNAMIC_INPUT_ID);
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            dynamicInput.setLayoutParams(layoutParams);
+            parentView.addView(dynamicInput);
         }
     }
-    public void setContextDrawerBtns(ContextBtn... btns) {
-        DetailAdapter listAdapter = new DetailAdapter(this);
-        for (int i = 0; i < btns.length; i++) {
-            ContextBtn btn = btns[i];
-            listAdapter.add(new DetailItem(null, btn.label, null, null));
-            int btnIndex = i;
-            settingsDrawer.addListener(index -> {
-                if (btnIndex == index) {
-                    try {
-                        if (btn.event != null)
-                            btn.event.call();
-                        else
-                            Log.e("PagedActivity", "Button event for " + btn.label + " is null");
-                    } catch (Exception ex) {
-                        Log.e("PagedActivity", "Failed to call context event: " + ex);
-                    }
-                }
-            });
+    public DynamicInputView getDynamicInput() {
+        return dynamicInput;
+    }
+    public SettingsDrawer getSettingsDrawer() {
+        return settingsDrawer;
+    }
+    private void initSettingsDrawer() {
+        settingsDrawer = parentView.findViewById(SETTINGS_DRAWER_ID);
+        if (settingsDrawer == null) {
+            Log.d("PagedActivity", "Settings drawer not found, creating...");
+            settingsDrawer = new SettingsDrawer(this);
+            settingsDrawer.setId(SETTINGS_DRAWER_ID);
+            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(settingsDrawerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
+            settingsDrawer.setLayoutParams(layoutParams);
+            parentView.addView(settingsDrawer);
         }
-        settingsDrawer.setAdapter(listAdapter);
-    }
-    public void showContextDrawer(boolean onOff) {
-        settingsDrawerOpen = onOff;
-        float settingsDrawerOpenX = OxShellApp.getDisplayWidth() - settingsDrawerWidth;
-        float settingsDrawerClosedX = OxShellApp.getDisplayWidth();
-        float xDist = (settingsDrawerOpen ? settingsDrawerOpenX : settingsDrawerClosedX) - settingsDrawer.getX();
-        float yDist = (settingsDrawerOpen ? SETTINGS_DRAWER_OPEN_Y : SETTINGS_DRAWER_CLOSED_Y) - settingsDrawer.getY();
-        float alphaDist = (settingsDrawerOpen ? 1 : 0) - settingsDrawer.getAlpha();
-        long duration = Math.round(SETTINGS_DRAWER_ANIM_TIME * (Math.abs(xDist) / Math.abs(settingsDrawerClosedX - settingsDrawerOpenX)));
-        //Log.d("PagedActivity", "Settings view open: " + settingsDrawerOpen + " x: " + settingsDrawer.getX() + " xdist: " + xDist + " ydist: " + yDist + " alphadist: " + alphaDist + " duration: " + duration);
-        settingsDrawer.animate().setDuration(duration);
-        settingsDrawer.animate().xBy(xDist);
-        settingsDrawer.animate().yBy(yDist);
-        settingsDrawer.animate().alphaBy(alphaDist);
-    }
-    public boolean isContextDrawerOpen() {
-        return settingsDrawerOpen;
-    }
-    private void fixDrawerLayout() {
-        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams)settingsDrawer.getLayoutParams();
-        //settingsDrawer.setGravity(Gravity.TOP | Gravity.END);
-        //layoutParams.gravity = Gravity.TOP | Gravity.END;
-        layoutParams.width = settingsDrawerWidth;
-        settingsDrawer.setLayoutParams(layoutParams);
-        settingsDrawer.setX(OxShellApp.getDisplayWidth());
     }
 
     private void trySetStartTime() {

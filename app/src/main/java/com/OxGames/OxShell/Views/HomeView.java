@@ -36,16 +36,15 @@ public class HomeView extends XMBView {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        if (!currentActivity.isContextDrawerOpen())
+        if (!currentActivity.getSettingsDrawer().isDrawerOpen())
             return super.onInterceptTouchEvent(ev);
         else
             return false;
     }
-
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        if (!currentActivity.isContextDrawerOpen())
+        if (!currentActivity.getSettingsDrawer().isDrawerOpen())
             return super.onTouchEvent(ev);
         else
             return false;
@@ -54,44 +53,44 @@ public class HomeView extends XMBView {
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        if (!currentActivity.isContextDrawerOpen()) {
+        if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
             if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2) {
                     //ActivityManager.GoTo(ActivityManager.Page.runningApps);
                     return true;
                 }
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                    PagedActivity.ContextBtn moveBtn = new PagedActivity.ContextBtn("Move", () ->
+                    SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
                     {
                         Log.d("HomeView", "Move selected");
                         //TODO: make move
                         return null;
                     });
-                    PagedActivity.ContextBtn deleteBtn = new PagedActivity.ContextBtn("Remove", () ->
+                    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove", () ->
                     {
                         deleteSelection();
-                        currentActivity.showContextDrawer(false);
+                        currentActivity.getSettingsDrawer().setShown(false);
                         return null;
                     });
-                    PagedActivity.ContextBtn cancelBtn = new PagedActivity.ContextBtn("Cancel", () ->
+                    SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
                     {
-                        currentActivity.showContextDrawer(false);
+                        currentActivity.getSettingsDrawer().setShown(false);
                         return null;
                     });
                     HomeItem selectedItem = (HomeItem)getSelectedItem();
                     if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings) {
-                        PagedActivity.ContextBtn uninstallBtn = new PagedActivity.ContextBtn("Uninstall", () ->
+                        SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
                         {
                             uninstallSelection();
                             deleteSelection(); //TODO: only if uninstall was successful
-                            currentActivity.showContextDrawer(false);
+                            currentActivity.getSettingsDrawer().setShown(false);
                             return null;
                         });
-                        currentActivity.setContextDrawerBtns(moveBtn, deleteBtn, uninstallBtn, cancelBtn);
+                        currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, uninstallBtn, cancelBtn);
                     } else
-                        currentActivity.setContextDrawerBtns(moveBtn, deleteBtn, cancelBtn);
+                        currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, cancelBtn);
 
-                    currentActivity.showContextDrawer(true);
+                    currentActivity.getSettingsDrawer().setShown(true);
                     return true;
                 }
             }
@@ -99,7 +98,7 @@ public class HomeView extends XMBView {
         } else {
             if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
                 if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
-                    currentActivity.showContextDrawer(false);
+                    currentActivity.getSettingsDrawer().setShown(false);
                     return true;
                 }
             }

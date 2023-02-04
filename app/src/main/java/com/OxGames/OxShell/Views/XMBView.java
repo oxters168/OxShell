@@ -1050,7 +1050,7 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
-        //Log.d("XMBView2", key_event.toString());
+        //Log.d("XMBView", key_event.toString());
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
                 stopMomentum();
