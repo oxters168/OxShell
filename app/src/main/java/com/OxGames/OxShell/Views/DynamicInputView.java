@@ -24,7 +24,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
 import com.OxGames.OxShell.Data.DynamicInputItem;
+import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -88,6 +90,9 @@ public class DynamicInputView extends FrameLayout {
         dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
         mainList.setPadding(dip, dip, dip, dip);
         mainList.setBackgroundColor(Color.parseColor("#323232"));
+        mainList.setDivider(null);
+        //mainList.setDividerHeight(Math.round(AndroidHelpers.dipToPixels(context, 16)));
+        //mainList.setDividerHeight(16);
         addView(mainList);
         ListAdapter adapter = new DynamicInputAdapter(context,
                 new DynamicInputItem("Folder Name", new TextWatcher() {
@@ -151,5 +156,8 @@ public class DynamicInputView extends FrameLayout {
     public void setShown(boolean onOff) {
         isShown = onOff;
         setVisibility(onOff ? VISIBLE : GONE);
+        PagedActivity current = ActivityManager.getCurrentActivity();
+        current.setNavBarHidden(onOff);
+        current.setStatusBarHidden(onOff);
     }
 }

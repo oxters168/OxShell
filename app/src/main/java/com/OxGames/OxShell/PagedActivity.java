@@ -119,7 +119,7 @@ public class PagedActivity extends AppCompatActivity {
         //settingsDrawer.setShown(isContextDrawerOpen());
         //settingsDrawer.setX(settingsDrawerWidth);
         //Add an if statement later to have a setting for hiding status bar
-        hideActionBar();
+        setActionBarHidden(true);
         //setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
@@ -181,7 +181,7 @@ public class PagedActivity extends AppCompatActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         Log.i("PagedActivity", "OnWindowFocusChanged " + this);
         super.onWindowFocusChanged(hasFocus);
-        hideActionBar();
+        setActionBarHidden(true);
         //setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
@@ -332,19 +332,23 @@ public class PagedActivity extends AppCompatActivity {
 //        return instance;
 //    }
 
-    private void hideActionBar() {
+    public void setActionBarHidden(boolean onOff) {
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null)
-            actionBar.hide();
+        if (actionBar != null) {
+            if (onOff)
+                actionBar.hide();
+            else
+                actionBar.show();
+        }
     }
-    private void setFullscreen(boolean onOff) {
+    public void setFullscreen(boolean onOff) {
         if (onOff)
             systemUIVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
         else
             systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
         updateSystemUIVisibility();
     }
-    private void setStatusBarHidden(boolean onOff) {
+    public void setStatusBarHidden(boolean onOff) {
         if (onOff)
             systemUIVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         else if ((systemUIVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
@@ -353,7 +357,7 @@ public class PagedActivity extends AppCompatActivity {
             systemUIVisibility &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
         updateSystemUIVisibility();
     }
-    private void setNavBarHidden(boolean onOff) {
+    public void setNavBarHidden(boolean onOff) {
         if (onOff)
             systemUIVisibility |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         else if ((systemUIVisibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)

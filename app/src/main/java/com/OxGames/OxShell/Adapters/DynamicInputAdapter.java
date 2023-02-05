@@ -15,6 +15,7 @@ import android.widget.FrameLayout;
 import android.widget.ListAdapter;
 
 import com.OxGames.OxShell.Data.DynamicInputItem;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.DynamicInputItemView;
 import com.OxGames.OxShell.Views.DynamicInputView;
@@ -71,35 +72,25 @@ public class DynamicInputAdapter implements ListAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = convertView;
-
-        // the even numbered positions are the non-separators
-        boolean isEven = position % 2 == 0;
-        if (isEven) {
-            if (!(view instanceof DynamicInputItemView)) {
-                LayoutInflater layoutInflater = LayoutInflater.from(context);
-                view = layoutInflater.inflate(R.layout.dynamic_input_item, null);
-            }
-
-            // convert the even number to a normal index (0, 2, 4, 6, 8 => 0, 1, 2, 3, 4)
-            int index = position / 2;
-            DynamicInputItem currentItem = items.get(index);
-            TextInputLayout inputLayout = view.findViewById(R.id.input_layout);
-            if (inputLayout != null)
-                inputLayout.setHint(currentItem.title);
-            TextInputEditText editText = view.findViewById(R.id.input_text);
-            if (editText != null) {
-                for (DynamicInputItem item : items)
-                    if (item.getWatcher() != null)
-                        editText.removeTextChangedListener(item.getWatcher());
-
-                if (currentItem.getWatcher() != null)
-                    editText.addTextChangedListener(currentItem.getWatcher());
-            }
-        } else {
-            if (!(view instanceof FrameLayout)) {
-                LayoutInflater layoutInflater = LayoutInflater.from(context);
-                view = layoutInflater.inflate(R.layout.separator, null);
-            }
+        if (!(view instanceof DynamicInputItemView)) {
+            LayoutInflater layoutInflater = LayoutInflater.from(context);
+            view = layoutInflater.inflate(R.layout.dynamic_input_item, null);
+        }
+        DynamicInputItem currentItem = items.get(position);
+        TextInputLayout inputLayout = view.findViewById(R.id.input_layout);
+        int dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
+        inputLayout.setPadding(0, 0, 0, position < items.size() - 1 ? dip : 0);
+        if (inputLayout != null)
+            inputLayout.setHint(currentItem.title);
+        TextInputEditText editText = view.findViewById(R.id.input_text);
+        if (editText != null) {
+            // clear all text changed listeners on the edit text
+            for (DynamicInputItem item : items)
+                if (item.getWatcher() != null)
+                    editText.removeTextChangedListener(item.getWatcher());
+            // add the proper text changed listener on the edit text
+            if (currentItem.getWatcher() != null)
+                editText.addTextChangedListener(currentItem.getWatcher());
         }
         return view;
     }
@@ -116,16 +107,17 @@ public class DynamicInputAdapter implements ListAdapter {
 
     @Override
     public boolean isEmpty() {
-        return items != null && items.size() > 0;
+        return items == null || items.size() <= 0;
     }
 
     @Override
     public boolean areAllItemsEnabled() {
-        return false;
+        return true;
     }
     @Override
     public boolean isEnabled(int position) {
         // every other position will be a separator
-        return position % 2 != 0;
+        //return position % 2 != 0;
+        return true;
     }
 }
