@@ -35,6 +35,7 @@ public class DynamicInputView extends FrameLayout {
     private boolean isShown = false;
     private final Context context;
     private TextView title;
+    private int prevUIState;
 
     public DynamicInputView(@NonNull Context context) {
         super(context);
@@ -157,7 +158,11 @@ public class DynamicInputView extends FrameLayout {
         isShown = onOff;
         setVisibility(onOff ? VISIBLE : GONE);
         PagedActivity current = ActivityManager.getCurrentActivity();
-        current.setNavBarHidden(onOff);
-        current.setStatusBarHidden(onOff);
+        if (onOff) {
+            prevUIState = current.getSystemUIState();
+            current.setNavBarHidden(true);
+            current.setStatusBarHidden(true);
+        } else
+            current.setSystemUIState(prevUIState);
     }
 }

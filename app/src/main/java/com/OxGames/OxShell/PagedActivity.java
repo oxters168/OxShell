@@ -346,7 +346,7 @@ public class PagedActivity extends AppCompatActivity {
             systemUIVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
         else
             systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        updateSystemUIVisibility();
+        setSystemUIState(systemUIVisibility);
     }
     public void setStatusBarHidden(boolean onOff) {
         if (onOff)
@@ -355,7 +355,7 @@ public class PagedActivity extends AppCompatActivity {
             systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         else
             systemUIVisibility &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
-        updateSystemUIVisibility();
+        setSystemUIState(systemUIVisibility);
     }
     public void setNavBarHidden(boolean onOff) {
         if (onOff)
@@ -364,10 +364,14 @@ public class PagedActivity extends AppCompatActivity {
             systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         else
             systemUIVisibility &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        updateSystemUIVisibility();
+        setSystemUIState(systemUIVisibility);
     }
-    private void updateSystemUIVisibility() {
-        getWindow().getDecorView().setSystemUiVisibility(systemUIVisibility);
+    public int getSystemUIState() {
+        return systemUIVisibility;
+    }
+    public void setSystemUIState(int uiState) {
+        systemUIVisibility = uiState;
+        getWindow().getDecorView().setSystemUiVisibility(uiState);
     }
 
 //    public void RefreshDisplayMetrics() {
