@@ -48,6 +48,11 @@ public class DynamicInputAdapter implements ListAdapter {
             this.items.addAll(Arrays.asList(items));
     }
 
+    public void clear() {
+        if (items != null)
+            items.clear();
+    }
+
     @Override
     public int getCount() {
         return items.size();
@@ -71,27 +76,19 @@ public class DynamicInputAdapter implements ListAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        View view = convertView;
-        if (!(view instanceof DynamicInputItemView)) {
-            LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = layoutInflater.inflate(R.layout.dynamic_input_item, null);
+        DynamicInputItemView view = (DynamicInputItemView)convertView;
+        //Log.d("DynamicInputAdapter", position + " is null " + (view == null));
+        if (view == null) {
+            view = new DynamicInputItemView(context);
+            view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            //LayoutInflater layoutInflater = LayoutInflater.from(context);
+            //view = (DynamicInputItemView)layoutInflater.inflate(R.layout.dynamic_input_item, null);
         }
         DynamicInputItem currentItem = items.get(position);
-        TextInputLayout inputLayout = view.findViewById(R.id.input_layout);
+        view.setInputItem(currentItem);
         int dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
-        inputLayout.setPadding(0, 0, 0, position < items.size() - 1 ? dip : 0);
-        if (inputLayout != null)
-            inputLayout.setHint(currentItem.title);
-        TextInputEditText editText = view.findViewById(R.id.input_text);
-        if (editText != null) {
-            // clear all text changed listeners on the edit text
-            for (DynamicInputItem item : items)
-                if (item.getWatcher() != null)
-                    editText.removeTextChangedListener(item.getWatcher());
-            // add the proper text changed listener on the edit text
-            if (currentItem.getWatcher() != null)
-                editText.addTextChangedListener(currentItem.getWatcher());
-        }
+        view.setPadding(0, 0, 0, position < items.size() - 1 ? dip : 0);
+
         return view;
     }
 

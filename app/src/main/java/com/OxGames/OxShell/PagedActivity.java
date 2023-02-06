@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -373,16 +374,6 @@ public class PagedActivity extends AppCompatActivity {
         systemUIVisibility = uiState;
         getWindow().getDecorView().setSystemUiVisibility(uiState);
     }
-
-//    public void RefreshDisplayMetrics() {
-//        displayMetrics = new DisplayMetrics();
-//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//    }
-//    public DisplayMetrics getDisplayMetrics() {
-//        DisplayMetrics displayMetrics = new DisplayMetrics();
-//        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//        return displayMetrics;
-//    }
 
     protected void initViewsTable() {
     }

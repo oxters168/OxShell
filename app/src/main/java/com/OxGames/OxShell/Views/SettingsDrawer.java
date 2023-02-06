@@ -51,7 +51,7 @@ public class SettingsDrawer extends FrameLayout {
 
     private void init() {
         setX(OxShellApp.getDisplayWidth());
-        setBackgroundColor(Color.parseColor("#80323232"));
+        setBackgroundColor(Color.parseColor("#323232"));
         setAlpha(0);
 
         listView = new SlideTouchListView(context);
@@ -80,6 +80,8 @@ public class SettingsDrawer extends FrameLayout {
         animate().xBy(xDist);
         animate().yBy(yDist);
         animate().alphaBy(alphaDist);
+        if (onOff)
+            listView.setProperPosition(0);
     }
     public boolean receiveKeyEvent(KeyEvent keyEvent) {
         //Log.d("SettingsDrawer", "Received key event");

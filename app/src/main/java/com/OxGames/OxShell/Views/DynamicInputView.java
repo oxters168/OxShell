@@ -35,6 +35,7 @@ public class DynamicInputView extends FrameLayout {
     private boolean isShown = false;
     private final Context context;
     private TextView title;
+    private ListView mainList;
     private int prevUIState;
 
     public DynamicInputView(@NonNull Context context) {
@@ -82,7 +83,7 @@ public class DynamicInputView extends FrameLayout {
         title.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
         header.addView(title);
 
-        ListView mainList = new ListView(context);
+        mainList = new ListView(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         dip = Math.round(AndroidHelpers.dipToPixels(context, 40));
         layoutParams.topMargin = dip;
@@ -95,50 +96,6 @@ public class DynamicInputView extends FrameLayout {
         //mainList.setDividerHeight(Math.round(AndroidHelpers.dipToPixels(context, 16)));
         //mainList.setDividerHeight(16);
         addView(mainList);
-        ListAdapter adapter = new DynamicInputAdapter(context,
-                new DynamicInputItem("Folder Name", new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                        Log.d("DynamicInputAdapter", "beforeTextChanged " + s);
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        Log.d("DynamicInputAdapter", "onTextChanged " + s);
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-                        Log.d("DynamicInputAdapter", "afterTextChanged " + s);
-                    }
-                }),
-                new DynamicInputItem("Folder Location", new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                        Log.d("DynamicInputAdapter", "beforeTextChanged " + s);
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        Log.d("DynamicInputAdapter", "onTextChanged " + s);
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-                        Log.d("DynamicInputAdapter", "afterTextChanged " + s);
-                    }
-                }),
-                new DynamicInputItem("Folder df", null),
-                new DynamicInputItem("Folder Nameqwe", null),
-                new DynamicInputItem("Folder ergr", null),
-                new DynamicInputItem("Folder adsfasdf", null),
-                new DynamicInputItem("Folder cvcvb", null),
-                new DynamicInputItem("Folder hjgfj", null),
-                new DynamicInputItem("Folder uiuyt", null),
-                new DynamicInputItem("Folder 56786", null),
-                new DynamicInputItem("Folder nvx", null),
-                new DynamicInputItem("Folder eyterg", null));
-        mainList.setAdapter(adapter);
 
         FrameLayout footer = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.dipToPixels(context, 40)));
@@ -151,6 +108,11 @@ public class DynamicInputView extends FrameLayout {
     public void setTitle(String value) {
         title.setText(value);
     }
+    public void setItems(DynamicInputItem... items) {
+        ListAdapter adapter = new DynamicInputAdapter(context, items);
+        mainList.setAdapter(adapter);
+    }
+
     public boolean isInputShown() {
         return isShown;
     }
@@ -162,7 +124,13 @@ public class DynamicInputView extends FrameLayout {
             prevUIState = current.getSystemUIState();
             current.setNavBarHidden(true);
             current.setStatusBarHidden(true);
-        } else
+        } else {
             current.setSystemUIState(prevUIState);
+            if (mainList != null) {
+                ListAdapter adapter = mainList.getAdapter();
+                if (adapter != null)
+                    ((DynamicInputAdapter) adapter).clear();
+            }
+        }
     }
 }

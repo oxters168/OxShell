@@ -5,11 +5,18 @@ import android.text.TextWatcher;
 import java.util.concurrent.Callable;
 
 public class DynamicInputItem {
+    public enum InputType {
+        text,
+        button,
+        label
+    }
+    public InputType inputType;
     public String title;
     //private Callable event;
     private TextWatcher watcher;
 
-    public DynamicInputItem(String title, TextWatcher watcher) {
+    public DynamicInputItem(InputType inputType, String title, TextWatcher watcher) {
+        this.inputType = inputType;
         this.title = title;
         //this.event = event;
         this.watcher = watcher;

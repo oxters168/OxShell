@@ -3,6 +3,8 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -10,6 +12,7 @@ import android.view.MotionEvent;
 
 import androidx.core.content.ContextCompat;
 
+import com.OxGames.OxShell.Data.DynamicInputItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -105,6 +108,41 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
                     {
                         currentActivity.getDynamicInput().setTitle("Create Folder");
+                        currentActivity.getDynamicInput().setItems(new DynamicInputItem(DynamicInputItem.InputType.text,"Folder Name", new TextWatcher() {
+                            @Override
+                            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                Log.d("ExplorerView", "beforeTextChanged " + s);
+                            }
+
+                            @Override
+                            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                Log.d("ExplorerView", "onTextChanged " + s);
+                            }
+
+                            @Override
+                            public void afterTextChanged(Editable s) {
+                                Log.d("ExplorerView", "afterTextChanged " + s);
+                            }
+                        }),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"abc", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"def", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"ghi", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"jkl", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"mno", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"pqr", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"stu", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"vwx", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"yzz", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"123", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"456", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"789", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"0-=", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"!@#", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"$%^", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"&*(", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,")_+", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,",./", null),
+                        new DynamicInputItem(DynamicInputItem.InputType.text,"<>?", null));
                         currentActivity.getDynamicInput().setShown(true);
                         String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), "New Folder");
                         boolean success = new File(newPath).mkdir();
