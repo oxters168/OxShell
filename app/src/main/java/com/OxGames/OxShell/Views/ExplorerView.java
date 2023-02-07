@@ -108,7 +108,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
                     {
                         currentActivity.getDynamicInput().setTitle("Create Folder");
-                        currentActivity.getDynamicInput().setItems(new DynamicInputItem(DynamicInputItem.InputType.text,"Folder Name", new TextWatcher() {
+                        currentActivity.getDynamicInput().setItems(new DynamicInputItem(new DynamicInputItem.TextInput("Folder Name", new TextWatcher() {
                             @Override
                             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                                 Log.d("ExplorerView", "beforeTextChanged " + s);
@@ -123,26 +123,26 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                             public void afterTextChanged(Editable s) {
                                 Log.d("ExplorerView", "afterTextChanged " + s);
                             }
-                        }),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"abc", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"def", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"ghi", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"jkl", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"mno", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"pqr", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"stu", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"vwx", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"yzz", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"123", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"456", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"789", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"0-=", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"!@#", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"$%^", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"&*(", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,")_+", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,",./", null),
-                        new DynamicInputItem(DynamicInputItem.InputType.text,"<>?", null));
+                        })),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("abc", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("def", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("ghi", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("jkl", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("mno", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("pqr", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("stu", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("vwx", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("yzz", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("123", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("456", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("789", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("0-=", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("!@#", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("$%^", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("&*(", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput(")_+", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput(",./", null)),
+                        new DynamicInputItem(new DynamicInputItem.TextInput("<>?", null)));
                         currentActivity.getDynamicInput().setShown(true);
                         String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), "New Folder");
                         boolean success = new File(newPath).mkdir();

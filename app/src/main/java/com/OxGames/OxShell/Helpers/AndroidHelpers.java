@@ -152,14 +152,14 @@ public class AndroidHelpers {
         return ContextCompat.checkSelfPermission(OxShellApp.getContext(), permType) == PackageManager.PERMISSION_GRANTED;
     }
     public static boolean hasReadStoragePermission() {
-        Log.d("FileHelpers", "Checking has read permission");
+        //Log.d("FileHelpers", "Checking has read permission");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
         else
             return hasPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE);
     }
     public static boolean hasWriteStoragePermission() {
-        Log.d("FileHelpers", "Checking has write permission");
+        //Log.d("FileHelpers", "Checking has write permission");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
         else

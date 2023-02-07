@@ -44,11 +44,12 @@ public class DynamicInputItemView extends FrameLayout {
 //        editText = findViewById(R.id.input_text);
 //    }
     public void setInputItem(DynamicInputItem item) {
-        Log.d("DynamicInputItemView", "Setting up item " + item.title + " as " + item.inputType);
+        DynamicInputItem.TextInput innerItem = (DynamicInputItem.TextInput)item.get(0);
+        Log.d("DynamicInputItemView", "Setting up item " + innerItem.title + " as " + item.inputType);
         // remove any already existing listeners
         if (inputItem != null) {
-            if (inputLayout != null && inputLayout.getEditText() != null && item.getWatcher() != null)
-                inputLayout.getEditText().removeTextChangedListener(item.getWatcher());
+            if (inputLayout != null && inputLayout.getEditText() != null && innerItem.getWatcher() != null)
+                inputLayout.getEditText().removeTextChangedListener(innerItem.getWatcher());
         }
 
         if (item.inputType == DynamicInputItem.InputType.text) {
@@ -61,12 +62,12 @@ public class DynamicInputItemView extends FrameLayout {
                 inputLayout.setBackgroundColor(Color.parseColor("#232323"));
                 addView(inputLayout);
             }
-            inputLayout.setHint(item.title);
+            inputLayout.setHint(innerItem.title);
             if (inputLayout.getEditText() == null)
                 inputLayout.addView(new TextInputEditText(getContext()), new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             //Log.d("DynamicInputItemView", "editText is null: " + (inputLayout.getEditText() == null) + " watcher is null: " + (item.getWatcher() == null));
-            if (item.getWatcher() != null)
-                inputLayout.getEditText().addTextChangedListener(item.getWatcher());
+            if (innerItem.getWatcher() != null)
+                inputLayout.getEditText().addTextChangedListener(innerItem.getWatcher());
         }
 
         inputItem = item;

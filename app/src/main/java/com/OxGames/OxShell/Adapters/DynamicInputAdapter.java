@@ -14,6 +14,9 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ListAdapter;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.OxGames.OxShell.Data.DynamicInputItem;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
@@ -27,19 +30,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class DynamicInputAdapter implements ListAdapter {
+public class DynamicInputAdapter extends RecyclerView.Adapter<DynamicInputAdapter.DynamicViewHolder> {
     private List<DynamicInputItem> items;
     private Context context;
-
-    @Override
-    public void registerDataSetObserver(DataSetObserver observer) {
-        //throw new UnsupportedOperationException("Function not implemented");
-    }
-
-    @Override
-    public void unregisterDataSetObserver(DataSetObserver observer) {
-        //throw new UnsupportedOperationException("Function not implemented");
-    }
 
     public DynamicInputAdapter(Context context, DynamicInputItem... items) {
         this.context = context;
@@ -48,73 +41,43 @@ public class DynamicInputAdapter implements ListAdapter {
             this.items.addAll(Arrays.asList(items));
     }
 
+    @NonNull
+    @Override
+    public DynamicViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        DynamicInputItemView view = new DynamicInputItemView(context);
+        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return new DynamicViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull DynamicViewHolder holder, int position) {
+        DynamicInputItem currentItem = items.get(position);
+        holder.bindItem(currentItem);
+        int dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
+        holder.setPadding(0, 0, 0, position < items.size() - 1 ? dip : 0);
+    }
+
+    @Override
+    public int getItemCount() {
+        return items.size();
+    }
+
     public void clear() {
         if (items != null)
             items.clear();
     }
 
-    @Override
-    public int getCount() {
-        return items.size();
-    }
-
-    @Override
-    public Object getItem(int position) {
-        return items.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        //throw new UnsupportedOperationException("Function not implemented");
-        return 0;
-    }
-
-    @Override
-    public boolean hasStableIds() {
-        return false;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        DynamicInputItemView view = (DynamicInputItemView)convertView;
-        //Log.d("DynamicInputAdapter", position + " is null " + (view == null));
-        if (view == null) {
-            view = new DynamicInputItemView(context);
-            view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            //LayoutInflater layoutInflater = LayoutInflater.from(context);
-            //view = (DynamicInputItemView)layoutInflater.inflate(R.layout.dynamic_input_item, null);
+    public class DynamicViewHolder extends RecyclerView.ViewHolder {
+        private View itemView;
+        public DynamicViewHolder(@NonNull View itemView) {
+            super(itemView);
+            this.itemView = itemView;
         }
-        DynamicInputItem currentItem = items.get(position);
-        view.setInputItem(currentItem);
-        int dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
-        view.setPadding(0, 0, 0, position < items.size() - 1 ? dip : 0);
-
-        return view;
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        return 0;
-    }
-
-    @Override
-    public int getViewTypeCount() {
-        return 1;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return items == null || items.size() <= 0;
-    }
-
-    @Override
-    public boolean areAllItemsEnabled() {
-        return true;
-    }
-    @Override
-    public boolean isEnabled(int position) {
-        // every other position will be a separator
-        //return position % 2 != 0;
-        return true;
+        public void bindItem(DynamicInputItem item) {
+            ((DynamicInputItemView)itemView).setInputItem(item);
+        }
+        public void setPadding(int left, int top, int right, int bottom) {
+            itemView.setPadding(left, top, right, bottom);
+        }
     }
 }

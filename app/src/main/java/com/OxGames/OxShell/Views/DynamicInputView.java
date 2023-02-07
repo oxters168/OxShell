@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
@@ -35,7 +36,8 @@ public class DynamicInputView extends FrameLayout {
     private boolean isShown = false;
     private final Context context;
     private TextView title;
-    private ListView mainList;
+    //private ListView mainList;
+    private RecyclerView mainList;
     private int prevUIState;
 
     public DynamicInputView(@NonNull Context context) {
@@ -83,16 +85,27 @@ public class DynamicInputView extends FrameLayout {
         title.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
         header.addView(title);
 
-        mainList = new ListView(context);
-        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        mainList = new RecyclerView(context);
+        RecyclerView.LayoutParams recyclerParams = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         dip = Math.round(AndroidHelpers.dipToPixels(context, 40));
-        layoutParams.topMargin = dip;
-        layoutParams.bottomMargin = dip;
-        mainList.setLayoutParams(layoutParams);
+        recyclerParams.topMargin = dip;
+        recyclerParams.bottomMargin = dip;
+        mainList.setLayoutParams(recyclerParams);
         dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
         mainList.setPadding(dip, dip, dip, dip);
         mainList.setBackgroundColor(Color.parseColor("#323232"));
-        mainList.setDivider(null);
+        mainList.setLayoutManager(new LinearLayoutManager(context));
+        mainList.setVisibility(VISIBLE);
+//        mainList = new ListView(context);
+//        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+//        dip = Math.round(AndroidHelpers.dipToPixels(context, 40));
+//        layoutParams.topMargin = dip;
+//        layoutParams.bottomMargin = dip;
+//        mainList.setLayoutParams(layoutParams);
+//        dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
+//        mainList.setPadding(dip, dip, dip, dip);
+//        mainList.setBackgroundColor(Color.parseColor("#323232"));
+//        mainList.setDivider(null);
         //mainList.setDividerHeight(Math.round(AndroidHelpers.dipToPixels(context, 16)));
         //mainList.setDividerHeight(16);
         addView(mainList);
@@ -109,7 +122,7 @@ public class DynamicInputView extends FrameLayout {
         title.setText(value);
     }
     public void setItems(DynamicInputItem... items) {
-        ListAdapter adapter = new DynamicInputAdapter(context, items);
+        DynamicInputAdapter adapter = new DynamicInputAdapter(context, items);
         mainList.setAdapter(adapter);
     }
 
@@ -127,9 +140,9 @@ public class DynamicInputView extends FrameLayout {
         } else {
             current.setSystemUIState(prevUIState);
             if (mainList != null) {
-                ListAdapter adapter = mainList.getAdapter();
+                RecyclerView.Adapter adapter = mainList.getAdapter();
                 if (adapter != null)
-                    ((DynamicInputAdapter) adapter).clear();
+                    ((DynamicInputAdapter)adapter).clear();
             }
         }
     }
