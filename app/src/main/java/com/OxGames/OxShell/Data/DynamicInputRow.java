@@ -1,12 +1,12 @@
 package com.OxGames.OxShell.Data;
 
 import android.text.TextWatcher;
-import android.util.Log;
+import android.view.View;
 
 public class DynamicInputRow {
     private DynamicInput[] inputs;
 
-    public DynamicInputRow(TextInput... inputs) {
+    public DynamicInputRow(DynamicInput... inputs) {
 //        Log.d("DynamicInputRow", "Creating row with " + inputs.length + " item(s)");
 //        for (int i = 0; i < inputs.length; i++) {
 //            Log.d("DynamicInputRow", "@" + i + " is null: " + (inputs[i] == null));
@@ -31,23 +31,43 @@ public class DynamicInputRow {
         public InputType inputType;
     }
     public static class TextInput extends DynamicInput {
-        public String title;
-        private TextWatcher watcher;
+        public String hint;
+        private String text;
 
-        public TextInput(String title, TextWatcher watcher) {
+        public TextInput(String hint) {
             this.inputType = InputType.text;
-            this.title = title;
-            this.watcher = watcher;
+            this.hint = hint;
+            this.text = "";
         }
 
-        public TextWatcher getWatcher() {
-            return watcher;
+        // setText should be only accessible from the view, but whatever
+        public void setText(String value) {
+            text = value;
+        }
+        public String getText() {
+            return text;
         }
     }
-//    public TextWatcher getWatcher() {
-//        return watcher;
-//    }
-//    public void setWatcher(TextWatcher watcher) {
-//        this.watcher = watcher;
-//    }
+    public static class ButtonInput extends DynamicInput {
+        public String label;
+        private View.OnClickListener onClick;
+
+        public ButtonInput(String label, View.OnClickListener onClick) {
+            this.inputType = InputType.button;
+            this.label = label;
+            this.onClick = onClick;
+        }
+
+        public View.OnClickListener getOnClick() {
+            return onClick;
+        }
+    }
+    public static class Label extends DynamicInput {
+        public String label;
+
+        public Label(String label) {
+            this.inputType = InputType.label;
+            this.label = label;
+        }
+    }
 }

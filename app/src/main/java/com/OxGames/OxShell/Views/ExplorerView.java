@@ -9,6 +9,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 
 import androidx.core.content.ContextCompat;
 
@@ -107,83 +108,32 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     boolean isValidSelection = file != null && !selectedItem.leftAlignedText.equals("..");
                     SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
                     {
+                        DynamicInputRow.TextInput folderName = new DynamicInputRow.TextInput("Folder Name");
                         currentActivity.getDynamicInput().setTitle("Create Folder");
-                        currentActivity.getDynamicInput().setItems(
-                            new DynamicInputRow(
-                                new DynamicInputRow.TextInput("Folder Name",
-                                    new TextWatcher()
-                                    {
-                                        @Override
-                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                            Log.d("ExplorerView", "beforeTextChanged " + s);
-                                        }
-
-                                        @Override
-                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                            Log.d("ExplorerView", "onTextChanged " + s);
-                                        }
-
-                                        @Override
-                                        public void afterTextChanged(Editable s) {
-                                            Log.d("ExplorerView", "afterTextChanged " + s);
-                                        }
-                                    }
-                                ),
-                                new DynamicInputRow.TextInput("Folder Dir",
-                                    new TextWatcher()
-                                    {
-                                        @Override
-                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                            Log.d("ExplorerView", "dir beforeTextChanged " + s);
-                                        }
-
-                                        @Override
-                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                            Log.d("ExplorerView", "dir onTextChanged " + s);
-                                        }
-
-                                        @Override
-                                        public void afterTextChanged(Editable s) {
-                                            Log.d("ExplorerView", "dir afterTextChanged " + s);
-                                        }
-                                    }
-                                ),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null),
-                                new DynamicInputRow.TextInput("abc", null)
-                            ),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("abc", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("def", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("ghi", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("jkl", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("mno", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("pqr", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("stu", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("vwx", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("yzz", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("123", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("456", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("789", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("0-=", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("!@#", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("$%^", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("&*(", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput(")_+", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput(",./", null)),
-                            new DynamicInputRow(new DynamicInputRow.TextInput("<>?", null))
+                        currentActivity.getDynamicInput().setItems
+                        (
+                            new DynamicInputRow(folderName),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.ButtonInput("Ok", v ->
+                                {
+                                    //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
+                                    currentActivity.getDynamicInput().setShown(true);
+                                    String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), folderName.getText());
+                                    boolean success = new File(newPath).mkdir();
+                                    Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
+                                    refresh();
+                                    currentActivity.getDynamicInput().setShown(false);
+                                }),
+                                new DynamicInputRow.ButtonInput("Cancel", v ->
+                                {
+                                    //Log.d("ExplorerDynamicView", "Clicked cancel");
+                                    currentActivity.getDynamicInput().setShown(false);
+                                })
+                            )
                         );
-                        currentActivity.getDynamicInput().setShown(true);
-                        String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), "New Folder");
-                        boolean success = new File(newPath).mkdir();
-                        Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
-                        refresh();
                         currentActivity.getSettingsDrawer().setShown(false);
+                        currentActivity.getDynamicInput().setShown(true);
                         return null;
                     });
                     SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
