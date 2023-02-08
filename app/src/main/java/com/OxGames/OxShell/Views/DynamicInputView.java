@@ -2,20 +2,10 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.CompletionInfo;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,13 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
-import com.OxGames.OxShell.Data.DynamicInputItem;
+import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.PagedActivity;
-import com.OxGames.OxShell.R;
-import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 public class DynamicInputView extends FrameLayout {
     private boolean isShown = false;
@@ -96,18 +83,6 @@ public class DynamicInputView extends FrameLayout {
         mainList.setBackgroundColor(Color.parseColor("#323232"));
         mainList.setLayoutManager(new LinearLayoutManager(context));
         mainList.setVisibility(VISIBLE);
-//        mainList = new ListView(context);
-//        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//        dip = Math.round(AndroidHelpers.dipToPixels(context, 40));
-//        layoutParams.topMargin = dip;
-//        layoutParams.bottomMargin = dip;
-//        mainList.setLayoutParams(layoutParams);
-//        dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
-//        mainList.setPadding(dip, dip, dip, dip);
-//        mainList.setBackgroundColor(Color.parseColor("#323232"));
-//        mainList.setDivider(null);
-        //mainList.setDividerHeight(Math.round(AndroidHelpers.dipToPixels(context, 16)));
-        //mainList.setDividerHeight(16);
         addView(mainList);
 
         FrameLayout footer = new FrameLayout(context);
@@ -121,7 +96,7 @@ public class DynamicInputView extends FrameLayout {
     public void setTitle(String value) {
         title.setText(value);
     }
-    public void setItems(DynamicInputItem... items) {
+    public void setItems(DynamicInputRow... items) {
         DynamicInputAdapter adapter = new DynamicInputAdapter(context, items);
         mainList.setAdapter(adapter);
     }

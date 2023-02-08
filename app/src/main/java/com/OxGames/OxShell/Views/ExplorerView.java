@@ -12,7 +12,7 @@ import android.view.MotionEvent;
 
 import androidx.core.content.ContextCompat;
 
-import com.OxGames.OxShell.Data.DynamicInputItem;
+import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -108,41 +108,76 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
                     {
                         currentActivity.getDynamicInput().setTitle("Create Folder");
-                        currentActivity.getDynamicInput().setItems(new DynamicInputItem(new DynamicInputItem.TextInput("Folder Name", new TextWatcher() {
-                            @Override
-                            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                Log.d("ExplorerView", "beforeTextChanged " + s);
-                            }
+                        currentActivity.getDynamicInput().setItems(
+                            new DynamicInputRow(
+                                new DynamicInputRow.TextInput("Folder Name",
+                                    new TextWatcher()
+                                    {
+                                        @Override
+                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                            Log.d("ExplorerView", "beforeTextChanged " + s);
+                                        }
 
-                            @Override
-                            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                                Log.d("ExplorerView", "onTextChanged " + s);
-                            }
+                                        @Override
+                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                            Log.d("ExplorerView", "onTextChanged " + s);
+                                        }
 
-                            @Override
-                            public void afterTextChanged(Editable s) {
-                                Log.d("ExplorerView", "afterTextChanged " + s);
-                            }
-                        })),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("abc", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("def", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("ghi", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("jkl", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("mno", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("pqr", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("stu", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("vwx", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("yzz", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("123", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("456", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("789", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("0-=", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("!@#", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("$%^", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("&*(", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput(")_+", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput(",./", null)),
-                        new DynamicInputItem(new DynamicInputItem.TextInput("<>?", null)));
+                                        @Override
+                                        public void afterTextChanged(Editable s) {
+                                            Log.d("ExplorerView", "afterTextChanged " + s);
+                                        }
+                                    }
+                                ),
+                                new DynamicInputRow.TextInput("Folder Dir",
+                                    new TextWatcher()
+                                    {
+                                        @Override
+                                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                                            Log.d("ExplorerView", "dir beforeTextChanged " + s);
+                                        }
+
+                                        @Override
+                                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                            Log.d("ExplorerView", "dir onTextChanged " + s);
+                                        }
+
+                                        @Override
+                                        public void afterTextChanged(Editable s) {
+                                            Log.d("ExplorerView", "dir afterTextChanged " + s);
+                                        }
+                                    }
+                                ),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null),
+                                new DynamicInputRow.TextInput("abc", null)
+                            ),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("abc", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("def", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("ghi", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("jkl", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("mno", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("pqr", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("stu", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("vwx", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("yzz", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("123", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("456", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("789", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("0-=", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("!@#", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("$%^", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("&*(", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput(")_+", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput(",./", null)),
+                            new DynamicInputRow(new DynamicInputRow.TextInput("<>?", null))
+                        );
                         currentActivity.getDynamicInput().setShown(true);
                         String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), "New Folder");
                         boolean success = new File(newPath).mkdir();
