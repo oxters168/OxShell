@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Interfaces.AdapterListener;
 import com.OxGames.OxShell.Views.DynamicInputItemView;
 
 import java.util.ArrayList;
@@ -24,7 +25,8 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
     private static final int MAX_VISIBLE_ITEMS = 4;
     private static final int PADDING = 20;
     private int rowWidth;
-    //private FrameLayout parent;
+
+    private List<AdapterListener> listeners;
 
     public InputRowAdapter(Context context, DynamicInputRow.DynamicInput... items) {
         this.context = context;
@@ -32,12 +34,29 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         //Log.d("InputRowAdapter", "Creating row with " + items.length + " item(s)");
         if (items != null)
             Collections.addAll(this.items, items);
+        listeners = new ArrayList<>();
+    }
+
+    public void addListener(AdapterListener listener) {
+        listeners.add(listener);
+    }
+    public void removeListener(AdapterListener listener) {
+        listeners.remove(listener);
+    }
+    public void clearListeners() {
+        listeners.clear();
     }
 
     @NonNull
     @Override
     public RowViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         DynamicInputItemView view = new DynamicInputItemView(context);
+//        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//            @Override
+//            public void onFocusChange(View v, boolean hasFocus) {
+//                Log.d("InputRowAdapter", "onFocusChange: " + hasFocus);
+//            }
+//        });
         view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         return new RowViewHolder(view);
     }
@@ -80,7 +99,9 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
     @Override
     public void onViewAttachedToWindow(@NonNull RowViewHolder holder) {
         super.onViewAttachedToWindow(holder);
-        //Log.d("InputRowAdapter", "onViewAttachedToWindow");
+        for (AdapterListener listener : listeners)
+            if (listener != null)
+                listener.onViewsReady();
     }
 
     public void setRowWidth(int width) {
@@ -107,6 +128,9 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
             ViewGroup.LayoutParams params = itemView.getLayoutParams();
             params.width = px;
             itemView.setLayoutParams(params);
+        }
+        public boolean requestFocus() {
+            return itemView.requestFocus();
         }
     }
 }

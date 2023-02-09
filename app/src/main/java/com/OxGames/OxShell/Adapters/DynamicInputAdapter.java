@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -63,6 +64,7 @@ public class DynamicInputAdapter extends RecyclerView.Adapter<DynamicInputAdapte
     @Override
     public void onViewAttachedToWindow(@NonNull DynamicViewHolder holder) {
         super.onViewAttachedToWindow(holder);
+        //Log.d("DynamicInputAdapter", "onViewAttachedToWindow");
         for (AdapterListener listener : listeners)
             if (listener != null)
                 listener.onViewsReady();

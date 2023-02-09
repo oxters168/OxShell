@@ -138,6 +138,66 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                         currentActivity.getDynamicInput().setTitle("Copy");
                         currentActivity.getDynamicInput().setItems
                         (
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
+//                                new DynamicInputRow
+//                                        (
+//                                                new DynamicInputRow.Label("Ok"),
+//                                                new DynamicInputRow.Label("Cancel")
+//                                        ),
                             new DynamicInputRow
                             (
                                 new DynamicInputRow.TextInput("Thing"),

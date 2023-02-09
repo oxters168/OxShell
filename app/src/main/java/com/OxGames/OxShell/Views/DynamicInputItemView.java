@@ -82,8 +82,16 @@ public class DynamicInputItemView extends FrameLayout {
             }
             inputLayout.setHint(innerItem.hint);
             // if the edit text does not exist, create it
-            if (inputLayout.getEditText() == null)
-                inputLayout.addView(new TextInputEditText(context), new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            if (inputLayout.getEditText() == null) {
+                TextInputEditText textEdit = new TextInputEditText(context);
+                inputLayout.addView(textEdit, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+//                textEdit.setOnFocusChangeListener(new OnFocusChangeListener() {
+//                    @Override
+//                    public void onFocusChange(View v, boolean hasFocus) {
+//                        Log.d("DynamicInputItemView", innerItem.hint + " hasFocus: " + hasFocus);
+//                    }
+//                });
+            }
             // set the starting value of the view to what the item already had
             inputLayout.getEditText().setText(innerItem.getText());
             // update text value of the item this view currently represents based on user changes
@@ -114,6 +122,12 @@ public class DynamicInputItemView extends FrameLayout {
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 button.setLayoutParams(params);
                 addView(button);
+//                button.setOnFocusChangeListener(new OnFocusChangeListener() {
+//                    @Override
+//                    public void onFocusChange(View v, boolean hasFocus) {
+//                        Log.d("DynamicInputItemView", innerItem.label + " hasFocus: " + hasFocus);
+//                    }
+//                });
             }
             button.setVisibility(VISIBLE);
             button.setText(innerItem.label);
@@ -127,6 +141,12 @@ public class DynamicInputItemView extends FrameLayout {
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 label.setLayoutParams(params);
                 addView(label);
+//                label.setOnFocusChangeListener(new OnFocusChangeListener() {
+//                    @Override
+//                    public void onFocusChange(View v, boolean hasFocus) {
+//                        Log.d("DynamicInputItemView", innerItem.label + " hasFocus: " + hasFocus);
+//                    }
+//                });
             }
             label.setVisibility(VISIBLE);
             label.setText(innerItem.label);
