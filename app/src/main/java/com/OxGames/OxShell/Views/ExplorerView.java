@@ -105,22 +105,28 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     boolean isValidSelection = file != null && !selectedItem.leftAlignedText.equals("..");
                     SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
                     {
-                        DynamicInputRow.TextInput folderName = new DynamicInputRow.TextInput("Folder Name");
+                        DynamicInputRow.TextInput folderNameTxtInput = new DynamicInputRow.TextInput("Folder Name");
+                        DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
                         currentActivity.getDynamicInput().setTitle("Create Folder");
                         currentActivity.getDynamicInput().setItems
                         (
-                            new DynamicInputRow(folderName),
+                            new DynamicInputRow(errorLabel),
+                            new DynamicInputRow(folderNameTxtInput),
                             new DynamicInputRow
                             (
                                 new DynamicInputRow.ButtonInput("Ok", v ->
                                 {
                                     //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
                                     currentActivity.getDynamicInput().setShown(true);
-                                    String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), folderName.getText());
-                                    boolean success = new File(newPath).mkdir();
-                                    Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
-                                    refresh();
-                                    currentActivity.getDynamicInput().setShown(false);
+                                    String folderName = folderNameTxtInput.getText();
+                                    if (folderName != null && folderName.length() > 0) {
+                                        String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), folderName);
+                                        boolean success = new File(newPath).mkdir();
+                                        Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
+                                        refresh();
+                                        currentActivity.getDynamicInput().setShown(false);
+                                    } else
+                                        errorLabel.setLabel("Folder name is invalid");
                                 }),
                                 new DynamicInputRow.ButtonInput("Cancel", v ->
                                 {
@@ -136,8 +142,8 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
                     {
                         currentActivity.getDynamicInput().setTitle("Copy");
-                        currentActivity.getDynamicInput().setItems
-                        (
+//                        currentActivity.getDynamicInput().setItems
+//                        (
 //                                new DynamicInputRow
 //                                        (
 //                                                new DynamicInputRow.Label("Ok"),
@@ -198,101 +204,101 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 //                                                new DynamicInputRow.Label("Ok"),
 //                                                new DynamicInputRow.Label("Cancel")
 //                                        ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.TextInput("Thing"),
-                                new DynamicInputRow.TextInput("Majing"),
-                                new DynamicInputRow.Label("Hey"),
-                                new DynamicInputRow.ButtonInput("Not ok", null),
-                                new DynamicInputRow.Label("Hey hey"),
-                                new DynamicInputRow.TextInput("Majing"),
-                                new DynamicInputRow.ButtonInput("Maybe ok", null)
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.ButtonInput("Ok", null),
-                                new DynamicInputRow.ButtonInput("Cancel", null)
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.TextInput("Thing"),
-                                new DynamicInputRow.TextInput("Majing"),
-                                new DynamicInputRow.Label("Hey"),
-                                new DynamicInputRow.ButtonInput("Not ok", null),
-                                new DynamicInputRow.ButtonInput("Very ok", null),
-                                new DynamicInputRow.TextInput("Ding"),
-                                new DynamicInputRow.Label("Ha"),
-                                new DynamicInputRow.Label("Haha"),
-                                new DynamicInputRow.Label("Hahaha"),
-                                new DynamicInputRow.Label("Hahahaha"),
-                                new DynamicInputRow.Label("Hahahahaha"),
-                                new DynamicInputRow.Label("Hahahahahaha"),
-                                new DynamicInputRow.Label("Hahahahahahaha"),
-                                new DynamicInputRow.ButtonInput("Very bad", null)
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.ButtonInput("Cancel", null)
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            ),
-                            new DynamicInputRow
-                            (
-                                new DynamicInputRow.Label("Ok"),
-                                new DynamicInputRow.Label("Cancel")
-                            )
-                        );
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.TextInput("Thing"),
+//                                new DynamicInputRow.TextInput("Majing"),
+//                                new DynamicInputRow.Label("Hey"),
+//                                new DynamicInputRow.ButtonInput("Not ok", null),
+//                                new DynamicInputRow.Label("Hey hey"),
+//                                new DynamicInputRow.TextInput("Majing"),
+//                                new DynamicInputRow.ButtonInput("Maybe ok", null)
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.ButtonInput("Ok", null),
+//                                new DynamicInputRow.ButtonInput("Cancel", null)
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.TextInput("Thing"),
+//                                new DynamicInputRow.TextInput("Majing"),
+//                                new DynamicInputRow.Label("Hey"),
+//                                new DynamicInputRow.ButtonInput("Not ok", null),
+//                                new DynamicInputRow.ButtonInput("Very ok", null),
+//                                new DynamicInputRow.TextInput("Ding"),
+//                                new DynamicInputRow.Label("Ha"),
+//                                new DynamicInputRow.Label("Haha"),
+//                                new DynamicInputRow.Label("Hahaha"),
+//                                new DynamicInputRow.Label("Hahahaha"),
+//                                new DynamicInputRow.Label("Hahahahaha"),
+//                                new DynamicInputRow.Label("Hahahahahaha"),
+//                                new DynamicInputRow.Label("Hahahahahahaha"),
+//                                new DynamicInputRow.ButtonInput("Very bad", null)
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.ButtonInput("Cancel", null)
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            ),
+//                            new DynamicInputRow
+//                            (
+//                                new DynamicInputRow.Label("Ok"),
+//                                new DynamicInputRow.Label("Cancel")
+//                            )
+//                        );
                         currentActivity.getSettingsDrawer().setShown(false);
-                        currentActivity.getDynamicInput().setShown(true);
+                        //currentActivity.getDynamicInput().setShown(true);
                         return null;
                     });
                     SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () ->

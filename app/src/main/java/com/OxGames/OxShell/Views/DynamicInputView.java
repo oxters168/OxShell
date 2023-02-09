@@ -127,11 +127,19 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
             for (int j = 0; j < inputItems.length; j++) {
                 int finalI = i;
                 int finalJ = j;
-                inputItems[j].addListener((view, hasFocus) -> {
-                    if (hasFocus) {
-                        //Log.d("DynamicInputView", "Focus changed to " + inputItems[finalJ].inputType + " @(" + finalI + ", " + finalJ + ")");
-                        rowIndex = finalI;
-                        colIndex = finalJ;
+                inputItems[j].addListener(new DynamicInputListener() {
+                    @Override
+                    public void onFocusChanged(View view, boolean hasFocus) {
+                        if (hasFocus) {
+                            //Log.d("DynamicInputView", "Focus changed to " + inputItems[finalJ].inputType + " @(" + finalI + ", " + finalJ + ")");
+                            rowIndex = finalI;
+                            colIndex = finalJ;
+                        }
+                    }
+
+                    @Override
+                    public void onValuesChanged() {
+
                     }
                 });
             }

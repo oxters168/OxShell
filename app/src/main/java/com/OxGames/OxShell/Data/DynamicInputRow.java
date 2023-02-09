@@ -34,7 +34,7 @@ public class DynamicInputRow {
             label
         }
         public InputType inputType;
-        private List<DynamicInputListener> listeners = new ArrayList<>();
+        protected List<DynamicInputListener> listeners = new ArrayList<>();
         public void addListener(DynamicInputListener listener) {
             listeners.add(listener);
         }
@@ -62,14 +62,21 @@ public class DynamicInputRow {
 
         // setText should be only accessible from the view, but whatever
         public void setText(String value) {
-            text = value;
+            setText(value, true);
         }
         public String getText() {
             return text;
         }
+        public void setText(String value, boolean fireEvent) {
+            text = value;
+            if (fireEvent)
+                for (DynamicInputListener listener : listeners)
+                    if (listener != null)
+                        listener.onValuesChanged();
+        }
     }
     public static class ButtonInput extends DynamicInput {
-        public String label;
+        private String label;
         private View.OnClickListener onClick;
 
         public ButtonInput(String label, View.OnClickListener onClick) {
@@ -81,13 +88,41 @@ public class DynamicInputRow {
         public View.OnClickListener getOnClick() {
             return onClick;
         }
+
+        public void setLabel(String value) {
+            setLabel(value, true);
+        }
+        public void setLabel(String value, boolean fireEvent) {
+            label = value;
+            if (fireEvent)
+                for (DynamicInputListener listener : listeners)
+                    if (listener != null)
+                        listener.onValuesChanged();
+        }
+        public String getLabel() {
+            return label;
+        }
     }
     public static class Label extends DynamicInput {
-        public String label;
+        private String label;
 
         public Label(String label) {
             this.inputType = InputType.label;
             this.label = label;
+        }
+
+        public void setLabel(String value) {
+            setLabel(value, true);
+        }
+        public void setLabel(String value, boolean fireEvent) {
+            label = value;
+            if (fireEvent)
+                for (DynamicInputListener listener : listeners)
+                    if (listener != null)
+                        listener.onValuesChanged();
+        }
+        public String getLabel() {
+            return label;
         }
     }
 }

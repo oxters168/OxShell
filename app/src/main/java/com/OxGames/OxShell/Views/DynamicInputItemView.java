@@ -21,17 +21,20 @@ import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 public class DynamicInputItemView extends FrameLayout {
     private Context context;
     private DynamicInputRow.DynamicInput inputItem;
+    private DynamicInputListener itemListener;
 
     private TextWatcher inputWatcher;
     private TextInputLayout inputLayout;
     private Button button;
     private TextView label;
+
 
     public DynamicInputItemView(@NonNull Context context) {
         super(context);
@@ -73,6 +76,37 @@ public class DynamicInputItemView extends FrameLayout {
             button.setVisibility(GONE);
         if (label != null)
             label.setVisibility(GONE);
+
+        if (inputItem != null && itemListener != null)
+            inputItem.removeListener(itemListener);
+        itemListener = new DynamicInputListener() {
+            @Override
+            public void onFocusChanged(View view, boolean hasFocus) {
+
+            }
+
+            @Override
+            public void onValuesChanged() {
+                if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
+                    if (inputLayout != null) {
+                        EditText textEdit = inputLayout.getEditText();
+                        if (textEdit != null)
+                            textEdit.setText(((DynamicInputRow.TextInput)item).getText());
+                    }
+                }
+                if (item.inputType == DynamicInputRow.DynamicInput.InputType.button) {
+                    if (button != null) {
+                        button.setText(((DynamicInputRow.ButtonInput)item).getLabel());
+                    }
+                }
+                if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {
+                    if (label != null) {
+                        label.setText(((DynamicInputRow.Label)item).getLabel());
+                    }
+                }
+            }
+        };
+        item.addListener(itemListener);
 
         if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
             DynamicInputRow.TextInput innerItem = (DynamicInputRow.TextInput)item;
@@ -126,7 +160,7 @@ public class DynamicInputItemView extends FrameLayout {
                 addView(button);
             }
             button.setOnFocusChangeListener(innerItem::onFocusChange);
-            button.setText(innerItem.label);
+            button.setText(innerItem.getLabel());
             if (innerItem.getOnClick() != null)
                 button.setOnClickListener(innerItem.getOnClick());
             button.setVisibility(VISIBLE);
@@ -140,7 +174,7 @@ public class DynamicInputItemView extends FrameLayout {
                 addView(label);
                 label.setOnFocusChangeListener(innerItem::onFocusChange);
             }
-            label.setText(innerItem.label);
+            label.setText(innerItem.getLabel());
             label.setVisibility(VISIBLE);
         }
 
