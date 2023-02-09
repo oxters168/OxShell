@@ -3,7 +3,10 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -17,15 +20,24 @@ import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Interfaces.AdapterListener;
+import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.PagedActivity;
 
-public class DynamicInputView extends FrameLayout {
+public class DynamicInputView extends FrameLayout implements InputReceiver {
     private boolean isShown = false;
     private final Context context;
     private TextView title;
     //private ListView mainList;
     private RecyclerView mainList;
     private int prevUIState;
+
+    private DynamicInputRow[] rows;
+    // TODO: change rowIndex and colIndex when an item gets focus from touch
+    private int rowIndex = 0;
+    private int colIndex = 0;
+    private boolean queuedCol = false;
+    private int queuedColIndex = 0;
 
     public DynamicInputView(@NonNull Context context) {
         super(context);
@@ -97,11 +109,23 @@ public class DynamicInputView extends FrameLayout {
         title.setText(value);
     }
     public void setItems(DynamicInputRow... items) {
+        if (mainList.getAdapter() != null)
+            ((DynamicInputAdapter)mainList.getAdapter()).clearListeners();
         DynamicInputAdapter adapter = new DynamicInputAdapter(context, items);
+        adapter.addListener(new AdapterListener() {
+            @Override
+            public void onViewsReady() {
+                if (queuedCol) {
+                    unsafeSetColIndex(rowIndex, queuedColIndex);
+                    queuedCol = false;
+                }
+            }
+        });
         mainList.setAdapter(adapter);
+        rows = items;
     }
 
-    public boolean isInputShown() {
+    public boolean isOverlayShown() {
         return isShown;
     }
     public void setShown(boolean onOff) {
@@ -112,6 +136,8 @@ public class DynamicInputView extends FrameLayout {
             prevUIState = current.getSystemUIState();
             current.setNavBarHidden(true);
             current.setStatusBarHidden(true);
+            rowIndex = 0;
+            colIndex = 0;
         } else {
             current.setSystemUIState(prevUIState);
             if (mainList != null) {
@@ -120,5 +146,100 @@ public class DynamicInputView extends FrameLayout {
                     ((DynamicInputAdapter)adapter).clear();
             }
         }
+    }
+
+    private void unsafeSetColIndex(int rowIndex, int index) {
+        RecyclerView row = ((DynamicInputRowView)mainList.getChildAt(rowIndex)).getRow();
+        row.scrollToPosition(index);
+        colIndex = index;
+    }
+    private void setColIndex(int index) {
+        //Log.d("DynamicInputView", "Scrolling from " + colIndex + " to " + index + " on " + rowIndex);
+        View rowView = mainList.getChildAt(rowIndex);
+        if (rowView != null)
+            unsafeSetColIndex(rowIndex, index);
+        else
+            queueColIndex(index);
+    }
+    private void queueColIndex(int colIndex) {
+        queuedColIndex = colIndex;
+        queuedCol = true;
+    }
+
+    @Override
+    public boolean receiveKeyEvent(KeyEvent key_event) {
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+                int nextRowIndex = rowIndex;
+                for (int i = rowIndex + 1; i < rows.length; i++) {
+                    DynamicInputRow.DynamicInput[] inputs = rows[i].getAll();
+                    for (DynamicInputRow.DynamicInput input : inputs) {
+                        if (input.inputType != DynamicInputRow.DynamicInput.InputType.label) {
+                            nextRowIndex = i;
+                            break;
+                        }
+                    }
+                    if (nextRowIndex != rowIndex)
+                        break;
+                }
+                if (nextRowIndex != rowIndex) {
+                    //Log.d("DynamicInputView", "Scrolling from " + rowIndex + " to " + nextRowIndex);
+                    mainList.scrollToPosition(nextRowIndex);
+                    setColIndex(0);
+                    rowIndex = nextRowIndex;
+                }
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+                int nextRowIndex = rowIndex;
+                for (int i = rowIndex - 1; i >= 0; i--) {
+                    DynamicInputRow.DynamicInput[] inputs = rows[i].getAll();
+                    for (DynamicInputRow.DynamicInput input : inputs) {
+                        if (input.inputType != DynamicInputRow.DynamicInput.InputType.label) {
+                            nextRowIndex = i;
+                            break;
+                        }
+                    }
+                    if (nextRowIndex != rowIndex)
+                        break;
+                }
+                if (nextRowIndex != rowIndex) {
+                    //Log.d("DynamicInputView", "Scrolling from " + rowIndex + " to " + nextRowIndex);
+                    mainList.scrollToPosition(nextRowIndex);
+                    setColIndex(0);
+                    rowIndex = nextRowIndex;
+                }
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
+                DynamicInputRow.DynamicInput[] rowItems = rows[rowIndex].getAll();
+                int nextColIndex = colIndex;
+                for (int i = colIndex - 1; i >= 0; i--) {
+                    if (rowItems[i].inputType != DynamicInputRow.DynamicInput.InputType.label) {
+                        nextColIndex = i;
+                        break;
+                    }
+                }
+                if (nextColIndex != colIndex) {
+                    setColIndex(nextColIndex);
+                }
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
+                DynamicInputRow.DynamicInput[] rowItems = rows[rowIndex].getAll();
+                int nextColIndex = colIndex;
+                for (int i = colIndex + 1; i < rowItems.length; i++) {
+                    if (rowItems[i].inputType != DynamicInputRow.DynamicInput.InputType.label) {
+                        nextColIndex = i;
+                        break;
+                    }
+                }
+                if (nextColIndex != colIndex) {
+                    setColIndex(nextColIndex);
+                }
+                return true;
+            }
+        }
+        return false;
     }
 }

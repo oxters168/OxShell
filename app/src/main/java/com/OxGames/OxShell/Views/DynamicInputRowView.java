@@ -59,4 +59,7 @@ public class DynamicInputRowView extends FrameLayout {
         //adapter.setParent(this);
         row.setAdapter(adapter);
     }
+    public RecyclerView getRow() {
+        return row;
+    }
 }

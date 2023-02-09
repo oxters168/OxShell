@@ -3,13 +3,10 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
 
 import androidx.core.content.ContextCompat;
 
@@ -90,7 +87,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
         //Log.d("ExplorerView", key_event.toString());
         // TODO: make context menu that allows for copying/cutting/pasting/deleting and creating launch intent for file type
-        if (!currentActivity.getSettingsDrawer().isDrawerOpen() && !currentActivity.getDynamicInput().isInputShown()) {
+        if (!currentActivity.getSettingsDrawer().isDrawerOpen() && !currentActivity.getDynamicInput().isOverlayShown()) {
             if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                     if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
@@ -139,8 +136,103 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
                     {
                         currentActivity.getDynamicInput().setTitle("Copy");
-                        currentActivity.getDynamicInput().setShown(true);
+                        currentActivity.getDynamicInput().setItems
+                        (
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.TextInput("Thing"),
+                                new DynamicInputRow.TextInput("Majing"),
+                                new DynamicInputRow.Label("Hey"),
+                                new DynamicInputRow.ButtonInput("Not ok", null),
+                                new DynamicInputRow.Label("Hey hey"),
+                                new DynamicInputRow.TextInput("Majing"),
+                                new DynamicInputRow.ButtonInput("Maybe ok", null)
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.ButtonInput("Ok", null),
+                                new DynamicInputRow.ButtonInput("Cancel", null)
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.TextInput("Thing"),
+                                new DynamicInputRow.TextInput("Majing"),
+                                new DynamicInputRow.Label("Hey"),
+                                new DynamicInputRow.ButtonInput("Not ok", null),
+                                new DynamicInputRow.ButtonInput("Very ok", null),
+                                new DynamicInputRow.TextInput("Ding"),
+                                new DynamicInputRow.Label("Ha"),
+                                new DynamicInputRow.Label("Haha"),
+                                new DynamicInputRow.Label("Hahaha"),
+                                new DynamicInputRow.Label("Hahahaha"),
+                                new DynamicInputRow.Label("Hahahahaha"),
+                                new DynamicInputRow.Label("Hahahahahaha"),
+                                new DynamicInputRow.Label("Hahahahahahaha"),
+                                new DynamicInputRow.ButtonInput("Very bad", null)
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.ButtonInput("Cancel", null)
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            ),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.Label("Ok"),
+                                new DynamicInputRow.Label("Cancel")
+                            )
+                        );
                         currentActivity.getSettingsDrawer().setShown(false);
+                        currentActivity.getDynamicInput().setShown(true);
                         return null;
                     });
                     SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () ->
@@ -172,21 +264,23 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             }
 
             return super.receiveKeyEvent(key_event);
-        } else if (currentActivity.getSettingsDrawer().isDrawerOpen()) {
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
-                    currentActivity.getSettingsDrawer().setShown(false);
-                    return true;
-                }
-            }
-        } else if (currentActivity.getDynamicInput().isInputShown()) {
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                    currentActivity.getDynamicInput().setShown(false);
-                    return true;
-                }
-            }
         }
+//        else if (currentActivity.getSettingsDrawer().isDrawerOpen()) {
+//            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+//                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
+//                    currentActivity.getSettingsDrawer().setShown(false);
+//                    return true;
+//                }
+//            }
+//        }
+//        else if (currentActivity.getDynamicInput().isOverlayShown()) {
+//            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+//                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+//                    currentActivity.getDynamicInput().setShown(false);
+//                    return true;
+//                }
+//            }
+//        }
         return false;
     }
 

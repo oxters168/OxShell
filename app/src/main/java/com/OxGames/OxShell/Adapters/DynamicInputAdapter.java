@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Interfaces.AdapterListener;
 import com.OxGames.OxShell.Views.DynamicInputRowView;
 
 import java.util.ArrayList;
@@ -19,12 +20,24 @@ import java.util.List;
 public class DynamicInputAdapter extends RecyclerView.Adapter<DynamicInputAdapter.DynamicViewHolder> {
     private List<DynamicInputRow> items;
     private Context context;
+    private List<AdapterListener> listeners;
 
     public DynamicInputAdapter(Context context, DynamicInputRow... items) {
         this.context = context;
         this.items = new ArrayList();
         if (items != null)
             this.items.addAll(Arrays.asList(items));
+        listeners = new ArrayList<>();
+    }
+
+    public void addListener(AdapterListener listener) {
+        listeners.add(listener);
+    }
+    public void removeListener(AdapterListener listener) {
+        listeners.remove(listener);
+    }
+    public void clearListeners() {
+        listeners.clear();
     }
 
     @NonNull
@@ -45,6 +58,14 @@ public class DynamicInputAdapter extends RecyclerView.Adapter<DynamicInputAdapte
     @Override
     public int getItemCount() {
         return items.size();
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull DynamicViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        for (AdapterListener listener : listeners)
+            if (listener != null)
+                listener.onViewsReady();
     }
 
     public void clear() {

@@ -77,6 +77,12 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         holder.setPadding(0, 0, position < items.size() - 1 ? paddingPx : 0, 0);
     }
 
+    @Override
+    public void onViewAttachedToWindow(@NonNull RowViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        //Log.d("InputRowAdapter", "onViewAttachedToWindow");
+    }
+
     public void setRowWidth(int width) {
         //Log.d("InputRowAdapter", "Row width set to " + width);
         this.rowWidth = width;
