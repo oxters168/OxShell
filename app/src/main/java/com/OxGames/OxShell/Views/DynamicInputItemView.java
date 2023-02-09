@@ -10,6 +10,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -53,13 +54,17 @@ public class DynamicInputItemView extends FrameLayout {
     }
 
     public void setInputItem(DynamicInputRow.DynamicInput item) {
-        //DynamicInputItem.TextInput innerItem = (DynamicInputItem.TextInput)item.get(0);
-
-        // remove previous item listeners if any
-        if (inputLayout != null && inputLayout.getEditText() != null && inputWatcher != null)
+        // remove previous listeners from the views if any
+        if (inputLayout != null && inputLayout.getEditText() != null && inputWatcher != null) {
             inputLayout.getEditText().removeTextChangedListener(inputWatcher);
-        if (button != null)
+            //inputLayout.getEditText().setOnFocusChangeListener(null);
+        }
+        if (button != null) {
             button.setOnClickListener(null);
+            //button.setOnFocusChangeListener(null);
+        }
+//        if (label != null)
+//            label.setOnFocusChangeListener(null);
 
         // hide all views that exist
         if (inputLayout != null)
@@ -82,18 +87,15 @@ public class DynamicInputItemView extends FrameLayout {
             }
             inputLayout.setHint(innerItem.hint);
             // if the edit text does not exist, create it
-            if (inputLayout.getEditText() == null) {
-                TextInputEditText textEdit = new TextInputEditText(context);
+            EditText textEdit = inputLayout.getEditText();
+            if (textEdit == null) {
+                textEdit = new TextInputEditText(context);
                 inputLayout.addView(textEdit, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-//                textEdit.setOnFocusChangeListener(new OnFocusChangeListener() {
-//                    @Override
-//                    public void onFocusChange(View v, boolean hasFocus) {
-//                        Log.d("DynamicInputItemView", innerItem.hint + " hasFocus: " + hasFocus);
-//                    }
-//                });
             }
+            // set the edit text to fire onFocusChange on the current item
+            textEdit.setOnFocusChangeListener(innerItem::onFocusChange);
             // set the starting value of the view to what the item already had
-            inputLayout.getEditText().setText(innerItem.getText());
+            textEdit.setText(innerItem.getText());
             // update text value of the item this view currently represents based on user changes
             inputWatcher = new TextWatcher() {
                 @Override
@@ -111,7 +113,7 @@ public class DynamicInputItemView extends FrameLayout {
 
                 }
             };
-            inputLayout.getEditText().addTextChangedListener(inputWatcher);
+            textEdit.addTextChangedListener(inputWatcher);
             // make the view visible
             inputLayout.setVisibility(VISIBLE);
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.button) {
@@ -122,17 +124,12 @@ public class DynamicInputItemView extends FrameLayout {
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 button.setLayoutParams(params);
                 addView(button);
-//                button.setOnFocusChangeListener(new OnFocusChangeListener() {
-//                    @Override
-//                    public void onFocusChange(View v, boolean hasFocus) {
-//                        Log.d("DynamicInputItemView", innerItem.label + " hasFocus: " + hasFocus);
-//                    }
-//                });
             }
-            button.setVisibility(VISIBLE);
+            button.setOnFocusChangeListener(innerItem::onFocusChange);
             button.setText(innerItem.label);
             if (innerItem.getOnClick() != null)
                 button.setOnClickListener(innerItem.getOnClick());
+            button.setVisibility(VISIBLE);
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {
             DynamicInputRow.Label innerItem = (DynamicInputRow.Label)item;
             if (label == null) {
@@ -141,15 +138,10 @@ public class DynamicInputItemView extends FrameLayout {
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 label.setLayoutParams(params);
                 addView(label);
-//                label.setOnFocusChangeListener(new OnFocusChangeListener() {
-//                    @Override
-//                    public void onFocusChange(View v, boolean hasFocus) {
-//                        Log.d("DynamicInputItemView", innerItem.label + " hasFocus: " + hasFocus);
-//                    }
-//                });
+                label.setOnFocusChangeListener(innerItem::onFocusChange);
             }
-            label.setVisibility(VISIBLE);
             label.setText(innerItem.label);
+            label.setVisibility(VISIBLE);
         }
 
         inputItem = item;

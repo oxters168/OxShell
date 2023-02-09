@@ -3,6 +3,11 @@ package com.OxGames.OxShell.Data;
 import android.text.TextWatcher;
 import android.view.View;
 
+import com.OxGames.OxShell.Interfaces.DynamicInputListener;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class DynamicInputRow {
     private DynamicInput[] inputs;
 
@@ -29,6 +34,21 @@ public class DynamicInputRow {
             label
         }
         public InputType inputType;
+        private List<DynamicInputListener> listeners = new ArrayList<>();
+        public void addListener(DynamicInputListener listener) {
+            listeners.add(listener);
+        }
+        public void removeListener(DynamicInputListener listener) {
+            listeners.remove(listener);
+        }
+        public void clearListeners() {
+            listeners.clear();
+        }
+        public void onFocusChange(View view, boolean hasFocus) {
+            for (DynamicInputListener listener : listeners)
+                if (listener != null)
+                    listener.onFocusChanged(view, hasFocus);
+        }
     }
     public static class TextInput extends DynamicInput {
         public String hint;

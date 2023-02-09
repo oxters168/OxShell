@@ -21,6 +21,7 @@ import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.AdapterListener;
+import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.PagedActivity;
 
@@ -120,6 +121,22 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         mainList.setAdapter(adapter);
         rows = items;
 
+        // when the items have their focus set by touch, then update rowIndex and colIndex to reflect what has focus
+        for (int i = 0; i < rows.length; i++) {
+            DynamicInputRow.DynamicInput[] inputItems = rows[i].getAll();
+            for (int j = 0; j < inputItems.length; j++) {
+                int finalI = i;
+                int finalJ = j;
+                inputItems[j].addListener((view, hasFocus) -> {
+                    if (hasFocus) {
+                        //Log.d("DynamicInputView", "Focus changed to " + inputItems[finalJ].inputType + " @(" + finalI + ", " + finalJ + ")");
+                        rowIndex = finalI;
+                        colIndex = finalJ;
+                    }
+                });
+            }
+        }
+
         //firstRun = true;
         adapter.addListener(() -> {
             if (queuedCol) {
@@ -152,7 +169,6 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
 //                requestFocus(firstRowIndex, firstColIndex);
 //            }
         });
-        // TODO: find the first focusable rather than hard-coding (0, 0)
         // TODO: figure out why requesting focus here does not work
         colIndex = 0;
         rowIndex = 0;

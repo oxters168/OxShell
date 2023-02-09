@@ -51,12 +51,6 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
     @Override
     public RowViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         DynamicInputItemView view = new DynamicInputItemView(context);
-//        view.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-//            @Override
-//            public void onFocusChange(View v, boolean hasFocus) {
-//                Log.d("InputRowAdapter", "onFocusChange: " + hasFocus);
-//            }
-//        });
         view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         return new RowViewHolder(view);
     }
