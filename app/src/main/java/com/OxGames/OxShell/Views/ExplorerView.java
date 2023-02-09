@@ -117,7 +117,6 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                                 new DynamicInputRow.ButtonInput("Ok", v ->
                                 {
                                     //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
-                                    currentActivity.getDynamicInput().setShown(true);
                                     String folderName = folderNameTxtInput.getText();
                                     if (folderName != null && folderName.length() > 0) {
                                         String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), folderName);

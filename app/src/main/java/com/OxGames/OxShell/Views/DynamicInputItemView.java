@@ -77,8 +77,10 @@ public class DynamicInputItemView extends FrameLayout {
         if (label != null)
             label.setVisibility(GONE);
 
+        // remove the previous item's listener
         if (inputItem != null && itemListener != null)
             inputItem.removeListener(itemListener);
+        // set up the current item's listener to change the view when its values are changed
         itemListener = new DynamicInputListener() {
             @Override
             public void onFocusChanged(View view, boolean hasFocus) {
@@ -139,7 +141,7 @@ public class DynamicInputItemView extends FrameLayout {
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    innerItem.setText(s.toString());
+                    innerItem.setText(s.toString(), false);
                 }
 
                 @Override
