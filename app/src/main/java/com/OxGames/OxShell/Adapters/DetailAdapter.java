@@ -20,7 +20,11 @@ import java.util.List;
 public class DetailAdapter implements ListAdapter {
     Context context;
     List<DetailItem> detailItems;
-    private int highlightedIndex = -1;
+    //private int highlightedIndex = -1;
+    private final int currentItemColor = Color.parseColor("#33EAF0CE");
+    private final int selectedColor = Color.parseColor("#33CEEAF0");
+    private final int currentAndSelectedColor = Color.parseColor("#33F0CEEA");
+    private final int noneColor = Color.parseColor("#00000000");
 //    boolean hideExtensions;
 
     public DetailAdapter(Context _context) {
@@ -38,9 +42,9 @@ public class DetailAdapter implements ListAdapter {
         //notifyDataSetChanged();
     }
 
-    public void setHighlightedIndex(int index) {
-        highlightedIndex = index;
-    }
+//    public void setHighlightedIndex(int index) {
+//        highlightedIndex = index;
+//    }
 
     @Override
     public View getView(int position, View view, ViewGroup parent) {
@@ -51,7 +55,14 @@ public class DetailAdapter implements ListAdapter {
             view = layoutInflater.inflate(R.layout.detail_row, null);
         }
 
-        view.setBackgroundColor(detailItem.isSelected ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO: implement color theme that can take custom theme from file
+        int color = noneColor;
+        if (detailItem.isCurrentItem && detailItem.isSelected)
+            color = currentAndSelectedColor;
+        else if (detailItem.isCurrentItem)
+            color = currentItemColor;
+        else if (detailItem.isSelected)
+            color = selectedColor;
+        view.setBackgroundColor(color); //TODO: implement color theme that can take custom theme from file
 
         TextView title = view.findViewById(R.id.title);
         title.setText(detailItem.leftAlignedText);

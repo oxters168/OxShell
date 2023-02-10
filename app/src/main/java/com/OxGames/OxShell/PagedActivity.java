@@ -208,7 +208,7 @@ public class PagedActivity extends AppCompatActivity {
         //Log.d("PagedActivity", key_event.toString());
 
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
                 Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
                 AccessService.showRecentApps();
                 return true;

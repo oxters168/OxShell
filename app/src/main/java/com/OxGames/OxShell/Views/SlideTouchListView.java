@@ -2,15 +2,11 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.ListView;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.CustomViewListener;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.SlideTouchHandler;
@@ -20,6 +16,7 @@ import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 import com.OxGames.OxShell.OxShellApp;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SlideTouchListView extends ListView implements SlideTouchListener, InputReceiver, Refreshable {
     private SlideTouchHandler slideTouch = new SlideTouchHandler();
@@ -103,9 +100,27 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
         return false;
     }
 
+    public void setItemSelected(int index, boolean onOff) {
+        ((DetailItem)getItemAtPosition(index)).isSelected = onOff;
+        invalidateViews();
+    }
+    public boolean isItemSelected(int index) {
+        return ((DetailItem)getItemAtPosition(index)).isSelected;
+    }
+    public List<DetailItem> getSelectedItems() {
+        List<DetailItem> selection = new ArrayList<>();
+        for (int i = 0; i < getCount(); i++) {
+            DetailItem currentItem = (DetailItem)getItemAtPosition(i);
+            if (currentItem.isSelected)
+                selection.add(currentItem);
+        }
+        if (selection.size() <= 0)
+            selection.add((DetailItem)getItemAtPosition(properPosition));
+        return selection;
+    }
     private void highlightSelection() {
         for (int i = 0; i < getCount(); i++)
-            ((DetailItem)getItemAtPosition(i)).isSelected = (i == properPosition);
+            ((DetailItem)getItemAtPosition(i)).isCurrentItem = (i == properPosition);
         invalidateViews();
     }
     public void selectNextItem() {
