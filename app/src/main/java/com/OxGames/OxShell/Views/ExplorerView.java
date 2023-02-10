@@ -126,12 +126,12 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                                         currentActivity.getDynamicInput().setShown(false);
                                     } else
                                         errorLabel.setLabel("Folder name is invalid");
-                                }),
+                                }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
                                 new DynamicInputRow.ButtonInput("Cancel", v ->
                                 {
                                     //Log.d("ExplorerDynamicView", "Clicked cancel");
                                     currentActivity.getDynamicInput().setShown(false);
-                                })
+                                }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
                             )
                         );
                         currentActivity.getSettingsDrawer().setShown(false);
@@ -168,12 +168,12 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                                             errorLabel.setLabel("File already exists");
                                     } else
                                         errorLabel.setLabel("File name is invalid");
-                                }),
+                                }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
                                 new DynamicInputRow.ButtonInput("Cancel", v ->
                                 {
                                     //Log.d("ExplorerDynamicView", "Clicked cancel");
                                     currentActivity.getDynamicInput().setShown(false);
-                                })
+                                }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
                             )
                         );
                         currentActivity.getSettingsDrawer().setShown(false);
@@ -203,12 +203,12 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                                         currentActivity.getDynamicInput().setShown(false);
                                     } else
                                         errorLabel.setLabel("Name is invalid");
-                                }),
+                                }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
                                 new DynamicInputRow.ButtonInput("Cancel", v ->
                                 {
                                     //Log.d("ExplorerDynamicView", "Clicked cancel");
                                     currentActivity.getDynamicInput().setShown(false);
-                                })
+                                }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
                             )
                         );
                         currentActivity.getSettingsDrawer().setShown(false);

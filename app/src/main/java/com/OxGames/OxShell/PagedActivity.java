@@ -238,12 +238,12 @@ public class PagedActivity extends AppCompatActivity {
             if (dynamicInput.receiveKeyEvent(key_event))
                 return true;
 
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                    getDynamicInput().setShown(false);
-                    return true;
-                }
-            }
+//            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+//                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+//                    getDynamicInput().setShown(false);
+//                    return true;
+//                }
+//            }
         }
 
         boolean childsPlay = false;

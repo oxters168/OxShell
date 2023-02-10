@@ -6,6 +6,7 @@ import android.view.View;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class DynamicInputRow {
@@ -79,14 +80,34 @@ public class DynamicInputRow {
         private String label;
         private View.OnClickListener onClick;
 
+//        private boolean isKeycodeSet;
+//        private int keycode;
+        List<Integer> keycodes;
+
         public ButtonInput(String label, View.OnClickListener onClick) {
             this.inputType = InputType.button;
             this.label = label;
             this.onClick = onClick;
+            keycodes = new ArrayList<>();
+        }
+        public ButtonInput(String label, View.OnClickListener onClick, Integer... keycodes) {
+            this(label, onClick);
+            Collections.addAll(this.keycodes, keycodes);
         }
 
         public View.OnClickListener getOnClick() {
             return onClick;
+        }
+        public void executeAction() {
+            if (onClick != null)
+                onClick.onClick(null);
+        }
+
+        public boolean hasKeycode(int keycode) {
+            return keycodes.contains(keycode);
+        }
+        public boolean isKeycodeSet() {
+            return keycodes.size() > 0;
         }
 
         public void setLabel(String value) {

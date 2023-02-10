@@ -25,6 +25,9 @@ import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.PagedActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DynamicInputView extends FrameLayout implements InputReceiver {
     private boolean isShown = false;
     private final Context context;
@@ -32,6 +35,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
     private RecyclerView mainList;
     private int prevUIState;
 
+    private List<DynamicInputRow.ButtonInput> gamepadable;
     private DynamicInputRow[] rows;
     // TODO: change rowIndex and colIndex when an item gets focus from touch
     private int rowIndex = 0;
@@ -121,13 +125,17 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         mainList.setAdapter(adapter);
         rows = items;
 
-        // when the items have their focus set by touch, then update rowIndex and colIndex to reflect what has focus
+        gamepadable = new ArrayList<>();
         for (int i = 0; i < rows.length; i++) {
             DynamicInputRow.DynamicInput[] inputItems = rows[i].getAll();
             for (int j = 0; j < inputItems.length; j++) {
+                DynamicInputRow.DynamicInput item = inputItems[j];
+                if (item.inputType == DynamicInputRow.DynamicInput.InputType.button && ((DynamicInputRow.ButtonInput)item).isKeycodeSet())
+                    gamepadable.add((DynamicInputRow.ButtonInput)item);
                 int finalI = i;
                 int finalJ = j;
-                inputItems[j].addListener(new DynamicInputListener() {
+                // when the items have their focus set by touch, then update rowIndex and colIndex to reflect what has focus
+                item.addListener(new DynamicInputListener() {
                     @Override
                     public void onFocusChanged(View view, boolean hasFocus) {
                         if (hasFocus) {
@@ -321,6 +329,12 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                     requestFocus(rowIndex, nextColIndex);
                 //}
                 return true;
+            }
+            for (DynamicInputRow.ButtonInput button : gamepadable) {
+                if (button.hasKeycode(key_event.getKeyCode())) {
+                    button.executeAction();
+                    return true;
+                }
             }
         }
         return false;
