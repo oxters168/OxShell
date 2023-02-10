@@ -234,17 +234,8 @@ public class PagedActivity extends AppCompatActivity {
                 }
             }
         }
-        if (dynamicInput.isOverlayShown()) {
-            if (dynamicInput.receiveKeyEvent(key_event))
-                return true;
-
-//            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-//                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-//                    getDynamicInput().setShown(false);
-//                    return true;
-//                }
-//            }
-        }
+        if (dynamicInput.isOverlayShown() && dynamicInput.receiveKeyEvent(key_event))
+            return true;
 
         boolean childsPlay = false;
         View currentView = allPages.get(currentPage);

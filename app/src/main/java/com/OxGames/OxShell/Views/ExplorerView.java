@@ -28,6 +28,7 @@ import com.OxGames.OxShell.Data.ShortcutsCache;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class ExplorerView extends SlideTouchListView implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
@@ -552,6 +553,37 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             if (explorerBehaviour.getDirectory().equalsIgnoreCase("/storage/emulated"))
                 arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "0", "<dir>", new File("/storage/emulated/0")));
             if (!isEmpty) {
+                // sort the contents alphabetically
+                List<File> sortedFiles = new ArrayList();
+                for (int i = 0; i < files.length; i++) {
+                    File sortee = files[i];
+                    int insertIndex = -1;
+                    for (int j = 0; j < sortedFiles.size(); j++) {
+                        if (sortedFiles.get(j).getName().toLowerCase().compareTo(sortee.getName().toLowerCase()) > 0) {
+                            insertIndex = j;
+                            break;
+                        }
+                    }
+                    if (insertIndex >= 0)
+                        sortedFiles.add(insertIndex, sortee);
+                    else
+                        sortedFiles.add(sortee);
+                }
+                // sort the contents by directory
+                int dirsFound = 0;
+                for (int i = sortedFiles.size() - 1; i >= dirsFound; i--) {
+                    File sortee = sortedFiles.get(i);
+                    while (sortee.isDirectory()) {
+                        dirsFound++;
+                        sortedFiles.remove(i);
+                        sortedFiles.add(0, sortee);
+                        if (i < dirsFound)
+                            break;
+                        sortee = sortedFiles.get(i);
+                    }
+                }
+                // put sorted items back into original array
+                sortedFiles.toArray(files);
                 for (int i = 0; i < files.length; i++) {
                     String absolutePath = files[i].getAbsolutePath();
                     Drawable icon = null;
