@@ -316,9 +316,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     });
                     SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () ->
                     {
-                        // TODO: fix delete for non-empty directories
-                        boolean success = file.delete();
-                        Log.d("ExplorerView", "Deleting " + file.getAbsolutePath() + " success: " + success);
+                        explorerBehaviour.delete(file.getAbsolutePath());
                         refresh();
                         currentActivity.getSettingsDrawer().setShown(false);
                         return null;

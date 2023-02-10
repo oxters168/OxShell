@@ -7,6 +7,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import java.util.Locale;
 
 public class ExplorerBehaviour {
     private LinkedList<String> history;
@@ -43,7 +44,7 @@ public class ExplorerBehaviour {
         setDirectory(getParent());
     }
     public void setDirectory(String path) {
-        Log.d("Files", "Path: " + path);
+        //Log.d("Files", "Path: " + path);
         try {
             current = new File(path);
             appendHistory(path);
@@ -108,56 +109,85 @@ public class ExplorerBehaviour {
             tempForCutOrCopy = null;
         }
     }
-    private static void copyFiles(String destination, String... files) {
+    public void delete(String... files) {
         for (String path : files) {
             if (AndroidHelpers.isDirectory(path)) {
-                String newDir = AndroidHelpers.combinePaths(destination, new File(path).getName());
-                try {
-                    // copy the directory first (this doesn't copy the contents)
-                    Files.copy(Paths.get(path), Paths.get(newDir));
-                } catch(Exception e) { Log.e("ExplorerBehaviour", e.toString()); }
-                if (AndroidHelpers.dirExists(newDir)) {
-                    Log.d("ExplorerBehaviour", "Copying the contents of " + path + " to " + newDir);
-                    File[] temp = new File(path).listFiles();
-                    String[] subFiles = new String[temp.length];
-                    for (int i = 0; i < temp.length; i++)
-                        subFiles[i] = temp[i].getAbsolutePath();
-                    copyFiles(newDir, subFiles);
-                }
-            } else {
-                try {
-                    // TODO: add copy options
-                    String dest = AndroidHelpers.combinePaths(destination, new File(path).getName());
-                    //Log.d("ExplorerBehaviour", "Copying " + path + " to " + dest);
-                    Files.copy(Paths.get(path), Paths.get(dest));
-                } catch (Exception e) { Log.e("ExplorerBehaviour", e.toString()); }
+                File[] temp = new File(path).listFiles();
+                String[] subFiles = new String[temp.length];
+                for (int i = 0; i < temp.length; i++)
+                    subFiles[i] = temp[i].getAbsolutePath();
+                delete(subFiles);
             }
+            new File(path).delete();
+        }
+    }
+    private static void copyFiles(String destination, String... files) {
+        // TODO: have a list of errors or something that can be shown to the user
+        // TODO: possibly change getting all files/folders that will be copied then copy them to allow for copying into self
+        for (String path : files) {
+            if (!destination.toLowerCase().contains(path.toLowerCase())) {
+                if (AndroidHelpers.isDirectory(path)) {
+                    String newDir = AndroidHelpers.combinePaths(destination, new File(path).getName());
+                    try {
+                        // copy the directory first (this doesn't copy the contents)
+                        Files.copy(Paths.get(path), Paths.get(newDir));
+                    } catch (Exception e) {
+                        Log.e("ExplorerBehaviour", e.toString());
+                    }
+                    if (AndroidHelpers.dirExists(newDir)) {
+                        Log.d("ExplorerBehaviour", "Copying the contents of " + path + " to " + newDir);
+                        File[] temp = new File(path).listFiles();
+                        String[] subFiles = new String[temp.length];
+                        for (int i = 0; i < temp.length; i++)
+                            subFiles[i] = temp[i].getAbsolutePath();
+                        copyFiles(newDir, subFiles);
+                    }
+                } else {
+                    try {
+                        // TODO: add copy options
+                        String dest = AndroidHelpers.combinePaths(destination, new File(path).getName());
+                        //Log.d("ExplorerBehaviour", "Copying " + path + " to " + dest);
+                        Files.copy(Paths.get(path), Paths.get(dest));
+                    } catch (Exception e) {
+                        Log.e("ExplorerBehaviour", e.toString());
+                    }
+                }
+            } else
+                Log.e("ExplorerBehaviour", "Attempted to copy into self");
         }
     }
     private static void moveFiles(String destination, String... files) {
+        // TODO: have a list of errors or something that can be shown to the user
         for (String path : files) {
-            if (AndroidHelpers.isDirectory(path)) {
-                String newDir = AndroidHelpers.combinePaths(destination, new File(path).getName());
-                try {
-                    // copy the directory first (this doesn't copy the contents)
-                    Files.copy(Paths.get(path), Paths.get(newDir));
-                } catch(Exception e) { Log.e("ExplorerBehaviour", e.toString()); }
-                if (AndroidHelpers.dirExists(newDir)) {
-                    File[] temp = new File(path).listFiles();
-                    String[] subFiles = new String[temp.length];
-                    for (int i = 0; i < temp.length; i++)
-                        subFiles[i] = temp[i].getAbsolutePath();
-                    moveFiles(newDir, subFiles);
-                    // remove the old directory since its now empty
-                    new File(path).delete();
+            if (!destination.toLowerCase().contains(path.toLowerCase())) {
+                if (AndroidHelpers.isDirectory(path)) {
+                    String newDir = AndroidHelpers.combinePaths(destination, new File(path).getName());
+                    try {
+                        // copy the directory first (this doesn't copy the contents)
+                        Files.copy(Paths.get(path), Paths.get(newDir));
+                    } catch (Exception e) {
+                        Log.e("ExplorerBehaviour", e.toString());
+                    }
+                    if (AndroidHelpers.dirExists(newDir)) {
+                        File[] temp = new File(path).listFiles();
+                        String[] subFiles = new String[temp.length];
+                        for (int i = 0; i < temp.length; i++)
+                            subFiles[i] = temp[i].getAbsolutePath();
+                        moveFiles(newDir, subFiles);
+                        // remove the old directory since its now empty
+                        new File(path).delete();
+                    }
+                } else {
+                    try {
+                        // TODO: add copy options
+                        String dest = AndroidHelpers.combinePaths(destination, new File(path).getName());
+                        Files.move(Paths.get(path), Paths.get(dest));
+                    } catch (Exception e) {
+                        Log.e("ExplorerBehaviour", e.toString());
+                    }
                 }
-            } else {
-                try {
-                    // TODO: add copy options
-                    String dest = AndroidHelpers.combinePaths(destination, new File(path).getName());
-                    Files.move(Paths.get(path), Paths.get(dest));
-                } catch (Exception e) { Log.e("ExplorerBehaviour", e.toString()); }
-            }
+            } else
+                Log.e("ExplorerBehaviour", "Attempted to move into self");
         }
     }
 }
