@@ -138,6 +138,83 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                         currentActivity.getDynamicInput().setShown(true);
                         return null;
                     });
+                    SettingsDrawer.ContextBtn newFileBtn = new SettingsDrawer.ContextBtn("New File", () ->
+                    {
+                        DynamicInputRow.TextInput fileNameTxtInput = new DynamicInputRow.TextInput("File Name");
+                        DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
+                        currentActivity.getDynamicInput().setTitle("Create File");
+                        currentActivity.getDynamicInput().setItems
+                        (
+                            new DynamicInputRow(errorLabel),
+                            new DynamicInputRow(fileNameTxtInput),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.ButtonInput("Ok", v ->
+                                {
+                                    //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
+                                    String fileName = fileNameTxtInput.getText();
+                                    if (fileName != null && fileName.length() > 0) {
+                                        String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), fileName);
+                                        if (!AndroidHelpers.fileExists(newPath)) {
+                                            try {
+                                                boolean success = new File(newPath).createNewFile();
+                                                Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
+                                            } catch (Exception e) {
+                                                Log.e("ExplorerView", e.toString());
+                                            }
+                                            refresh();
+                                            currentActivity.getDynamicInput().setShown(false);
+                                        } else
+                                            errorLabel.setLabel("File already exists");
+                                    } else
+                                        errorLabel.setLabel("File name is invalid");
+                                }),
+                                new DynamicInputRow.ButtonInput("Cancel", v ->
+                                {
+                                    //Log.d("ExplorerDynamicView", "Clicked cancel");
+                                    currentActivity.getDynamicInput().setShown(false);
+                                })
+                            )
+                        );
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        currentActivity.getDynamicInput().setShown(true);
+                        return null;
+                    });
+                    SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () ->
+                    {
+                        boolean isDir = file.isDirectory();
+                        DynamicInputRow.TextInput renamedTxtInput = new DynamicInputRow.TextInput(isDir ? "Folder Name" : "File Name");
+                        renamedTxtInput.setText(file.getName(), false);
+                        DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
+                        currentActivity.getDynamicInput().setTitle("Rename " + (isDir ? "Folder" : "File"));
+                        currentActivity.getDynamicInput().setItems
+                        (
+                            new DynamicInputRow(errorLabel),
+                            new DynamicInputRow(renamedTxtInput),
+                            new DynamicInputRow
+                            (
+                                new DynamicInputRow.ButtonInput("Ok", v ->
+                                {
+                                    //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
+                                    String newName = renamedTxtInput.getText();
+                                    if (newName != null && newName.length() > 0) {
+                                        file.renameTo(new File(AndroidHelpers.combinePaths(file.getParent(), newName)));
+                                        refresh();
+                                        currentActivity.getDynamicInput().setShown(false);
+                                    } else
+                                        errorLabel.setLabel("Name is invalid");
+                                }),
+                                new DynamicInputRow.ButtonInput("Cancel", v ->
+                                {
+                                    //Log.d("ExplorerDynamicView", "Clicked cancel");
+                                    currentActivity.getDynamicInput().setShown(false);
+                                })
+                            )
+                        );
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        currentActivity.getDynamicInput().setShown(true);
+                        return null;
+                    });
                     SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
                     {
                         currentActivity.getDynamicInput().setTitle("Copy");
@@ -321,26 +398,16 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                         currentActivity.getSettingsDrawer().setShown(false);
                         return null;
                     });
-                    SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () ->
-                    {
-                        currentActivity.getSettingsDrawer().setShown(false);
-                        return null;
-                    });
-                    SettingsDrawer.ContextBtn newFile = new SettingsDrawer.ContextBtn("New File", () ->
-                    {
-                        currentActivity.getSettingsDrawer().setShown(false);
-                        return null;
-                    });
                     if (isValidSelection) {
                         if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())
-                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, copyBtn, cutBtn, pasteBtn, deleteBtn);
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn, renameBtn, copyBtn, cutBtn, pasteBtn, deleteBtn);
                         else
-                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, copyBtn, cutBtn, deleteBtn);
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn, renameBtn, copyBtn, cutBtn, deleteBtn);
                     } else
                         if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())
-                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, pasteBtn);
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn, pasteBtn);
                         else
-                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn);
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn);
 
                     currentActivity.getSettingsDrawer().setShown(true);
                     return true;
