@@ -101,7 +101,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 }
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
                     DetailItem selectedItem = (DetailItem)getItemAtPosition(properPosition);
-                    File file = (File) selectedItem.obj;
+                    File file = (File)selectedItem.obj;
                     boolean isValidSelection = file != null && !selectedItem.leftAlignedText.equals("..");
                     SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
                     {
@@ -296,32 +296,53 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 //                                new DynamicInputRow.Label("Cancel")
 //                            )
 //                        );
+                        explorerBehaviour.copy(file.getAbsolutePath());
                         currentActivity.getSettingsDrawer().setShown(false);
                         //currentActivity.getDynamicInput().setShown(true);
                         return null;
                     });
                     SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () ->
                     {
+                        explorerBehaviour.cut(file.getAbsolutePath());
                         currentActivity.getSettingsDrawer().setShown(false);
                         return null;
                     });
                     SettingsDrawer.ContextBtn pasteBtn = new SettingsDrawer.ContextBtn("Paste", () ->
                     {
+                        explorerBehaviour.paste();
+                        refresh();
                         currentActivity.getSettingsDrawer().setShown(false);
                         return null;
                     });
                     SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () ->
                     {
+                        // TODO: fix delete for non-empty directories
                         boolean success = file.delete();
                         Log.d("ExplorerView", "Deleting " + file.getAbsolutePath() + " success: " + success);
                         refresh();
                         currentActivity.getSettingsDrawer().setShown(false);
                         return null;
                     });
+                    SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () ->
+                    {
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
+                    SettingsDrawer.ContextBtn newFile = new SettingsDrawer.ContextBtn("New File", () ->
+                    {
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
                     if (isValidSelection) {
-                        currentActivity.getSettingsDrawer().setButtons(newFolderBtn, copyBtn, cutBtn, pasteBtn, deleteBtn);
+                        if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, copyBtn, cutBtn, pasteBtn, deleteBtn);
+                        else
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, copyBtn, cutBtn, deleteBtn);
                     } else
-                        currentActivity.getSettingsDrawer().setButtons(newFolderBtn, pasteBtn);
+                        if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, pasteBtn);
+                        else
+                            currentActivity.getSettingsDrawer().setButtons(newFolderBtn);
 
                     currentActivity.getSettingsDrawer().setShown(true);
                     return true;
