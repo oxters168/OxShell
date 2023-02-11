@@ -1,5 +1,6 @@
 package com.OxGames.OxShell.Data;
 
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
 
@@ -32,7 +33,8 @@ public class DynamicInputRow {
         public enum InputType {
             text,
             button,
-            label
+            label,
+            toggle
         }
         public InputType inputType;
         protected List<DynamicInputListener> listeners = new ArrayList<>();
@@ -50,13 +52,23 @@ public class DynamicInputRow {
                 if (listener != null)
                     listener.onFocusChanged(view, hasFocus);
         }
+        protected void valuesChanged() {
+            for (DynamicInputListener listener : listeners)
+                if (listener != null)
+                    listener.onValuesChanged();
+        }
     }
     public static class TextInput extends DynamicInput {
         public String hint;
         private String text;
+        private int valueType;
 
         public TextInput(String hint) {
+            this(hint, -1);
+        }
+        public TextInput(String hint, int valueType) {
             this.inputType = InputType.text;
+            this.valueType = valueType;
             this.hint = hint;
             this.text = "";
         }
@@ -71,9 +83,10 @@ public class DynamicInputRow {
         public void setText(String value, boolean fireEvent) {
             text = value;
             if (fireEvent)
-                for (DynamicInputListener listener : listeners)
-                    if (listener != null)
-                        listener.onValuesChanged();
+                valuesChanged();
+        }
+        public int getValueType() {
+            return valueType;
         }
     }
     public static class ButtonInput extends DynamicInput {
@@ -116,9 +129,7 @@ public class DynamicInputRow {
         public void setLabel(String value, boolean fireEvent) {
             label = value;
             if (fireEvent)
-                for (DynamicInputListener listener : listeners)
-                    if (listener != null)
-                        listener.onValuesChanged();
+                valuesChanged();
         }
         public String getLabel() {
             return label;
@@ -138,12 +149,51 @@ public class DynamicInputRow {
         public void setLabel(String value, boolean fireEvent) {
             label = value;
             if (fireEvent)
-                for (DynamicInputListener listener : listeners)
-                    if (listener != null)
-                        listener.onValuesChanged();
+                valuesChanged();
         }
         public String getLabel() {
             return label;
+        }
+    }
+    public static class ToggleInput extends DynamicInput {
+        private String onLabel;
+        private String offLabel;
+        private boolean onOff;
+        private View.OnClickListener onClick;
+
+        public ToggleInput(String onLabel, String offLabel, View.OnClickListener onClick) {
+            this.inputType = InputType.toggle;
+            this.onLabel = onLabel;
+            this.offLabel = offLabel;
+            this.onClick = onClick;
+        }
+
+        public void setOnLabel(String onLabel, boolean fireEvent) {
+            this.onLabel = onLabel;
+            if (fireEvent)
+                valuesChanged();
+        }
+        public String getOnLabel() {
+            return onLabel;
+        }
+        public void setOffLabel(String offLabel, boolean fireEvent) {
+            this.offLabel = offLabel;
+            if(fireEvent)
+                valuesChanged();
+        }
+        public String getOffLabel() {
+            return offLabel;
+        }
+        public boolean getOnOff() {
+            return onOff;
+        }
+        public void setOnOff(boolean onOff, boolean fireEvent) {
+            this.onOff = onOff;
+            if (fireEvent)
+                valuesChanged();
+        }
+        public View.OnClickListener getOnClick() {
+            return onClick;
         }
     }
 }

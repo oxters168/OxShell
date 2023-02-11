@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -100,14 +101,14 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     goUp();
                     return true;
                 }
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
                     DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
                     if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
                         setItemSelected(properPosition, !isItemSelected(properPosition));
                     selectNextItem();
                     return true;
                 }
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
                     //DetailItem selectedItem = (DetailItem)getItemAtPosition(properPosition);
                     List<DetailItem> selection = getSelectedItems();
                     boolean isValidSelection = true;
@@ -195,23 +196,40 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () ->
                     {
                         // TODO: add option to only add on and not outright change (ex. abc.txt, def.txt, ghi.txt addon prefix of demo_ => demo_abc.txt, demo_def.txt, demo_ghi.txt)
-                        // TODO: add option to fill numbers with 0s when needed (ex. 0..100 | 001, 002, 003..098, 099, 100 vs 1, 2, 3..98, 99, 100)
-                        // TODO: add option to start numbers at a different value (ex. 0..6 but start from 21 => 21..27)
-                        
-                        File firstFile = ((File)selection.get(0).obj);
+
+                        File firstFile = (File)selection.get(0).obj;
                         boolean isMulti = selection.size() > 1;
                         boolean isDir = firstFile.isDirectory();
                         DynamicInputRow.TextInput renamedTxtInput = new DynamicInputRow.TextInput(isMulti ? "Prefix" : isDir ? "Folder Name" : "File Name");
                         DynamicInputRow.TextInput suffixTxtInput = new DynamicInputRow.TextInput("Suffix");
+                        DynamicInputRow.TextInput startTxtInput = new DynamicInputRow.TextInput("Index Start", InputType.TYPE_CLASS_NUMBER);
                         renamedTxtInput.setText(isMulti ? (AndroidHelpers.hasExtension(firstFile.getName()) ? AndroidHelpers.removeExtension(firstFile.getName()) : firstFile.getName()) : firstFile.getName(), false);
                         suffixTxtInput.setText(AndroidHelpers.hasExtension(firstFile.getName()) ? "." + AndroidHelpers.getExtension(firstFile.getName()) : "", false);
+                        startTxtInput.setText("0", false);
                         DynamicInputRow.Label errorLabel = new DynamicInputRow.Label(isMulti ? "Renaming " + selection.size() + " items" : "");
+                        DynamicInputRow.ToggleInput fillZerosToggle = new DynamicInputRow.ToggleInput("Place zeros", "Don't place zeros", null);
                         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Ok", v ->
                         {
                             if (isMulti) {
+                                String value = startTxtInput.getText();
+                                boolean fillZeros = fillZerosToggle.getOnOff();
+                                int startIndex = 0;
+                                if (value.length() > 0) {
+                                    try {
+                                        startIndex = Integer.parseInt(value);
+                                    } catch(Exception e) { Log.e("ExplorerView", e.toString()); }
+                                }
+                                int maxDigitCount = getDigitCount(startIndex + (selection.size() - 1));
                                 for (int i = 0; i < selection.size(); i++) {
                                     File current = (File)selection.get(i).obj;
-                                    String newName = renamedTxtInput.getText() + i + suffixTxtInput.getText();
+                                    int index = (startIndex + i);
+                                    String zeros = "";
+                                    if (fillZeros) {
+                                        int currentDigitCount = getDigitCount(index);
+                                        for (int j = 0; j < (maxDigitCount - currentDigitCount); j++)
+                                            zeros += "0";
+                                    }
+                                    String newName = renamedTxtInput.getText() + zeros + index + suffixTxtInput.getText();
                                     current.renameTo(new File(AndroidHelpers.combinePaths(current.getParent(), newName)));
                                 }
                                 refresh();
@@ -233,7 +251,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                         }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B);
                         currentActivity.getDynamicInput().setTitle("Rename" + (isMulti ? " Items" : (isDir ? " Folder" : " File")));
                         if (isMulti)
-                            currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput, suffixTxtInput), new DynamicInputRow(okBtn, cancelBtn));
+                            currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput, suffixTxtInput), new DynamicInputRow(startTxtInput), new DynamicInputRow(fillZerosToggle), new DynamicInputRow(okBtn, cancelBtn));
                         else
                             currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput), new DynamicInputRow(okBtn, cancelBtn));
                         currentActivity.getSettingsDrawer().setShown(false);
@@ -467,6 +485,15 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 //            }
 //        }
         return false;
+    }
+
+    public static int getDigitCount(int value) {
+        int count = 1;
+        while (Math.abs(value) >= 10) {
+            value /= 10;
+            count++;
+        }
+        return count;
     }
 
     @Override

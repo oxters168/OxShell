@@ -59,7 +59,7 @@ public class HomeView extends XMBView {
                     //ActivityManager.GoTo(ActivityManager.Page.runningApps);
                     return true;
                 }
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
                     SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
                     {
                         Log.d("HomeView", "Move selected");

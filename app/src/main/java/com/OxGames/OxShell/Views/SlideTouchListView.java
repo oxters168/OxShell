@@ -101,6 +101,7 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
     }
 
     public void setItemSelected(int index, boolean onOff) {
+        // TODO: keep order of selection
         ((DetailItem)getItemAtPosition(index)).isSelected = onOff;
         invalidateViews();
     }

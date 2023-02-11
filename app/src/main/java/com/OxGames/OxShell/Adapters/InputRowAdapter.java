@@ -22,6 +22,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
     private Context context;
     private List<DynamicInputRow.DynamicInput> items;
     private static final int BUTTON_DIP = 128;
+    //private static final int TOGGLE_DIP = 128;
     private static final int MAX_VISIBLE_ITEMS = 4;
     private static final int PADDING = 20;
     private int rowWidth;
@@ -69,16 +70,28 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         int currentVisibleItems = Math.min(MAX_VISIBLE_ITEMS, items.size() - (position - relativeIndex));
         //int maxWidth = Math.round((rowWidth - ((currentVisibleItems - 1) * paddingPx)) / (float)currentVisibleItems);
         int buttonPx = Math.round(AndroidHelpers.dipToPixels(context, BUTTON_DIP));
-        int maxWidth = buttonPx;
-        if (items.get(position).inputType != DynamicInputRow.DynamicInput.InputType.button) {
+        //int togglePx = Math.round(AndroidHelpers.dipToPixels(context, TOGGLE_DIP));
+        int maxWidth;
+        if (items.get(position).inputType == DynamicInputRow.DynamicInput.InputType.button) {
+            maxWidth = buttonPx;
+        }
+//        else if (items.get(position).inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
+//            maxWidth = togglePx;
+//        }
+        else {
             maxWidth = Math.round(rowWidth / (float)currentVisibleItems);
             int visibleBtnCount = 0;
+            //int visibleToggleCount = 0;
             for (int i = 0; i < currentVisibleItems; i++) {
-                if (items.get(position + (i - relativeIndex)).inputType == DynamicInputRow.DynamicInput.InputType.button)
+                DynamicInputRow.DynamicInput currentItem = items.get(position + (i - relativeIndex));
+                if (currentItem.inputType == DynamicInputRow.DynamicInput.InputType.button)
                     visibleBtnCount++;
+//                else if (currentItem.inputType == DynamicInputRow.DynamicInput.InputType.toggle)
+//                    visibleToggleCount++;
             }
             if (visibleBtnCount > 0)
                 maxWidth = Math.round((rowWidth - (visibleBtnCount * buttonPx)) / (float) (currentVisibleItems - visibleBtnCount));
+                //maxWidth = Math.round((rowWidth - (visibleBtnCount * buttonPx) - (visibleToggleCount * togglePx)) / (float) (currentVisibleItems - visibleBtnCount - visibleToggleCount));
                 //maxWidth = Math.round((rowWidth - (visibleBtnCount * buttonPx) - ((currentVisibleItems - 1) * paddingPx)) / (float) (currentVisibleItems - visibleBtnCount));
         }
 

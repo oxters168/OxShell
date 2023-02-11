@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -10,11 +11,13 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +37,7 @@ public class DynamicInputItemView extends FrameLayout {
     private TextInputLayout inputLayout;
     private Button button;
     private TextView label;
+    private CheckBox toggle;
 
 
     public DynamicInputItemView(@NonNull Context context) {
@@ -58,16 +62,12 @@ public class DynamicInputItemView extends FrameLayout {
 
     public void setInputItem(DynamicInputRow.DynamicInput item) {
         // remove previous listeners from the views if any
-        if (inputLayout != null && inputLayout.getEditText() != null && inputWatcher != null) {
+        if (inputLayout != null && inputLayout.getEditText() != null && inputWatcher != null)
             inputLayout.getEditText().removeTextChangedListener(inputWatcher);
-            //inputLayout.getEditText().setOnFocusChangeListener(null);
-        }
-        if (button != null) {
+        if (button != null)
             button.setOnClickListener(null);
-            //button.setOnFocusChangeListener(null);
-        }
-//        if (label != null)
-//            label.setOnFocusChangeListener(null);
+        if (toggle != null)
+            toggle.setOnClickListener(null);
 
         // hide all views that exist
         if (inputLayout != null)
@@ -76,6 +76,8 @@ public class DynamicInputItemView extends FrameLayout {
             button.setVisibility(GONE);
         if (label != null)
             label.setVisibility(GONE);
+        if (toggle != null)
+            toggle.setVisibility(GONE);
 
         // remove the previous item's listener
         if (inputItem != null && itemListener != null)
@@ -106,6 +108,12 @@ public class DynamicInputItemView extends FrameLayout {
                         label.setText(((DynamicInputRow.Label)item).getLabel());
                     }
                 }
+                if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
+                    if (toggle != null) {
+                        DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;
+                        toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
+                    }
+                }
             }
         };
         item.addListener(itemListener);
@@ -128,6 +136,9 @@ public class DynamicInputItemView extends FrameLayout {
                 textEdit = new TextInputEditText(context);
                 inputLayout.addView(textEdit, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             }
+            // sets the input type of the edit text (number/password/email/etc)
+            if (innerItem.getValueType() >= 0)
+                textEdit.setInputType(innerItem.getValueType());
             // set the edit text to fire onFocusChange on the current item
             textEdit.setOnFocusChangeListener(innerItem::onFocusChange);
             // set the starting value of the view to what the item already had
@@ -174,10 +185,29 @@ public class DynamicInputItemView extends FrameLayout {
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 label.setLayoutParams(params);
                 addView(label);
-                label.setOnFocusChangeListener(innerItem::onFocusChange);
             }
+            label.setOnFocusChangeListener(innerItem::onFocusChange);
             label.setText(innerItem.getLabel());
             label.setVisibility(VISIBLE);
+        } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
+            DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;
+            if (toggle == null) {
+                toggle = new CheckBox(context);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+                toggle.setLayoutParams(params);
+                addView(toggle);
+            }
+            toggle.setOnFocusChangeListener(innerItem::onFocusChange);
+            toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
+            toggle.setChecked(innerItem.getOnOff());
+            toggle.setOnClickListener((view) -> {
+                innerItem.setOnOff(toggle.isChecked(), false);
+                toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
+                if (innerItem.getOnClick() != null)
+                    innerItem.getOnClick().onClick(view);
+            });
+            toggle.setVisibility(VISIBLE);
         }
 
         inputItem = item;
