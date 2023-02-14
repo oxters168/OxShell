@@ -8,6 +8,9 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import androidx.core.content.ContextCompat;
 
@@ -22,6 +25,7 @@ import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
@@ -38,18 +42,21 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
     public ExplorerView(Context context) {
         super(context);
+        //setMargins();
         ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         refresh();
     }
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        //setMargins();
         ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         refresh();
     }
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        //setMargins();
         ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         refresh();
@@ -196,7 +203,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () ->
                     {
                         // TODO: add option to only add on and not outright change (ex. abc.txt, def.txt, ghi.txt addon prefix of demo_ => demo_abc.txt, demo_def.txt, demo_ghi.txt)
-
+                        // there will always be at least one item in the selection
                         File firstFile = (File)selection.get(0).obj;
                         boolean isMulti = selection.size() > 1;
                         boolean isDir = firstFile.isDirectory();

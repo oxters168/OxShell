@@ -1,11 +1,13 @@
 package com.OxGames.OxShell;
 
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowInsets;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
@@ -106,6 +108,15 @@ public class PagedActivity extends AppCompatActivity {
         //initBackground();
     }
 
+    protected void setMarginsFor(int... ids) {
+        for (int id : ids) {
+            View parent = findViewById(id);
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) parent.getLayoutParams();
+            params.setMargins(0, OxShellApp.getStatusBarHeight(), 0, OxShellApp.getNavBarHeight());
+            parent.setLayoutParams(params);
+        }
+    }
+
     @Override
     protected void onResume() {
         ActivityManager.setCurrent(currentPage);
@@ -121,7 +132,7 @@ public class PagedActivity extends AppCompatActivity {
         //settingsDrawer.setX(settingsDrawerWidth);
         //Add an if statement later to have a setting for hiding status bar
         setActionBarHidden(true);
-        //setFullscreen(true);
+        setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
         //resumeBackground();
@@ -146,6 +157,7 @@ public class PagedActivity extends AppCompatActivity {
 
         Log.i("PagedActivity", "OnResume " + this);
     }
+
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         // TODO: store non-persistent data (like where we are in the app and other stuff) for when leaving the app temporarily
@@ -176,6 +188,7 @@ public class PagedActivity extends AppCompatActivity {
         //fixDrawerLayout();
         initSettingsDrawer();
         initDynamicInputView();
+        //getStatusBarHeight();
         //settingsDrawer.setShown(isContextDrawerOpen());
     }
     @Override
@@ -183,6 +196,7 @@ public class PagedActivity extends AppCompatActivity {
         Log.i("PagedActivity", "OnWindowFocusChanged " + this);
         super.onWindowFocusChanged(hasFocus);
         setActionBarHidden(true);
+        setFullscreen(true);
         //setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);

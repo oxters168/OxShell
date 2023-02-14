@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
@@ -26,6 +28,13 @@ public class FileChooserActivity extends PagedActivity {
 //        super.startActivityForResult(intent, requestCode);
 //        Log.d("StartForResult", requestCode + " "  + intent.toString());
 //    }
+
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        setMarginsFor(R.id.parent_layout);
+    }
 
     @Override
     protected void initViewsTable() {

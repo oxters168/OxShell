@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -52,6 +53,13 @@ public class HomeActivity extends PagedActivity {
         goTo(ActivityManager.Page.home);
         showAnnoyingDialog();
     }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        setMarginsFor(R.id.packages_list, R.id.settings_view, R.id.customize_home_view, R.id.assoc_list_view, R.id.selectdirs_view, R.id.shortcuts_view);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();

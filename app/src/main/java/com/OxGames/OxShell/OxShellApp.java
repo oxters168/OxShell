@@ -49,6 +49,26 @@ public class OxShellApp extends Application {
         super.onLowMemory();
     }
 
+    public static int getNavBarHeight() {
+        int result = 0;
+        int resourceId = instance.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
+        if (resourceId > 0)
+            result = instance.getResources().getDimensionPixelSize(resourceId);
+        else
+            Log.e("OxShellApp", "Failed to retrieve resource id for android.dimen.navigation_bar_height");
+        //Log.i("OxShellApp", "Navbar Height: " + result);
+        return result;
+    }
+    public static int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = instance.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0)
+            result = instance.getResources().getDimensionPixelSize(resourceId);
+        else
+            Log.e("OxShellApp", "Failed to retrieve resource id for android.dimen.status_bar_height");
+        //Log.i("OxShellApp", "StatusBar Height: " + result);
+        return result;
+    }
     private void getDisplayInfo() {
         DisplayMetrics dm = getResources().getDisplayMetrics();
         displayWidth = dm.widthPixels;

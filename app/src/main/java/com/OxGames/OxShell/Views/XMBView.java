@@ -23,16 +23,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//, SlideTouchListener {
+public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
     private static final float EPSILON = 0.0001f;
     private final Context context;
-    //private final SlideTouchHandler slideTouch;
 
     private final Stack<XMBItemView> goneItemViews; //The views whose visibility are set to gone since they are not currently used
     private final HashMap<Integer, XMBItemView> usedItemViews; //The views that are currently displayed and the total index of the item they represent as their key
 
     //private final ArrayList<Integer> catIndices;
-    private final ArrayList<Float> catPos;
+    private final ArrayList<Float> catPos; // go from 0 to (getColCount(colIndex) - 1) * getVerShiftOffset()
     private final ArrayList<ArrayList<XMBItem>> items; //Each arraylist represents a column, the first item in the arraylist represents the category item
 
     // for fine control of the menu
@@ -160,8 +159,6 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {//
     public XMBView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
-        //slideTouch = new SlideTouchHandler();
-        //slideTouch.addListener(this);
 
         goneItemViews = new Stack<>();
         usedItemViews = new HashMap<>();
