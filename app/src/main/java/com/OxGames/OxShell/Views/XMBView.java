@@ -52,12 +52,13 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
         catPos = new ArrayList<>();
         //items = new ArrayList<>();
     }
-    public abstract static class Adapter {
+    public abstract static class Adapter<T extends ViewHolder> {
         @NonNull
-        public abstract ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType);
-        public abstract void onBindViewHolder(@NonNull ViewHolder holder, int position);
+        public abstract T onCreateViewHolder(@NonNull ViewGroup parent, int viewType);
+        public abstract void onBindViewHolder(@NonNull T holder, int position);
         public abstract int getItemCount();
-        public abstract void onViewAttachedToWindow(@NonNull ViewHolder holder);
+        public abstract void onViewAttachedToWindow(@NonNull T holder);
+        public abstract Object getItem(int position);
     }
     public abstract static class ViewHolder {
         protected View itemView;
@@ -100,17 +101,23 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
 
     public void setAdapter(Adapter adapter, List<Integer>... mapper) {
         // the mapper holds the position of the item indices within the XMBView
+        catPos.clear();
         this.adapter = adapter;
         int[][] mapper2 = new int[mapper.length][];
-        for (int i = 0; i < mapper.length; i++)
+        for (int i = 0; i < mapper.length; i++) {
+            catPos.add(i, 0f);
             mapper2[i] = mapper[i].stream().mapToInt(value -> value).toArray();
+        }
         this.mapper = mapper2;
     }
     public void setAdapter(Adapter adapter, int[]... mapper) {
+        catPos.clear();
         this.adapter = adapter;
         int[][] mapper2 = new int[mapper.length][];
-        for (int i = 0; i < mapper.length; i++)
+        for (int i = 0; i < mapper.length; i++) {
+            catPos.add(i, 0f);
             mapper2[i] = mapper[i].clone();
+        }
         this.mapper = mapper2;
     }
 
@@ -770,9 +777,9 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
         rect.set(expX, expY, right, bottom);
     }
 
-//    public XMBItem getSelectedItem() {
-//        return getTotalIndexFromTraversable(currentIndex);
-//    }
+    public Object getSelectedItem() {
+        return adapter.getItem(getTotalIndexFromTraversable(currentIndex));
+    }
     // Gets the total number of items without the category items that have sub items since they can't be 'highlighted' or in other words traversed
     private int getTraversableCount() {
         int count = 0;
@@ -786,11 +793,12 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
     }
     // Gets the actual total items count including category items
     private int getTotalCount() {
-        int count = 0;
-        for (int i = 0; i < mapper.length; i++)
-            if (mapper[i] != null)
-                count += mapper[i].length;
-        return count;
+        return adapter.getItemCount();
+//        int count = 0;
+//        for (int i = 0; i < mapper.length; i++)
+//            if (mapper[i] != null)
+//                count += mapper[i].length;
+//        return count;
     }
     private int traversableToTotalIndex(int traversableIndex) {
         int colIndex = getColIndexFromTraversable(traversableIndex);

@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
@@ -16,8 +17,10 @@ import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 
 public class HomeView extends XMBView {
     private ContextMenu overlay;
@@ -107,7 +110,7 @@ public class HomeView extends XMBView {
     }
     @Override
     public void makeSelection() {
-        HomeItem selectedItem = (HomeItem) getSelectedItem();
+        HomeItem selectedItem = (HomeItem)getSelectedItem();
         //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
         if (selectedItem.type == HomeItem.Type.explorer) {
             ActivityManager.goTo(ActivityManager.Page.explorer);
@@ -124,12 +127,12 @@ public class HomeView extends XMBView {
     }
     @Override
     public void deleteSelection() {
-        HomeItem selectedItem = (HomeItem) getSelectedItem();
+        HomeItem selectedItem = (HomeItem)getSelectedItem();
         HomeManager.removeItem(selectedItem);
         //refresh();
     }
     public void uninstallSelection() {
-        HomeItem selectedItem = (HomeItem) getSelectedItem();
+        HomeItem selectedItem = (HomeItem)getSelectedItem();
         if (selectedItem.type == HomeItem.Type.app) {
             Intent intent = new Intent(Intent.ACTION_DELETE);
             intent.setData(Uri.parse("package:" + selectedItem.obj));
@@ -144,17 +147,55 @@ public class HomeView extends XMBView {
         if (homeItems == null)
             homeItems = new ArrayList<>();
 
-        ArrayList<XMBItem> columns = new ArrayList<>();
-        ArrayList<XMBItem> subItems = new ArrayList<>();
-        sortItems(homeItems, columns, subItems);
+        // using a column count index rather than getting the columns.size() in case if for whatever reason there are missing columns in between
+        int columnCount = 0;
+        HashMap<Integer, List<Integer>> columns = new HashMap<>();
+        for (int index = 0; index < homeItems.size(); index++) {
+            XMBItem item = homeItems.get(index);
+            columnCount = Math.max(columnCount, item.colIndex + 1);
+            //int currentColSize = 0;
+            if (!columns.containsKey(item.colIndex))
+                columns.put(item.colIndex, new ArrayList<>());
+                //currentColSize = columnSizes.get(item.colIndex);
+            //columnSizes.put(item.colIndex, Math.max(currentColSize, item.localIndex + 1));
+            List<Integer> column = columns.get(item.colIndex);
+            boolean added = false;
+            for (int i = 0; i < column.size(); i++) {
+                if (item.localIndex < homeItems.get(column.get(i)).localIndex) {
+                    column.add(i, index);
+                    added = true;
+                    break;
+                }
+            }
+            if (!added)
+                column.add(index);
+        }
+//        ArrayList<XMBItem> columns = new ArrayList<>();
+//        ArrayList<XMBItem> subItems = new ArrayList<>();
+//        sortItems(homeItems, columns, subItems);
+        XMBItem settings = new HomeItem(HomeItem.Type.settings);
+        settings.colIndex = ++columnCount;
+        List<Integer> settingsList = new ArrayList<>();
+        settingsList.add(homeItems.size());
+        homeItems.add(settings);
+        columns.put(settings.colIndex, settingsList);
         //homeItems.add(new HomeItem(HomeItem.Type.settings));
-        columns.add(0, new HomeItem(HomeItem.Type.settings));
+        //columns.add(0, new HomeItem(HomeItem.Type.settings));
+        int[][] mapper = new int[columns.size()][];
+        int mapI = 0;
+        for (Integer key : columns.keySet()) {
+            if (columns.containsKey(key))
+                mapper[mapI++] = columns.get(key).stream().mapToInt(value -> value).toArray();
+            else
+                Log.e("HomeView", "Missing column " + key);
+        }
 
         int cachedIndex = currentIndex;
-        clear();
-        addCatItems(columns);
-        if (subItems.size() > 0)
-            addSubItems(subItems);
+//        clear();
+//        addCatItems(columns);
+//        if (subItems.size() > 0)
+//            addSubItems(subItems);
+        setAdapter(new XMBAdapter(getContext(), homeItems), mapper);
         //addItems(homeItems);
         setIndex(cachedIndex);
 
