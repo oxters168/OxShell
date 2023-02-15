@@ -45,7 +45,7 @@ public class OxShellApp extends Application {
 
     @Override
     public void onLowMemory() {
-        Log.i("OxShellApp", "onLowMemory");
+        Log.e("OxShellApp", "Low memory");
         super.onLowMemory();
     }
 
@@ -80,10 +80,4 @@ public class OxShellApp extends Application {
     public static int getDisplayHeight() {
         return displayHeight;
     }
-
-//    public DisplayMetrics getDisplayMetrics() {
-//        //DisplayMetrics displayMetrics = new DisplayMetrics();
-//        //getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-//        return getResources().getDisplayMetrics();
-//    }
 }

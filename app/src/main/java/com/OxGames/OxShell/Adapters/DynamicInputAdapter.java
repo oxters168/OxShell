@@ -75,11 +75,9 @@ public class DynamicInputAdapter extends RecyclerView.Adapter<DynamicInputAdapte
             items.clear();
     }
 
-    public class DynamicViewHolder extends RecyclerView.ViewHolder {
-        private View itemView;
+    public static class DynamicViewHolder extends RecyclerView.ViewHolder {
         public DynamicViewHolder(@NonNull View itemView) {
             super(itemView);
-            this.itemView = itemView;
         }
         public void bindItem(DynamicInputRow item) {
             ((DynamicInputRowView)itemView).setInputItems(item);
