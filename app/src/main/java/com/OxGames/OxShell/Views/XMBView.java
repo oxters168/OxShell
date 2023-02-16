@@ -135,6 +135,7 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
     private int textCushion = 16; //Distance between item and text
     private float horSpacing = 64; //How much space to add between items horizontally
     private float verSpacing = 0; //How much space to add between items vertically
+    private float subItemGap = 48; //The gap between the column items and their sub items
     //private float catShift = horSpacing + (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
     private float catShift = horSpacing; //How much to shift the categories bar horizontally
     private float getHorShiftOffset() {
@@ -537,8 +538,8 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
             //Log.d("XMBView", view.getMeasuredWidth() + ", " + view.getMeasuredHeight());
                 int expX = 0;
                 int expY = 0;
-                int right = expX + iconSize;
-                int bottom = expY + iconSize;
+                int right = expX + getWidth();
+                int bottom = expY + getHeight();
                 view.layout(expX, expY, right, bottom);
             //} else
             //    Log.e("XMBView", "Child view @" + i + " is not of type XMBItemView");
@@ -773,7 +774,7 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
         int expX = startX + horShiftOffset * colIndex;
         //getTextBounds(painter, item.title, textSize, rect);
         // get the vertical pixel position of the item
-        int expY = Math.round((startY - catPos.get(colIndex)) + verShiftOffset * localIndex + (localIndex >= itemCatIndex ? rect.height() + verShiftOffset : 0));
+        int expY = Math.round((startY - catPos.get(colIndex)) + verShiftOffset * localIndex + (localIndex >= itemCatIndex ? rect.height() + subItemGap : 0));
 //        int expY = (startY + rect.height()) + verShiftOffset * ((localIndex - itemCatIndex) + 1);
 //        if (localIndex < itemCatIndex)
 //            // if the item is chronologically before the currently highlighted item, then take into account the column item by placing the y value above it
