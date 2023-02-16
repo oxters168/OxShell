@@ -175,7 +175,7 @@ public class HomeView extends XMBView {
                     item.localIndex = column.size();
                 column.add(index);
             }
-            Log.d("HomeView", output);
+            //Log.d("HomeView", output);
         }
 //        ArrayList<XMBItem> columns = new ArrayList<>();
 //        ArrayList<XMBItem> subItems = new ArrayList<>();
@@ -196,13 +196,13 @@ public class HomeView extends XMBView {
             else
                 Log.e("HomeView", "Missing column " + key);
         }
-        for (int i = 0; i < mapper.length; i++) {
-            String output = "";
-            for (int j = 0; j < mapper[i].length; j++) {
-                output += mapper[i][j] + ", ";
-            }
-            Log.d("HomeView", output);
-        }
+//        for (int i = 0; i < mapper.length; i++) {
+//            String output = "";
+//            for (int j = 0; j < mapper[i].length; j++) {
+//                output += mapper[i][j] + ", ";
+//            }
+//            Log.d("HomeView", output);
+//        }
 
         int cachedIndex = currentIndex;
 //        clear();
