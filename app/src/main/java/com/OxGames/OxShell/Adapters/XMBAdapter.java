@@ -1,13 +1,17 @@
 package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
 import com.OxGames.OxShell.Data.XMBItem;
+import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.XMBItemView;
 import com.OxGames.OxShell.Views.XMBView;
 
@@ -29,8 +33,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @NonNull
     @Override
     public XMBViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        //LayoutInflater layoutInflater = LayoutInflater.from(context);
+        //View view = layoutInflater.inflate(R.layout.grid_cell, null);
         XMBItemView view = new XMBItemView(context);
-        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return new XMBViewHolder(view);
     }
     @Override
@@ -56,6 +62,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             super(itemView);
         }
         public void bindItem(XMBItem item) {
+            //TextView txt = itemView.findViewById(R.id.title);
+            //txt.setText(item.title);
+            //ImageView img = itemView.findViewById(R.id.typeIcon);
+            //img.setBackground(item.getIcon());
             XMBItemView xmbItemView = (XMBItemView)itemView;
             xmbItemView.isCategory = isCategory();
             xmbItemView.title = item.title;
