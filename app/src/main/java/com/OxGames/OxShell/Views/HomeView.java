@@ -14,6 +14,7 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-public class HomeView extends XMBView {
+public class HomeView extends XMBView implements Refreshable {
     private ContextMenu overlay;
 
     public HomeView(Context context) {
@@ -213,7 +214,7 @@ public class HomeView extends XMBView {
         //addItems(homeItems);
         setIndex(cachedIndex);
 
-        super.refresh();
+        //super.refresh();
     }
 
     private void sortItems(ArrayList<XMBItem> unsortedItems, ArrayList<XMBItem> columns, ArrayList<XMBItem> subItems) {

@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
-public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
+public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable {
     private static final float EPSILON = 0.0001f;
     private final Context context;
     public static final int CATEGORY_TYPE = 0;
@@ -114,6 +114,8 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
             mapper2[i] = mapper[i].stream().mapToInt(value -> value).toArray();
         }
         this.mapper = mapper2;
+        setViews(true);
+        //refresh();
     }
     public void setAdapter(Adapter adapter, int[]... mapper) {
         catPos.clear();
@@ -124,6 +126,8 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
             mapper2[i] = mapper[i].clone();
         }
         this.mapper = mapper2;
+        setViews(true);
+        //refresh();
     }
 
     // for fine control of the menu
@@ -1185,8 +1189,8 @@ public class XMBView extends ViewGroup implements InputReceiver, Refreshable {
     }
     public void deleteSelection() {
     }
-    @Override
-    public void refresh() {
-        setViews(false);
-    }
+//    @Override
+//    public void refresh() {
+//        setViews(false);
+//    }
 }
