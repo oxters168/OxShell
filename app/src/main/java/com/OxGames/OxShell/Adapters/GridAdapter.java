@@ -2,7 +2,6 @@ package com.OxGames.OxShell.Adapters;
 
 import android.database.DataSetObserver;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.widget.BaseAdapter;
 import android.content.Context;
@@ -12,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.OxGames.OxShell.Data.GridItem;
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
@@ -36,7 +34,7 @@ public class GridAdapter extends BaseAdapter {
 
         view.setBackgroundColor(homeItem.isSelected ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO: implement color theme that can take custom theme from file
 
-        TextView title = view.findViewById(R.id.title);
+        TextView title = view.findViewById(R.id.cat_title);
         title.setText(homeItem.title);
 
         ImageView typeIcon = view.findViewById(R.id.typeIcon);

@@ -477,7 +477,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         removeViews();
-        createViews();
+        //createViews();
+        int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
+        catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
         setViews(false);
     }
 
@@ -547,10 +549,14 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 int expY = 0;
                 int right = expX + getWidth();
                 int bottom = expY + getHeight();
+                view.measure(getWidth(), getHeight());
                 view.layout(expX, expY, right, bottom);
             //} else
             //    Log.e("XMBView", "Child view @" + i + " is not of type XMBItemView");
         }
+//        for (ViewHolder holder : usedItemViews.values()) {
+//            holder.itemView.layout(Math.round(holder.getPrevX()), Math.round(holder.getPrevY()), 256, 256);
+//        }
     }
     private void setViews(boolean indexChanged) {
         //Log.d("XMBView2", "Setting view positions");
@@ -651,6 +657,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 // if the view just popped into existence then set its position to the final position rather than transitioning
                 viewHolder.itemView.setX(viewHolder.getX());
                 viewHolder.itemView.setY(viewHolder.getY());
+//                viewHolder.setX(itemBounds.left);
+//                viewHolder.setY(itemBounds.top);
             } else {
                 //Log.d("XMBView", "Moving item #" + totalIndex + " from (" + viewHolder.getPrevX() + ", " + viewHolder.getPrevY() + ") to (" + viewHolder.getX() + ", " + viewHolder.getY() + ")");
                 // if this view already existed then animate it from where it was to the final position
@@ -678,6 +686,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                     viewHolder.itemView.animate().alphaBy(1);
                     break;
             }
+            //requestLayout();
+            //Log.d("XMBView", "Item #" + totalIndex + " alpha set to " + viewHolder.itemView.getAlpha());
+            //Log.d("XMBView", "Item #" + totalIndex + " visibility: " + viewHolder.itemView.getVisibility());
         } else
             Log.w("XMBView", "Missing view holder for item with index " + totalIndex + ", skipped for now");
     }
@@ -686,26 +697,26 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         while (!goneItemViews.isEmpty())
             removeView(goneItemViews.pop().itemView);
     }
-    private void createViews() {
-        //Log.d("XMBView2", getWidth() + ", " + getHeight());
-        int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
-        int rowCount = ((int)Math.ceil(getHeight() / getVerShiftOffset()) + 4) * 3; //+4 for off screen to on screen animating, *3 for column to column fade
-        catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
-        for (int i = 0; i < (colCount + rowCount); i++) {
-            //Log.d("XMBView2", "Creating item view");
-//            XMBItemView view;
-//            LayoutInflater layoutInflater = LayoutInflater.from(context);
-//            view = (XMBItemView) layoutInflater.inflate(R.layout.xmb_item, null);
-//            view.setVisibility(GONE);
-//            addView(view);
-            // TODO: implement view types for categories?
-            ViewHolder viewHolder = adapter.onCreateViewHolder(this, 0);
-            viewHolder.itemView.setVisibility(GONE);
-            addView(viewHolder.itemView);
-            adapter.onViewAttachedToWindow(viewHolder);
-            goneItemViews.push(viewHolder);
-        }
-    }
+//    private void createViews() {
+//        //Log.d("XMBView2", getWidth() + ", " + getHeight());
+//        int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
+//        int rowCount = ((int)Math.ceil(getHeight() / getVerShiftOffset()) + 4) * 3; //+4 for off screen to on screen animating, *3 for column to column fade
+//        catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
+//        for (int i = 0; i < (colCount + rowCount); i++) {
+//            //Log.d("XMBView2", "Creating item view");
+////            XMBItemView view;
+////            LayoutInflater layoutInflater = LayoutInflater.from(context);
+////            view = (XMBItemView) layoutInflater.inflate(R.layout.xmb_item, null);
+////            view.setVisibility(GONE);
+////            addView(view);
+//            // TODO: implement view types for categories?
+//            ViewHolder viewHolder = adapter.onCreateViewHolder(this, 0);
+//            viewHolder.itemView.setVisibility(GONE);
+//            addView(viewHolder.itemView);
+//            adapter.onViewAttachedToWindow(viewHolder);
+//            goneItemViews.push(viewHolder);
+//        }
+//    }
     private void returnItemView(int totalIndex) {
         if (usedItemViews.containsKey(totalIndex)) {
             //Log.d("XMBView", "Returning view id " + totalIndex);
@@ -731,14 +742,20 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             viewHolder = usedItemViews.get(totalIndex);
             viewHolder.isNew = false;
             //Log.d("XMBView", "Retrieving view for " + item.title + " whose value is already set to " + view.title);
-        } else if (!goneItemViews.isEmpty()) {
-            //Log.d("XMBView", "Requesting new view");
-            //Log.d("XMBView", "Setting view values for " + item.title);
-            //isNew = true;
+        } else {
+            if (goneItemViews.isEmpty()) {
+                for (int i = 0; i < 5; i++) {
+                    // TODO: implement view types for categories?
+                    ViewHolder newHolder = adapter.onCreateViewHolder(this, 0);
+                    newHolder.itemView.setVisibility(GONE);
+                    addView(newHolder.itemView);
+                    adapter.onViewAttachedToWindow(newHolder);
+                    goneItemViews.push(newHolder);
+                }
+            }
+
             viewHolder = goneItemViews.pop();
             viewHolder.isNew = true;
-//            viewHolder.title = item.title;
-//            viewHolder.icon = item.getIcon();
             viewHolder.itemView.setVisibility(VISIBLE);
             usedItemViews.put(totalIndex, viewHolder);
         }

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="256px"
-    android:layout_height="256px">
+    android:layout_width="64dip"
+    android:layout_height="64dip"
+    android:clipChildren="false">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,34 +18,47 @@
 
             <ImageView
                 android:id="@+id/typeIcon"
-                android:layout_width="180px"
-                android:layout_height="180px"
+                android:layout_width="45dip"
+                android:layout_height="45dip"
                 android:layout_gravity="center"
-                android:layout_marginTop="16px"
+                android:layout_marginTop="4dip"
                 android:scaleType="centerCrop" />
 
             <ImageView
                 android:id="@+id/typeSuperIcon"
-                android:layout_width="60px"
-                android:layout_height="60px"
+                android:layout_width="15dip"
+                android:layout_height="15dip"
                 android:layout_gravity="bottom|right"
-                android:layout_marginRight="-32px"
-                android:layout_marginBottom="-32px"
+                android:layout_marginRight="-7.5dip"
+                android:layout_marginBottom="-7.5dip"
                 android:scaleType="centerCrop"
                 app:srcCompat="@drawable/ic_baseline_view_list_24" />
+
+            <TextView
+                android:id="@+id/sub_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dip"
+                android:singleLine="true"
+                android:text="HelloWorld"
+                android:textAlignment="viewStart"
+                android:textColor="@color/text"
+                android:textSize="6dip"
+                android:translationX="49dip"
+                android:translationY="22.5dip" />
 
         </FrameLayout>
 
         <TextView
-            android:id="@+id/title"
+            android:id="@+id/cat_title"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="10px"
+            android:layout_marginTop="2.5dip"
             android:singleLine="true"
             android:text="HelloWorld"
             android:textAlignment="center"
             android:textColor="@color/text"
-            android:textSize="24px" />
+            android:textSize="6dip" />
 
     </LinearLayout>
 

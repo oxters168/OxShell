@@ -64,7 +64,7 @@ public class DetailAdapter implements ListAdapter {
             color = selectedColor;
         view.setBackgroundColor(color); //TODO: implement color theme that can take custom theme from file
 
-        TextView title = view.findViewById(R.id.title);
+        TextView title = view.findViewById(R.id.cat_title);
         title.setText(detailItem.leftAlignedText);
 
         RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) title.getLayoutParams();
