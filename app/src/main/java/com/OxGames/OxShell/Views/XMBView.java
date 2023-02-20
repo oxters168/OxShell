@@ -477,7 +477,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         removeViews();
-        //createViews();
+        createViews();
         int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
         catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
         setViews(false);
@@ -649,6 +649,13 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             viewHolder.setX(itemBounds.left);
             viewHolder.setY(itemBounds.top);
             viewHolder.itemViewType = isCat ? CATEGORY_TYPE : SUB_CATEGORY_TYPE;
+            //viewHolder.itemView.measure(getWidth(), getHeight());
+            //LayoutParams params = viewHolder.itemView.getLayoutParams();
+//            params.width = iconSize;
+//            params.height = iconSize;
+//            viewHolder.itemView.setLayoutParams(params);
+            //Log.d("XMBView", "item #" + totalIndex + " params: (" + params.width + ", " + params.height + ")" + " nonparams: (" + viewHolder.itemView.getWidth() + ", " + viewHolder.itemView.getHeight() + ")" + " measured: (" + viewHolder.itemView.getMeasuredWidth() + ", " + viewHolder.itemView.getMeasuredHeight() + ")");
+
             adapter.onBindViewHolder(viewHolder, totalIndex);
             //Log.d("XMBView", "Setting item " + item.title);
             //viewHolder.isCategory = isCat;
@@ -697,8 +704,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         while (!goneItemViews.isEmpty())
             removeView(goneItemViews.pop().itemView);
     }
-//    private void createViews() {
-//        //Log.d("XMBView2", getWidth() + ", " + getHeight());
+    private void createViews() {
+        //Log.d("XMBView2", getWidth() + ", " + getHeight());
 //        int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
 //        int rowCount = ((int)Math.ceil(getHeight() / getVerShiftOffset()) + 4) * 3; //+4 for off screen to on screen animating, *3 for column to column fade
 //        catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
@@ -716,7 +723,19 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
 //            adapter.onViewAttachedToWindow(viewHolder);
 //            goneItemViews.push(viewHolder);
 //        }
-//    }
+        for (int i = 0; i < 5; i++) {
+            // TODO: implement view types for categories?
+            ViewHolder newHolder = adapter.onCreateViewHolder(this, 0);
+            newHolder.itemView.setVisibility(GONE);
+            addView(newHolder.itemView);
+            newHolder.itemView.measure(getWidth(), getHeight());
+            //Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
+            iconSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
+            horSpacing = iconSize * 0.33f;
+            adapter.onViewAttachedToWindow(newHolder);
+            goneItemViews.push(newHolder);
+        }
+    }
     private void returnItemView(int totalIndex) {
         if (usedItemViews.containsKey(totalIndex)) {
             //Log.d("XMBView", "Returning view id " + totalIndex);
@@ -744,14 +763,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             //Log.d("XMBView", "Retrieving view for " + item.title + " whose value is already set to " + view.title);
         } else {
             if (goneItemViews.isEmpty()) {
-                for (int i = 0; i < 5; i++) {
-                    // TODO: implement view types for categories?
-                    ViewHolder newHolder = adapter.onCreateViewHolder(this, 0);
-                    newHolder.itemView.setVisibility(GONE);
-                    addView(newHolder.itemView);
-                    adapter.onViewAttachedToWindow(newHolder);
-                    goneItemViews.push(newHolder);
-                }
+                createViews();
             }
 
             viewHolder = goneItemViews.pop();
