@@ -29,7 +29,7 @@ public class GridAdapter extends BaseAdapter {
         GridItem homeItem = homeItems.get(position);
         if (view == null) {
             LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = layoutInflater.inflate(R.layout.grid_cell, null);
+            view = layoutInflater.inflate(R.layout.xmb_item, null);
         }
 
         view.setBackgroundColor(homeItem.isSelected ? Color.parseColor("#33EAF0CE") : Color.parseColor("#00000000")); //TODO: implement color theme that can take custom theme from file

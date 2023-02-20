@@ -1,6 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.OxGames.OxShell.Views.XMBItemView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="64dip"
+    android:layout_height="64dip"
+    android:clipChildren="false">
 
-</com.OxGames.OxShell.Views.XMBItemView>
+    <FrameLayout
+        android:layout_width="64dip"
+        android:layout_height="64dip">
+
+        <ImageView
+            android:id="@+id/iconGlow"
+            android:layout_width="64dip"
+            android:layout_height="64dip"
+            android:layout_gravity="top|left"
+            android:backgroundTint="#808080"
+            android:backgroundTintMode="src_in"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/sub_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start|center_vertical"
+            android:singleLine="true"
+            android:text="HelloWorld"
+            android:textAlignment="gravity"
+            android:textColor="@color/text"
+            android:textSize="16dip"
+            android:translationX="64dip" />
+
+        <TextView
+            android:id="@+id/cat_title"
+            android:layout_width="64dip"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal|top"
+            android:singleLine="true"
+            android:text="HelloWorld"
+            android:textAlignment="gravity"
+            android:textColor="@color/text"
+            android:textSize="16dip"
+            android:translationY="64dip" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="64dip"
+        android:layout_height="64dip">
+
+        <ImageView
+            android:id="@+id/typeIcon"
+            android:layout_width="56dip"
+            android:layout_height="56dip"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/typeSuperIcon"
+            android:layout_width="15dip"
+            android:layout_height="15dip"
+            android:layout_gravity="bottom|right"
+            android:scaleType="centerCrop" />
+
+    </FrameLayout>
+
+</RelativeLayout>

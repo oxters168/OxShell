@@ -64,6 +64,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         protected View itemView;
         private int itemViewType;
 
+        private boolean isSelection;
         private boolean isNew;
         private float currentX;
         private float currentY;
@@ -75,6 +76,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             this.itemView = itemView;
         }
 
+        public boolean isSelection() {
+            return isSelection;
+        }
         public boolean isCategory() {
             return getItemViewType() == CATEGORY_TYPE;
         }
@@ -140,7 +144,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private int iconSize = 196;
     //private float textSize = 48; //Size of the text
     //private int textCushion = 16; //Distance between item and text
-    private float horSpacing = 64; //How much space to add between items horizontally
+    //private float horSpacing = 64; //How much space to add between items horizontally
+    private float horSpacing = 0;
     private float verSpacing = 0; //How much space to add between items vertically
     private float subItemGap = 48; //The gap between the column items and their sub items
     //private float catShift = horSpacing + (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
@@ -649,6 +654,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             viewHolder.setX(itemBounds.left);
             viewHolder.setY(itemBounds.top);
             viewHolder.itemViewType = isCat ? CATEGORY_TYPE : SUB_CATEGORY_TYPE;
+            viewHolder.isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
             //viewHolder.itemView.measure(getWidth(), getHeight());
             //LayoutParams params = viewHolder.itemView.getLayoutParams();
 //            params.width = iconSize;
@@ -729,9 +735,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             newHolder.itemView.setVisibility(GONE);
             addView(newHolder.itemView);
             newHolder.itemView.measure(getWidth(), getHeight());
-            //Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
+            Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
             iconSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
-            horSpacing = iconSize * 0.33f;
+            //horSpacing = iconSize * 0.33f;
             adapter.onViewAttachedToWindow(newHolder);
             goneItemViews.push(newHolder);
         }

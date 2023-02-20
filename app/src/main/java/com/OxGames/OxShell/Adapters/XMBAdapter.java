@@ -11,7 +11,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
-import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.XMBView;
@@ -35,7 +34,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public XMBViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(context);
-        View view = layoutInflater.inflate(R.layout.grid_cell, null);
+        View view = layoutInflater.inflate(R.layout.xmb_item, null);
 //        XMBItemView view = new XMBItemView(context);
 //        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return new XMBViewHolder(view);
@@ -75,10 +74,13 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             //superIcon.setVisibility(((HomeItem)item).type == HomeItem.Type.assoc ? View.VISIBLE : View.GONE);
 
             ImageView img = itemView.findViewById(R.id.typeIcon);
+            ImageView highlight = itemView.findViewById(R.id.iconGlow);
             Drawable icon = item.getIcon();
             if (icon == null)
                 icon = isCategory() ? ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24) : ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
             img.setBackground(icon);
+            highlight.setBackground(icon.getConstantState().newDrawable());
+            highlight.setVisibility(isSelection() ? View.VISIBLE : View.INVISIBLE);
 //            XMBItemView xmbItemView = (XMBItemView)itemView;
 //            xmbItemView.isCategory = isCategory();
 //            xmbItemView.title = item.title;
