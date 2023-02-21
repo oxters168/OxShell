@@ -81,8 +81,11 @@ public class HomeView extends XMBView implements Refreshable {
                         currentActivity.getSettingsDrawer().setShown(false);
                         return null;
                     });
-                    HomeItem selectedItem = (HomeItem)getSelectedItem();
-                    if (selectedItem.type != HomeItem.Type.explorer && selectedItem.type != HomeItem.Type.settings) {
+                    XMBItem selectedItem = (XMBItem)getSelectedItem();
+                    HomeItem homeItem = null;
+                    if (selectedItem instanceof HomeItem)
+                        homeItem = (HomeItem)selectedItem;
+                    if (homeItem != null && homeItem.type != HomeItem.Type.explorer && homeItem.type != HomeItem.Type.settings) {
                         SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
                         {
                             uninstallSelection();
@@ -111,24 +114,26 @@ public class HomeView extends XMBView implements Refreshable {
     }
     @Override
     public void makeSelection() {
-        HomeItem selectedItem = (HomeItem)getSelectedItem();
-        //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
-        if (selectedItem.type == HomeItem.Type.explorer) {
-            ActivityManager.goTo(ActivityManager.Page.explorer);
+        if (getSelectedItem() instanceof HomeItem) {
+            HomeItem selectedItem = (HomeItem) getSelectedItem();
+            //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
+            if (selectedItem.type == HomeItem.Type.explorer) {
+                ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
-        } else if (selectedItem.type == HomeItem.Type.app) {
-            (IntentLaunchData.createFromPackage((String)selectedItem.obj, Intent.FLAG_ACTIVITY_NEW_TASK)).launch();
-        } else if (selectedItem.type == HomeItem.Type.settings) {
-            ActivityManager.goTo(ActivityManager.Page.settings);
+            } else if (selectedItem.type == HomeItem.Type.app) {
+                (IntentLaunchData.createFromPackage((String) selectedItem.obj, Intent.FLAG_ACTIVITY_NEW_TASK)).launch();
+            } else if (selectedItem.type == HomeItem.Type.settings) {
+                ActivityManager.goTo(ActivityManager.Page.settings);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
-        } else if (selectedItem.type == HomeItem.Type.assoc) {
-            IntentShortcutsView.setLaunchItem(selectedItem);
-            ActivityManager.goTo(ActivityManager.Page.intentShortcuts);
+            } else if (selectedItem.type == HomeItem.Type.assoc) {
+                IntentShortcutsView.setLaunchItem(selectedItem);
+                ActivityManager.goTo(ActivityManager.Page.intentShortcuts);
+            }
         }
     }
     @Override
     public void deleteSelection() {
-        HomeItem selectedItem = (HomeItem)getSelectedItem();
+        XMBItem selectedItem = (XMBItem)getSelectedItem();
         HomeManager.removeItem(selectedItem);
         //refresh();
     }
@@ -144,58 +149,28 @@ public class HomeView extends XMBView implements Refreshable {
     @Override
     public void refresh() {
         //Log.d("HomeView", "Refreshing home view");
-        ArrayList<XMBItem> homeItems = HomeManager.getItems();
+        ArrayList<ArrayList<XMBItem>> allHomeItems = HomeManager.getItems();
+        XMBItem settings = new HomeItem(HomeItem.Type.settings);
+        settings.colIndex = allHomeItems.size();
+        settings.localIndex = 0;
+        ArrayList<XMBItem> settingsColumn = new ArrayList<>();
+        settingsColumn.add(settings);
+        allHomeItems.add(settingsColumn);
+
+        ArrayList<XMBItem> homeItems = new ArrayList<>();
         if (homeItems == null)
             homeItems = new ArrayList<>();
 
-        // using a column count index rather than getting the columns.size() in case if for whatever reason there are missing columns in between
-        int columnCount = 0;
-        HashMap<Integer, List<Integer>> columns = new HashMap<>();
-        for (int index = 0; index < homeItems.size(); index++) {
-            XMBItem item = homeItems.get(index);
-            columnCount = Math.max(columnCount, item.colIndex + 1);
-            //int currentColSize = 0;
-            if (!columns.containsKey(item.colIndex))
-                columns.put(item.colIndex, new ArrayList<>());
-                //currentColSize = columnSizes.get(item.colIndex);
-            //columnSizes.put(item.colIndex, Math.max(currentColSize, item.localIndex + 1));
-            List<Integer> column = columns.get(item.colIndex);
-            boolean added = false;
-            //String output = "Placing " + item.localIndex + " in column " + item.colIndex;
-            for (int i = 0; i < column.size(); i++) {
-                if (item.localIndex >= 0 && item.localIndex < homeItems.get(column.get(i)).localIndex) {
-                    //output += " at " + i;
-                    column.add(i, index);
-                    added = true;
-                    break;
-                }
+        //TODO: Add empty item for empty columns
+
+        int[][] mapper = new int[allHomeItems.size()][];
+        for (int i = 0; i < allHomeItems.size(); i++) {
+            ArrayList<XMBItem> column = allHomeItems.get(i);
+            mapper[i] = new int[column.size()];
+            for (int j = 0; j < column.size(); j++) {
+                mapper[i][j] = homeItems.size();
+                homeItems.add(column.get(j));
             }
-            if (!added) {
-                //output += " at end";
-                if (item.localIndex < 0)
-                    item.localIndex = column.size();
-                column.add(index);
-            }
-            //Log.d("HomeView", output);
-        }
-//        ArrayList<XMBItem> columns = new ArrayList<>();
-//        ArrayList<XMBItem> subItems = new ArrayList<>();
-//        sortItems(homeItems, columns, subItems);
-        XMBItem settings = new HomeItem(HomeItem.Type.settings);
-        settings.colIndex = ++columnCount;
-        List<Integer> settingsList = new ArrayList<>();
-        settingsList.add(homeItems.size());
-        homeItems.add(settings);
-        columns.put(settings.colIndex, settingsList);
-        //homeItems.add(new HomeItem(HomeItem.Type.settings));
-        //columns.add(0, new HomeItem(HomeItem.Type.settings));
-        int[][] mapper = new int[columns.size()][];
-        int mapI = 0;
-        for (Integer key : columns.keySet()) {
-            if (columns.containsKey(key))
-                mapper[mapI++] = columns.get(key).stream().mapToInt(value -> value).toArray();
-            else
-                Log.e("HomeView", "Missing column " + key);
         }
 //        for (int i = 0; i < mapper.length; i++) {
 //            String output = "";

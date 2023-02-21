@@ -65,7 +65,6 @@ public class BetterTextView extends AppCompatTextView {
 
             a.recycle();
         }
-
     }
 
     @Override
@@ -80,7 +79,6 @@ public class BetterTextView extends AppCompatTextView {
         paint.setStrokeWidth(mOutlineSize);
         super.setTextColor(mOutlineColor);
         super.setShadowLayer(0, 0, 0, Color.TRANSPARENT);
-
     }
 
     private void setPaintToRegular() {

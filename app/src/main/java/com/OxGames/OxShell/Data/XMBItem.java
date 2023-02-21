@@ -7,7 +7,9 @@ import androidx.core.content.ContextCompat;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.R;
 
-public class XMBItem<T> {
+import java.io.Serializable;
+
+public class XMBItem<T> implements Serializable {
     public T obj;
     public String title;
     // meant for when reloading items from file to keep their correct positions in the menu (do not set this manually)

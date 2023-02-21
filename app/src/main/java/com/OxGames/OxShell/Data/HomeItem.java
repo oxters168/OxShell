@@ -12,7 +12,7 @@ import com.OxGames.OxShell.R;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-public class HomeItem<T> extends XMBItem<T> implements Serializable, DirsCarrier {
+public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public enum Type { explorer, app, assoc, settings, }
     public Type type;
     public ArrayList<String> extraData;

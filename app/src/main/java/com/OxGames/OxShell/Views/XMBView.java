@@ -647,20 +647,11 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private static final int FADE_IN = 3;
     private void drawItem(int totalIndex, Rect itemBounds, boolean isCat, int fadeTransition) {
         ViewHolder viewHolder = getViewHolder(totalIndex);
-        //ViewHolder[] holdersHolder = new ViewHolder[1];
-        //boolean isNewView = getViewHolder(totalIndex, holdersHolder);
-        //ViewHolder viewHolder = holdersHolder[0];
         if (viewHolder != null) {
             viewHolder.setX(itemBounds.left);
             viewHolder.setY(itemBounds.top);
             viewHolder.itemViewType = isCat ? CATEGORY_TYPE : SUB_CATEGORY_TYPE;
             viewHolder.isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
-            //viewHolder.itemView.measure(getWidth(), getHeight());
-            //LayoutParams params = viewHolder.itemView.getLayoutParams();
-//            params.width = iconSize;
-//            params.height = iconSize;
-//            viewHolder.itemView.setLayoutParams(params);
-            //Log.d("XMBView", "item #" + totalIndex + " params: (" + params.width + ", " + params.height + ")" + " nonparams: (" + viewHolder.itemView.getWidth() + ", " + viewHolder.itemView.getHeight() + ")" + " measured: (" + viewHolder.itemView.getMeasuredWidth() + ", " + viewHolder.itemView.getMeasuredHeight() + ")");
 
             adapter.onBindViewHolder(viewHolder, totalIndex);
             //Log.d("XMBView", "Setting item " + item.title);
@@ -712,25 +703,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private void createViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
-//        int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
-//        int rowCount = ((int)Math.ceil(getHeight() / getVerShiftOffset()) + 4) * 3; //+4 for off screen to on screen animating, *3 for column to column fade
-//        catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
-//        for (int i = 0; i < (colCount + rowCount); i++) {
-//            //Log.d("XMBView2", "Creating item view");
-////            XMBItemView view;
-////            LayoutInflater layoutInflater = LayoutInflater.from(context);
-////            view = (XMBItemView) layoutInflater.inflate(R.layout.xmb_item, null);
-////            view.setVisibility(GONE);
-////            addView(view);
-//            // TODO: implement view types for categories?
-//            ViewHolder viewHolder = adapter.onCreateViewHolder(this, 0);
-//            viewHolder.itemView.setVisibility(GONE);
-//            addView(viewHolder.itemView);
-//            adapter.onViewAttachedToWindow(viewHolder);
-//            goneItemViews.push(viewHolder);
-//        }
+        // TODO: implement view types for categories?
         for (int i = 0; i < 5; i++) {
-            // TODO: implement view types for categories?
             ViewHolder newHolder = adapter.onCreateViewHolder(this, 0);
             newHolder.itemView.setVisibility(GONE);
             addView(newHolder.itemView);
