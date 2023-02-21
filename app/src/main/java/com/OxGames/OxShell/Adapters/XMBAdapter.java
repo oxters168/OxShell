@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,14 +21,17 @@ import java.util.List;
 public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
     private XMBItem[] items;
+    private Typeface font;
 
     public XMBAdapter(Context context, XMBItem... items) {
         this.context = context;
         this.items = items.clone();
+        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
     }
     public XMBAdapter(Context context, List<XMBItem> items) {
         this.context = context;
         this.items = items.toArray(new XMBItem[0]);
+        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
     }
 
     @NonNull
@@ -70,6 +74,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             subTxt.setText(item.title);
             catTxt.setSelected(true);
             subTxt.setSelected(true);
+            catTxt.setTypeface(font);
+            subTxt.setTypeface(font);
 
             ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
             superIcon.setVisibility(View.GONE);
