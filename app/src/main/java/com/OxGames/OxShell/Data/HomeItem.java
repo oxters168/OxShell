@@ -29,28 +29,31 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         type = _type;
         extraData = new ArrayList<>();
     }
-    public HomeItem(Type _type, Drawable _icon, String _title) {
-        this(_type, _icon, _title, null, -1, -1);
-    }
-    public HomeItem(Type _type, Drawable _icon, String _title, T _obj) {
-        this(_type, _icon, _title, _obj, -1, -1);
-    }
-    public HomeItem(Type _type, Drawable _icon, String _title, T _obj, int _colIndex, int _localIndex) {
-        super(_obj, _title, _icon, _colIndex, _localIndex);
-        type = _type;
-        extraData = new ArrayList<>();
-    }
+//    public HomeItem(Type _type, Object _icon, String _title) {
+//        this(_type, _icon, _title, null, -1, -1);
+//    }
+//    public HomeItem(Type _type, Object _icon, String _title, T _obj) {
+//        this(_type, _icon, _title, _obj, -1, -1);
+//    }
+//    public HomeItem(Type _type, Object _icon, String _title, T _obj, int _colIndex, int _localIndex) {
+//        super(_obj, _title, _icon, _colIndex, _localIndex);
+//        type = _type;
+//        extraData = new ArrayList<>();
+//    }
     @Override
     public Drawable getIcon() {
-        Drawable icon = null;
-        if (type == Type.explorer)
-            icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
-        else if (type == Type.app)
-            icon = PackagesCache.getPackageIcon((String)obj);
-        else if (type == Type.settings)
-            icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_settings_24);
-        else if (type == Type.assoc)
-            icon = PackagesCache.getPackageIcon(((IntentLaunchData)obj).getPackageName());
+        //Drawable icon = null;
+        icon = super.getIcon();
+        if (icon == null) {
+            if (type == Type.explorer)
+                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
+            else if (type == Type.app)
+                icon = PackagesCache.getPackageIcon((String)obj);
+            else if (type == Type.settings)
+                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_settings_24);
+            else if (type == Type.assoc)
+                icon = PackagesCache.getPackageIcon(((IntentLaunchData) obj).getPackageName());
+        }
         return icon;
     }
     @Override

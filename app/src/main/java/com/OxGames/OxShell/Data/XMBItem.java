@@ -5,6 +5,8 @@ import android.graphics.drawable.Drawable;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.Serializable;
@@ -15,17 +17,22 @@ public class XMBItem<T> implements Serializable {
     // meant for when reloading items from file to keep their correct positions in the menu (do not set this manually)
     public int colIndex;
     public int localIndex;
+    protected Object iconLoc;
+    protected boolean iconIsResource;
 
+    //protected transient Drawable icon;
     protected transient Drawable icon;
     private transient float currentX;
     private transient float currentY;
     private transient float prevX;
     private transient float prevY;
 
-    public XMBItem(T _obj, String _title, Drawable _icon, int _colIndex, int _localIndex) {
+    public XMBItem(T _obj, String _title, Object _iconLoc, int _colIndex, int _localIndex) {
         obj = _obj;
         title = _title;
-        icon = _icon;
+        iconLoc = _iconLoc;
+        iconIsResource = _iconLoc instanceof Integer;
+        //icon = _icon;
         colIndex = _colIndex;
         localIndex = _localIndex;
     }
@@ -37,6 +44,13 @@ public class XMBItem<T> implements Serializable {
     }
 
     public Drawable getIcon() {
+        if (icon == null && iconLoc != null) {
+            if (iconIsResource) {
+                icon = ContextCompat.getDrawable(OxShellApp.getContext(), (Integer)iconLoc);
+            } else {
+                icon = AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)iconLoc));
+            }
+        }
         return icon;
     }
 

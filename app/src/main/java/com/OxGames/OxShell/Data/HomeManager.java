@@ -3,13 +3,18 @@ package com.OxGames.OxShell.Data;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
+
+import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.HomeActivity;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
+import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.HomeView;
 import com.google.gson.reflect.TypeToken;
 
@@ -20,6 +25,7 @@ public class HomeManager {
     //private static boolean initialized = false;
 //    private static ArrayList<XMBItem> homeItems;
     private static ArrayList<ArrayList<XMBItem>> allHomeItems;
+    private static final int GAMES = 0, AUDIO = 1, VIDEO = 2, IMAGE = 3, SOCIAL = 4, NEWS = 5, MAPS = 6, PRODUCTIVITY = 7, ACCESSIBILITY = 8, OTHER = 9;
 
     public static boolean isInitialized() {
         return allHomeItems != null;
@@ -97,7 +103,7 @@ public class HomeManager {
                     if (!sortedApps.containsKey(category))
                         sortedApps.put(category, new ArrayList<>());
                     ArrayList<XMBItem> currentList = sortedApps.get(category);
-                    currentList.add(new HomeItem(HomeItem.Type.app, PackagesCache.getPackageIcon(currentPkg), PackagesCache.getAppLabel(currentPkg), currentPkg.activityInfo.packageName));
+                    currentList.add(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg), currentPkg.activityInfo.packageName));
                 }
                 // separate the categories to avoid empty ones and order them into an arraylist so no game in indices occurs
                 ArrayList<Integer> existingCategories = new ArrayList<>();
@@ -109,7 +115,7 @@ public class HomeManager {
                     if (catIndex == -1)
                         catIndex = categories.length - 1;
                     // add the category item at the top
-                    int colIndex = createCategory(categories[catIndex], false);
+                    int colIndex = createCategory(getDefaultIconForCategory(catIndex), categories[catIndex], false);
                     //addItem(new XMBItem(null, categories[catIndex], index + 2, 0), false);
                     // add the apps into the category as items
                     ArrayList<XMBItem> column = sortedApps.get(existingCategories.get(index));
@@ -128,6 +134,32 @@ public class HomeManager {
             // if the file exists in the data folder then read it
             Log.d("HomeManager", "Home items exists in data folder, reading...");
             loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+        }
+    }
+    public static int getDefaultIconForCategory(int category) {
+        switch (category) {
+            case(GAMES):
+                return R.drawable.ic_baseline_games_24;
+            case(AUDIO):
+                return R.drawable.ic_baseline_headphones_24;
+            case(VIDEO):
+                return R.drawable.ic_baseline_movie_24;
+            case(IMAGE):
+                return R.drawable.ic_baseline_photo_camera_24;
+            case(SOCIAL):
+                return R.drawable.ic_baseline_forum_24;
+            case(NEWS):
+                return R.drawable.ic_baseline_newspaper_24;
+            case(MAPS):
+                return R.drawable.ic_baseline_map_24;
+            case(PRODUCTIVITY):
+                return R.drawable.ic_baseline_work_24;
+            case(ACCESSIBILITY):
+                return R.drawable.ic_baseline_accessibility_24;
+            case(OTHER):
+                return R.drawable.ic_baseline_auto_awesome_24;
+            default:
+                return R.drawable.ic_baseline_view_list_24;
         }
     }
     public static ArrayList<ArrayList<XMBItem>> getItems() {
@@ -149,8 +181,11 @@ public class HomeManager {
     }
 
     private static int createCategory(String name, boolean refresh) {
+        return createCategory(null, name, refresh);
+    }
+    private static int createCategory(Object iconLoc, String name, boolean refresh) {
         ArrayList<XMBItem> newColumn = new ArrayList<>();
-        XMBItem colItem = new XMBItem(null, name, allHomeItems.size(), 0);
+        XMBItem colItem = new XMBItem(null, name, iconLoc, allHomeItems.size(), 0);
         newColumn.add(colItem);
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
