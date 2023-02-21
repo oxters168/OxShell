@@ -1,6 +1,8 @@
 package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
@@ -88,7 +90,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 icon = isCategory() ? ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24) : ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
             img.setBackground(icon);
             highlight.setBackground(icon.getConstantState().newDrawable());
-            highlight.setVisibility(isSelection() ? View.VISIBLE : View.INVISIBLE);
+            highlight.setBackgroundTintList(ColorStateList.valueOf(isSelection() ? Color.parseColor("#FF808080") : Color.parseColor("#FF000000")));
+            //highlight.setColorFilter(isSelection() ? Color.parseColor("#FFFF0000") : Color.parseColor("#FF000000"));
+            //highlight.setVisibility(isSelection() ? View.VISIBLE : View.INVISIBLE);
 //            XMBItemView xmbItemView = (XMBItemView)itemView;
 //            xmbItemView.isCategory = isCategory();
 //            xmbItemView.title = item.title;
