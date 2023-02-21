@@ -735,7 +735,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             newHolder.itemView.setVisibility(GONE);
             addView(newHolder.itemView);
             newHolder.itemView.measure(getWidth(), getHeight());
-            Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
+            //Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
             iconSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
             //horSpacing = iconSize * 0.33f;
             adapter.onViewAttachedToWindow(newHolder);

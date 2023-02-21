@@ -18,30 +18,38 @@
             android:backgroundTintMode="src_in"
             android:scaleType="centerCrop" />
 
-        <TextView
+        <com.OxGames.OxShell.Views.BetterTextView
             android:id="@+id/sub_title"
-            android:layout_width="wrap_content"
+            android:layout_width="128dip"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:ellipsize="marquee"
             android:gravity="start|center_vertical"
+            android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
             android:text="HelloWorld"
             android:textAlignment="gravity"
             android:textColor="@color/text"
             android:textSize="16dip"
-            android:translationX="64dip" />
+            android:translationX="64dip"
+            app:outlineColor="#000000"
+            app:outlineSize="3dp" />
 
-        <TextView
+        <com.OxGames.OxShell.Views.BetterTextView
             android:id="@+id/cat_title"
             android:layout_width="64dip"
             android:layout_height="wrap_content"
+            android:ellipsize="marquee"
             android:gravity="center_horizontal|top"
+            android:marqueeRepeatLimit="marquee_forever"
             android:singleLine="true"
             android:text="HelloWorld"
             android:textAlignment="gravity"
             android:textColor="@color/text"
             android:textSize="16dip"
-            android:translationY="64dip" />
+            android:translationY="64dip"
+            app:outlineColor="#000000"
+            app:outlineSize="3dp" />
     </FrameLayout>
 
     <FrameLayout

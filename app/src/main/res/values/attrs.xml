@@ -3,4 +3,12 @@
         <attr name="fullscreenBackgroundColor" format="color" />
         <attr name="fullscreenTextColor" format="color" />
     </declare-styleable>
+    <declare-styleable name="BetterTextView">
+        <attr name="outlineSize" format="dimension"/>
+        <attr name="outlineColor" format="color|reference"/>
+        <attr name="android:shadowRadius"/>
+        <attr name="android:shadowDx"/>
+        <attr name="android:shadowDy"/>
+        <attr name="android:shadowColor"/>
+    </declare-styleable>
 </resources>

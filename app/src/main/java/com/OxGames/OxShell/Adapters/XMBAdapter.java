@@ -68,6 +68,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             subTxt.setVisibility(isCategory() ? View.GONE : View.VISIBLE);
             catTxt.setText(item.title);
             subTxt.setText(item.title);
+            catTxt.setSelected(true);
+            subTxt.setSelected(true);
 
             ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
             superIcon.setVisibility(View.GONE);
