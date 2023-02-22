@@ -258,125 +258,150 @@ public class HomeView extends XMBView implements Refreshable {
         origMoveColIndex = moveColIndex;
         origMoveLocalIndex = catHasSubItems(moveColIndex) ? moveLocalIndex + 1 : moveLocalIndex;
     }
+
     @Override
-    public void selectLowerItem() {
+    protected boolean onShiftHorizontally(int colIndex, int prevColIndex) {
+        Log.d("HomeView", "Shifted from " + prevColIndex + " to " + colIndex);
         if (moveMode) {
-            int currentLocalIndex = catHasSubItems(moveColIndex) ? moveLocalIndex + 1 : moveLocalIndex;
-            ArrayList<XMBItem> column = allHomeItems.get(moveColIndex);
-            int nextLocalIndex = Math.min(currentLocalIndex + 1, column.size() - 1);
-            if (currentLocalIndex != nextLocalIndex) {
-                XMBItem moveItem = column.get(currentLocalIndex);
-                column.remove(currentLocalIndex);
-                column.add(nextLocalIndex, moveItem);
-                moveLocalIndex += 1;
-                refresh();
-            }
-        } else
-            super.selectLowerItem();
-    }
-    @Override
-    public void selectUpperItem() {
-        if (moveMode) {
-            boolean hasSubItems = catHasSubItems(moveColIndex);
-            int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
-            ArrayList<XMBItem> column = allHomeItems.get(moveColIndex);
-            int nextLocalIndex = Math.max(currentLocalIndex - 1, hasSubItems ? 1 : 0);
-            if (currentLocalIndex != nextLocalIndex) {
-                XMBItem moveItem = column.get(currentLocalIndex);
-                column.remove(currentLocalIndex);
-                column.add(nextLocalIndex, moveItem);
-                moveLocalIndex -= 1;
-                refresh();
-            }
-        } else
-            super.selectUpperItem();
-    }
-    @Override
-    public void selectRightItem() {
-        if (moveMode) {
-            boolean hasSubItems = catHasSubItems(moveColIndex);
-            int nextColIndex = Math.min(moveColIndex + 1, allHomeItems.size() - (hasSubItems ? 1 : 2)); // -2 due to settings
-            if (moveColIndex != nextColIndex) {
-                int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
-                ArrayList<XMBItem> column = allHomeItems.get(moveColIndex);
-                if (hasSubItems) {
-                    // we're in a column with other things, next column should be a new one with just us
-                    XMBItem moveItem = column.get(currentLocalIndex);
-                    column.remove(currentLocalIndex);
-                    ArrayList<XMBItem> newColumn = new ArrayList<>();
-                    newColumn.add(moveItem);
-                    allHomeItems.add(nextColIndex, newColumn);
-                    moveColIndex = nextColIndex;
-                    moveLocalIndex = 0;
-                } else {
-                    // we're in a column made up solely of us, should remove ourselves first before moving
-                    boolean nextHasSubItems = catHasSubItems(nextColIndex);
-                    if (nextHasSubItems) {
-                        // next column has sub-items, so place within
-                        XMBItem moveItem = allHomeItems.get(moveColIndex).get(moveLocalIndex);
-                        // TODO: figure out way to keep column histories while moving items (very low priority)
-                        int nextLocalIndex = getColLocalIndex(nextColIndex) + 1; // +1 since it has sub-items
-                        allHomeItems.get(nextColIndex).add(nextLocalIndex, moveItem);
-                        allHomeItems.remove(moveColIndex);
-                        // don't set moveColIndex since we removed a column
-                        moveLocalIndex = nextLocalIndex - 1; // -1 since XMBView uses traversable local index and not total
-                    } else {
-                        // next column does not have sub-items, so skip over
-                        ArrayList<XMBItem> moveColumn = allHomeItems.get(moveColIndex);
-                        allHomeItems.remove(moveColIndex);
-                        allHomeItems.add(nextColIndex, moveColumn);
+            if (colIndex > prevColIndex) {
+                // moving right
+                boolean hasSubItems = catHasSubItems(moveColIndex);
+                int nextColIndex = Math.min(moveColIndex + 1, allHomeItems.size() - (hasSubItems ? 1 : 2)); // -2 due to settings
+                if (moveColIndex != nextColIndex) {
+                    int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
+                    ArrayList<XMBItem> column = allHomeItems.get(moveColIndex);
+                    if (hasSubItems) {
+                        // we're in a column with other things, next column should be a new one with just us
+                        XMBItem moveItem = column.get(currentLocalIndex);
+                        column.remove(currentLocalIndex);
+                        ArrayList<XMBItem> newColumn = new ArrayList<>();
+                        newColumn.add(moveItem);
+                        allHomeItems.add(nextColIndex, newColumn);
                         moveColIndex = nextColIndex;
                         moveLocalIndex = 0;
+                    } else {
+                        // we're in a column made up solely of us, should remove ourselves first before moving
+                        boolean nextHasSubItems = catHasSubItems(nextColIndex);
+                        if (nextHasSubItems) {
+                            // next column has sub-items, so place within
+                            XMBItem moveItem = allHomeItems.get(moveColIndex).get(moveLocalIndex);
+                            // TODO: figure out way to keep column histories while moving items (very low priority)
+                            int nextLocalIndex = getColLocalIndex(nextColIndex) + 1; // +1 since it has sub-items
+                            allHomeItems.get(nextColIndex).add(nextLocalIndex, moveItem);
+                            allHomeItems.remove(moveColIndex);
+                            // don't set moveColIndex since we removed a column
+                            moveLocalIndex = nextLocalIndex - 1; // -1 since XMBView uses traversable local index and not total
+                        } else {
+                            // next column does not have sub-items, so skip over
+                            ArrayList<XMBItem> moveColumn = allHomeItems.get(moveColIndex);
+                            allHomeItems.remove(moveColIndex);
+                            allHomeItems.add(nextColIndex, moveColumn);
+                            moveColIndex = nextColIndex;
+                            moveLocalIndex = 0;
+                        }
                     }
+                    refresh();
                 }
-                refresh();
+            } else {
+                // moving left
+                boolean hasSubItems = catHasSubItems(moveColIndex);
+                int nextColIndex = Math.max(moveColIndex - 1, hasSubItems ? -1 : 0); // -1 to move out of the 0th column
+                if (moveColIndex != nextColIndex) {
+                    int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
+                    ArrayList<XMBItem> column = allHomeItems.get(moveColIndex);
+                    if (hasSubItems) {
+                        // we're in a column with other things, next column should be a new one with just us
+                        XMBItem moveItem = column.get(currentLocalIndex);
+                        column.remove(currentLocalIndex);
+                        ArrayList<XMBItem> newColumn = new ArrayList<>();
+                        newColumn.add(moveItem);
+                        allHomeItems.add(moveColIndex, newColumn);
+                        //moveColIndex = nextColIndex;
+                        moveLocalIndex = 0;
+                    } else {
+                        // we're in a column made up solely of us, should remove ourselves first before moving
+                        boolean nextHasSubItems = catHasSubItems(nextColIndex);
+                        if (nextHasSubItems) {
+                            // next column has sub-items, so place within
+                            XMBItem moveItem = allHomeItems.get(moveColIndex).get(moveLocalIndex);
+                            // TODO: figure out way to keep column histories while moving items (very low priority)
+                            int nextLocalIndex = getColLocalIndex(nextColIndex) + 1; // +1 since it has sub-items
+                            allHomeItems.get(nextColIndex).add(nextLocalIndex, moveItem);
+                            allHomeItems.remove(moveColIndex);
+                            moveColIndex = nextColIndex;
+                            moveLocalIndex = nextLocalIndex - 1; // -1 since XMBView uses traversable local index and not total
+                        } else {
+                            // next column does not have sub-items, so skip over
+                            ArrayList<XMBItem> moveColumn = allHomeItems.get(moveColIndex);
+                            allHomeItems.remove(moveColIndex);
+                            allHomeItems.add(nextColIndex, moveColumn);
+                            moveColIndex = nextColIndex;
+                            moveLocalIndex = 0;
+                        }
+                    }
+                    refresh();
+                }
             }
-        } else
-            super.selectRightItem();
+            return true;
+        }
+        return false;
     }
+
     @Override
-    public void selectLeftItem() {
+    protected boolean onShiftVertically(int colIndex, int localIndex, int prevLocalIndex) {
+        Log.d("HomeView", "Shifted from " + prevLocalIndex + " to " + localIndex + " on " + colIndex);
         if (moveMode) {
-            boolean hasSubItems = catHasSubItems(moveColIndex);
-            int nextColIndex = Math.max(moveColIndex - 1, hasSubItems ? -1 : 0); // -1 to move out of the 0th column
-            if (moveColIndex != nextColIndex) {
-                int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
+            if (localIndex > prevLocalIndex) {
+                // going down
+                int currentLocalIndex = catHasSubItems(moveColIndex) ? moveLocalIndex + 1 : moveLocalIndex;
                 ArrayList<XMBItem> column = allHomeItems.get(moveColIndex);
-                if (hasSubItems) {
-                    // we're in a column with other things, next column should be a new one with just us
+                int nextLocalIndex = Math.min(currentLocalIndex + 1, column.size() - 1);
+                if (currentLocalIndex != nextLocalIndex) {
                     XMBItem moveItem = column.get(currentLocalIndex);
                     column.remove(currentLocalIndex);
-                    ArrayList<XMBItem> newColumn = new ArrayList<>();
-                    newColumn.add(moveItem);
-                    allHomeItems.add(moveColIndex, newColumn);
-                    //moveColIndex = nextColIndex;
-                    moveLocalIndex = 0;
-                } else {
-                    // we're in a column made up solely of us, should remove ourselves first before moving
-                    boolean nextHasSubItems = catHasSubItems(nextColIndex);
-                    if (nextHasSubItems) {
-                        // next column has sub-items, so place within
-                        XMBItem moveItem = allHomeItems.get(moveColIndex).get(moveLocalIndex);
-                        // TODO: figure out way to keep column histories while moving items (very low priority)
-                        int nextLocalIndex = getColLocalIndex(nextColIndex) + 1; // +1 since it has sub-items
-                        allHomeItems.get(nextColIndex).add(nextLocalIndex, moveItem);
-                        allHomeItems.remove(moveColIndex);
-                        moveColIndex = nextColIndex;
-                        moveLocalIndex = nextLocalIndex - 1; // -1 since XMBView uses traversable local index and not total
-                    } else {
-                        // next column does not have sub-items, so skip over
-                        ArrayList<XMBItem> moveColumn = allHomeItems.get(moveColIndex);
-                        allHomeItems.remove(moveColIndex);
-                        allHomeItems.add(nextColIndex, moveColumn);
-                        moveColIndex = nextColIndex;
-                        moveLocalIndex = 0;
-                    }
+                    column.add(nextLocalIndex, moveItem);
+                    moveLocalIndex += 1;
+                    refresh();
                 }
-                refresh();
+            } else {
+                // going up
+                boolean hasSubItems = catHasSubItems(moveColIndex);
+                int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
+                ArrayList<XMBItem> column = allHomeItems.get(moveColIndex);
+                int nextLocalIndex = Math.max(currentLocalIndex - 1, hasSubItems ? 1 : 0);
+                if (currentLocalIndex != nextLocalIndex) {
+                    XMBItem moveItem = column.get(currentLocalIndex);
+                    column.remove(currentLocalIndex);
+                    column.add(nextLocalIndex, moveItem);
+                    moveLocalIndex -= 1;
+                    refresh();
+                }
             }
-        } else
-            super.selectLeftItem();
+            return true;
+        }
+        return false;
     }
+
+//    @Override
+//    public void selectLowerItem() {
+//        if (!moveMode)
+//            super.selectLowerItem();
+//    }
+//    @Override
+//    public void selectUpperItem() {
+//        if (!moveMode)
+//            super.selectUpperItem();
+//    }
+//    @Override
+//    public void selectRightItem() {
+//        if (!moveMode)
+//            super.selectRightItem();
+//    }
+//    @Override
+//    public void selectLeftItem() {
+//        if (!moveMode)
+//            super.selectLeftItem();
+//    }
 
 //    private void sortItems(ArrayList<XMBItem> unsortedItems, ArrayList<XMBItem> columns, ArrayList<XMBItem> subItems) {
 //        // reorder items based on their indices so there is no issue when adding them all at once

@@ -191,11 +191,25 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         //Log.d("XMBView", "Shifting to col#: " + colIndex + " item#: " + localIndex);
         int newIndex = getTraversableIndexFromLocal(localIndex, colIndex);
         boolean changed = newIndex != currentIndex;
+        //boolean cancel = false;
         if (changed) {
+//            int prevColIndex = getColIndex();
+//            int prevLocalIndex = getLocalIndex();
+//            if (colIndex != prevColIndex)
+//                if (onShiftHorizontally(colIndex, prevColIndex))
+//                    return;
+//            else
+//                if (onShiftVertically(colIndex, localIndex, prevLocalIndex))
+//                    return;
             prevIndex = currentIndex;
             currentIndex = newIndex;
         }
+        //if (!cancel)
         setViews(changed, instant);
+    }
+    protected boolean onShiftHorizontally(int colIndex, int prevColIndex) {
+        // for extending
+        return false;
     }
     private void setShiftX(float xValue) {
         if (Math.abs(shiftX - xValue) > EPSILON) {
@@ -203,11 +217,16 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             int colIndex = xToIndex(shiftX);
             int newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(colIndex), colIndex);
             boolean changed = newIndex != currentIndex;
+            //boolean cancel = false;
             if (changed) {
+                int prevColIndex = getColIndex();
+                if (onShiftHorizontally(colIndex, prevColIndex))
+                    return;
                 prevIndex = currentIndex;
                 currentIndex = newIndex;
             }
-            setViews(changed, false);
+            //if (!cancel)
+                setViews(changed, false);
             //setIndex(localToTraversableIndex(getCachedIndexOfCat(colIndex), colIndex));
             //setViews(changed);
         }
@@ -225,6 +244,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private float clampYValue(float yValue, int colIndex) {
         return Math.min(Math.max(yValue, 0), (getColTraversableCount(colIndex) - 1) * getVerShiftOffset());
     }
+    protected boolean onShiftVertically(int colIndex, int localIndex, int prevLocalIndex) {
+        // for extending
+        return false;
+    }
     private void setShiftY(float yValue, int colIndex) {
         float shiftY = catPos.get(colIndex);
         if (Math.abs(shiftY - yValue) > EPSILON) {
@@ -234,14 +257,20 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             int currentCol = getColIndexFromTraversable(currentIndex);
             // if the shifted column is the one we are currently on
             if (currentCol == colIndex) {
-                int newIndex = getTraversableIndexFromLocal(yToIndex(newYValue, colIndex), colIndex);
+                int newLocalIndex = yToIndex(newYValue, colIndex);
+                int newIndex = getTraversableIndexFromLocal(newLocalIndex, colIndex);
                 boolean changed = newIndex != currentIndex;
+                //boolean cancel = false;
                 if (changed) {
+                    int prevLocalIndex = getLocalIndex();
+                    if (onShiftVertically(currentCol, newLocalIndex, prevLocalIndex))
+                        return;
                     prevIndex = currentIndex;
                     currentIndex = newIndex;
                 }
                 //setIndex(localToTraversableIndex(yToIndex(newYValue, colIndex), colIndex));
-                setViews(changed, false);
+                //if (!cancel)
+                    setViews(changed, false);
             }
         }
     }
