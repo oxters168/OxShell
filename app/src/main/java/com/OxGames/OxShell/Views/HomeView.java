@@ -67,6 +67,8 @@ public class HomeView extends XMBView implements Refreshable {
         if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
             if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
                 if (!moveMode) {
+                    //if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X)
+                    //    checkAlphas();
                     if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
                         SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
                         {

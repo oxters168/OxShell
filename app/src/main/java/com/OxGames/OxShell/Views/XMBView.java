@@ -680,6 +680,11 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 returnItemView(totalIndex);//traversableToTotalIndex(i));
         }
     }
+//    public void checkAlphas() {
+//        for (Integer key : usedItemViews.keySet()) {
+//            Log.d("XMBView", key + " alpha is " + usedItemViews.get(key).itemView.getAlpha());
+//        }
+//    }
     private static final int FADE_VISIBLE = 0;
     private static final int FADE_INVISIBLE = 1;
     private static final int FADE_OUT = 2;
@@ -691,6 +696,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             viewHolder.setY(itemBounds.top);
             viewHolder.itemViewType = isCat ? CATEGORY_TYPE : SUB_CATEGORY_TYPE;
             viewHolder.isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
+            //Log.d("XMBView", totalIndex + " alpha is " + viewHolder.itemView.getAlpha());
+            viewHolder.itemView.animate().cancel();
 
             adapter.onBindViewHolder(viewHolder, totalIndex);
             //Log.d("XMBView", "Setting item " + item.title);
@@ -713,17 +720,21 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             }
             switch (fadeTransition) {
                 case FADE_VISIBLE:
+                    //Log.d("XMBView", "Applying 1 alpha to " + totalIndex);
                     viewHolder.itemView.setAlpha(1);
                     break;
                 case FADE_INVISIBLE:
+                    //Log.d("XMBView", "Applying 0 alpha to " + totalIndex);
                     viewHolder.itemView.setAlpha(0);
                     break;
                 case FADE_OUT:
+                    //Log.d("XMBView", "Fading out " + totalIndex);
                     viewHolder.itemView.setAlpha(1);
                     viewHolder.itemView.animate().setDuration(300);
                     viewHolder.itemView.animate().alphaBy(-1);
                     break;
                 case FADE_IN:
+                    //Log.d("XMBView", "Fading in " + totalIndex);
                     viewHolder.itemView.setAlpha(0);
                     viewHolder.itemView.animate().setDuration(300);
                     viewHolder.itemView.animate().alphaBy(1);
