@@ -187,7 +187,7 @@ public class HomeView extends XMBView implements Refreshable {
 //            addSubItems(subItems);
         setAdapter(new XMBAdapter(getContext(), homeItems), mapper);
         //addItems(homeItems);
-        setIndex(cachedIndex);
+        setIndex(cachedIndex, true);
 
         //super.refresh();
     }
