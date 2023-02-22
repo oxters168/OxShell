@@ -194,7 +194,7 @@ public class HomeManager {
         newColumn.add(colItem);
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
-        Log.d("HomeManager", "Creating category " + name + " at " + colIndex);
+        //Log.d("HomeManager", "Creating category " + name + " at " + colIndex);
         if (refresh)
             refreshHomeItems();
         return colIndex;
@@ -209,7 +209,7 @@ public class HomeManager {
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
         //homeItems.add(homeItem);
-        Log.d("HomeManager", "Added " + homeItem.title + " at " + colIndex);
+        //Log.d("HomeManager", "Added " + homeItem.title + " at " + colIndex);
         if (refresh)
             refreshHomeItems();
         return colIndex;
