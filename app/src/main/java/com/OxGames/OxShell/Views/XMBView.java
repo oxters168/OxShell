@@ -18,7 +18,6 @@ import com.OxGames.OxShell.Interfaces.InputReceiver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Stack;
 
 public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable {
@@ -302,6 +301,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private float touchMarginBottom = 50;
     private float momentumDeceleration = 10000; // pixels per second per second
     private float touchDeadzone = 50;
+    private float longPressTime = 300; // in milliseconds
     private boolean touchInsideBorders = false;
     private boolean touchHor = false;
     private boolean touchVer = false;
@@ -417,7 +417,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             //float movedDiffY;
             if (!touchHor && !touchVer && Math.abs(startTouchX - ev.getRawX()) < touchDeadzone && Math.abs(startTouchY - ev.getRawY()) < touchDeadzone) {
                 // if the user did not scroll horizontally or vertically and they're still within the deadzone then make selection
-                makeSelection();
+                if (SystemClock.uptimeMillis() - touchMoveStartTime < longPressTime)
+                    affirmativeAction();
+                else
+                    secondaryAction();
             } else if (Math.abs(startTouchX - ev.getRawX()) >= iconSize || Math.abs(startTouchY - ev.getRawY()) >= iconSize) {
                 // else keep the momentum of where the user was scrolling
                 long touchupTime = SystemClock.uptimeMillis();
@@ -1089,7 +1092,17 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
                 stopMomentum();
-                makeSelection();
+                affirmativeAction();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+                stopMomentum();
+                secondaryAction();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                stopMomentum();
+                cancelAction();
                 return true;
             }
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
@@ -1129,10 +1142,14 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     public void selectLeftItem() {
         shiftXDisc(-1);
     }
-    public void makeSelection() {
+    public void affirmativeAction() {
     }
-    public void deleteSelection() {
+    public void secondaryAction() {
     }
+    public void cancelAction() {
+    }
+//    public void deleteSelection() {
+//    }
 //    @Override
 //    public void refresh() {
 //        setViews(false);

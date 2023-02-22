@@ -61,78 +61,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     @Override
-    public boolean receiveKeyEvent(KeyEvent key_event) {
-        // TODO: add way to select items
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                if (!moveMode) {
-                    //if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X)
-                    //    checkAlphas();
-                    if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
-                        SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
-                        {
-                            toggleMoveMode(true);
-                            currentActivity.getSettingsDrawer().setShown(false);
-                            return null;
-                        });
-                        SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove", () ->
-                        {
-                            deleteSelection();
-                            currentActivity.getSettingsDrawer().setShown(false);
-                            return null;
-                        });
-                        SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
-                        {
-                            currentActivity.getSettingsDrawer().setShown(false);
-                            return null;
-                        });
-                        XMBItem selectedItem = (XMBItem) getSelectedItem();
-                        HomeItem homeItem = null;
-                        // TODO: remove delete option for settings and empty
-                        // TODO: remove move option for settings and empty
-                        // TODO: add move column option
-                        // TODO: add delete column option
-                        // TODO: add new column option
-                        if (selectedItem instanceof HomeItem)
-                            homeItem = (HomeItem) selectedItem;
-                        if (homeItem != null && homeItem.type != HomeItem.Type.explorer && homeItem.type != HomeItem.Type.settings) {
-                            SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
-                            {
-                                uninstallSelection();
-                                deleteSelection(); //TODO: only if uninstall was successful
-                                currentActivity.getSettingsDrawer().setShown(false);
-                                return null;
-                            });
-                            currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, uninstallBtn, cancelBtn);
-                        } else
-                            currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, cancelBtn);
-
-                        currentActivity.getSettingsDrawer().setShown(true);
-                        return true;
-                    }
-                } else {
-                    if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
-                        // cancel move
-                        moveMode = false;
-                        refresh();
-                        return true;
-                    }
-                }
-            }
-            return super.receiveKeyEvent(key_event);
-        } else {
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
-                    currentActivity.getSettingsDrawer().setShown(false);
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-    @Override
-    public void makeSelection() {
+    public void affirmativeAction() {
         if (!moveMode) {
             if (getSelectedItem() instanceof HomeItem) {
                 HomeItem selectedItem = (HomeItem) getSelectedItem();
@@ -154,6 +83,64 @@ public class HomeView extends XMBView implements Refreshable {
             applyMove();
     }
     @Override
+    public void secondaryAction() {
+        if (!moveMode) {
+            PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+            if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
+                SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
+                {
+                    toggleMoveMode(true);
+                    currentActivity.getSettingsDrawer().setShown(false);
+                    return null;
+                });
+                SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove", () ->
+                {
+                    deleteSelection();
+                    currentActivity.getSettingsDrawer().setShown(false);
+                    return null;
+                });
+                SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
+                {
+                    currentActivity.getSettingsDrawer().setShown(false);
+                    return null;
+                });
+                XMBItem selectedItem = (XMBItem) getSelectedItem();
+                HomeItem homeItem = null;
+                // TODO: remove delete option for settings and empty
+                // TODO: remove move option for settings and empty
+                // TODO: add move column option
+                // TODO: add delete column option
+                // TODO: add new column option
+                if (selectedItem instanceof HomeItem)
+                    homeItem = (HomeItem) selectedItem;
+                if (homeItem != null && homeItem.type != HomeItem.Type.explorer && homeItem.type != HomeItem.Type.settings) {
+                    SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
+                    {
+                        uninstallSelection();
+                        deleteSelection(); //TODO: only if uninstall was successful
+                        currentActivity.getSettingsDrawer().setShown(false);
+                        return null;
+                    });
+                    currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, uninstallBtn, cancelBtn);
+                } else
+                    currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, cancelBtn);
+
+                currentActivity.getSettingsDrawer().setShown(true);
+            }
+        }
+    }
+    @Override
+    public void cancelAction() {
+        if (!moveMode) {
+            PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+            if (!currentActivity.getSettingsDrawer().isDrawerOpen())
+                currentActivity.getSettingsDrawer().setShown(false);
+        } else {
+            moveMode = false;
+            refresh();
+        }
+    }
+
     public void deleteSelection() {
         XMBItem selectedItem = (XMBItem)getSelectedItem();
         HomeManager.removeItem(selectedItem);
