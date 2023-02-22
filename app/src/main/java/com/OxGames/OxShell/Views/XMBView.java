@@ -256,6 +256,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         // finds the local index closest to the current y value then clamps it to be within the proper range
         return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), getColTraversableCount(colIndex) - 1);
     }
+    protected int getColLocalIndex(int colIndex) {
+        return yToIndex(catPos.get(colIndex), colIndex);
+    }
     private void setShiftYToNearestItem(int colIndex) {
         setShiftY(toNearestColumnItem(catPos.get(colIndex), colIndex), colIndex);
     }
@@ -544,7 +547,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private int getColIndexFromTraversable(int traversableIndex) {
         int index = -1;
-        if (mapper.length > 0) {
+        if (mapper != null && mapper.length > 0) {
             int currentPos = traversableIndex;
             // Go through each column subtracting the amount of items there from the index until the index becomes zero or less
             // meaning we've reached our column
@@ -810,9 +813,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     // calculates the item's rect with the text below the item
     private void calcCatRect(int startX, int startY, int horShiftOffset, int colIndex, Rect rect) {
-        //Gets the bounds of the category view
-        //XMBItem cat = getCatTotalIndex(colIndex);
-        //getTextBounds(painter, cat.title, textSize, rect);
         // get the horizontal pixel position of the item
         int expX = startX + horShiftOffset * colIndex;
         // the vertical pixel position is the same since the categories go along a straight line
@@ -861,14 +861,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return count;
     }
     // Gets the actual total items count including category items
-    private int getTotalCount() {
-        return adapter.getItemCount();
-//        int count = 0;
-//        for (int i = 0; i < mapper.length; i++)
-//            if (mapper[i] != null)
-//                count += mapper[i].length;
-//        return count;
-    }
+//    private int getTotalCount() {
+//        return adapter.getItemCount();
+//    }
 //    private int traversableToTotalIndex(int traversableIndex) {
 //        int colIndex = getLocalIndexFromTraversable(traversableIndex);
 //        int index = traversableIndex;
@@ -878,9 +873,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
 //        }
 //        return index;
 //    }
+    public boolean catHasSubItems(int colIndex) {
+        return mapper[colIndex].length > 1;
+    }
     private int getLocalIndexFromTraversable(int traversableIndex) {
         int index = -1;
-        if (mapper.length > 0) {
+        if (mapper != null && mapper.length > 0) {
             int currentPos = traversableIndex;
             // Go through each column subtracting the amount of items there from the index until the index becomes zero or less
             // meaning we've reached our column
@@ -928,21 +926,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return index;
     }
 
-//    @Override
-//    protected void dispatchDraw(Canvas canvas) {
-//        //Log.d("XMBView2", "dispatchDraw called");
-//        super.dispatchDraw(canvas);
-//        painter.setColor(0xFFFF0000);
-//        painter.setStrokeWidth(8);
-//        canvas.drawLine(0, 0, getWidth(), getHeight(), painter);
-//        canvas.drawLine(0, getHeight(), getWidth(), 0, painter);
-//    }
-
-
-    public void setIconSize(int size) {
-        iconSize = size;
-        // TODO: loop through all XMBItemViews and set their iconSize to this value
-    }
     private int getCatTotalIndex(int colIndex) {
         int catIndex = -1;
         int[] column = mapper[colIndex];
@@ -963,6 +946,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private boolean columnHasSubItems(int colIndex) {
         return mapper[colIndex].length > 1;
+    }
+    public void setIndex(int colIndex, int localIndex, boolean instant) {
+        setIndex(getTraversableIndexFromLocal(localIndex, colIndex), instant);
     }
     public void setIndex(int index, boolean instant) {
         //boolean changed = false;
@@ -1001,6 +987,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     public int getIndex() {
         return currentIndex;
+    }
+    public int getColIndex() {
+        return getColIndexFromTraversable(currentIndex);
+    }
+    public int getLocalIndex() {
+        return getLocalIndexFromTraversable(currentIndex);
     }
     private int getTotalIndexFromTraversable(int traversableIndex) {
         int totalIndex = -1;

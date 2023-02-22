@@ -2,23 +2,17 @@ package com.OxGames.OxShell.Data;
 
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
-
-import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.HomeActivity;
-import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.HomeView;
-import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -194,6 +188,7 @@ public class HomeManager {
         newColumn.add(colItem);
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
+        adjustIndicesStartingFrom(colIndex);
         //Log.d("HomeManager", "Creating category " + name + " at " + colIndex);
         if (refresh)
             refreshHomeItems();
@@ -208,17 +203,35 @@ public class HomeManager {
         newColumn.add(homeItem);
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
+        adjustIndicesStartingFrom(colIndex);
         //homeItems.add(homeItem);
         //Log.d("HomeManager", "Added " + homeItem.title + " at " + colIndex);
         if (refresh)
             refreshHomeItems();
         return colIndex;
     }
-    private static void addItemTo(XMBItem homeItem, int colIndex, boolean refresh) {
+    public static void addItemTo(XMBItem homeItem, int colIndex, boolean refresh) {
         ArrayList<XMBItem> column = allHomeItems.get(colIndex);
-        homeItem.colIndex = colIndex;
-        homeItem.localIndex = column.size();
-        column.add(homeItem);
+        addItemTo(homeItem, colIndex, column.size(), refresh);
+    }
+    public static void addItemTo(XMBItem homeItem, int colIndex, int localIndex, boolean refresh) {
+        //Log.d("HomeManager", "Adding item to (" + colIndex + ", " + localIndex + ")");
+        ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+        adjustIndicesStartingFrom(colIndex, localIndex);
+//        homeItem.colIndex = colIndex;
+//        homeItem.localIndex = localIndex;
+        column.add(localIndex, homeItem);
+        if (refresh)
+            refreshHomeItems();
+    }
+    public static void addItemAt(XMBItem homeItem, int colIndex, boolean refresh) {
+        //Log.d("HomeManager", "Adding item at " + colIndex );
+        ArrayList<XMBItem> newColumn = new ArrayList<>();
+        newColumn.add(homeItem);
+        adjustIndicesStartingFrom(colIndex);
+//        homeItem.colIndex = colIndex;
+//        homeItem.localIndex = 0;
+        allHomeItems.add(colIndex, newColumn);
         if (refresh)
             refreshHomeItems();
     }
@@ -226,7 +239,7 @@ public class HomeManager {
         addItem(homeItem, true);
     }
     public static void addItemAndSave(XMBItem homeItem) {
-        Log.d("HomeManager", "Adding item and saving to disk");
+        //Log.d("HomeManager", "Adding item and saving to disk");
         addItem(homeItem);
         saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
         //TODO: add settings toggle for storing data externally and use that as a condition as well
@@ -236,9 +249,43 @@ public class HomeManager {
     public static void removeColumn(int colIndex) {
         allHomeItems.remove(colIndex);
         // change all later column items' col indices to reflect the removal
+        adjustIndicesStartingFrom(colIndex);
+    }
+    public static void removeItemAt(int colIndex, int localIndex, boolean refresh) {
+        //Log.d("HomeManager", "Removing item (" + colIndex + ", " + localIndex + ")");
+        boolean hasSubItems = allHomeItems.get(colIndex).size() > 1;
+        if (!hasSubItems) {
+            allHomeItems.remove(colIndex);
+            // adjust all later items' column index
+            adjustIndicesStartingFrom(colIndex);
+        } else {
+            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+            column.remove(localIndex);
+            // adjust all later items' local index within the column
+            adjustIndicesStartingFrom(colIndex, localIndex);
+        }
+
+        if (refresh)
+            refreshHomeItems();
+    }
+    private static void adjustIndicesStartingFrom(int colIndex, int fromLocalIndex) {
+        ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+        // adjust all later items' local index within the column
+        for (int i = fromLocalIndex; i < column.size(); i++) {
+            XMBItem item = column.get(i);
+            item.colIndex = colIndex;
+            item.localIndex = i;
+        }
+    }
+    private static void adjustIndicesStartingFrom(int colIndex) {
+        // adjust all later items' column index
         for (int i = colIndex; i < allHomeItems.size(); i++) {
-            for (XMBItem item : allHomeItems.get(i))
+            ArrayList<XMBItem> column = allHomeItems.get(i);
+            for (int j = 0; j < column.size(); j++) {
+                XMBItem item = column.get(j);
                 item.colIndex = i;
+                item.localIndex = j;
+            }
         }
     }
     public static void removeItem(XMBItem homeItem) {
@@ -251,8 +298,9 @@ public class HomeManager {
                     removeColumn(colIndex);
                 } else {
                     // fix the later items within the column to have the proper local index
-                    for (int i = itemLocalIndex; i < column.size(); i++)
-                        column.get(i).localIndex = i;
+                    adjustIndicesStartingFrom(colIndex, itemLocalIndex);
+//                    for (int i = itemLocalIndex; i < column.size(); i++)
+//                        column.get(i).localIndex = i;
                 }
                 break;
             }
