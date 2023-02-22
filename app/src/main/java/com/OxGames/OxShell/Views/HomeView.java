@@ -16,6 +16,7 @@ import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.PagedActivity;
+import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -161,7 +162,18 @@ public class HomeView extends XMBView implements Refreshable {
         if (homeItems == null)
             homeItems = new ArrayList<>();
 
-        //TODO: Add empty item for empty columns
+        // add empty item for empty columns
+        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
+            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+            if (column.size() <= 1) {
+                XMBItem onlyItem = column.get(0);
+                if (onlyItem.obj == null && !(onlyItem instanceof HomeItem)) {
+                    // this column's only item is meant to be the column identifier
+                    XMBItem emptyItem = new XMBItem(null, "Empty", R.drawable.ic_baseline_block_24, colIndex, 1);
+                    column.add(emptyItem);
+                }
+            }
+        }
 
         int[][] mapper = new int[allHomeItems.size()][];
         for (int i = 0; i < allHomeItems.size(); i++) {
