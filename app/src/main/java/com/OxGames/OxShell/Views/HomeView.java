@@ -112,25 +112,6 @@ public class HomeView extends XMBView implements Refreshable {
                         return true;
                     }
                 } else {
-                    if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-                        // apply move
-                        boolean hasSubItems = catHasSubItems(moveColIndex);
-                        int newLocalIndex = moveLocalIndex + (hasSubItems ? 1 : 0);
-                        //Log.d("HomeView", "Attempting to move (" + origMoveColIndex + ", " + origMoveLocalIndex + ") => (" + newColIndex + ", " + newLocalIndex + ")");
-                        if (moveColIndex != origMoveColIndex || newLocalIndex != origMoveLocalIndex) {
-                            XMBItem moveItem = allHomeItems.get(moveColIndex).get(newLocalIndex);
-                            if (hasSubItems) {
-                                HomeManager.removeItemAt(origMoveColIndex, origMoveLocalIndex, false);
-                                HomeManager.addItemTo(moveItem, moveColIndex, newLocalIndex, false);
-                            } else {
-                                HomeManager.removeItemAt(origMoveColIndex, origMoveLocalIndex, false);
-                                HomeManager.addItemAt(moveItem, moveColIndex, false);
-                            }
-                        }
-                        moveMode = false;
-                        refresh();
-                        return true;
-                    }
                     if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
                         // cancel move
                         moveMode = false;
@@ -152,22 +133,25 @@ public class HomeView extends XMBView implements Refreshable {
     }
     @Override
     public void makeSelection() {
-        if (getSelectedItem() instanceof HomeItem) {
-            HomeItem selectedItem = (HomeItem) getSelectedItem();
-            //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
-            if (selectedItem.type == HomeItem.Type.explorer) {
-                ActivityManager.goTo(ActivityManager.Page.explorer);
+        if (!moveMode) {
+            if (getSelectedItem() instanceof HomeItem) {
+                HomeItem selectedItem = (HomeItem) getSelectedItem();
+                //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
+                if (selectedItem.type == HomeItem.Type.explorer) {
+                    ActivityManager.goTo(ActivityManager.Page.explorer);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
-            } else if (selectedItem.type == HomeItem.Type.app) {
-                (IntentLaunchData.createFromPackage((String) selectedItem.obj, Intent.FLAG_ACTIVITY_NEW_TASK)).launch();
-            } else if (selectedItem.type == HomeItem.Type.settings) {
-                ActivityManager.goTo(ActivityManager.Page.settings);
+                } else if (selectedItem.type == HomeItem.Type.app) {
+                    (IntentLaunchData.createFromPackage((String) selectedItem.obj, Intent.FLAG_ACTIVITY_NEW_TASK)).launch();
+                } else if (selectedItem.type == HomeItem.Type.settings) {
+                    ActivityManager.goTo(ActivityManager.Page.settings);
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
-            } else if (selectedItem.type == HomeItem.Type.assoc) {
-                IntentShortcutsView.setLaunchItem(selectedItem);
-                ActivityManager.goTo(ActivityManager.Page.intentShortcuts);
+                } else if (selectedItem.type == HomeItem.Type.assoc) {
+                    IntentShortcutsView.setLaunchItem(selectedItem);
+                    ActivityManager.goTo(ActivityManager.Page.intentShortcuts);
+                }
             }
-        }
+        } else
+            applyMove();
     }
     @Override
     public void deleteSelection() {
@@ -250,7 +234,6 @@ public class HomeView extends XMBView implements Refreshable {
         }
     }
 
-    // TODO: fix move mode for touch input
     private void toggleMoveMode(boolean onOff) {
         moveMode = onOff;
         moveColIndex = getColIndex();
@@ -258,10 +241,27 @@ public class HomeView extends XMBView implements Refreshable {
         origMoveColIndex = moveColIndex;
         origMoveLocalIndex = catHasSubItems(moveColIndex) ? moveLocalIndex + 1 : moveLocalIndex;
     }
+    private void applyMove() {
+        boolean hasSubItems = catHasSubItems(moveColIndex);
+        int newLocalIndex = moveLocalIndex + (hasSubItems ? 1 : 0);
+        //Log.d("HomeView", "Attempting to move (" + origMoveColIndex + ", " + origMoveLocalIndex + ") => (" + newColIndex + ", " + newLocalIndex + ")");
+        if (moveColIndex != origMoveColIndex || newLocalIndex != origMoveLocalIndex) {
+            XMBItem moveItem = allHomeItems.get(moveColIndex).get(newLocalIndex);
+            if (hasSubItems) {
+                HomeManager.removeItemAt(origMoveColIndex, origMoveLocalIndex, false);
+                HomeManager.addItemTo(moveItem, moveColIndex, newLocalIndex, false);
+            } else {
+                HomeManager.removeItemAt(origMoveColIndex, origMoveLocalIndex, false);
+                HomeManager.addItemAt(moveItem, moveColIndex, false);
+            }
+        }
+        moveMode = false;
+        refresh();
+    }
 
     @Override
     protected boolean onShiftHorizontally(int colIndex, int prevColIndex) {
-        Log.d("HomeView", "Shifted from " + prevColIndex + " to " + colIndex);
+        //Log.d("HomeView", "Shifted from " + prevColIndex + " to " + colIndex);
         if (moveMode) {
             if (colIndex > prevColIndex) {
                 // moving right
@@ -349,7 +349,7 @@ public class HomeView extends XMBView implements Refreshable {
 
     @Override
     protected boolean onShiftVertically(int colIndex, int localIndex, int prevLocalIndex) {
-        Log.d("HomeView", "Shifted from " + prevLocalIndex + " to " + localIndex + " on " + colIndex);
+        //Log.d("HomeView", "Shifted from " + prevLocalIndex + " to " + localIndex + " on " + colIndex);
         if (moveMode) {
             if (localIndex > prevLocalIndex) {
                 // going down
