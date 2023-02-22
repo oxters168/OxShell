@@ -150,7 +150,7 @@ public class HomeView extends XMBView implements Refreshable {
     public void refresh() {
         //Log.d("HomeView", "Refreshing home view");
         ArrayList<ArrayList<XMBItem>> allHomeItems = HomeManager.getItems();
-        XMBItem settings = new HomeItem(HomeItem.Type.settings);
+        XMBItem settings = new HomeItem(HomeItem.Type.settings, "Settings");
         settings.colIndex = allHomeItems.size();
         settings.localIndex = 0;
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();

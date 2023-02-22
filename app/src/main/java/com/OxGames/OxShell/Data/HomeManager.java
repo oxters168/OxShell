@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Data;
 
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
@@ -10,6 +11,7 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.OxShellApp;
@@ -25,7 +27,6 @@ public class HomeManager {
     //private static boolean initialized = false;
 //    private static ArrayList<XMBItem> homeItems;
     private static ArrayList<ArrayList<XMBItem>> allHomeItems;
-    private static final int GAMES = 0, AUDIO = 1, VIDEO = 2, IMAGE = 3, SOCIAL = 4, NEWS = 5, MAPS = 6, PRODUCTIVITY = 7, ACCESSIBILITY = 8, OTHER = 9;
 
     public static boolean isInitialized() {
         return allHomeItems != null;
@@ -95,11 +96,14 @@ public class HomeManager {
                 // go through all apps creating HomeItems for them and sorting them into their categories
 //                for (ResolveInfo app : apps)
 //                    addItem(new HomeItem(HomeItem.Type.app, PackagesCache.getPackageIcon(app), PackagesCache.getAppLabel(app), app.activityInfo.packageName), false);
+                int otherIndex = getOtherCategoryIndex();
                 for (int i = 0; i < apps.size(); i++) {
                     ResolveInfo currentPkg = apps.get(i);
                     int category = -1;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
                         category = currentPkg.activityInfo.applicationInfo.category;
+                    if (category < 0)
+                        category = otherIndex;
                     if (!sortedApps.containsKey(category))
                         sortedApps.put(category, new ArrayList<>());
                     ArrayList<XMBItem> currentList = sortedApps.get(category);
@@ -137,30 +141,31 @@ public class HomeManager {
         }
     }
     public static int getDefaultIconForCategory(int category) {
-        switch (category) {
-            case(GAMES):
-                return R.drawable.ic_baseline_games_24;
-            case(AUDIO):
-                return R.drawable.ic_baseline_headphones_24;
-            case(VIDEO):
-                return R.drawable.ic_baseline_movie_24;
-            case(IMAGE):
-                return R.drawable.ic_baseline_photo_camera_24;
-            case(SOCIAL):
-                return R.drawable.ic_baseline_forum_24;
-            case(NEWS):
-                return R.drawable.ic_baseline_newspaper_24;
-            case(MAPS):
-                return R.drawable.ic_baseline_map_24;
-            case(PRODUCTIVITY):
-                return R.drawable.ic_baseline_work_24;
-            case(ACCESSIBILITY):
-                return R.drawable.ic_baseline_accessibility_24;
-            case(OTHER):
-                return R.drawable.ic_baseline_auto_awesome_24;
-            default:
-                return R.drawable.ic_baseline_view_list_24;
-        }
+        if (category == ApplicationInfo.CATEGORY_GAME)
+            return R.drawable.ic_baseline_games_24;
+        else if (category == ApplicationInfo.CATEGORY_AUDIO)
+            return R.drawable.ic_baseline_headphones_24;
+        else if (category == ApplicationInfo.CATEGORY_VIDEO)
+            return R.drawable.ic_baseline_movie_24;
+        else if (category == ApplicationInfo.CATEGORY_IMAGE)
+            return R.drawable.ic_baseline_photo_camera_24;
+        else if (category == ApplicationInfo.CATEGORY_SOCIAL)
+            return R.drawable.ic_baseline_forum_24;
+        else if (category == ApplicationInfo.CATEGORY_NEWS)
+            return R.drawable.ic_baseline_newspaper_24;
+        else if (category == ApplicationInfo.CATEGORY_MAPS)
+            return R.drawable.ic_baseline_map_24;
+        else if (category == ApplicationInfo.CATEGORY_PRODUCTIVITY)
+            return R.drawable.ic_baseline_work_24;
+        else if (category == ApplicationInfo.CATEGORY_ACCESSIBILITY)
+            return R.drawable.ic_baseline_accessibility_24;
+        else if (category == getOtherCategoryIndex())
+            return R.drawable.ic_baseline_auto_awesome_24;
+        else
+            return R.drawable.ic_baseline_view_list_24;
+    }
+    private static int getOtherCategoryIndex() {
+        return MathHelpers.max(ApplicationInfo.CATEGORY_GAME, ApplicationInfo.CATEGORY_AUDIO, ApplicationInfo.CATEGORY_IMAGE, ApplicationInfo.CATEGORY_SOCIAL, ApplicationInfo.CATEGORY_NEWS, ApplicationInfo.CATEGORY_MAPS, ApplicationInfo.CATEGORY_PRODUCTIVITY, ApplicationInfo.CATEGORY_ACCESSIBILITY) + 1;
     }
     public static ArrayList<ArrayList<XMBItem>> getItems() {
         //Might be called before initialization
@@ -189,6 +194,7 @@ public class HomeManager {
         newColumn.add(colItem);
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
+        Log.d("HomeManager", "Creating category " + name + " at " + colIndex);
         if (refresh)
             refreshHomeItems();
         return colIndex;
@@ -203,6 +209,7 @@ public class HomeManager {
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
         //homeItems.add(homeItem);
+        Log.d("HomeManager", "Added " + homeItem.title + " at " + colIndex);
         if (refresh)
             refreshHomeItems();
         return colIndex;
