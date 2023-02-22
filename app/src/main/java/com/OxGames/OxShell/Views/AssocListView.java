@@ -71,7 +71,7 @@ public class AssocListView extends SlideTouchListView {
             ActivityManager.goTo(ActivityManager.Page.selectDirs);
             SelectDirsView.addResultListener((resultCode, output) -> {
                 if (resultCode == SelectDirsView.RESULT_DONE) {
-                    HomeManager.addItemAndSave(addedItem);
+                    HomeManager.addItem(addedItem);
                     Toast.makeText(getContext(), "Added " + selectedItem.getDisplayName() + " to home", Toast.LENGTH_SHORT).show();
                 }
             });

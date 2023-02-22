@@ -81,7 +81,7 @@ public class HomeManager {
         if (!AndroidHelpers.fileExists(home_items_path)) {
             // if no file exists then we can ask the user if they want to add their apps to the home then save
             Log.d("HomeManager", "Home items does not exist in data folder, creating...");
-            addExplorer();
+            //addExplorer();
 
             String[] categories = new String[] { "Games", "Audio", "Video", "Image", "Social", "News", "Maps", "Productivity", "Accessibility", "Other" };
             HashMap<Integer, ArrayList<XMBItem>> sortedApps = new HashMap<>();
@@ -124,8 +124,9 @@ public class HomeManager {
                         addItemTo(app, colIndex, false);
                     }
                 }
+                addItemAt(createExplorerItem(), 0, false);
                 refreshHomeItems();
-                saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+                //saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
             }));
         }
         else {
@@ -172,15 +173,21 @@ public class HomeManager {
         }
         return cloned;
     }
-    public static void addExplorerAndSave() {
-        addItemAndSave(new HomeItem(HomeItem.Type.explorer, "Explorer"));
-    }
-    private static void addExplorer() {
-        addItem(new HomeItem(HomeItem.Type.explorer, "Explorer"));
+//    public static void addExplorerAndSave() {
+//        addItemAndSave(new HomeItem(HomeItem.Type.explorer, "Explorer"));
+//    }
+//    private static void addExplorer() {
+//        addItem(new HomeItem(HomeItem.Type.explorer, "Explorer"));
+//    }
+    public static HomeItem createExplorerItem() {
+        return new HomeItem(HomeItem.Type.explorer, "Explorer");
     }
 
     private static int createCategory(String name, boolean refresh) {
         return createCategory(null, name, refresh);
+    }
+    public static void createCategory(String name) {
+        createCategory(name, true);
     }
     private static int createCategory(Object iconLoc, String name, boolean refresh) {
         ArrayList<XMBItem> newColumn = new ArrayList<>();
@@ -190,12 +197,10 @@ public class HomeManager {
         allHomeItems.add(newColumn);
         adjustIndicesStartingFrom(colIndex);
         //Log.d("HomeManager", "Creating category " + name + " at " + colIndex);
+        save();
         if (refresh)
             refreshHomeItems();
         return colIndex;
-    }
-    public static void createCategory(String name) {
-        createCategory(name, true);
     }
     private static int addItem(XMBItem homeItem, boolean refresh) {
         ArrayList<XMBItem> newColumn = new ArrayList<>();
@@ -206,6 +211,7 @@ public class HomeManager {
         adjustIndicesStartingFrom(colIndex);
         //homeItems.add(homeItem);
         //Log.d("HomeManager", "Added " + homeItem.title + " at " + colIndex);
+        save();
         if (refresh)
             refreshHomeItems();
         return colIndex;
@@ -221,6 +227,7 @@ public class HomeManager {
 //        homeItem.colIndex = colIndex;
 //        homeItem.localIndex = localIndex;
         column.add(localIndex, homeItem);
+        save();
         if (refresh)
             refreshHomeItems();
     }
@@ -232,24 +239,28 @@ public class HomeManager {
 //        homeItem.colIndex = colIndex;
 //        homeItem.localIndex = 0;
         allHomeItems.add(colIndex, newColumn);
+        save();
         if (refresh)
             refreshHomeItems();
     }
     public static void addItem(XMBItem homeItem) {
         addItem(homeItem, true);
     }
-    public static void addItemAndSave(XMBItem homeItem) {
-        //Log.d("HomeManager", "Adding item and saving to disk");
-        addItem(homeItem);
-        saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-        //TODO: add settings toggle for storing data externally and use that as a condition as well
-//        if (AndroidHelpers.hasWriteStoragePermission())
-//            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-    }
-    public static void removeColumn(int colIndex) {
+//    public static void addItemAndSave(XMBItem homeItem) {
+//        //Log.d("HomeManager", "Adding item and saving to disk");
+//        addItem(homeItem);
+//        save();
+//        //TODO: add settings toggle for storing data externally and use that as a condition as well
+////        if (AndroidHelpers.hasWriteStoragePermission())
+////            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+//    }
+    public static void removeColumn(int colIndex, boolean refresh) {
         allHomeItems.remove(colIndex);
         // change all later column items' col indices to reflect the removal
         adjustIndicesStartingFrom(colIndex);
+        save();
+        if (refresh)
+            refreshHomeItems();
     }
     public static void removeItemAt(int colIndex, int localIndex, boolean refresh) {
         //Log.d("HomeManager", "Removing item (" + colIndex + ", " + localIndex + ")");
@@ -265,8 +276,32 @@ public class HomeManager {
             adjustIndicesStartingFrom(colIndex, localIndex);
         }
 
+        save();
         if (refresh)
             refreshHomeItems();
+    }
+    public static void removeItem(XMBItem homeItem) {
+        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
+            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+            int itemLocalIndex = column.indexOf(homeItem);
+            if (itemLocalIndex >= 0) {
+                column.remove(itemLocalIndex);
+                if (column.size() <= 0) {
+                    removeColumn(colIndex, false);
+                } else {
+                    // fix the later items within the column to have the proper local index
+                    adjustIndicesStartingFrom(colIndex, itemLocalIndex);
+//                    for (int i = itemLocalIndex; i < column.size(); i++)
+//                        column.get(i).localIndex = i;
+                }
+                break;
+            }
+        }
+        //homeItems.remove(homeItem);
+        refreshHomeItems();
+        save();
+//        if (AndroidHelpers.hasWriteStoragePermission())
+//            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
     private static void adjustIndicesStartingFrom(int colIndex, int fromLocalIndex) {
         ArrayList<XMBItem> column = allHomeItems.get(colIndex);
@@ -288,28 +323,9 @@ public class HomeManager {
             }
         }
     }
-    public static void removeItem(XMBItem homeItem) {
-        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
-            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
-            int itemLocalIndex = column.indexOf(homeItem);
-            if (itemLocalIndex >= 0) {
-                column.remove(itemLocalIndex);
-                if (column.size() <= 0) {
-                    removeColumn(colIndex);
-                } else {
-                    // fix the later items within the column to have the proper local index
-                    adjustIndicesStartingFrom(colIndex, itemLocalIndex);
-//                    for (int i = itemLocalIndex; i < column.size(); i++)
-//                        column.get(i).localIndex = i;
-                }
-                break;
-            }
-        }
-        //homeItems.remove(homeItem);
-        refreshHomeItems();
+
+    private static void save() {
         saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-//        if (AndroidHelpers.hasWriteStoragePermission())
-//            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
 
     private static void loadHomeItemsFromFile(String parentDir, String fileName) {
