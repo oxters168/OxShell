@@ -132,11 +132,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         this.mapper = mapper2;
         currentIndex = 0;
         prevIndex = 0;
-        setShiftX(getShiftX(0));
+        //setShiftX(getShiftX(0));
         removeViews();
         createViews();
+        setShiftXAndY(0, 0, true);
         //returnAllItemViews();
-        setViews(false, true);
+        //setViews(false, true);
         //refresh();
     }
     public Adapter getAdapter() {
@@ -187,7 +188,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         }
 
         int localIndex = yToIndex(shiftY, colIndex);
-        Log.d("XMBView", "Shifting to col#: " + colIndex + " item#: " + localIndex);
+        //Log.d("XMBView", "Shifting to col#: " + colIndex + " item#: " + localIndex);
         int newIndex = getTraversableIndexFromLocal(localIndex, colIndex);
         boolean changed = newIndex != currentIndex;
         if (changed) {

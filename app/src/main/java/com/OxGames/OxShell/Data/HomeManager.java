@@ -233,14 +233,27 @@ public class HomeManager {
         if (AndroidHelpers.hasWriteStoragePermission())
             saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
+    public static void removeColumn(int colIndex) {
+        allHomeItems.remove(colIndex);
+        // change all later column items' col indices to reflect the removal
+        for (int i = colIndex; i < allHomeItems.size(); i++) {
+            for (XMBItem item : allHomeItems.get(i))
+                item.colIndex = i;
+        }
+    }
     public static void removeItem(XMBItem homeItem) {
-        for (ArrayList<XMBItem> column : allHomeItems) {
-            int index = column.indexOf(homeItem);
-            if (index >= 0) {
-                column.remove(index);
-                // fix the later items within the column to have the proper local index
-                for (int i = index; i < column.size(); i++)
-                    column.get(i).localIndex = i;
+        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
+            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+            int itemLocalIndex = column.indexOf(homeItem);
+            if (itemLocalIndex >= 0) {
+                column.remove(itemLocalIndex);
+                if (column.size() <= 0) {
+                    removeColumn(colIndex);
+                } else {
+                    // fix the later items within the column to have the proper local index
+                    for (int i = itemLocalIndex; i < column.size(); i++)
+                        column.get(i).localIndex = i;
+                }
                 break;
             }
         }
