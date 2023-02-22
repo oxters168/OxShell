@@ -318,6 +318,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private float momentumY = 0;
     private float prevY = 0;
     private int startTouchIndex = 0;
+    private boolean longPressed = false;
+    private boolean isPressing = false;
 
     // traversable index means the indices that can actually be stepped on
     // col index are the indices that represent the columns
@@ -349,14 +351,33 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
             //Log.d("XMBView", "Touchdown");
             touchMoveStartTime = SystemClock.uptimeMillis();
+            longPressed = false;
+            isPressing = true;
             startTouchX = ev.getRawX();
             startTouchY = ev.getRawY();
             prevX = startTouchX;
             prevY = startTouchY;
             touchInsideBorders = startTouchX > touchMarginLeft && startTouchX < getWidth() - touchMarginRight && startTouchY > touchMarginTop && startTouchY < getHeight() - touchMarginBottom;
-            if (touchInsideBorders)
+            if (touchInsideBorders) {
                 stopMomentum();
+                Handler longPressHandler = new Handler();
+                Runnable checkLongPress = new Runnable() {
+                    @Override
+                    public void run() {
+                        if (isPressing && !touchHor && !touchVer && Math.abs(startTouchX - ev.getRawX()) < touchDeadzone && Math.abs(startTouchY - ev.getRawY()) < touchDeadzone) {
+                            if (SystemClock.uptimeMillis() - touchMoveStartTime >= longPressTime) {
+                                longPressed = true;
+                                secondaryAction();
+                            } else
+                                longPressHandler.postDelayed(this, 10);
+                        }
+                    }
+                };
+                longPressHandler.postDelayed(checkLongPress, 10);
+            }
         } else if (ev.getAction() == MotionEvent.ACTION_MOVE && touchInsideBorders) {
+            if (longPressed)
+                return true;
             float currentX = ev.getRawX();
             float currentY = ev.getRawY();
             if (!touchVer && !touchHor && Math.abs(currentX - startTouchX) >= touchDeadzone) {
@@ -412,15 +433,18 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             prevY = currentY;
         } else if (ev.getAction() == MotionEvent.ACTION_UP && touchInsideBorders) {
             //Log.d("XMBView", "Touchup");
+            isPressing = false;
             stopMomentum();
+            if (longPressed)
+                return true;
             //float movedDiffX;
             //float movedDiffY;
             if (!touchHor && !touchVer && Math.abs(startTouchX - ev.getRawX()) < touchDeadzone && Math.abs(startTouchY - ev.getRawY()) < touchDeadzone) {
                 // if the user did not scroll horizontally or vertically and they're still within the deadzone then make selection
-                if (SystemClock.uptimeMillis() - touchMoveStartTime < longPressTime)
+                //if (SystemClock.uptimeMillis() - touchMoveStartTime < longPressTime)
                     affirmativeAction();
-                else
-                    secondaryAction();
+//                else
+//                    secondaryAction();
             } else if (Math.abs(startTouchX - ev.getRawX()) >= iconSize || Math.abs(startTouchY - ev.getRawY()) >= iconSize) {
                 // else keep the momentum of where the user was scrolling
                 long touchupTime = SystemClock.uptimeMillis();
