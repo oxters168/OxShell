@@ -230,8 +230,8 @@ public class HomeManager {
         addItem(homeItem);
         saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
         //TODO: add settings toggle for storing data externally and use that as a condition as well
-        if (AndroidHelpers.hasWriteStoragePermission())
-            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+//        if (AndroidHelpers.hasWriteStoragePermission())
+//            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
     public static void removeColumn(int colIndex) {
         allHomeItems.remove(colIndex);
@@ -260,8 +260,8 @@ public class HomeManager {
         //homeItems.remove(homeItem);
         refreshHomeItems();
         saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-        if (AndroidHelpers.hasWriteStoragePermission())
-            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+//        if (AndroidHelpers.hasWriteStoragePermission())
+//            saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
 
     private static void loadHomeItemsFromFile(String parentDir, String fileName) {
@@ -269,7 +269,7 @@ public class HomeManager {
         allHomeItems = new ArrayList<>();
         // Object[] savedItems = (Object[])Serialaver.loadFile(AndroidHelpers.combinePaths(parentDir, fileName));
         String path = AndroidHelpers.combinePaths(parentDir, fileName);
-        Log.d("HomeManager", "Looking for " + path);
+        //Log.d("HomeManager", "Looking for " + path);
         if (AndroidHelpers.fileExists(path)) {
 //            ArrayList<XMBItem> savedItems = new ArrayList<>();
 //            savedItems.addAll(Serialaver.loadFromJSON(path + Paths.HOME_ITEMS_CATS, new TypeToken<ArrayList<XMBItem>>(){}.getType()));
@@ -279,7 +279,7 @@ public class HomeManager {
             //HomeItem[] savedItems = Serialaver.loadFromJSON(path, HomeItem[].class);
             ArrayList<ArrayList<XMBItem>> savedItems = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFile(path);
             //ArrayList<ArrayList<XMBItem>> savedItems = Serialaver.loadFromJSON(path, new TypeToken<ArrayList<ArrayList<XMBItem>>>(){}.getType());
-            if (savedItems.size() > 0) {
+            if (savedItems != null && savedItems.size() > 0) {
                 for (ArrayList<XMBItem> column : savedItems) {
                     if (column.size() > 0) {
                         int colIndex = addItem(column.get(0), false);
@@ -290,9 +290,9 @@ public class HomeManager {
                     }
                 }
             } else
-                Log.e("HomeManager", "Could not load home items, format unknown");
+                Log.e("HomeManager", "Failed to load home itmes");
         } else
-            Log.e("HomeManager", "Attempted to read missing home items @ " + path);
+            Log.e("HomeManager", "Attempted to read non-existant home items file @ " + path);
         refreshHomeItems();
     }
     private static void saveHomeItemsToFile(String parentDir, String fileName) {

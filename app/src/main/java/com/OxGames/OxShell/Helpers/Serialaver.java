@@ -20,9 +20,8 @@ public class Serialaver {
             out.writeObject(obj);
             out.close();
             file.close();
-        }
-        catch(IOException ex) {
-            Log.e("Serialize", ex.getMessage());
+        } catch(Exception e) {
+            Log.e("Serialaver", e.getMessage());
         }
     }
     public static Object loadFile(String path) {
@@ -34,12 +33,8 @@ public class Serialaver {
             obj = in.readObject();
             in.close();
             file.close();
-        }
-        catch(IOException ex) {
-            Log.e("Deserialize", ex.getMessage());
-        }
-        catch(ClassNotFoundException ex) {
-            Log.e("Deserialize", ex.getMessage());
+        } catch (Exception e) {
+            Log.e("Serialaver", e.getMessage());
         }
         return obj;
     }
