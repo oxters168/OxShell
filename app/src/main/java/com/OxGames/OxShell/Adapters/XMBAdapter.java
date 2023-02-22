@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
@@ -24,6 +25,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
     private XMBItem[] items;
     private Typeface font;
+    @ColorInt
+    public int highlightColor = Color.parseColor("#FF808080");
+    @ColorInt
+    public int nonHighlightColor = Color.parseColor("#FF000000");
 
     public XMBAdapter(Context context, XMBItem... items) {
         this.context = context;
@@ -90,7 +95,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 icon = isCategory() ? ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24) : ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
             img.setBackground(icon);
             highlight.setBackground(icon.getConstantState().newDrawable());
-            highlight.setBackgroundTintList(ColorStateList.valueOf(isSelection() ? Color.parseColor("#FF808080") : Color.parseColor("#FF000000")));
+            highlight.setBackgroundTintList(ColorStateList.valueOf(isSelection() ? highlightColor : nonHighlightColor));
             //highlight.setColorFilter(isSelection() ? Color.parseColor("#FFFF0000") : Color.parseColor("#FF000000"));
             //highlight.setVisibility(isSelection() ? View.VISIBLE : View.INVISIBLE);
 //            XMBItemView xmbItemView = (XMBItemView)itemView;

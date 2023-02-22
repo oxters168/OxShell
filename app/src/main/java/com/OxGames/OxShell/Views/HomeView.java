@@ -2,11 +2,14 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+
+import androidx.annotation.ColorInt;
 
 import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.Data.XMBItem;
@@ -31,6 +34,11 @@ public class HomeView extends XMBView implements Refreshable {
     private int origMoveLocalIndex;
     private int moveColIndex;
     private int moveLocalIndex;
+
+    @ColorInt
+    private int normalHighlightColor = Color.parseColor("#FF808080");
+    @ColorInt
+    private int moveHighlightColor = Color.parseColor("#FF808000");
 
     public HomeView(Context context) {
         super(context);
@@ -194,6 +202,7 @@ public class HomeView extends XMBView implements Refreshable {
             localIndex = getLocalIndex();
         }
         setAdapter(new XMBAdapter(getContext(), homeItems), mapper);
+        setAdapterColor();
         setIndex(colIndex, localIndex, true);
         //setIndex(cachedIndex, true);
     }
@@ -227,6 +236,11 @@ public class HomeView extends XMBView implements Refreshable {
         moveLocalIndex = getLocalIndex();
         origMoveColIndex = moveColIndex;
         origMoveLocalIndex = catHasSubItems(moveColIndex) ? moveLocalIndex + 1 : moveLocalIndex;
+        setAdapterColor();
+        refresh();
+    }
+    private void setAdapterColor() {
+        ((XMBAdapter)getAdapter()).highlightColor = moveMode ? moveHighlightColor : normalHighlightColor;
     }
     private void applyMove() {
         boolean hasSubItems = catHasSubItems(moveColIndex);
