@@ -168,13 +168,7 @@ public class HomeView extends XMBView implements Refreshable {
         //Log.d("HomeView", "Refreshing home view");
         if (!moveMode) {
             allHomeItems = HomeManager.getItems();
-            // add settings item
-            XMBItem settings = new HomeItem(HomeItem.Type.settings, "Settings");
-            settings.colIndex = allHomeItems.size();
-            settings.localIndex = 0;
-            ArrayList<XMBItem> settingsColumn = new ArrayList<>();
-            settingsColumn.add(settings);
-            allHomeItems.add(settingsColumn);
+            addSettings();
         } else
             removeEmptyItems();
 
@@ -228,6 +222,29 @@ public class HomeView extends XMBView implements Refreshable {
                 }
             }
         }
+    }
+    private void addSettings() {
+        //XMBItem settings = new HomeItem(HomeItem.Type.settings, "Settings");
+        ArrayList<XMBItem> settingsColumn = new ArrayList<>();
+        int colIndex = allHomeItems.size();
+        int localIndex = 0;
+
+        XMBItem settingsItem = new XMBItem(null, "Settings", R.drawable.ic_baseline_settings_24, colIndex, localIndex++);
+        settingsColumn.add(settingsItem);
+
+        settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, colIndex, localIndex++);
+        settingsColumn.add(settingsItem);
+
+        settingsItem = new XMBItem(null, "Background", R.drawable.ic_baseline_image_24, colIndex, localIndex++);
+        settingsColumn.add(settingsItem);
+
+        settingsItem = new XMBItem(null, "Explorer", R.drawable.ic_baseline_source_24, colIndex, localIndex++);
+        settingsColumn.add(settingsItem);
+
+        settingsItem = new XMBItem(null, "Associations", R.drawable.ic_baseline_send_time_extension_24, colIndex, localIndex++);
+        settingsColumn.add(settingsItem);
+
+        allHomeItems.add(settingsColumn);
     }
 
     private void toggleMoveMode(boolean onOff) {

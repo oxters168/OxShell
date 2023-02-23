@@ -10,6 +10,7 @@ import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class XMBItem<T> implements Serializable {
     public T obj;
@@ -19,6 +20,7 @@ public class XMBItem<T> implements Serializable {
     public int localIndex;
     protected Object iconLoc;
     protected boolean iconIsResource;
+    private List<XMBItem> innerItems;
 
     //protected transient Drawable icon;
     protected transient Drawable icon;

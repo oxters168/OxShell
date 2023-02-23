@@ -27,7 +27,7 @@ public class HomeManager {
     }
     public static void init() {
         if (!isInitialized()) {
-            allHomeItems = new ArrayList<>();
+            //allHomeItems = new ArrayList<>();
 //            //initialized = true;
 //            boolean requestingAccess = false;
 //            String home_items_dir = AndroidHelpers.combinePaths(Paths.HOME_ITEMS_DIR_EXTERNAL, Paths.HOME_ITEMS_FILE_NAME);
@@ -79,60 +79,16 @@ public class HomeManager {
     private static void initInternal() {
         String home_items_path = AndroidHelpers.combinePaths(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
         if (!AndroidHelpers.fileExists(home_items_path)) {
-            // if no file exists then we can ask the user if they want to add their apps to the home then save
+            // if no file exists then add apps to the home
+            // TODO: make optional?
             Log.d("HomeManager", "Home items does not exist in data folder, creating...");
-            //addExplorer();
-
-            String[] categories = new String[] { "Games", "Audio", "Video", "Image", "Social", "News", "Maps", "Productivity", "Accessibility", "Other" };
-            HashMap<Integer, ArrayList<XMBItem>> sortedApps = new HashMap<>();
-            PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-            PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, new String[] { Intent.CATEGORY_LAUNCHER }, apps -> currentActivity.runOnUiThread(() -> {
-                // go through all apps creating HomeItems for them and sorting them into their categories
-//                for (ResolveInfo app : apps)
-//                    addItem(new HomeItem(HomeItem.Type.app, PackagesCache.getPackageIcon(app), PackagesCache.getAppLabel(app), app.activityInfo.packageName), false);
-                int otherIndex = getOtherCategoryIndex();
-                for (int i = 0; i < apps.size(); i++) {
-                    ResolveInfo currentPkg = apps.get(i);
-                    int category = -1;
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
-                        category = currentPkg.activityInfo.applicationInfo.category;
-                    if (category < 0)
-                        category = otherIndex;
-                    if (!sortedApps.containsKey(category))
-                        sortedApps.put(category, new ArrayList<>());
-                    ArrayList<XMBItem> currentList = sortedApps.get(category);
-                    currentList.add(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg), currentPkg.activityInfo.packageName));
-                }
-                // separate the categories to avoid empty ones and order them into an arraylist so no game in indices occurs
-                ArrayList<Integer> existingCategories = new ArrayList<>();
-                for (Integer key : sortedApps.keySet())
-                    existingCategories.add(key);
-                // add the categories and apps
-                for (int index = 0; index < existingCategories.size(); index++) {
-                    int catIndex = existingCategories.get(index);
-                    if (catIndex == -1)
-                        catIndex = categories.length - 1;
-                    // add the category item at the top
-                    int colIndex = createCategory(getDefaultIconForCategory(catIndex), categories[catIndex], false);
-                    //addItem(new XMBItem(null, categories[catIndex], index + 2, 0), false);
-                    // add the apps into the category as items
-                    ArrayList<XMBItem> column = sortedApps.get(existingCategories.get(index));
-                    for (XMBItem app : column) {
-                        //XMBItem app = column.get(i);
-                        //app.colIndex = index + 2;
-                        //app.localIndex = i + 1;
-                        addItemTo(app, colIndex, false);
-                    }
-                }
-                addItemAt(createExplorerItem(), 0, false);
-                refreshHomeItems();
-                //saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-            }));
+            createDefaultHomeItemsFromInstalledApps();
         }
         else {
-            // if the file exists in the data folder then read it
+            // if the file exists in the data folder then read it, if the read fails then create defaults
             Log.d("HomeManager", "Home items exists in data folder, reading...");
-            loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+            if (!load())
+                createDefaultHomeItemsFromInstalledApps();
         }
     }
     public static int getDefaultIconForCategory(int category) {
@@ -324,12 +280,68 @@ public class HomeManager {
         }
     }
 
+    // TODO: once we have a setting for save location, apply it here
+    private static boolean load() {
+        return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+    }
     private static void save() {
         saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
 
-    private static void loadHomeItemsFromFile(String parentDir, String fileName) {
+    private static void createDefaultHomeItemsFromInstalledApps() {
+        Log.d("HomeManager", "Filling home with your apps");
+        //addExplorer();
+        allHomeItems = new ArrayList<>();
+
+        String[] categories = new String[] { "Games", "Audio", "Video", "Image", "Social", "News", "Maps", "Productivity", "Accessibility", "Other" };
+        HashMap<Integer, ArrayList<XMBItem>> sortedApps = new HashMap<>();
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, new String[] { Intent.CATEGORY_LAUNCHER }, apps -> currentActivity.runOnUiThread(() -> {
+            // go through all apps creating HomeItems for them and sorting them into their categories
+//                for (ResolveInfo app : apps)
+//                    addItem(new HomeItem(HomeItem.Type.app, PackagesCache.getPackageIcon(app), PackagesCache.getAppLabel(app), app.activityInfo.packageName), false);
+            int otherIndex = getOtherCategoryIndex();
+            for (int i = 0; i < apps.size(); i++) {
+                ResolveInfo currentPkg = apps.get(i);
+                int category = -1;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+                    category = currentPkg.activityInfo.applicationInfo.category;
+                if (category < 0)
+                    category = otherIndex;
+                if (!sortedApps.containsKey(category))
+                    sortedApps.put(category, new ArrayList<>());
+                ArrayList<XMBItem> currentList = sortedApps.get(category);
+                currentList.add(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg), currentPkg.activityInfo.packageName));
+            }
+            // separate the categories to avoid empty ones and order them into an arraylist so no game in indices occurs
+            ArrayList<Integer> existingCategories = new ArrayList<>();
+            for (Integer key : sortedApps.keySet())
+                existingCategories.add(key);
+            // add the categories and apps
+            for (int index = 0; index < existingCategories.size(); index++) {
+                int catIndex = existingCategories.get(index);
+                if (catIndex == -1)
+                    catIndex = categories.length - 1;
+                // add the category item at the top
+                int colIndex = createCategory(getDefaultIconForCategory(catIndex), categories[catIndex], false);
+                //addItem(new XMBItem(null, categories[catIndex], index + 2, 0), false);
+                // add the apps into the category as items
+                ArrayList<XMBItem> column = sortedApps.get(existingCategories.get(index));
+                for (XMBItem app : column) {
+                    //XMBItem app = column.get(i);
+                    //app.colIndex = index + 2;
+                    //app.localIndex = i + 1;
+                    addItemTo(app, colIndex, false);
+                }
+            }
+            addItemAt(createExplorerItem(), 0, false);
+            refreshHomeItems();
+            //saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+        }));
+    }
+    private static boolean loadHomeItemsFromFile(String parentDir, String fileName) {
         //homeItems = new ArrayList<>();
+        boolean success = false;
         allHomeItems = new ArrayList<>();
         // Object[] savedItems = (Object[])Serialaver.loadFile(AndroidHelpers.combinePaths(parentDir, fileName));
         String path = AndroidHelpers.combinePaths(parentDir, fileName);
@@ -344,6 +356,7 @@ public class HomeManager {
             ArrayList<ArrayList<XMBItem>> savedItems = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFile(path);
             //ArrayList<ArrayList<XMBItem>> savedItems = Serialaver.loadFromJSON(path, new TypeToken<ArrayList<ArrayList<XMBItem>>>(){}.getType());
             if (savedItems != null && savedItems.size() > 0) {
+                success = true;
                 for (ArrayList<XMBItem> column : savedItems) {
                     if (column.size() > 0) {
                         int colIndex = addItem(column.get(0), false);
@@ -358,6 +371,7 @@ public class HomeManager {
         } else
             Log.e("HomeManager", "Attempted to read non-existant home items file @ " + path);
         refreshHomeItems();
+        return success;
     }
     private static void saveHomeItemsToFile(String parentDir, String fileName) {
         AndroidHelpers.makeDir(parentDir);
