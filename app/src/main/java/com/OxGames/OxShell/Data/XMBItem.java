@@ -56,6 +56,10 @@ public class XMBItem<T> implements Serializable {
         return icon;
     }
 
+    public boolean hasInnerItems() {
+        return innerItems != null && innerItems.size() > 0;
+    }
+
     public float getX() {
         return currentX;
     }

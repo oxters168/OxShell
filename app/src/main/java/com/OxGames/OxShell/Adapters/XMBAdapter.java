@@ -25,10 +25,6 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
     private XMBItem[] items;
     private Typeface font;
-    @ColorInt
-    public int highlightColor = Color.parseColor("#FF808080");
-    @ColorInt
-    public int nonHighlightColor = Color.parseColor("#FF000000");
 
     public XMBAdapter(Context context, XMBItem... items) {
         this.context = context;
@@ -66,6 +62,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public Object getItem(int position) {
         return items[position];
+    }
+
+    @Override
+    public boolean hasInnerItems(int position) {
+        return ((XMBItem)getItem(position)).hasInnerItems();
     }
 
     public class XMBViewHolder extends XMBView.ViewHolder {
