@@ -1,6 +1,8 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -14,7 +16,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
+import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,6 +76,22 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         //catIndices = new ArrayList<>();
         catPos = new ArrayList<>();
         //items = new ArrayList<>();
+
+        setAttributes(attrs);
+    }
+    private void setAttributes(AttributeSet attrs) {
+        if (attrs != null) {
+            TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.XMBView);
+            // outline size
+            if (a.hasValue(R.styleable.XMBView_subItemGap))
+                subItemGap = (int) a.getDimension(R.styleable.XMBView_subItemGap, 0);
+            if (a.hasValue(R.styleable.XMBView_horizontalSpacing))
+                horSpacing = (int) a.getDimension(R.styleable.XMBView_horizontalSpacing, 0);
+            if (a.hasValue(R.styleable.XMBView_verticalSpacing))
+                verSpacing = (int) a.getDimension(R.styleable.XMBView_verticalSpacing, 0);
+
+            a.recycle();
+        }
     }
     public abstract static class Adapter<T extends ViewHolder> {
         @NonNull
@@ -181,9 +201,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     //private float textSize = 48; //Size of the text
     //private int textCushion = 16; //Distance between item and text
     //private float horSpacing = 64; //How much space to add between items horizontally
-    private float horSpacing = 0;
-    private float verSpacing = 0; //How much space to add between items vertically
-    private float subItemGap = 48; //The gap between the column items and their sub items
+    private float horSpacing;
+    private float verSpacing; //How much space to add between items vertically
+    private float subItemGap; //The gap between the column items and their sub items
     //private float catShift = horSpacing + (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
     private float catShift = horSpacing; //How much to shift the categories bar horizontally
     private float getHorShiftOffset() {
