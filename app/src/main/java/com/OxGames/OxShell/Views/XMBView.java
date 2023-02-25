@@ -16,12 +16,10 @@ import android.view.ViewGroup;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 
-import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
@@ -31,12 +29,13 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private static final float EPSILON = 0.0001f;
     private final Context context;
     public static final int CATEGORY_TYPE = 0;
-    public static final int SUB_CATEGORY_TYPE = 1;
+    public static final int ITEM_TYPE = 1;
     public static final int INNER_TYPE = 2;
 
     private Adapter adapter;
+    private final Stack<ViewHolder> goneCatViews;
     private final Stack<ViewHolder> goneItemViews; //The views whose visibility are set to gone since they are not currently used
-    private final HashMap<Integer, ViewHolder> usedItemViews; //The views that are currently displayed and the total index of the item they represent as their key
+    private final HashMap<Integer, ViewHolder> usedViews; //The views that are currently displayed and the total index of the item they represent as their key
 
     //private final ArrayList<Integer> catIndices;
     private final ArrayList<Float> catPos; // go from 0 to (getColCount(colIndex) - 1) * getVerShiftOffset()
@@ -63,8 +62,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         super(context, attrs, defStyleAttr);
         this.context = context;
 
+        goneCatViews = new Stack<>();
         goneItemViews = new Stack<>();
-        usedItemViews = new HashMap<>();
+        usedViews = new HashMap<>();
         //catIndices = new ArrayList<>();
         catPos = new ArrayList<>();
         //items = new ArrayList<>();
@@ -102,9 +102,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public boolean isSelection() {
             return isSelection;
         }
-        public boolean isCategory() {
-            return getItemViewType() == CATEGORY_TYPE;
-        }
+//        public boolean isCategory() {
+//            return getItemViewType() == CATEGORY_TYPE;
+//        }
         public int getItemViewType() {
             return itemViewType;
         }
@@ -159,7 +159,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         prevIndex = 0;
         //setShiftX(getShiftX(0));
         removeViews();
-        createViews();
+        //createItemViews();
         setShiftXAndY(0, 0, true);
         //returnAllItemViews();
         //setViews(false, true);
@@ -609,7 +609,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         removeViews();
-        createViews();
+        createItemViews();
         int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
         catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
         setViews(false, true);
@@ -770,11 +770,11 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private static final int FADE_OUT = 2;
     private static final int FADE_IN = 3;
     private void drawItem(int totalIndex, Rect itemBounds, boolean isCat, int fadeTransition, boolean instant) {
-        ViewHolder viewHolder = getViewHolder(totalIndex);
+        ViewHolder viewHolder = getViewHolder(totalIndex, isCat ? CATEGORY_TYPE : ITEM_TYPE);
         if (viewHolder != null) {
             viewHolder.setX(itemBounds.left);
             viewHolder.setY(itemBounds.top);
-            viewHolder.itemViewType = isCat ? CATEGORY_TYPE : SUB_CATEGORY_TYPE;
+            //viewHolder.itemViewType = isCat ? CATEGORY_TYPE : ITEM_TYPE;
             viewHolder.isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
             //Log.d("XMBView", totalIndex + " alpha is " + viewHolder.itemView.getAlpha());
             viewHolder.itemView.animate().cancel();
@@ -828,14 +828,17 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private void removeViews() {
         returnAllItemViews();
+        while (!goneCatViews.isEmpty())
+            removeView(goneCatViews.pop().itemView);
         while (!goneItemViews.isEmpty())
             removeView(goneItemViews.pop().itemView);
     }
-    private void createViews() {
+    private void createItemViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
         // TODO: implement view types for categories?
         for (int i = 0; i < 5; i++) {
-            ViewHolder newHolder = adapter.onCreateViewHolder(this, 0);
+            ViewHolder newHolder = adapter.onCreateViewHolder(this, ITEM_TYPE);
+            newHolder.itemViewType = ITEM_TYPE;
             newHolder.itemView.setVisibility(GONE);
             addView(newHolder.itemView);
             newHolder.itemView.measure(getWidth(), getHeight());
@@ -846,40 +849,73 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             goneItemViews.push(newHolder);
         }
     }
+    private void createCatViews() {
+        //Log.d("XMBView2", getWidth() + ", " + getHeight());
+        // TODO: implement view types for categories?
+        for (int i = 0; i < 5; i++) {
+            ViewHolder newHolder = adapter.onCreateViewHolder(this, CATEGORY_TYPE);
+            newHolder.itemViewType = CATEGORY_TYPE;
+            newHolder.itemView.setVisibility(GONE);
+            addView(newHolder.itemView);
+            newHolder.itemView.measure(getWidth(), getHeight());
+            //Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
+            iconSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
+            //horSpacing = iconSize * 0.33f;
+            adapter.onViewAttachedToWindow(newHolder);
+            goneCatViews.push(newHolder);
+        }
+    }
     private void returnItemView(int totalIndex) {
-        if (usedItemViews.containsKey(totalIndex)) {
+        if (usedViews.containsKey(totalIndex)) {
             //Log.d("XMBView", "Returning view id " + totalIndex);
-            ViewHolder viewHolder = usedItemViews.get(totalIndex);
+            ViewHolder viewHolder = usedViews.get(totalIndex);
             viewHolder.itemView.setVisibility(GONE);
-            goneItemViews.push(viewHolder);
-            usedItemViews.remove(totalIndex);
+            if (viewHolder.getItemViewType() == CATEGORY_TYPE)
+                goneCatViews.push(viewHolder);
+            else if (viewHolder.getItemViewType() == ITEM_TYPE)
+                goneItemViews.push(viewHolder);
+            usedViews.remove(totalIndex);
         }
     }
     private void returnAllItemViews() {
-        for (ViewHolder viewHolder : usedItemViews.values())
+        for (ViewHolder viewHolder : usedViews.values()) {
             viewHolder.itemView.setVisibility(GONE);
-        goneItemViews.addAll(usedItemViews.values());
-        usedItemViews.clear();
+            if (viewHolder.getItemViewType() == CATEGORY_TYPE)
+                goneCatViews.push(viewHolder);
+            else if (viewHolder.getItemViewType() == ITEM_TYPE)
+                goneItemViews.push(viewHolder);
+        }
+        //goneItemViews.addAll(usedViews.values());
+        usedViews.clear();
     }
-    private ViewHolder getViewHolder(int totalIndex) {
+    private ViewHolder getViewHolder(int totalIndex, int viewType) {
         ViewHolder viewHolder = null;
         //int index = getTotalIndex(item);
         //boolean isNew = false;
         //Log.d("XMBView", "Retrieving view of " + item.title + " whose total index is " + index);
-        if (usedItemViews.containsKey(totalIndex)) {
+        if (usedViews.containsKey(totalIndex)) {
             //Log.d("XMBView", "View already visible");
-            viewHolder = usedItemViews.get(totalIndex);
+            viewHolder = usedViews.get(totalIndex);
             viewHolder.isNew = false;
             //Log.d("XMBView", "Retrieving view for " + item.title + " whose value is already set to " + view.title);
         } else {
-            if (goneItemViews.isEmpty()) {
-                createViews();
-            }
+            if (viewType == CATEGORY_TYPE) {
+                if (goneCatViews.isEmpty())
+                    createCatViews();
 
-            viewHolder = goneItemViews.pop();
-            viewHolder.isNew = true;
-            viewHolder.itemView.setVisibility(VISIBLE);
-            usedItemViews.put(totalIndex, viewHolder);
+                viewHolder = goneCatViews.pop();
+                viewHolder.isNew = true;
+                viewHolder.itemView.setVisibility(VISIBLE);
+                usedViews.put(totalIndex, viewHolder);
+            } else if (viewType == ITEM_TYPE) {
+                if (goneItemViews.isEmpty())
+                    createItemViews();
+
+                viewHolder = goneItemViews.pop();
+                viewHolder.isNew = true;
+                viewHolder.itemView.setVisibility(VISIBLE);
+                usedViews.put(totalIndex, viewHolder);
+            }
         }
         //itemView[0] = viewHolder;
         return viewHolder;
@@ -1227,12 +1263,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             origMoveColIndex = moveColIndex;
             origMoveLocalIndex = moveLocalIndex + (catHasSubItems(moveColIndex) ? 1 : 0);
         }
-        setAdapterColor();
+        setAdapterHighlightColor(moveMode ? moveHighlightColor : normalHighlightColor);
         setViews(false, true);
         //refresh();
     }
-    private void setAdapterColor() {
-        getAdapter().highlightColor = moveMode ? moveHighlightColor : normalHighlightColor;
+    private void setAdapterHighlightColor(int color) {
+        getAdapter().highlightColor = color;
     }
     private void applyMove() {
         boolean hasSubItems = catHasSubItems(moveColIndex);
@@ -1240,7 +1276,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         //Log.d("HomeView", "Attempting to move (" + origMoveColIndex + ", " + origMoveLocalIndex + ") => (" + newColIndex + ", " + newLocalIndex + ")");
         if (moveColIndex != origMoveColIndex || newLocalIndex != origMoveLocalIndex)
             onAppliedMove(origMoveColIndex, origMoveLocalIndex, moveColIndex, newLocalIndex);
-        moveMode = false;
+        toggleMoveMode(false);
         //setViews(true, true);
         //refresh();
     }
@@ -1296,10 +1332,13 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 // moving left
                 boolean hasSubItems = catHasSubItems(moveColIndex);
                 int nextColIndex = Math.max(moveColIndex - 1, hasSubItems ? -1 : 0); // -1 to move out of the 0th column
+                //Log.d("XMBView", "Attempting to move left from " + moveColIndex + " to " + nextColIndex + ", in sub-item column: " + hasSubItems);
                 if (moveColIndex != nextColIndex) {
                     int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
                     List<Integer> column = mapper.get(moveColIndex);
+                    //Log.d("XMBView", "Moving left from " + moveColIndex + " to " + nextColIndex + ", in sub-item column: " + hasSubItems);
                     if (hasSubItems) {
+                        //Log.d("XMBView", moveColIndex + ", " + nextColIndex);
                         // we're in a column with other things, next column should be a new one with just us
                         int moveItem = column.get(currentLocalIndex);
                         column.remove(currentLocalIndex);

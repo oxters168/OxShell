@@ -16,11 +16,12 @@
             android:layout_gravity="top|left"
             android:backgroundTint="#808080"
             android:backgroundTintMode="src_in"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            android:visibility="invisible" />
 
         <com.OxGames.OxShell.Views.BetterTextView
-            android:id="@+id/title"
-            android:layout_width="128dip"
+            android:id="@+id/sub_title"
+            android:layout_width="256dip"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:ellipsize="marquee"
@@ -31,29 +32,8 @@
             android:textAlignment="gravity"
             android:textColor="@color/text"
             android:textSize="16dip"
-            android:translationX="64dip"
             app:outlineColor="#000000"
             app:outlineSize="3dp" />
-
-    </FrameLayout>
-
-    <FrameLayout
-        android:layout_width="64dip"
-        android:layout_height="64dip">
-
-        <ImageView
-            android:id="@+id/typeIcon"
-            android:layout_width="56dip"
-            android:layout_height="56dip"
-            android:layout_gravity="center"
-            android:scaleType="centerCrop" />
-
-        <ImageView
-            android:id="@+id/typeSuperIcon"
-            android:layout_width="15dip"
-            android:layout_height="15dip"
-            android:layout_gravity="bottom|right"
-            android:scaleType="centerCrop" />
 
     </FrameLayout>
 

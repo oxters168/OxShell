@@ -41,7 +41,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public XMBViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(context);
-        View view = layoutInflater.inflate(R.layout.xmb_item, null);
+        View view = null;
+        if (viewType == XMBView.CATEGORY_TYPE)
+            view = layoutInflater.inflate(R.layout.xmb_cat, null);
+        else if (viewType == XMBView.ITEM_TYPE)
+            view = layoutInflater.inflate(R.layout.xmb_item, null);
 //        XMBItemView view = new XMBItemView(context);
 //        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return new XMBViewHolder(view);
@@ -74,16 +78,16 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             super(itemView);
         }
         public void bindItem(XMBItem item) {
-            TextView catTxt = itemView.findViewById(R.id.cat_title);
-            TextView subTxt = itemView.findViewById(R.id.sub_title);
-            catTxt.setVisibility(isCategory() ? View.VISIBLE : View.GONE);
-            subTxt.setVisibility(isCategory() ? View.GONE : View.VISIBLE);
-            catTxt.setText(item.title);
-            subTxt.setText(item.title);
-            catTxt.setSelected(true);
-            subTxt.setSelected(true);
-            catTxt.setTypeface(font);
-            subTxt.setTypeface(font);
+            TextView title = itemView.findViewById(R.id.title);
+            //TextView subTxt = itemView.findViewById(R.id.sub_title);
+            //title.setVisibility(isCategory() ? View.VISIBLE : View.GONE);
+            //subTxt.setVisibility(isCategory() ? View.GONE : View.VISIBLE);
+            title.setText(item.title);
+            //subTxt.setText(item.title);
+            title.setSelected(true);
+            //subTxt.setSelected(true);
+            title.setTypeface(font);
+            //subTxt.setTypeface(font);
 
             ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
             superIcon.setVisibility(View.GONE);
@@ -93,7 +97,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             ImageView highlight = itemView.findViewById(R.id.iconGlow);
             Drawable icon = item.getIcon();
             if (icon == null)
-                icon = isCategory() ? ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24) : ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
+                icon = getItemViewType() == XMBView.CATEGORY_TYPE ? ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24) : ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
             img.setBackground(icon);
             highlight.setBackground(icon.getConstantState().newDrawable());
             highlight.setBackgroundTintList(ColorStateList.valueOf(isSelection() ? highlightColor : nonHighlightColor));
