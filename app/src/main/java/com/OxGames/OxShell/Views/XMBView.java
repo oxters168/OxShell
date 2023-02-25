@@ -1,7 +1,6 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -13,7 +12,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 
 import com.OxGames.OxShell.Interfaces.InputReceiver;
@@ -32,6 +30,16 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     public static final int ITEM_TYPE = 1;
     public static final int INNER_TYPE = 2;
 
+    // traversable index means the indices that can actually be stepped on
+    // col index are the indices that represent the columns
+    // total index includes all indices even the ones that cannot be stepped on (which are the top column items of columns with multiple items)
+    // local index are the indices within a column
+    int currentIndex = 0; // this is the traversable index
+    private int prevIndex = 0;
+
+    private float fullItemAlpha = 1f; // the alpha value of the item(s) selected
+    private float translucentItemAlpha = 0.33f; // the alpha value of the item(s) not in selection
+
     private Adapter adapter;
     private final Stack<ViewHolder> goneCatViews;
     private final Stack<ViewHolder> goneItemViews; //The views whose visibility are set to gone since they are not currently used
@@ -47,10 +55,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private int origMoveLocalIndex;
     private int moveColIndex;
     private int moveLocalIndex;
-    @ColorInt
-    private int normalHighlightColor = Color.parseColor("#FF808080");
-    @ColorInt
-    private int moveHighlightColor = Color.parseColor("#FF808000");
 
     public XMBView(Context context) {
         this(context, null);
@@ -70,11 +74,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         //items = new ArrayList<>();
     }
     public abstract static class Adapter<T extends ViewHolder> {
-        @ColorInt
-        public int highlightColor = Color.parseColor("#FF808080");
-        @ColorInt
-        public int nonHighlightColor = Color.parseColor("#FF000000");
-
         @NonNull
         public abstract T onCreateViewHolder(@NonNull ViewGroup parent, int viewType);
         public abstract void onBindViewHolder(@NonNull T holder, int position);
@@ -87,7 +86,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         protected View itemView;
         private int itemViewType;
 
-        private boolean isSelection;
+        private boolean isHighlighted;
+        //private boolean isSelectionCategory;
         private boolean isNew;
         private float currentX;
         private float currentY;
@@ -99,9 +99,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             this.itemView = itemView;
         }
 
-        public boolean isSelection() {
-            return isSelection;
+        public boolean isHighlighted() {
+            return isHighlighted;
         }
+//        public boolean isSelectionCategory() {
+//            return isSelectionCategory;
+//        }
 //        public boolean isCategory() {
 //            return getItemViewType() == CATEGORY_TYPE;
 //        }
@@ -173,7 +176,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private float shiftX = 0; // goes from 0 to (getTotalColCount() - 1) * getHorShiftOffset()
     //private float localShiftY = 0; // goes from 0 to (getColCount(colIndex) - 1) * getVerShiftOffset()
 
-    private int iconSize = 196;
+    private int itemSize = 196;
+    private int catSize = 196;
     //private float textSize = 48; //Size of the text
     //private int textCushion = 16; //Distance between item and text
     //private float horSpacing = 64; //How much space to add between items horizontally
@@ -184,11 +188,11 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private float catShift = horSpacing; //How much to shift the categories bar horizontally
     private float getHorShiftOffset() {
         // how far apart each item is from center to center
-        return iconSize + horSpacing;
+        return catSize + horSpacing;
     }
     private float getVerShiftOffset() {
         // how far apart each item is from center to center
-        return iconSize + verSpacing;
+        return itemSize + verSpacing;
     }
 
     private int xToIndex(float xValue) {
@@ -345,13 +349,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private boolean longPressed = false;
     private boolean isPressing = false;
 
-    // traversable index means the indices that can actually be stepped on
-    // col index are the indices that represent the columns
-    // total index includes all indices even the ones that cannot be stepped on (which are the top column items of columns with multiple items)
-    // local index are the indices within a column
-    int currentIndex = 0; // this is the traversable index
-    private int prevIndex = 0;
-
     private final Rect reusableRect = new Rect();
     //private final ArrayList<Integer> reusableIndices = new ArrayList<>();
     //private final Paint painter = new Paint();
@@ -469,7 +466,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                     affirmativeAction();
 //                else
 //                    secondaryAction();
-            } else if (Math.abs(startTouchX - ev.getRawX()) >= iconSize || Math.abs(startTouchY - ev.getRawY()) >= iconSize) {
+            } else if (Math.abs(startTouchX - ev.getRawX()) >= itemSize || Math.abs(startTouchY - ev.getRawY()) >= itemSize) {
                 // else keep the momentum of where the user was scrolling
                 long touchupTime = SystemClock.uptimeMillis();
                 float totalTime = (touchupTime - touchMoveStartTime) / 1000f;
@@ -495,7 +492,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return shiftXDisc(currentIndex, amount);
     }
     private int shiftXDisc(int fromIndex, float amount) {
-        int offsetIndex = (int)(amount / iconSize); // convert the user drag amount to indices offset
+        int offsetIndex = (int)(amount / itemSize); // convert the user drag amount to indices offset
         return shiftXDisc(fromIndex, offsetIndex);
     }
     private int shiftXDisc(int amount) {
@@ -523,7 +520,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return shiftYDisc(currentIndex, amount);
     }
     private int shiftYDisc(int fromIndex, float amount) {
-        int offsetIndex = (int)(amount / iconSize);
+        int offsetIndex = (int)(amount / itemSize);
         return shiftYDisc(fromIndex, offsetIndex);
     }
     private int shiftYDisc(int amount) {
@@ -561,7 +558,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             boolean hasMomentumY = Math.abs(momentumY) > 0;
             if (hasMomentumX) {
                 // how many items have we passed already
-                int preMomentumOffset = (int)(momentumTravelDistX / iconSize);
+                int preMomentumOffset = (int)(momentumTravelDistX / itemSize);
                 // calculate travel distance based on current momentum
                 float momentumOffsetX = momentumX * (milliInterval / 1000f);
                 momentumTravelDistX += momentumOffsetX;
@@ -580,7 +577,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             }
             if (hasMomentumY) {
                 // how many items have we passed already
-                int preMomentumOffset = (int)(momentumTravelDistY / iconSize);
+                int preMomentumOffset = (int)(momentumTravelDistY / itemSize);
                 // calculate travel distance based on current momentum
                 float momentumOffsetY = momentumY * (milliInterval / 1000f);
                 momentumTravelDistY += momentumOffsetY;
@@ -611,7 +608,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         removeViews();
         createItemViews();
         int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
-        catShift = horSpacing + (iconSize + horSpacing) * (colCount / 6);
+        catShift = horSpacing + (itemSize + horSpacing) * (colCount / 6);
         setViews(false, true);
     }
 
@@ -623,7 +620,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private int getStartY() {
         int vsy = getHeight(); //view size y
         float vey = vsy / 2f; //view extents y
-        return Math.round(vey - iconSize / 2f); //Where the current item's column is along the y-axis
+        return Math.round(vey - itemSize / 2f); //Where the current item's column is along the y-axis
     }
     private int getColIndexFromTraversable(int traversableIndex) {
         int index = -1;
@@ -737,13 +734,13 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             if (!columnHasSubItems(itemColIndex))
                 continue;
             calcItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, i, reusableRect);
-            int top = reusableRect.top;
-            int width = reusableRect.width();
-            int height = reusableRect.height();
-            calcCatRect(startXInt, startYInt, horShiftOffsetInt, itemColIndex, reusableRect);
-            reusableRect.right = reusableRect.left + width;
-            reusableRect.top = top;
-            reusableRect.bottom = reusableRect.top + height;
+//            int top = reusableRect.top;
+//            int width = reusableRect.width();
+//            int height = reusableRect.height();
+//            calcCatRect(startXInt, startYInt, horShiftOffsetInt, itemColIndex, reusableRect);
+//            reusableRect.right = reusableRect.left + width;
+//            reusableRect.top = top;
+//            reusableRect.bottom = reusableRect.top + height;
 
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
             int fadeTransition = FADE_VISIBLE;
@@ -775,7 +772,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             viewHolder.setX(itemBounds.left);
             viewHolder.setY(itemBounds.top);
             //viewHolder.itemViewType = isCat ? CATEGORY_TYPE : ITEM_TYPE;
-            viewHolder.isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
+            boolean isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
+            viewHolder.isHighlighted = moveMode && isSelection;
+            //int currentColIndex = getColIndexOf(totalIndex);
+            boolean isCatItem = totalIndex == getTotalIndexOfCol(getColIndex());
+            float itemAlpha = isSelection || isCatItem ? fullItemAlpha : translucentItemAlpha;
+            //viewHolder.isSelectionCategory = getColIndex() == getColIndexOf(totalIndex);
             //Log.d("XMBView", totalIndex + " alpha is " + viewHolder.itemView.getAlpha());
             viewHolder.itemView.animate().cancel();
 
@@ -801,7 +803,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             switch (fadeTransition) {
                 case FADE_VISIBLE:
                     //Log.d("XMBView", "Applying 1 alpha to " + totalIndex);
-                    viewHolder.itemView.setAlpha(1);
+                    viewHolder.itemView.setAlpha(itemAlpha);
                     break;
                 case FADE_INVISIBLE:
                     //Log.d("XMBView", "Applying 0 alpha to " + totalIndex);
@@ -809,15 +811,15 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                     break;
                 case FADE_OUT:
                     //Log.d("XMBView", "Fading out " + totalIndex);
-                    viewHolder.itemView.setAlpha(1);
+                    //viewHolder.itemView.setAlpha(itemAlpha);
                     viewHolder.itemView.animate().setDuration(300);
-                    viewHolder.itemView.animate().alphaBy(-1);
+                    viewHolder.itemView.animate().alphaBy(-viewHolder.itemView.getAlpha());
                     break;
                 case FADE_IN:
                     //Log.d("XMBView", "Fading in " + totalIndex);
                     viewHolder.itemView.setAlpha(0);
                     viewHolder.itemView.animate().setDuration(300);
-                    viewHolder.itemView.animate().alphaBy(1);
+                    viewHolder.itemView.animate().alphaBy(itemAlpha);
                     break;
             }
             //requestLayout();
@@ -843,7 +845,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             addView(newHolder.itemView);
             newHolder.itemView.measure(getWidth(), getHeight());
             //Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
-            iconSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
+            itemSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
             //horSpacing = iconSize * 0.33f;
             adapter.onViewAttachedToWindow(newHolder);
             goneItemViews.push(newHolder);
@@ -859,7 +861,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             addView(newHolder.itemView);
             newHolder.itemView.measure(getWidth(), getHeight());
             //Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
-            iconSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
+            catSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
             //horSpacing = iconSize * 0.33f;
             adapter.onViewAttachedToWindow(newHolder);
             goneCatViews.push(newHolder);
@@ -945,8 +947,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         // the vertical pixel position is the same since the categories go along a straight line
         int expY = startY;
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
-        int right = expX + iconSize;// + Math.max(iconSize, rect.width());
-        int bottom = expY + iconSize;// + textCushion + rect.height();
+        int right = expX + catSize;// + Math.max(iconSize, rect.width());
+        int bottom = expY + catSize;// + textCushion + rect.height();
         rect.set(expX, expY, right, bottom);
     }
     // calculates the item's rect size with the text to the right of the item
@@ -959,17 +961,17 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         // get the index of what is actually highlighted currently within the column
         int itemCatIndex = getCachedIndexOfCat(colIndex);
         // get the horizontal pixel position of the item
-        int expX = startX + horShiftOffset * colIndex;
+        int expX = startX + Math.round(Math.abs(catSize - itemSize) / 2f) + horShiftOffset * colIndex;
         //getTextBounds(painter, item.title, textSize, rect);
         // get the vertical pixel position of the item
-        int expY = Math.round((startY - catPos.get(colIndex)) + verShiftOffset * localIndex + (localIndex >= itemCatIndex ? rect.height() + subItemGap : 0));
+        int expY = Math.round((startY - catPos.get(colIndex)) + verShiftOffset * localIndex + (localIndex >= itemCatIndex ? catSize + subItemGap : 0));
 //        int expY = (startY + rect.height()) + verShiftOffset * ((localIndex - itemCatIndex) + 1);
 //        if (localIndex < itemCatIndex)
 //            // if the item is chronologically before the currently highlighted item, then take into account the column item by placing the y value above it
 //            expY = startY - verShiftOffset * (itemCatIndex - localIndex);
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
-        int right = expX + iconSize;// + textCushion + rect.width();
-        int bottom = expY + iconSize;
+        int right = expX + itemSize;// + textCushion + rect.width();
+        int bottom = expY + itemSize;
         rect.set(expX, expY, right, bottom);
     }
 
@@ -1263,13 +1265,13 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             origMoveColIndex = moveColIndex;
             origMoveLocalIndex = moveLocalIndex + (catHasSubItems(moveColIndex) ? 1 : 0);
         }
-        setAdapterHighlightColor(moveMode ? moveHighlightColor : normalHighlightColor);
+        //setAdapterHighlightColor(moveMode ? moveHighlightColor : normalHighlightColor);
         setViews(false, true);
         //refresh();
     }
-    private void setAdapterHighlightColor(int color) {
-        getAdapter().highlightColor = color;
-    }
+//    private void setAdapterHighlightColor(int color) {
+//        getAdapter().highlightColor = color;
+//    }
     private void applyMove() {
         boolean hasSubItems = catHasSubItems(moveColIndex);
         int newLocalIndex = moveLocalIndex + (hasSubItems ? 1 : 0);

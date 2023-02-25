@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="64dip"
-    android:layout_height="64dip"
+    android:layout_width="48dip"
+    android:layout_height="48dip"
     android:clipChildren="false">
 
     <FrameLayout
-        android:layout_width="64dip"
-        android:layout_height="64dip">
+        android:layout_width="48dip"
+        android:layout_height="48dip">
 
         <ImageView
             android:id="@+id/iconGlow"
-            android:layout_width="64dip"
-            android:layout_height="64dip"
+            android:layout_width="48dip"
+            android:layout_height="48dip"
             android:layout_gravity="top|left"
-            android:backgroundTint="#808080"
-            android:backgroundTintMode="src_in"
+            android:backgroundTint="#FFFF00"
+            android:backgroundTintMode="src_atop"
             android:scaleType="centerCrop" />
 
         <com.OxGames.OxShell.Views.BetterTextView
@@ -31,27 +31,27 @@
             android:textAlignment="gravity"
             android:textColor="@color/text"
             android:textSize="16dip"
-            android:translationX="64dip"
+            android:translationX="48dip"
             app:outlineColor="#000000"
             app:outlineSize="3dp" />
 
     </FrameLayout>
 
     <FrameLayout
-        android:layout_width="64dip"
-        android:layout_height="64dip">
+        android:layout_width="48dip"
+        android:layout_height="48dip">
 
         <ImageView
             android:id="@+id/typeIcon"
-            android:layout_width="56dip"
-            android:layout_height="56dip"
+            android:layout_width="44dip"
+            android:layout_height="44dip"
             android:layout_gravity="center"
             android:scaleType="centerCrop" />
 
         <ImageView
             android:id="@+id/typeSuperIcon"
-            android:layout_width="15dip"
-            android:layout_height="15dip"
+            android:layout_width="10dip"
+            android:layout_height="10dip"
             android:layout_gravity="bottom|right"
             android:scaleType="centerCrop" />
 
