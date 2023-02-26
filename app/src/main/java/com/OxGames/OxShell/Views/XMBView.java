@@ -225,6 +225,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private float horSpacing;
     private float verSpacing; //How much space to add between items vertically
     private float subItemGap; //The gap between the column items and their sub items
+    private float innerHorSpacing;
+    private float innerVerSpacing;
     //private float catShift = horSpacing + (iconSize + horSpacing) * 2; //How much to shift the categories bar horizontally
     private float catHorShift = horSpacing; //How much to shift the categories bar horizontally
     private float getHorShiftOffset() {
@@ -747,6 +749,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             int verShiftOffset = Math.round(getVerShiftOffset());
             drawCategories(startX, startY, horShiftOffset, instant);
             drawItems(currentIndex, indexChanged, instant, startX, startY, horShiftOffset, verShiftOffset);
+            drawInnerItems(instant);
             //invalidate();
         }
     }
@@ -760,7 +763,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
             //Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
             if (inBounds)
-                drawItem(reusableRect, true, FADE_VISIBLE, instant, catTotalIndex);
+                drawItem(reusableRect, FADE_VISIBLE, instant, catTotalIndex);
             else
                 returnItemView(catTotalIndex);
         }
@@ -799,9 +802,38 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 fadeTransition = FADE_INVISIBLE;
             //Log.d("XMBView", "item: " + item.title + " col: " + itemColIndex + " prevCol: " + prevColIndex + " transition: " + fadeTransition);
             if (itemColIndex >= origColIndex - 1 && itemColIndex <= origColIndex + 1 && inBounds)
-                drawItem(reusableRect, false, fadeTransition, instant, totalIndex);
+                drawItem(reusableRect, fadeTransition, instant, totalIndex);
             else
                 returnItemView(totalIndex);//traversableToTotalIndex(i));
+        }
+    }
+    private void drawInnerItems(boolean instant) {
+        for (int totalIndex = 0; totalIndex < getAdapter().getItemCount(); totalIndex++)
+            if (getAdapter().hasInnerItems(totalIndex))
+                drawInnerItems(instant, totalIndex);
+    }
+    private void drawInnerItems(boolean instant, Integer... position) {
+        int viewWidth = getWidth();
+        int viewHeight = getHeight();
+        Integer[] currentEntry = innerItemEntryPos.toArray(new Integer[0]);
+        Integer[] innerPosition = new Integer[position.length + 1];
+        // copy array
+        for (int i = 0; i < position.length; i++)
+            innerPosition[i] = position[i];
+        // draw list of inner items
+        for (int i = 0; i < getAdapter().getInnerItemCount(position); i++) {
+            innerPosition[innerPosition.length - 1] = i;
+            if (getAdapter().hasInnerItems(innerPosition))
+                drawInnerItems(instant, innerPosition);
+            if (currentEntry.length > 0 && isPartOfPosition(innerPosition, currentEntry)) {
+                calcInnerItemRect(reusableRect, getStartX(), getStartY(), Math.round(innerHorSpacing), Math.round(innerVerSpacing), innerPosition);
+                boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
+                if (inBounds)
+                    drawItem(reusableRect, FADE_VISIBLE, instant, innerPosition);
+                else
+                    returnItemView(innerPosition);
+            } else
+                returnItemView(innerPosition);
         }
     }
 //    public void checkAlphas() {
@@ -813,8 +845,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private static final int FADE_INVISIBLE = 1;
     private static final int FADE_OUT = 2;
     private static final int FADE_IN = 3;
-    private void drawItem(Rect itemBounds, boolean isCat, int fadeTransition, boolean instant, Integer... itemPosition) {
-        ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : ITEM_TYPE, itemPosition);
+    private void drawItem(Rect itemBounds, int fadeTransition, boolean instant, Integer... itemPosition) {
+        boolean isCat = itemPosition.length == 1 && getCatTotalIndex(getColIndexFromTotal(itemPosition[0])) == itemPosition[0];
+        boolean isInnerItem = itemPosition.length > 1;
+        ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, itemPosition);
         //if (viewHolder != null) {
         viewHolder.setX(itemBounds.left);
         viewHolder.setY(itemBounds.top);
@@ -823,10 +857,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         boolean isSelection = isSamePosition(currentPosition, itemPosition);//getTotalIndexFromTraversable(currentIndex) == totalIndex;
         boolean isPartOfPosition = isPartOfPosition(currentPosition, itemPosition);
         viewHolder.isHighlighted = moveMode && isSelection;
-        viewHolder.requestHideTitle = (moveMode && isSelection) || (isSelection && isInsideItem()) || (isInsideItem() && isPartOfPosition);
+        viewHolder.requestHideTitle = (moveMode && isSelection) || (isSelection && isInsideItem()) || (isInsideItem() && isPartOfPosition && !isSelection);
         //int currentColIndex = getColIndexOf(totalIndex);
         boolean isOurCat = isSamePosition(itemPosition, getTotalIndexOfCol(getColIndex()));
-        float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat)) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
+        float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
         //if (isSelection)
         //    Log.d("XMBView", "Current item alpha is " + itemAlpha);
         //viewHolder.isSelectionCategory = getColIndex() == getColIndexOf(totalIndex);
@@ -1065,12 +1099,26 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int itemCatIndex = getCachedIndexOfCat(colIndex);
         int halfCatDiff = Math.round(Math.abs(catSize - itemSize) / 2f);
         // get the horizontal pixel position of the item
-        int expX = halfCatDiff + (isInsideItem() && totalIndex == getPosition()[0] ? getStartX() + (innerItemEntryPos.size() - 1) * innerItemSize : startX + horShiftOffset * colIndex);
+        int expX = halfCatDiff + (isInsideItem() && totalIndex == getPosition()[0] ? getStartX() + (innerItemEntryPos.size() - 1) * -innerItemSize : startX + horShiftOffset * colIndex);
         // get the vertical pixel position of the item
         int expY = halfCatDiff + (isInsideItem() && totalIndex == getPosition()[0] ? startY : Math.round((startY - catPos.get(colIndex)) + verShiftOffset * localIndex + (localIndex >= itemCatIndex ? catSize + subItemGap : 0)));
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
         int right = expX + itemSize;// + textCushion + rect.width();
         int bottom = expY + itemSize;
+        rect.set(expX, expY, right, bottom);
+    }
+    private void calcInnerItemRect(Rect rect, int startX, int startY, int horSpacing, int verSpacing, Integer... position) {
+        //XMBItem item = getTotalIndexFromTraversable(traversableIndex);
+
+        int halfCatDiff = Math.round(Math.abs(catSize - innerItemSize) / 2f);
+
+        // get the horizontal pixel position of the item
+        int expX = startX + itemSize + horSpacing + halfCatDiff + (innerItemEntryPos.size() - 1) * -innerItemSize;
+        // get the vertical pixel position of the item
+        int expY = startY + halfCatDiff + position[position.length - 1] * (innerItemSize + verSpacing) - (isPartOfPosition(position, innerItemEntryPos.toArray(new Integer[0])) ? Math.round(innerItemVerPos.peek()) : 0);
+        // get the right and bottom values of the item relative to the left and top values and apply them to the rect
+        int right = expX + innerItemSize;// + textCushion + rect.width();
+        int bottom = expY + innerItemSize;
         rect.set(expX, expY, right, bottom);
     }
 
@@ -1219,7 +1267,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (isInsideItem()) {
             position = new Integer[innerItemEntryPos.size() + 1];
             innerItemEntryPos.copyInto(position);
-            int nextEntry = innerYToIndex(innerItemVerPos.peek(), Arrays.copyOf(innerItemEntryPos.toArray(), innerItemEntryPos.size(), Integer[].class));
+            int nextEntry = innerYToIndex(innerItemVerPos.peek(), innerItemEntryPos.toArray(new Integer[0]));//Arrays.copyOf(innerItemEntryPos.toArray(), innerItemEntryPos.size(), Integer[].class));
             position[position.length - 1] = nextEntry;
         } else {
             //int colIndex = getColIndex();
