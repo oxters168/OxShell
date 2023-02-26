@@ -652,6 +652,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         createItemViews();
         int colCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
         createCatViews(); // to get catSize
+        createItemViews();
+        createInnerItemViews();
         catHorShift = horSpacing + (catSize + horSpacing) * (colCount / 6);
         Log.d("XMBView", "Size changed, setting cat shift to " + catHorShift);
         setViews(false, true);
@@ -857,7 +859,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         boolean isSelection = isSamePosition(currentPosition, itemPosition);//getTotalIndexFromTraversable(currentIndex) == totalIndex;
         boolean isPartOfPosition = isPartOfPosition(currentPosition, itemPosition);
         viewHolder.isHighlighted = moveMode && isSelection;
-        viewHolder.requestHideTitle = (moveMode && isSelection) || (isSelection && isInsideItem()) || (isInsideItem() && isPartOfPosition && !isSelection);
+        viewHolder.requestHideTitle = (moveMode && isSelection) || (isInsideItem() && isPartOfPosition && !isSelection);
         //int currentColIndex = getColIndexOf(totalIndex);
         boolean isOurCat = isSamePosition(itemPosition, getTotalIndexOfCol(getColIndex()));
         float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
