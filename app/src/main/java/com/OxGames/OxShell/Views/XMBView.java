@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.R;
 
@@ -45,7 +46,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private Adapter adapter;
     private final Stack<ViewHolder> goneCatViews;
     private final Stack<ViewHolder> goneItemViews; //The views whose visibility are set to gone since they are not currently used
-    private final HashMap<Integer, ViewHolder> usedViews; //The views that are currently displayed and the total index of the item they represent as their key
+    private final Stack<ViewHolder> goneInnerItemViews;
+    private final HashMap<Integer, ViewHolder> usedViews; //The views that are currently displayed and the hashed total index of the item they represent as their key
     private final Stack<Integer> innerItemEntryPos; // The indices that represent where we entered from
     private final Stack<Float> innerItemVerPos; // The y scroll value of the inner items menu
     //private boolean isInsideItem;
@@ -83,6 +85,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
 
         goneCatViews = new Stack<>();
         goneItemViews = new Stack<>();
+        goneInnerItemViews = new Stack<>();
         usedViews = new HashMap<>();
         //catIndices = new ArrayList<>();
         catPos = new ArrayList<>();
@@ -109,7 +112,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     public abstract static class Adapter<T extends ViewHolder> {
         @NonNull
         public abstract T onCreateViewHolder(@NonNull ViewGroup parent, int viewType);
-        public abstract void onBindViewHolder(@NonNull T holder, int position);
+        public abstract void onBindViewHolder(@NonNull T holder, Integer... position);
         public abstract int getItemCount();
         public abstract void onViewAttachedToWindow(@NonNull T holder);
         public abstract Object getItem(Integer... position);
@@ -214,6 +217,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
 
     private int itemSize = 196;
     private int catSize = 196;
+    private int innerItemSize = 196;
     //private float textSize = 48; //Size of the text
     //private int textCushion = 16; //Distance between item and text
     //private float horSpacing = 64; //How much space to add between items horizontally
@@ -682,20 +686,22 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return index;
     }
     private int getLocalIndexFromTotal(int totalIndex) {
-        int index = -1;
+        //int index = -1;
+        int currentPos = totalIndex;
         if (mapper.size() > 0) {
-            int currentPos = totalIndex;
             // Go through each column subtracting the amount of items there from the index until the index becomes zero or less
             // meaning we've reached our column
             for (int i = 0; i < mapper.size(); i++) {
-                if (currentPos <= 0) {
-                    index = i;
+                int columnSize = mapper.get(i).size();
+                if (currentPos < columnSize) {
+                    if (columnSize > 1)
+                        currentPos -= 1;
                     break;
                 }
-                currentPos -= mapper.get(i).size();
+                currentPos -= columnSize;
             }
         }
-        return index;
+        return currentPos;
     }
 
     @Override
@@ -751,7 +757,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
             //Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
             if (inBounds)
-                drawItem(catTotalIndex, reusableRect, true, FADE_VISIBLE, instant);
+                drawItem(reusableRect, true, FADE_VISIBLE, instant, catTotalIndex);
             else
                 returnItemView(catTotalIndex);
         }
@@ -788,7 +794,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 fadeTransition = FADE_INVISIBLE;
             //Log.d("XMBView", "item: " + item.title + " col: " + itemColIndex + " prevCol: " + prevColIndex + " transition: " + fadeTransition);
             if (itemColIndex >= origColIndex - 1 && itemColIndex <= origColIndex + 1 && inBounds)
-                drawItem(totalIndex, reusableRect, false, fadeTransition, instant);
+                drawItem(reusableRect, false, fadeTransition, instant, totalIndex);
             else
                 returnItemView(totalIndex);//traversableToTotalIndex(i));
         }
@@ -802,71 +808,83 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private static final int FADE_INVISIBLE = 1;
     private static final int FADE_OUT = 2;
     private static final int FADE_IN = 3;
-    private void drawItem(int totalIndex, Rect itemBounds, boolean isCat, int fadeTransition, boolean instant) {
-        ViewHolder viewHolder = getViewHolder(totalIndex, isCat ? CATEGORY_TYPE : ITEM_TYPE);
-        if (viewHolder != null) {
-            viewHolder.setX(itemBounds.left);
-            viewHolder.setY(itemBounds.top);
-            //viewHolder.itemViewType = isCat ? CATEGORY_TYPE : ITEM_TYPE;
-            boolean isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
-            viewHolder.isHighlighted = moveMode && isSelection;
-            viewHolder.requestHideTitle = (moveMode && isSelection) || (isSelection && isInsideItem());
-            //int currentColIndex = getColIndexOf(totalIndex);
-            boolean isCatItem = totalIndex == getTotalIndexOfCol(getColIndex());
-            float itemAlpha = isSelection || isCatItem ? fullItemAlpha : translucentItemAlpha;
-            //viewHolder.isSelectionCategory = getColIndex() == getColIndexOf(totalIndex);
-            //Log.d("XMBView", totalIndex + " alpha is " + viewHolder.itemView.getAlpha());
-            viewHolder.itemView.animate().cancel();
+    private void drawItem(Rect itemBounds, boolean isCat, int fadeTransition, boolean instant, Integer... itemPosition) {
+        ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : ITEM_TYPE, itemPosition);
+        //if (viewHolder != null) {
+        viewHolder.setX(itemBounds.left);
+        viewHolder.setY(itemBounds.top);
+        //viewHolder.itemViewType = isCat ? CATEGORY_TYPE : ITEM_TYPE;
+        Integer[] currentPosition = getPosition();
+        boolean isSelection = isSamePosition(currentPosition, itemPosition);//getTotalIndexFromTraversable(currentIndex) == totalIndex;
+        viewHolder.isHighlighted = moveMode && isSelection;
+        viewHolder.requestHideTitle = (moveMode && isSelection) || (isSelection && isInsideItem());
+        //int currentColIndex = getColIndexOf(totalIndex);
+        boolean isOurCat = isSamePosition(itemPosition, getTotalIndexOfCol(getColIndex()));
+        float itemAlpha = isSelection || isOurCat ? fullItemAlpha : translucentItemAlpha;
+        //viewHolder.isSelectionCategory = getColIndex() == getColIndexOf(totalIndex);
+        //Log.d("XMBView", totalIndex + " alpha is " + viewHolder.itemView.getAlpha());
+        viewHolder.itemView.animate().cancel();
 
-            adapter.onBindViewHolder(viewHolder, totalIndex);
-            //Log.d("XMBView", "Setting item " + item.title);
-            //viewHolder.isCategory = isCat;
-            if (viewHolder.isNew || instant) {// || !indexChanged) {
-                //Log.d("XMBView", "Placing item #" + totalIndex + " at (" + viewHolder.getX() + ", " + viewHolder.getY() + ")");
-                // if the view just popped into existence then set its position to the final position rather than transitioning
-                viewHolder.itemView.setX(viewHolder.getX());
-                viewHolder.itemView.setY(viewHolder.getY());
+        Integer[] mappedPosition = itemPosition.clone();
+        mappedPosition[0] = mapTotalIndex(mappedPosition[0]);
+        adapter.onBindViewHolder(viewHolder, mappedPosition);
+        //Log.d("XMBView", "Setting item " + item.title);
+        //viewHolder.isCategory = isCat;
+        if (viewHolder.isNew || instant) {// || !indexChanged) {
+            //Log.d("XMBView", "Placing item #" + totalIndex + " at (" + viewHolder.getX() + ", " + viewHolder.getY() + ")");
+            // if the view just popped into existence then set its position to the final position rather than transitioning
+            viewHolder.itemView.setX(viewHolder.getX());
+            viewHolder.itemView.setY(viewHolder.getY());
 //                viewHolder.setX(itemBounds.left);
 //                viewHolder.setY(itemBounds.top);
-            } else {
-                //Log.d("XMBView", "Moving item #" + totalIndex + " from (" + viewHolder.getPrevX() + ", " + viewHolder.getPrevY() + ") to (" + viewHolder.getX() + ", " + viewHolder.getY() + ")");
-                // if this view already existed then animate it from where it was to the final position
-                viewHolder.itemView.setX(viewHolder.getPrevX());
-                viewHolder.itemView.setY(viewHolder.getPrevY());
+        } else {
+            //Log.d("XMBView", "Moving item #" + totalIndex + " from (" + viewHolder.getPrevX() + ", " + viewHolder.getPrevY() + ") to (" + viewHolder.getX() + ", " + viewHolder.getY() + ")");
+            // if this view already existed then animate it from where it was to the final position
+            viewHolder.itemView.setX(viewHolder.getPrevX());
+            viewHolder.itemView.setY(viewHolder.getPrevY());
+            viewHolder.itemView.animate().setDuration(300);
+            viewHolder.itemView.animate().xBy(viewHolder.getX() - viewHolder.getPrevX());
+            viewHolder.itemView.animate().yBy(viewHolder.getY() - viewHolder.getPrevY());
+        }
+        switch (fadeTransition) {
+            case FADE_VISIBLE:
+                //Log.d("XMBView", "Applying 1 alpha to " + totalIndex);
+                viewHolder.itemView.setAlpha(itemAlpha);
+                break;
+            case FADE_INVISIBLE:
+                //Log.d("XMBView", "Applying 0 alpha to " + totalIndex);
+                viewHolder.itemView.setAlpha(0);
+                break;
+            case FADE_OUT:
+                //Log.d("XMBView", "Fading out " + totalIndex);
+                //viewHolder.itemView.setAlpha(itemAlpha);
                 viewHolder.itemView.animate().setDuration(300);
-                viewHolder.itemView.animate().xBy(viewHolder.getX() - viewHolder.getPrevX());
-                viewHolder.itemView.animate().yBy(viewHolder.getY() - viewHolder.getPrevY());
-            }
-            switch (fadeTransition) {
-                case FADE_VISIBLE:
-                    //Log.d("XMBView", "Applying 1 alpha to " + totalIndex);
-                    viewHolder.itemView.setAlpha(itemAlpha);
-                    break;
-                case FADE_INVISIBLE:
-                    //Log.d("XMBView", "Applying 0 alpha to " + totalIndex);
-                    viewHolder.itemView.setAlpha(0);
-                    break;
-                case FADE_OUT:
-                    //Log.d("XMBView", "Fading out " + totalIndex);
-                    //viewHolder.itemView.setAlpha(itemAlpha);
-                    viewHolder.itemView.animate().setDuration(300);
-                    viewHolder.itemView.animate().alphaBy(-viewHolder.itemView.getAlpha());
-                    break;
-                case FADE_IN:
-                    //Log.d("XMBView", "Fading in " + totalIndex);
-                    viewHolder.itemView.setAlpha(0);
-                    viewHolder.itemView.animate().setDuration(300);
-                    viewHolder.itemView.animate().alphaBy(itemAlpha);
-                    break;
-            }
+                viewHolder.itemView.animate().alphaBy(-viewHolder.itemView.getAlpha());
+                break;
+            case FADE_IN:
+                //Log.d("XMBView", "Fading in " + totalIndex);
+                viewHolder.itemView.setAlpha(0);
+                viewHolder.itemView.animate().setDuration(300);
+                viewHolder.itemView.animate().alphaBy(itemAlpha);
+                break;
+        }
             //requestLayout();
             //Log.d("XMBView", "Item #" + totalIndex + " alpha set to " + viewHolder.itemView.getAlpha());
             //Log.d("XMBView", "Item #" + totalIndex + " visibility: " + viewHolder.itemView.getVisibility());
-        } else
-            Log.w("XMBView", "Missing view holder for item with index " + totalIndex + ", skipped for now");
+        //} else
+        //    Log.w("XMBView", "Missing view holder for item with index " + totalIndex + ", skipped for now");
+    }
+    private boolean isSamePosition(Integer[] position, Integer... position2) {
+        if (position.length != position2.length)
+            return false;
+        else
+            for (int i = 0; i < position.length; i++)
+                if (position[i] != position2[i])
+                    return false;
+        return true;
     }
     private void removeViews() {
-        returnAllItemViews();
+        returnAllViews();
         while (!goneCatViews.isEmpty())
             removeView(goneCatViews.pop().itemView);
         while (!goneItemViews.isEmpty())
@@ -904,37 +922,59 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             goneCatViews.push(newHolder);
         }
     }
-    private void returnItemView(int totalIndex) {
-        if (usedViews.containsKey(totalIndex)) {
+    private void createInnerItemViews() {
+        //Log.d("XMBView2", getWidth() + ", " + getHeight());
+        // TODO: implement view types for categories?
+        for (int i = 0; i < 5; i++) {
+            ViewHolder newHolder = adapter.onCreateViewHolder(this, INNER_TYPE);
+            newHolder.itemViewType = INNER_TYPE;
+            newHolder.itemView.setVisibility(GONE);
+            addView(newHolder.itemView);
+            newHolder.itemView.measure(getWidth(), getHeight());
+            //Log.d("XMBView", "measured: (" + newHolder.itemView.getMeasuredWidth() + ", " + newHolder.itemView.getMeasuredHeight() + ")");
+            innerItemSize = Math.max(newHolder.itemView.getMeasuredWidth(), newHolder.itemView.getMeasuredHeight());
+            //horSpacing = iconSize * 0.33f;
+            adapter.onViewAttachedToWindow(newHolder);
+            goneInnerItemViews.push(newHolder);
+        }
+    }
+    private void returnItemView(Integer... position) {
+        int indexHash = MathHelpers.hash(position);
+        if (usedViews.containsKey(indexHash)) {
             //Log.d("XMBView", "Returning view id " + totalIndex);
-            ViewHolder viewHolder = usedViews.get(totalIndex);
+            ViewHolder viewHolder = usedViews.get(indexHash);
             viewHolder.itemView.setVisibility(GONE);
             if (viewHolder.getItemViewType() == CATEGORY_TYPE)
                 goneCatViews.push(viewHolder);
             else if (viewHolder.getItemViewType() == ITEM_TYPE)
                 goneItemViews.push(viewHolder);
-            usedViews.remove(totalIndex);
+            else if (viewHolder.getItemViewType() == INNER_TYPE)
+                goneInnerItemViews.push(viewHolder);
+            usedViews.remove(indexHash);
         }
     }
-    private void returnAllItemViews() {
+    private void returnAllViews() {
         for (ViewHolder viewHolder : usedViews.values()) {
             viewHolder.itemView.setVisibility(GONE);
             if (viewHolder.getItemViewType() == CATEGORY_TYPE)
                 goneCatViews.push(viewHolder);
             else if (viewHolder.getItemViewType() == ITEM_TYPE)
                 goneItemViews.push(viewHolder);
+            else if (viewHolder.getItemViewType() == INNER_TYPE)
+                goneInnerItemViews.push(viewHolder);
         }
         //goneItemViews.addAll(usedViews.values());
         usedViews.clear();
     }
-    private ViewHolder getViewHolder(int totalIndex, int viewType) {
+    private ViewHolder getViewHolder(int viewType, Integer... position) {
         ViewHolder viewHolder = null;
+        int indexHash = MathHelpers.hash(position);
         //int index = getTotalIndex(item);
         //boolean isNew = false;
         //Log.d("XMBView", "Retrieving view of " + item.title + " whose total index is " + index);
-        if (usedViews.containsKey(totalIndex)) {
+        if (usedViews.containsKey(indexHash)) {
             //Log.d("XMBView", "View already visible");
-            viewHolder = usedViews.get(totalIndex);
+            viewHolder = usedViews.get(indexHash);
             viewHolder.isNew = false;
             //Log.d("XMBView", "Retrieving view for " + item.title + " whose value is already set to " + view.title);
         } else {
@@ -945,7 +985,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 viewHolder = goneCatViews.pop();
                 viewHolder.isNew = true;
                 viewHolder.itemView.setVisibility(VISIBLE);
-                usedViews.put(totalIndex, viewHolder);
+                usedViews.put(indexHash, viewHolder);
             } else if (viewType == ITEM_TYPE) {
                 if (goneItemViews.isEmpty())
                     createItemViews();
@@ -953,7 +993,15 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 viewHolder = goneItemViews.pop();
                 viewHolder.isNew = true;
                 viewHolder.itemView.setVisibility(VISIBLE);
-                usedViews.put(totalIndex, viewHolder);
+                usedViews.put(indexHash, viewHolder);
+            } else if (viewType == INNER_TYPE) {
+                if (goneInnerItemViews.isEmpty())
+                    createInnerItemViews();
+
+                viewHolder = goneInnerItemViews.pop();
+                viewHolder.isNew = true;
+                viewHolder.itemView.setVisibility(VISIBLE);
+                usedViews.put(indexHash, viewHolder);
             }
         }
         //itemView[0] = viewHolder;
@@ -1013,7 +1061,14 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
 
     public Object getSelectedItem() {
-        return adapter.getItem(getPosition());
+        Integer[] position = getPosition();
+        position[0] = mapTotalIndex(position[0]);
+        return adapter.getItem(position);
+    }
+    protected int mapTotalIndex(int totalIndex) {
+        int colIndex = getColIndexOf(totalIndex);
+        int localIndex = getLocalIndexFromTotal(totalIndex) + (catHasSubItems(colIndex) ? 1 : 0);
+        return mapper.get(colIndex).get(localIndex);
     }
     // Gets the total number of items without the category items that have sub items since they can't be 'highlighted' or in other words traversed
     private int getTraversableCount() {
@@ -1153,9 +1208,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             int nextEntry = innerYToIndex(innerItemEntryPos.peek(), (Integer[]) innerItemVerPos.toArray());
             position[position.length - 1] = nextEntry;
         } else {
-            int colIndex = getColIndex();
-            int localIndex = getLocalIndex() + (catHasSubItems(colIndex) ? 1 : 0);
-            position = new Integer[]{ mapper.get(colIndex).get(localIndex) };
+            //int colIndex = getColIndex();
+            //int localIndex = getLocalIndex() + (catHasSubItems(colIndex) ? 1 : 0);
+            position = new Integer[] { getTotalIndexFromTraversable(currentIndex) };
         }
         return position;
     }
@@ -1285,7 +1340,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             return true;
         } else {
             Integer[] position = getPosition();
-            int nextEntry = position[position.length - 1];
+            int nextEntry = position[position.length - 1]; // this has to come before the mapping since it is what is pushed into innerItemEntryPos and we want to keep total index in there, not the mapped index
+            position[0] = mapTotalIndex(position[0]);
             boolean hasInnerItems = getAdapter().hasInnerItems(position);
 
             if (hasInnerItems) {

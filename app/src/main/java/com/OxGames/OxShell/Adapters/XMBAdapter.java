@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Adapters;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,8 +49,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         return new XMBViewHolder(view);
     }
     @Override
-    public void onBindViewHolder(@NonNull XMBViewHolder holder, int position) {
-        XMBItem item = items[position];
+    public void onBindViewHolder(@NonNull XMBViewHolder holder, Integer... position) {
+        XMBItem item = (XMBItem)getItem(position);
+        //Log.d("XMBAdapter", "Binding " + item.title + " to " + position[0]);
         holder.bindItem(item);
     }
     @Override
@@ -93,8 +95,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             title.setTypeface(font);
             title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
 
-            ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
-            superIcon.setVisibility(View.GONE);
+            //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
+            //superIcon.setVisibility(View.GONE);
             //superIcon.setVisibility(((HomeItem)item).type == HomeItem.Type.assoc ? View.VISIBLE : View.GONE);
 
             ImageView img = itemView.findViewById(R.id.typeIcon);

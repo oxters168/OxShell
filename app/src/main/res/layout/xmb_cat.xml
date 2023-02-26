@@ -54,7 +54,8 @@
             android:layout_width="15dip"
             android:layout_height="15dip"
             android:layout_gravity="bottom|right"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            tools:visibility="gone" />
 
     </FrameLayout>
 

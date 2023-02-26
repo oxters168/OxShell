@@ -10,6 +10,8 @@ import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class XMBItem<T> implements Serializable {
@@ -29,7 +31,7 @@ public class XMBItem<T> implements Serializable {
     private transient float prevX;
     private transient float prevY;
 
-    public XMBItem(T _obj, String _title, Object _iconLoc, int _colIndex, int _localIndex) {
+    public XMBItem(T _obj, String _title, Object _iconLoc, int _colIndex, int _localIndex, XMBItem... innerItems) {
         obj = _obj;
         title = _title;
         iconLoc = _iconLoc;
@@ -37,12 +39,14 @@ public class XMBItem<T> implements Serializable {
         //icon = _icon;
         colIndex = _colIndex;
         localIndex = _localIndex;
+        this.innerItems = new ArrayList<>();
+        Collections.addAll(this.innerItems, innerItems);
     }
-    public XMBItem(T _obj, String _title, int _colIndex, int _localIndex) {
-        this(_obj, _title, null, _colIndex, _localIndex);
+    public XMBItem(T _obj, String _title, int _colIndex, int _localIndex, XMBItem... innerItems) {
+        this(_obj, _title, null, _colIndex, _localIndex, innerItems);
     }
-    public XMBItem(T _obj, String _title) {
-        this(_obj, _title, null, -1, -1);
+    public XMBItem(T _obj, String _title, XMBItem... innerItems) {
+        this(_obj, _title, null, -1, -1, innerItems);
     }
 
     public Drawable getIcon() {

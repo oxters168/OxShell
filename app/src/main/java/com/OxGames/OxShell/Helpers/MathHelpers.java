@@ -1,5 +1,7 @@
 package com.OxGames.OxShell.Helpers;
 
+import android.util.Log;
+
 public class MathHelpers {
     public static int max(int... values) {
         if (values.length <= 0)
@@ -16,5 +18,16 @@ public class MathHelpers {
         for (int i = 1; i < values.length; i++)
             min = Math.min(min, values[i]);
         return min;
+    }
+    public static int hash(Integer... values) {
+        StringBuilder hashMedium = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            hashMedium.append(values[i]);
+            if (i < values.length - 1)
+                hashMedium.append(",");
+        }
+        int hash = hashMedium.toString().hashCode();
+        //Log.d("MathHelpers", hashMedium + " => " + hash);
+        return hash;
     }
 }

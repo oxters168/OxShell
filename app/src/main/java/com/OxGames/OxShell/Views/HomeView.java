@@ -244,13 +244,18 @@ public class HomeView extends XMBView implements Refreshable {
     private void addSettings() {
         //XMBItem settings = new HomeItem(HomeItem.Type.settings, "Settings");
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();
+        XMBItem[] innerSettings;
         int colIndex = allHomeItems.size();
         int localIndex = 0;
 
         XMBItem settingsItem = new XMBItem(null, "Settings", R.drawable.ic_baseline_settings_24, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
 
-        settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, colIndex, localIndex++);
+        innerSettings = new XMBItem[3];
+        innerSettings[0] = new XMBItem(null, "Add explorer item to home");
+        innerSettings[1] = new XMBItem(null, "Add application to home");
+        innerSettings[2] = new XMBItem(null, "Create new column");
+        settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, colIndex, localIndex++, innerSettings);
         settingsColumn.add(settingsItem);
 
         settingsItem = new XMBItem(null, "Background", R.drawable.ic_baseline_image_24, colIndex, localIndex++);
