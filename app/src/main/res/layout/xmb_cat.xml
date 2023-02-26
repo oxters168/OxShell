@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="64dip"
     android:layout_height="64dip"
     android:clipChildren="false">
@@ -16,7 +17,8 @@
             android:layout_gravity="top|left"
             android:backgroundTint="#FFFF00"
             android:backgroundTintMode="src_atop"
-            android:scaleType="centerCrop" />
+            android:scaleType="centerCrop"
+            tools:visibility="invisible" />
 
         <com.OxGames.OxShell.Views.BetterTextView
             android:id="@+id/title"

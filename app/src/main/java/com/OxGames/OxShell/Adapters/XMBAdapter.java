@@ -61,13 +61,25 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
     }
     @Override
-    public Object getItem(int position) {
-        return items[position];
+    public Object getItem(Integer... position) {
+        XMBItem current = null;
+        if (position != null && position.length > 0) {
+            current = (XMBItem)items[position[0]];
+            for (int i = 1; i < position.length; i++)
+                current = current.getInnerItem(position[i]);
+        }
+        return current;
     }
 
     @Override
-    public boolean hasInnerItems(int position) {
-        return ((XMBItem)getItem(position)).hasInnerItems();
+    public boolean hasInnerItems(Integer... position) {
+        XMBItem current = (XMBItem)getItem(position);
+        return current != null && current.hasInnerItems();
+    }
+    @Override
+    public int getInnerItemCount(Integer... position) {
+        XMBItem current = (XMBItem)getItem(position);
+        return current != null ? current.getInnerItemCount() : 0;
     }
 
     public class XMBViewHolder extends XMBView.ViewHolder {
@@ -76,15 +88,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         }
         public void bindItem(XMBItem item) {
             TextView title = itemView.findViewById(R.id.title);
-            //TextView subTxt = itemView.findViewById(R.id.sub_title);
-            //title.setVisibility(isCategory() ? View.VISIBLE : View.GONE);
-            //subTxt.setVisibility(isCategory() ? View.GONE : View.VISIBLE);
             title.setText(item.title);
-            //subTxt.setText(item.title);
             title.setSelected(true);
-            //subTxt.setSelected(true);
             title.setTypeface(font);
-            //subTxt.setTypeface(font);
+            title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
 
             ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
             superIcon.setVisibility(View.GONE);

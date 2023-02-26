@@ -2,7 +2,6 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -16,7 +15,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.R;
 
@@ -48,6 +46,19 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private final Stack<ViewHolder> goneCatViews;
     private final Stack<ViewHolder> goneItemViews; //The views whose visibility are set to gone since they are not currently used
     private final HashMap<Integer, ViewHolder> usedViews; //The views that are currently displayed and the total index of the item they represent as their key
+    private final Stack<Integer> innerItemEntryPos; // The indices that represent where we entered from
+    private final Stack<Float> innerItemVerPos; // The y scroll value of the inner items menu
+    //private boolean isInsideItem;
+    //private int innerItemPosition;
+    //private int currentInnerIndex;
+    //private int innerItemCount;
+    public boolean isInsideItem() {
+        return innerItemEntryPos.size() > 0;
+    }
+    private int innerYToIndex(float yValue, Integer... position) {
+        // finds the inner index closest to the current y value then clamps it to be within the proper range
+        return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), getAdapter().getInnerItemCount(position) - 1);
+    }
 
     //private final ArrayList<Integer> catIndices;
     private final ArrayList<Float> catPos; // go from 0 to (getColCount(colIndex) - 1) * getVerShiftOffset()
@@ -76,6 +87,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         //catIndices = new ArrayList<>();
         catPos = new ArrayList<>();
         //items = new ArrayList<>();
+        innerItemEntryPos = new Stack<>();
+        innerItemVerPos = new Stack<>();
 
         setAttributes(attrs);
     }
@@ -99,14 +112,16 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public abstract void onBindViewHolder(@NonNull T holder, int position);
         public abstract int getItemCount();
         public abstract void onViewAttachedToWindow(@NonNull T holder);
-        public abstract Object getItem(int position);
-        public abstract boolean hasInnerItems(int position);
+        public abstract Object getItem(Integer... position);
+        public abstract boolean hasInnerItems(Integer... position);
+        public abstract int getInnerItemCount(Integer... position);
     }
     public abstract static class ViewHolder {
         protected View itemView;
         private int itemViewType;
 
         private boolean isHighlighted;
+        private boolean requestHideTitle;
         //private boolean isSelectionCategory;
         private boolean isNew;
         private float currentX;
@@ -122,6 +137,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public boolean isHighlighted() {
             return isHighlighted;
         }
+        public boolean isHideTitleRequested() { return requestHideTitle; }
 //        public boolean isSelectionCategory() {
 //            return isSelectionCategory;
 //        }
@@ -794,6 +810,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             //viewHolder.itemViewType = isCat ? CATEGORY_TYPE : ITEM_TYPE;
             boolean isSelection = getTotalIndexFromTraversable(currentIndex) == totalIndex;
             viewHolder.isHighlighted = moveMode && isSelection;
+            viewHolder.requestHideTitle = (moveMode && isSelection) || (isSelection && isInsideItem());
             //int currentColIndex = getColIndexOf(totalIndex);
             boolean isCatItem = totalIndex == getTotalIndexOfCol(getColIndex());
             float itemAlpha = isSelection || isCatItem ? fullItemAlpha : translucentItemAlpha;
@@ -996,7 +1013,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
 
     public Object getSelectedItem() {
-        return adapter.getItem(getTotalIndexFromTraversable(currentIndex));
+        return adapter.getItem(getPosition());
     }
     // Gets the total number of items without the category items that have sub items since they can't be 'highlighted' or in other words traversed
     private int getTraversableCount() {
@@ -1096,10 +1113,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private boolean columnHasSubItems(int colIndex) {
         return mapper.get(colIndex).size() > 1;
     }
-    public void setIndex(int colIndex, int localIndex, boolean instant) {
+    protected void setIndex(int colIndex, int localIndex, boolean instant) {
         setIndex(getTraversableIndexFromLocal(localIndex, colIndex), instant);
     }
-    public void setIndex(int index, boolean instant) {
+    protected void setIndex(int index, boolean instant) {
         //boolean changed = false;
         // added index != currentIndex to allow alpha transition and potentially future transitions to work properly
         if (index != currentIndex && mapper.size() > 0) {
@@ -1128,19 +1145,33 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         //setViews(changed);
         //return changed;
     }
+    protected Integer[] getPosition() {
+        Integer[] position;
+        if (isInsideItem()) {
+            position = new Integer[innerItemEntryPos.size() + 1];
+            innerItemEntryPos.copyInto(position);
+            int nextEntry = innerYToIndex(innerItemEntryPos.peek(), (Integer[]) innerItemVerPos.toArray());
+            position[position.length - 1] = nextEntry;
+        } else {
+            int colIndex = getColIndex();
+            int localIndex = getLocalIndex() + (catHasSubItems(colIndex) ? 1 : 0);
+            position = new Integer[]{ mapper.get(colIndex).get(localIndex) };
+        }
+        return position;
+    }
     private int getTotalIndexOfCol(int colIndex) {
         int totalIndex = 0;
         for (int i = 0; i < colIndex; i++)
             totalIndex += mapper.get(i).size();
         return totalIndex;
     }
-    public int getIndex() {
+    protected int getIndex() {
         return currentIndex;
     }
-    public int getColIndex() {
+    protected int getColIndex() {
         return getColIndexFromTraversable(currentIndex);
     }
-    public int getLocalIndex() {
+    protected int getLocalIndex() {
         return getLocalIndexFromTraversable(currentIndex);
     }
     private int getTotalIndexFromTraversable(int traversableIndex) {
@@ -1249,19 +1280,23 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         shiftXDisc(-1);
     }
     public boolean affirmativeAction() {
-        boolean hasInnerItems;
         if (moveMode) {
             applyMove();
             return true;
         } else {
-            int colIndex = getColIndex();
-            int localIndex = getLocalIndex() + (catHasSubItems(colIndex) ? 1 : 0);
-            hasInnerItems = adapter.hasInnerItems(mapper.get(colIndex).get(localIndex));
+            Integer[] position = getPosition();
+            int nextEntry = position[position.length - 1];
+            boolean hasInnerItems = getAdapter().hasInnerItems(position);
+
             if (hasInnerItems) {
                 // show inner items
+                innerItemEntryPos.push(nextEntry);
+                innerItemVerPos.push(0f);
+                setViews(false, false);
+                return true;
             }
         }
-        return hasInnerItems;
+        return false;
     }
     public boolean secondaryAction() {
         return false;
