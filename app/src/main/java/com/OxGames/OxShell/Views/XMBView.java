@@ -760,7 +760,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int viewHeight = getHeight();
         //Log.d("XMBView", "Drawing categories");
         for (int i = 0; i < getTotalColCount(); i++) {
-            int catTotalIndex = getCatTotalIndex(i);
+            int catTotalIndex = getTotalIndexOfCol(i);
             calcCatRect(startXInt, startYInt, horShiftOffsetInt, catTotalIndex, reusableRect);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
             //Log.d("XMBView", "Setting category " + i + " title: " + cat.title + " inBounds: " + inBounds + " destX: " + cat.getX() + " destY: " + cat.getY());
@@ -811,7 +811,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private void drawInnerItems(boolean instant) {
         for (int totalIndex = 0; totalIndex < getAdapter().getItemCount(); totalIndex++)
-            if (getAdapter().hasInnerItems(totalIndex))
+            if (getAdapter().hasInnerItems(mapTotalIndex(totalIndex)))
                 drawInnerItems(instant, totalIndex);
     }
     private void drawInnerItems(boolean instant, Integer... position) {
@@ -819,13 +819,20 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int viewHeight = getHeight();
         Integer[] currentEntry = innerItemEntryPos.toArray(new Integer[0]);
         Integer[] innerPosition = new Integer[position.length + 1];
+        Integer[] adapterInnerPosition = new Integer[position.length + 1];
+        Integer[] adapterPosition = new Integer[position.length];
         // copy array
-        for (int i = 0; i < position.length; i++)
+        for (int i = 0; i < position.length; i++) {
             innerPosition[i] = position[i];
+            int mappedPos = mapTotalIndex(position[i]);
+            adapterInnerPosition[i] = (i == 0) ? mappedPos : position[i];
+            adapterPosition[i] = (i == 0) ? mappedPos : position[i];
+        }
         // draw list of inner items
-        for (int i = 0; i < getAdapter().getInnerItemCount(position); i++) {
+        for (int i = 0; i < getAdapter().getInnerItemCount(adapterPosition); i++) {
             innerPosition[innerPosition.length - 1] = i;
-            if (getAdapter().hasInnerItems(innerPosition))
+            adapterInnerPosition[adapterInnerPosition.length - 1] = i;
+            if (getAdapter().hasInnerItems(adapterInnerPosition))
                 drawInnerItems(instant, innerPosition);
             if (currentEntry.length > 0 && isPartOfPosition(innerPosition, currentEntry)) {
                 calcInnerItemRect(reusableRect, getStartX(), getStartY(), Math.round(innerHorSpacing), Math.round(innerVerSpacing), innerPosition);
@@ -848,7 +855,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private static final int FADE_OUT = 2;
     private static final int FADE_IN = 3;
     private void drawItem(Rect itemBounds, int fadeTransition, boolean instant, Integer... itemPosition) {
-        boolean isCat = itemPosition.length == 1 && getCatTotalIndex(getColIndexFromTotal(itemPosition[0])) == itemPosition[0];
+        boolean isCat = itemPosition.length == 1 && getTotalIndexOfCol(getColIndexFromTotal(itemPosition[0])) == itemPosition[0];
         boolean isInnerItem = itemPosition.length > 1;
         ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, itemPosition);
         //if (viewHolder != null) {
@@ -992,7 +999,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         }
     }
     private void returnItemView(Integer... position) {
-        int indexHash = MathHelpers.hash(position);
+        int indexHash = MathHelpers.hash(mapPosition(position));
         if (usedViews.containsKey(indexHash)) {
             //Log.d("XMBView", "Returning view id " + totalIndex);
             ViewHolder viewHolder = usedViews.get(indexHash);
@@ -1021,7 +1028,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private ViewHolder getViewHolder(int viewType, Integer... position) {
         ViewHolder viewHolder = null;
-        int indexHash = MathHelpers.hash(position);
+        int indexHash = MathHelpers.hash(mapPosition(position));
         //int index = getTotalIndex(item);
         //boolean isNew = false;
         //Log.d("XMBView", "Retrieving view of " + item.title + " whose total index is " + index);
@@ -1134,6 +1141,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int localIndex = getLocalIndexFromTotal(totalIndex) + (catHasSubItems(colIndex) ? 1 : 0);
         return mapper.get(colIndex).get(localIndex);
     }
+    protected Integer[] mapPosition(Integer... position) {
+        Integer[] mappedPosition = new Integer[position.length];
+        for (int i = 0; i < mappedPosition.length; i++)
+            mappedPosition[i] = i == 0 ? mapTotalIndex(position[i]) : position[i];
+        return mappedPosition;
+    }
     // Gets the total number of items without the category items that have sub items since they can't be 'highlighted' or in other words traversed
     private int getTraversableCount() {
         int count = 0;
@@ -1211,15 +1224,15 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return index;
     }
 
-    private int getCatTotalIndex(int colIndex) {
-        int catIndex = -1;
-        List<Integer> column = mapper.get(colIndex);
-        if (column != null && column.size() > 0)
-            catIndex = column.get(0);
-        else
-            Log.e("XMBView", "Column @" + colIndex + " is null");
-        return catIndex;
-    }
+//    private int getCatTotalIndex(int colIndex) {
+//        int catIndex = -1;
+//        List<Integer> column = mapper.get(colIndex);
+//        if (column != null && column.size() > 0)
+//            catIndex = column.get(0);
+//        else
+//            Log.e("XMBView", "Column @" + colIndex + " is null");
+//        return catIndex;
+//    }
     private int getTotalColCount() {
         return mapper.size();
     }
@@ -1279,9 +1292,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return position;
     }
     private int getTotalIndexOfCol(int colIndex) {
-        int totalIndex = 0;
-        for (int i = 0; i < colIndex; i++)
-            totalIndex += mapper.get(i).size();
+        int totalIndex = -1;
+        if (colIndex >= 0) {
+            totalIndex = 0;
+            for (int i = 0; i < colIndex; i++)
+                totalIndex += mapper.get(i).size();
+        }
         return totalIndex;
     }
     protected int getIndex() {
@@ -1295,43 +1311,55 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private int getTotalIndexFromTraversable(int traversableIndex) {
         int totalIndex = -1;
-        if (mapper.size() > 0) {
-            int currentPos = traversableIndex;
-            // Go through each column subtracting the amount of items there from the index until the index becomes smaller than the current column size
-            // meaning we've reached our column, then use the remaining index to retrieve the item
-            for (int i = 0; i < mapper.size(); i++) {
-                List<Integer> cat = mapper.get(i);
-                if (cat != null) {
-                    boolean colHasSubItems = cat.size() > 1;
-                    if ((colHasSubItems && currentPos < cat.size() - 1) || (!colHasSubItems && currentPos < cat.size())) {
-                        totalIndex = cat.get(colHasSubItems ? currentPos + 1 : currentPos);
-                        break;
-                    } else if (cat.size() == 1)
-                        currentPos -= 1;
-                    else if (cat.size() > 1)
-                        currentPos -= (cat.size() - 1);
-                    else
-                        Log.e("XMBView", "Category list @" + i + " is empty");
-                } else {
-                    Log.e("XMBView", "Category list @" + i + " is null");
-                }
-            }
+        //if (mapper.size() > 0) {
+        if (traversableIndex >= 0) {
+            totalIndex = traversableIndex;
+            int colIndex = getColIndexFromTraversable(traversableIndex);
+            for (int i = 0; i <= colIndex; i++)
+                totalIndex += mapper.get(i).size() > 1 ? 1 : 0;
         }
+        // Go through each column subtracting the amount of items there from the index until the index becomes smaller than the current column size
+        // meaning we've reached our column, then use the remaining index to retrieve the item
+//        for (int i = 0; i < mapper.size(); i++) {
+//            List<Integer> cat = mapper.get(i);
+//            if (cat != null) {
+//                boolean colHasSubItems = cat.size() > 1;
+//                if ((colHasSubItems && currentPos < cat.size() - 1) || (!colHasSubItems && currentPos < cat.size())) {
+//                    totalIndex = cat.get(colHasSubItems ? currentPos + 1 : currentPos);
+//                    break;
+//                } else if (cat.size() == 1)
+//                    currentPos -= 1;
+//                else if (cat.size() > 1)
+//                    currentPos -= (cat.size() - 1);
+//                else
+//                    Log.e("XMBView", "Category list @" + i + " is empty");
+//            } else {
+//                Log.e("XMBView", "Category list @" + i + " is null");
+//            }
+//        }
+        //}
         return totalIndex;
     }
     private int getColIndexFromTotal(int totalIndex) {
-        int index = -1;
+        int colIndex = -1;
+        int index = totalIndex;
         for (int i = 0; i < mapper.size(); i++) {
-            for (int j = 0; j < mapper.get(i).size(); j++) {
-                if (mapper.get(i).get(j) == totalIndex) {
-                    index = i;
-                    break;
-                }
-            }
-            if (index >= 0)
+            int columnSize = mapper.get(i).size();
+            if (index < columnSize) {
+                colIndex = i;
                 break;
+            }
+            index -= columnSize;
+//            for (int j = 0; j < mapper.get(i).size(); j++) {
+//                if (mapper.get(i).get(j) == totalIndex) {
+//                    index = i;
+//                    break;
+//                }
+//            }
+//            if (index >= 0)
+//                break;
         }
-        return index;
+        return colIndex;
     }
 
     private int getCachedIndexOfCat(int colIndex) {
