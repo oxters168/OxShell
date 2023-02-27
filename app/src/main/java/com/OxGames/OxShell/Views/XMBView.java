@@ -60,7 +60,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private int innerYToIndex(float yValue, Integer... position) {
         // finds the inner index closest to the current y value then clamps it to be within the proper range
-        return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), getAdapter().getInnerItemCount(position) - 1);
+        return Math.min(Math.max(Math.round(yValue / (innerItemSize + innerVerSpacing)), 0), getAdapter().getInnerItemCount(position) - 1);
+    }
+    private int innerYToIndex() {
+        return innerYToIndex(innerItemVerPos.peek(), innerItemEntryPos.toArray(new Integer[0]));
     }
 
     //private final ArrayList<Integer> catIndices;
@@ -280,29 +283,31 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         setViews(changed, instant);
     }
     private void setShiftX(float xValue) {
-        if (Math.abs(shiftX - xValue) > EPSILON) {
-            shiftX = Math.min(Math.max(xValue, 0), (getTotalColCount() - 1) * getHorShiftOffset());
-            int colIndex = xToIndex(shiftX);
-            int newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(colIndex), colIndex);
-            boolean changed = newIndex != currentIndex;
-            //boolean cancel = false;
-            if (changed) {
-                int prevColIndex = getColIndex();
-                onShiftHorizontally(colIndex, prevColIndex);
+        if (!isInsideItem()) {
+            if (Math.abs(shiftX - xValue) > EPSILON) {
+                shiftX = Math.min(Math.max(xValue, 0), (getTotalColCount() - 1) * getHorShiftOffset());
+                int colIndex = xToIndex(shiftX);
+                int newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(colIndex), colIndex);
+                boolean changed = newIndex != currentIndex;
+                //boolean cancel = false;
+                if (changed) {
+                    int prevColIndex = getColIndex();
+                    onShiftHorizontally(colIndex, prevColIndex);
                     //return;
-                // in case a column were added
-                //newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(colIndex), colIndex);
-                if (moveMode) {
-                    newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(moveColIndex), moveColIndex);
-                    shiftX = getShiftX(moveColIndex);
+                    // in case a column were added
+                    //newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(colIndex), colIndex);
+                    if (moveMode) {
+                        newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(moveColIndex), moveColIndex);
+                        shiftX = getShiftX(moveColIndex);
+                    }
+                    prevIndex = currentIndex;
+                    currentIndex = newIndex;
                 }
-                prevIndex = currentIndex;
-                currentIndex = newIndex;
-            }
-            //if (!cancel)
+                //if (!cancel)
                 setViews(changed, false);
-            //setIndex(localToTraversableIndex(getCachedIndexOfCat(colIndex), colIndex));
-            //setViews(changed);
+                //setIndex(localToTraversableIndex(getCachedIndexOfCat(colIndex), colIndex));
+                //setViews(changed);
+            }
         }
     }
     private float getShiftX(int colIndex) {
@@ -315,32 +320,63 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private void shiftX(float amount) {
         setShiftX(shiftX + amount);
     }
+    private int shiftXDisc(float amount) {
+        return shiftXDisc(currentIndex, amount);
+    }
+    private int shiftXDisc(int fromIndex, float amount) {
+        int offsetIndex = (int)(amount / itemSize); // convert the user drag amount to indices offset
+        return shiftXDisc(fromIndex, offsetIndex);
+    }
+    private int shiftXDisc(int amount) {
+        return shiftXDisc(currentIndex, amount);
+    }
+    private int shiftXDisc(int fromIndex, int amount) {
+        int nextIndex = fromIndex;
+        if (Math.abs(amount) > 0) {
+            int currentColIndex = getColIndexFromTraversable(fromIndex);
+            // clamp the col index
+            int nextColIndex = Math.min(Math.max(currentColIndex + amount, 0), getTotalColCount() - 1);
+            // get the offset column's local index then convert it to x position
+            setShiftX(getShiftX(nextColIndex));
+        }
+        return nextIndex;
+    }
     private float clampYValue(float yValue, int colIndex) {
         return Math.min(Math.max(yValue, 0), (getColTraversableCount(colIndex) - 1) * getVerShiftOffset());
     }
     private void setShiftY(float yValue, int colIndex) {
-        float shiftY = catPos.get(colIndex);
-        if (Math.abs(shiftY - yValue) > EPSILON) {
-            //int colCount = getColCount(colIndex) - 1;
-            float newYValue = clampYValue(yValue, colIndex);//Math.min(Math.max(yValue, 0), colCount * getVerShiftOffset());
-            catPos.set(colIndex, newYValue);
-            int currentCol = getColIndexFromTraversable(currentIndex);
-            // if the shifted column is the one we are currently on
-            if (currentCol == colIndex) {
-                int newLocalIndex = yToIndex(newYValue, colIndex);
-                int newIndex = getTraversableIndexFromLocal(newLocalIndex, colIndex);
-                boolean changed = newIndex != currentIndex;
-                //boolean cancel = false;
-                if (changed) {
-                    int prevLocalIndex = getLocalIndex();
-                    onShiftVertically(currentCol, newLocalIndex, prevLocalIndex);
+        if (!isInsideItem()) {
+            float shiftY = catPos.get(colIndex);
+            if (Math.abs(shiftY - yValue) > EPSILON) {
+                //int colCount = getColCount(colIndex) - 1;
+                float newYValue = clampYValue(yValue, colIndex);//Math.min(Math.max(yValue, 0), colCount * getVerShiftOffset());
+                catPos.set(colIndex, newYValue);
+                int currentCol = getColIndexFromTraversable(currentIndex);
+                // if the shifted column is the one we are currently on
+                if (currentCol == colIndex) {
+                    int newLocalIndex = yToIndex(newYValue, colIndex);
+                    int newIndex = getTraversableIndexFromLocal(newLocalIndex, colIndex);
+                    boolean changed = newIndex != currentIndex;
+                    //boolean cancel = false;
+                    if (changed) {
+                        int prevLocalIndex = getLocalIndex();
+                        onShiftVertically(currentCol, newLocalIndex, prevLocalIndex);
                         //return;
-                    prevIndex = currentIndex;
-                    currentIndex = newIndex;
-                }
-                //setIndex(localToTraversableIndex(yToIndex(newYValue, colIndex), colIndex));
-                //if (!cancel)
+                        prevIndex = currentIndex;
+                        currentIndex = newIndex;
+                    }
+                    //setIndex(localToTraversableIndex(yToIndex(newYValue, colIndex), colIndex));
+                    //if (!cancel)
                     setViews(changed, false);
+                }
+            }
+        } else {
+            float shiftY = innerItemVerPos.peek();
+            if (Math.abs(shiftY - yValue) > EPSILON) {
+                float newYValue = Math.min(Math.max(yValue, 0), (getAdapter().getInnerItemCount(innerItemEntryPos.toArray(new Integer[0])) - 1) * (innerItemSize + verSpacing));
+                innerItemVerPos.pop();
+                innerItemVerPos.push(newYValue);
+                setViews(false, false);
             }
         }
     }
@@ -364,6 +400,29 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private float toNearestColumnItem(float yValue, int colIndex) {
         // finds the local index nearest to the pixel location then turns the index back into pixel location
         return yToIndex(yValue, colIndex) * getVerShiftOffset();
+    }
+    private int shiftYDisc(float amount) {
+        return shiftYDisc(currentIndex, amount);
+    }
+    private int shiftYDisc(int fromIndex, float amount) {
+        int offsetIndex = (int)(amount / itemSize);
+        return shiftYDisc(fromIndex, offsetIndex);
+    }
+    private int shiftYDisc(int amount) {
+        return shiftYDisc(currentIndex, amount);
+    }
+    private int shiftYDisc(int fromIndex, int amount) {
+        int nextIndex = fromIndex;
+        if (Math.abs(amount) > 0) {
+            if (!isInsideItem()) {
+                int colIndex = getColIndexFromTraversable(fromIndex);
+                setShiftY(getShiftY(getLocalIndexFromTraversable(fromIndex) + amount, colIndex), colIndex);
+            } else {
+                float nextY = Math.min(Math.max(innerYToIndex() + amount, 0), getAdapter().getInnerItemCount(innerItemEntryPos.toArray(new Integer[0])) - 1) * (innerVerSpacing + innerItemSize);
+                setShiftY(nextY, -1);
+            }
+        }
+        return nextIndex;
     }
 
     private float touchMarginTop = 50;
@@ -530,59 +589,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             touchVer = false;
         }
         return true;
-    }
-    private int shiftXDisc(float amount) {
-        return shiftXDisc(currentIndex, amount);
-    }
-    private int shiftXDisc(int fromIndex, float amount) {
-        int offsetIndex = (int)(amount / itemSize); // convert the user drag amount to indices offset
-        return shiftXDisc(fromIndex, offsetIndex);
-    }
-    private int shiftXDisc(int amount) {
-        return shiftXDisc(currentIndex, amount);
-    }
-    private int shiftXDisc(int fromIndex, int amount) {
-        int nextIndex = fromIndex;
-        if (Math.abs(amount) > 0) {
-            int currentColIndex = getColIndexFromTraversable(fromIndex);
-            // clamp the col index
-            int nextColIndex = Math.min(Math.max(currentColIndex + amount, 0), getTotalColCount() - 1);
-            // get the offset column's local index then convert it to a traversable index
-            //nextIndex = localToTraversableIndex(getCachedIndexOfCat(nextColIndex), nextColIndex);
-            setShiftX(getShiftX(nextColIndex));
-            //if (fromIndex != nextIndex) {
-                //Log.d("XMBView", "Shifting from " + currentColIndex + " to " + nextColIndex + ", " + fromIndex + " => " + nextIndex);
-            //    setShiftX(getColIndexFromTraversable(nextIndex));
-                //setIndex(nextIndex);
-                //setViews();
-            //}
-        }
-        return nextIndex;
-    }
-    private int shiftYDisc(float amount) {
-        return shiftYDisc(currentIndex, amount);
-    }
-    private int shiftYDisc(int fromIndex, float amount) {
-        int offsetIndex = (int)(amount / itemSize);
-        return shiftYDisc(fromIndex, offsetIndex);
-    }
-    private int shiftYDisc(int amount) {
-        return shiftYDisc(currentIndex, amount);
-    }
-    private int shiftYDisc(int fromIndex, int amount) {
-        int nextIndex = fromIndex;
-        if (Math.abs(amount) > 0) {
-            int colIndex = getColIndexFromTraversable(fromIndex);
-            int colSize = getColTraversableCount(colIndex);
-            // clamp the local index then convert it back to a traversable index
-            setShiftY(getShiftY(getLocalIndexFromTraversable(fromIndex) + amount, colIndex), colIndex);
-            //nextIndex = localToTraversableIndex(Math.min(Math.max(traversableToLocalIndex(fromIndex) + amount, 0), colSize - 1), colIndex);
-            //if (fromIndex != nextIndex) {
-                //setIndex(nextIndex);
-            //    setViews(setIndex(nextIndex));
-            //}
-        }
-        return nextIndex;
     }
     private void stopMomentum() {
         momentumX = 0;
@@ -1282,7 +1288,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (isInsideItem()) {
             position = new Integer[innerItemEntryPos.size() + 1];
             innerItemEntryPos.copyInto(position);
-            int nextEntry = innerYToIndex(innerItemVerPos.peek(), innerItemEntryPos.toArray(new Integer[0]));//Arrays.copyOf(innerItemEntryPos.toArray(), innerItemEntryPos.size(), Integer[].class));
+            int nextEntry = innerYToIndex();//Arrays.copyOf(innerItemEntryPos.toArray(), innerItemEntryPos.size(), Integer[].class));
             position[position.length - 1] = nextEntry;
         } else {
             //int colIndex = getColIndex();
