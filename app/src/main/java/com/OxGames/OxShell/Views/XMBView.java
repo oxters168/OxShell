@@ -247,8 +247,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
 
     private int xToIndex(float xValue) {
-        // finds the column index closest to the current x value then clamps it to be within the proper range
-        return Math.min(Math.max(Math.round(xValue / getHorShiftOffset()), 0), getTotalColCount() - 1);
+        // finds the column index closest to the current x value
+        return Math.round(xValue / getHorShiftOffset());
+        //return Math.min(Math.max(Math.round(xValue / getHorShiftOffset()), 0), getTotalColCount() - 1);
+    }
+    private int clampColIndex(int colIndex) {
+        return Math.min(Math.max(colIndex, 0), getTotalColCount() - 1);
     }
     private float toNearestColumn(float xValue) {
         // finds the column index nearest to the pixel location then turns the index back into pixel location
@@ -289,15 +293,20 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private void setShiftX(float xValue) {
         if (!isInsideItem()) {
+            //Log.d("XMBView", "Attempting to move to " + xValue);
             if (Math.abs(shiftX - xValue) > EPSILON) {
+                //Log.d("XMBView", "Will it make it? " + xValue);
                 shiftX = Math.min(Math.max(xValue, 0), (getTotalColCount() - 1) * getHorShiftOffset());
-                int colIndex = xToIndex(shiftX);
-                int newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(colIndex), colIndex);
+                int colIndex = xToIndex(xValue);
+                if (xValue < 0)
+                    colIndex = -1; // just for touch input since the amount a user can move by per frame is not enough to move a whole index
+                int properColIndex = clampColIndex(colIndex);
+                int newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(properColIndex), properColIndex);
                 boolean changed = newIndex != currentIndex;
                 //boolean cancel = false;
+                if (changed || (moveMode && getColIndex() != colIndex))
+                    onShiftHorizontally(properColIndex, getColIndex());
                 if (changed) {
-                    int prevColIndex = getColIndex();
-                    onShiftHorizontally(colIndex, prevColIndex);
                     //return;
                     // in case a column were added
                     //newIndex = getTraversableIndexFromLocal(getCachedIndexOfCat(colIndex), colIndex);
@@ -316,7 +325,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         }
     }
     private float getShiftX(int colIndex) {
-        return Math.min(Math.max(colIndex, 0), getTotalColCount() - 1) * getHorShiftOffset();
+        return colIndex * getHorShiftOffset();
+        //return Math.min(Math.max(colIndex, 0), getTotalColCount() - 1) * getHorShiftOffset();
         //setShiftX(newX);
     }
     private void setShiftXToNearestColumn() {
@@ -340,9 +350,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (Math.abs(amount) > 0) {
             int currentColIndex = getColIndexFromTraversable(fromIndex);
             // clamp the col index
-            int nextColIndex = Math.min(Math.max(currentColIndex + amount, 0), getTotalColCount() - 1);
+            //int nextColIndex = Math.min(Math.max(currentColIndex + amount, 0), getTotalColCount() - 1);
             // get the offset column's local index then convert it to x position
-            setShiftX(getShiftX(nextColIndex));
+            setShiftX(getShiftX(currentColIndex + amount));
         }
         return nextIndex;
     }
@@ -1026,7 +1036,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private void createItemViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
-        // TODO: implement view types for categories?
         for (int i = 0; i < 5; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, ITEM_TYPE);
             newHolder.itemViewType = ITEM_TYPE;
@@ -1042,7 +1051,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private void createCatViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
-        // TODO: implement view types for categories?
         for (int i = 0; i < 5; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, CATEGORY_TYPE);
             newHolder.itemViewType = CATEGORY_TYPE;
@@ -1058,7 +1066,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private void createInnerItemViews() {
         //Log.d("XMBView2", getWidth() + ", " + getHeight());
-        // TODO: implement view types for categories?
         for (int i = 0; i < 5; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, INNER_TYPE);
             newHolder.itemViewType = INNER_TYPE;
@@ -1589,12 +1596,13 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (moveMode) {
             if (colIndex > prevColIndex) {
                 // moving right
-                boolean hasSubItems = isColumnHead(moveColIndex);
-                int nextColIndex = Math.min(moveColIndex + 1, mapper.size() - (hasSubItems ? 1 : 2)); // -2 due to settings
+                boolean isInColumn = isColumnHead(moveColIndex);
+                int nextColIndex = Math.min(moveColIndex + 1, mapper.size() - (isInColumn ? 1 : 2)); // -2 due to settings
+                //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
                 if (moveColIndex != nextColIndex) {
-                    int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
+                    int currentLocalIndex = isInColumn ? moveLocalIndex + 1 : moveLocalIndex;
                     List<Integer> column = mapper.get(moveColIndex);
-                    if (hasSubItems) {
+                    if (isInColumn) {
                         // we're in a column with other things, next column should be a new one with just us
                         int moveItem = column.get(currentLocalIndex);
                         column.remove(currentLocalIndex);
@@ -1606,11 +1614,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                         moveLocalIndex = 0;
                     } else {
                         // we're in a column made up solely of us, should remove ourselves first before moving
-                        boolean nextHasSubItems = isColumnHead(nextColIndex);
-                        if (nextHasSubItems) {
+                        boolean nextIsColumn = isColumnHead(nextColIndex);
+                        if (nextIsColumn) {
                             // next column has sub-items, so place within
                             int moveItem = mapper.get(moveColIndex).get(moveLocalIndex);
-                            // TODO: figure out way to keep column histories while moving items (very low priority)
                             int nextLocalIndex = getColLocalIndex(nextColIndex) + 1; // +1 since it has sub-items
                             mapper.get(nextColIndex).add(nextLocalIndex, moveItem);
                             mapper.remove(moveColIndex);
@@ -1632,14 +1639,14 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 }
             } else {
                 // moving left
-                boolean hasSubItems = isColumnHead(moveColIndex);
-                int nextColIndex = Math.max(moveColIndex - 1, hasSubItems ? -1 : 0); // -1 to move out of the 0th column
-                //Log.d("XMBView", "Attempting to move left from " + moveColIndex + " to " + nextColIndex + ", in sub-item column: " + hasSubItems);
+                boolean isInColumn = isColumnHead(moveColIndex);
+                int nextColIndex = Math.max(moveColIndex - 1, isInColumn ? -1 : 0); // -1 to move out of the 0th column
+                //Log.d("XMBView", "Attempting to move left from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
                 if (moveColIndex != nextColIndex) {
-                    int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
+                    int currentLocalIndex = isInColumn ? moveLocalIndex + 1 : moveLocalIndex;
                     List<Integer> column = mapper.get(moveColIndex);
                     //Log.d("XMBView", "Moving left from " + moveColIndex + " to " + nextColIndex + ", in sub-item column: " + hasSubItems);
-                    if (hasSubItems) {
+                    if (isInColumn) {
                         //Log.d("XMBView", moveColIndex + ", " + nextColIndex);
                         // we're in a column with other things, next column should be a new one with just us
                         int moveItem = column.get(currentLocalIndex);
@@ -1652,11 +1659,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                         moveLocalIndex = 0;
                     } else {
                         // we're in a column made up solely of us, should remove ourselves first before moving
-                        boolean nextHasSubItems = isColumnHead(nextColIndex);
-                        if (nextHasSubItems) {
+                        boolean nextIsColumn = isColumnHead(nextColIndex);
+                        if (nextIsColumn) {
                             // next column has sub-items, so place within
                             int moveItem = mapper.get(moveColIndex).get(moveLocalIndex);
-                            // TODO: figure out way to keep column histories while moving items (very low priority)
                             int nextLocalIndex = getColLocalIndex(nextColIndex) + 1; // +1 since it has sub-items
                             mapper.get(nextColIndex).add(nextLocalIndex, moveItem);
                             mapper.remove(moveColIndex);
