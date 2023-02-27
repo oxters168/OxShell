@@ -83,10 +83,10 @@ public class PackagesView extends SlideTouchListView {
     }
     @Override
     public void refresh() {
-        refresh(new String[] { Intent.CATEGORY_LAUNCHER });
+        refresh(Intent.CATEGORY_LAUNCHER);
     }
-    public void refresh(String[] categories) {
-        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, categories, apps -> ActivityManager.getCurrentActivity().runOnUiThread(() -> {
+    public void refresh(String... categories) {
+        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, apps -> ActivityManager.getCurrentActivity().runOnUiThread(() -> {
             DetailAdapter intentsAdapter = new DetailAdapter(getContext());
             setAdapter(intentsAdapter);
             for (int i = 0; i < apps.size(); i++) {
@@ -94,7 +94,7 @@ public class PackagesView extends SlideTouchListView {
                 intentsAdapter.add(new DetailItem(PackagesCache.getPackageIcon(currentPkg), PackagesCache.getAppLabel(currentPkg), null, currentPkg.activityInfo.packageName));
                 PackagesView.this.invalidateViews();
             }
-        }));
+        }), categories);
 
         //Log.d("PackagesView", "Finished listing apps");
         super.refresh();

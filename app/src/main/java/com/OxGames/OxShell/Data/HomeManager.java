@@ -296,7 +296,7 @@ public class HomeManager {
         String[] categories = new String[] { "Games", "Audio", "Video", "Image", "Social", "News", "Maps", "Productivity", "Accessibility", "Other" };
         HashMap<Integer, ArrayList<XMBItem>> sortedApps = new HashMap<>();
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, new String[] { Intent.CATEGORY_LAUNCHER }, apps -> currentActivity.runOnUiThread(() -> {
+        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, apps -> currentActivity.runOnUiThread(() -> {
             // go through all apps creating HomeItems for them and sorting them into their categories
 //                for (ResolveInfo app : apps)
 //                    addItem(new HomeItem(HomeItem.Type.app, PackagesCache.getPackageIcon(app), PackagesCache.getAppLabel(app), app.activityInfo.packageName), false);
@@ -337,7 +337,7 @@ public class HomeManager {
             addItemAt(createExplorerItem(), 0, false);
             refreshHomeItems();
             //saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-        }));
+        }), Intent.CATEGORY_LAUNCHER);
     }
     private static boolean loadHomeItemsFromFile(String parentDir, String fileName) {
         //homeItems = new ArrayList<>();

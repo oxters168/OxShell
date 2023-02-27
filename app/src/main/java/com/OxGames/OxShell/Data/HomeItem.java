@@ -23,11 +23,14 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public HomeItem(Type _type, String _title) {
         this(_type, _title, null);
     }
-    public HomeItem(Type _type, String _title, T _obj) {
-        super(_obj, _title);
+    public HomeItem(Type _type, String _title, T _obj, XMBItem... innerItems) {
+        super(_obj, _title, innerItems);
         //super(_title, _obj);
         type = _type;
         extraData = new ArrayList<>();
+    }
+    public HomeItem(Type _type, String _title, XMBItem... innerItems) {
+        this(_type, _title, null, innerItems);
     }
 //    public HomeItem(Type _type, Object _icon, String _title) {
 //        this(_type, _icon, _title, null, -1, -1);
@@ -50,7 +53,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             else if (type == Type.app)
                 icon = PackagesCache.getPackageIcon((String)obj);
             else if (type == Type.settings)
-                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_settings_24);
+                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
             else if (type == Type.assoc)
                 icon = PackagesCache.getPackageIcon(((IntentLaunchData) obj).getPackageName());
         }

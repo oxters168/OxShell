@@ -86,6 +86,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public boolean hasInnerItems(Integer... position) {
         XMBItem current = (XMBItem)getItem(position);
+        //Log.d("XMBView", "Checking if " + current.title + " has inner items? " + current.hasInnerItems());
         return current != null && current.hasInnerItems();
     }
     @Override
@@ -113,20 +114,21 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             ImageView highlight = itemView.findViewById(R.id.iconGlow);
             Drawable icon = item != null ? item.getIcon() : ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24);
             if (icon == null)
-                switch (getItemViewType()) {
-                    case (XMBView.CATEGORY_TYPE):
-                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24);
-                        break;
-                    case (XMBView.ITEM_TYPE):
-                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
-                        break;
-                    case (XMBView.INNER_TYPE):
-                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_construction_24);
-                        break;
-                    default:
-                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
-                        break;
-                }
+                icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
+//                switch (getItemViewType()) {
+//                    case (XMBView.CATEGORY_TYPE):
+//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24);
+//                        break;
+//                    case (XMBView.ITEM_TYPE):
+//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
+//                        break;
+//                    case (XMBView.INNER_TYPE):
+//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_construction_24);
+//                        break;
+//                    default:
+//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
+//                        break;
+//                }
             img.setBackground(icon);
             highlight.setBackground(icon.getConstantState().newDrawable());
             highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);

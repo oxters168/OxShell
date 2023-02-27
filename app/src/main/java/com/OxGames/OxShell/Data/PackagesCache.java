@@ -70,17 +70,20 @@ public class PackagesCache {
         String pkgName = rslvInfo.activityInfo.packageName;
         return getPackageIcon(pkgName);
     }
-    public static void requestInstalledPackages(String action, String[] categories, PkgAppsListener pkgAppsListener) {
+    public static void requestInstalledPackages(String action, PkgAppsListener pkgAppsListener, String... categories) {
         Thread thread = new Thread(() -> {
-            Intent mainIntent = new Intent(action, null);
-            for (String category : categories)
-                mainIntent.addCategory(category);
-            List<ResolveInfo> pkgAppsList = OxShellApp.getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+            List<ResolveInfo> pkgAppsList = getInstalledPackages(action, categories);
             if (pkgAppsListener != null)
                 pkgAppsListener.onQueryApps(pkgAppsList);
             //Log.d("PackagesView", "Listing apps");
         });
         thread.start();
+    }
+    public static List<ResolveInfo> getInstalledPackages(String action, String... categories) {
+        Intent mainIntent = new Intent(action, null);
+        for (String category : categories)
+            mainIntent.addCategory(category);
+        return OxShellApp.getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
     }
     public static void requestPackageIcon(String packageName, PkgIconListener pkgIconListener) {
         //Log.d("PackagesCache", "Requesting icon for " + packageName);

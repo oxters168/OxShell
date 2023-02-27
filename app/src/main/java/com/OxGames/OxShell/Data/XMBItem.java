@@ -1,5 +1,6 @@
 package com.OxGames.OxShell.Data;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 
 import androidx.core.content.ContextCompat;
@@ -40,7 +41,20 @@ public class XMBItem<T> implements Serializable {
         colIndex = _colIndex;
         localIndex = _localIndex;
         this.innerItems = new ArrayList<>();
-        Collections.addAll(this.innerItems, innerItems);
+        if (innerItems != null)
+            Collections.addAll(this.innerItems, innerItems);
+    }
+    public XMBItem(T _obj, String _title, Object _iconLoc) {
+        this(_obj, _title, _iconLoc, -1, -1, null);
+//        obj = _obj;
+//        title = _title;
+//        iconLoc = _iconLoc;
+//        iconIsResource = _iconLoc instanceof Integer;
+//        //icon = _icon;
+//        colIndex = _colIndex;
+//        localIndex = _localIndex;
+//        this.innerItems = new ArrayList<>();
+//        Collections.addAll(this.innerItems, innerItems);
     }
     public XMBItem(T _obj, String _title, int _colIndex, int _localIndex, XMBItem... innerItems) {
         this(_obj, _title, null, _colIndex, _localIndex, innerItems);
@@ -53,7 +67,9 @@ public class XMBItem<T> implements Serializable {
         if (icon == null && iconLoc != null) {
             if (iconIsResource) {
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), (Integer)iconLoc);
-            } else {
+            } else if (iconLoc instanceof Drawable) {
+                icon = (Drawable)iconLoc;
+            } else if (iconLoc instanceof Bitmap) {
                 icon = AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)iconLoc));
             }
         }
