@@ -126,6 +126,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public abstract Object getItem(Integer... position);
         public abstract boolean hasInnerItems(Integer... position);
         public abstract int getInnerItemCount(Integer... position);
+        public abstract boolean isColumnHead(Integer... position);
     }
     public abstract static class ViewHolder {
         protected View itemView;
@@ -762,6 +763,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         // indexChanged is true when currentIndex actually changes and false when otherwise
         // it is used to know when to apply fade transitions
         if (mapper.size() > 0) {
+            //Log.d("XMBView", "columns: " + mapper.size());
             //setIndex(currentIndex);
             //int colIndex = getColIndexFromTraversable(currentIndex);
             int startX = getStartX() - Math.round(shiftX);// - colIndex * horShiftOffset;
@@ -770,15 +772,22 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             //Log.d("XMBView", "Drawing views starting from " + getStartX());
             int horShiftOffset = Math.round(getHorShiftOffset());
             int verShiftOffset = Math.round(getVerShiftOffset());
-            drawCategories(startX, startY, horShiftOffset, instant);
-            drawItems(currentIndex, indexChanged, instant, startX, startY, horShiftOffset, verShiftOffset);
+            drawCategories(indexChanged, startX, startY, horShiftOffset, instant);
+            drawItems(indexChanged, instant, startX, startY, horShiftOffset, verShiftOffset);
             drawInnerItems(instant);
             //invalidate();
         }
     }
-    private void drawCategories(int startXInt, int startYInt, int horShiftOffsetInt, boolean instant) {
+    private void drawCategories(boolean indexChanged, int startXInt, int startYInt, int horShiftOffsetInt, boolean instant) {
         int viewWidth = getWidth();
         int viewHeight = getHeight();
+        int origColIndex = getColIndexFromTraversable(currentIndex);
+        int prevColIndex = getColIndexFromTraversable(prevIndex);
+
+        Rect emptyItemRect = null;
+        int totalEmptyColumns = 0;
+        //int emptyColIndex = -1;
+        //int emptyFadeTransition = FADE_VISIBLE;
         //Log.d("XMBView", "Drawing categories");
         for (int i = 0; i < getTotalColCount(); i++) {
             int catTotalIndex = getTotalIndexOfCol(i);
@@ -789,10 +798,51 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 drawItem(reusableRect, FADE_VISIBLE, instant, catTotalIndex);
             else
                 returnItemView(catTotalIndex);
+
+            if (getAdapter().isColumnHead(mapTotalIndex(catTotalIndex)) && mapper.get(i).size() <= 1) {
+                totalEmptyColumns++;
+                calcItemRect(startXInt, startYInt, horShiftOffsetInt, 0, i, 1, reusableRect);
+                inBounds = inView(reusableRect, viewWidth, viewHeight);
+//                int fadeTransition = FADE_VISIBLE;
+
+//                if (i >= origColIndex - 1 && i <= origColIndex + 1 && inBounds) {
+//                    if (emptyColIndex < 0) {
+                int fadeTransition = FADE_VISIBLE;
+                if (!instant && indexChanged && i == origColIndex && prevColIndex != origColIndex)
+                    fadeTransition = FADE_IN;
+                else if (!instant && indexChanged && i != origColIndex && i == prevColIndex)
+                    fadeTransition = FADE_OUT;
+                else if (((!indexChanged || instant) && i != origColIndex) || ((indexChanged || instant) && i != origColIndex && i != prevColIndex))
+                    fadeTransition = FADE_INVISIBLE;
+                if (i >= origColIndex - 1 && i <= origColIndex + 1 && inBounds)
+                    drawItem(reusableRect, fadeTransition, instant, -totalEmptyColumns);
+                else
+                    returnItemView(-totalEmptyColumns);//traversableToTotalIndex(i));
+//                        emptyItemRect = new Rect(reusableRect);
+//                    }
+//                    if (i == origColIndex && inBounds) {
+//                        //emptyColIndex = i;
+//                        emptyItemRect = new Rect(reusableRect);
+////                        calcItemRect(startXInt, startYInt, horShiftOffsetInt, 0, origColIndex + (origColIndex - prevColIndex), 1, reusableRect);
+////                        drawItem(reusableRect, emptyFadeTransition, instant, -1);
+//                        //emptyFadeTransition = FADE_IN;
+//                    }
+                    //emptyFadeTransition = FADE_VISIBLE;
+//                }
+                //else
+                //    returnItemView(-1);
+            }
         }
+//        if (emptyItemRect != null) {
+//            drawItem(emptyItemRect, FADE_VISIBLE, instant, -1);
+//        } else {
+//            calcItemRect(startXInt, startYInt, horShiftOffsetInt, 0, origColIndex, 1, reusableRect);
+//            drawItem(reusableRect, FADE_INVISIBLE, instant, -1);
+//            //returnItemView(-1);
+//        }
     }
-    private void drawItems(int itemIndex, boolean indexChanged, boolean instant, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
-        int origColIndex = getColIndexFromTraversable(itemIndex);
+    private void drawItems(boolean indexChanged, boolean instant, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
+        int origColIndex = getColIndexFromTraversable(currentIndex);
         int prevColIndex = getColIndexFromTraversable(prevIndex);
         int viewWidth = getWidth();
         int viewHeight = getHeight();
@@ -804,7 +854,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             // skip items that belong to a column with one item, those are drawn with the categories
             if (!columnHasSubItems(itemColIndex))
                 continue;
-            calcItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, totalIndex, reusableRect);
+            calcItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, itemColIndex, getLocalIndexFromTotal(totalIndex), reusableRect);
 //            int top = reusableRect.top;
 //            int width = reusableRect.width();
 //            int height = reusableRect.height();
@@ -878,7 +928,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private static final int FADE_OUT = 2;
     private static final int FADE_IN = 3;
     private void drawItem(Rect itemBounds, int fadeTransition, boolean instant, Integer... itemPosition) {
-        boolean isCat = itemPosition.length == 1 && getTotalIndexOfCol(getColIndexFromTotal(itemPosition[0])) == itemPosition[0];
+        boolean isCat = itemPosition[0] >= 0 && itemPosition.length == 1 && getTotalIndexOfCol(getColIndexFromTotal(itemPosition[0])) == itemPosition[0];
         boolean isInnerItem = itemPosition.length > 1;
         ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, itemPosition);
         //if (viewHolder != null) {
@@ -900,7 +950,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         viewHolder.itemView.animate().cancel();
 
         Integer[] mappedPosition = itemPosition.clone();
-        mappedPosition[0] = mapTotalIndex(mappedPosition[0]);
+        if (mappedPosition[0] >= 0)
+            mappedPosition[0] = mapTotalIndex(mappedPosition[0]);
         adapter.onBindViewHolder(viewHolder, mappedPosition);
         //Log.d("XMBView", "Setting item " + item.title);
         //viewHolder.isCategory = isCat;
@@ -1022,7 +1073,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         }
     }
     private void returnItemView(Integer... position) {
-        int indexHash = MathHelpers.hash(mapPosition(position));
+        int indexHash = MathHelpers.hash(position[0] >= 0 ? mapPosition(position) : position);
         if (usedViews.containsKey(indexHash)) {
             //Log.d("XMBView", "Returning view id " + totalIndex);
             ViewHolder viewHolder = usedViews.get(indexHash);
@@ -1051,7 +1102,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private ViewHolder getViewHolder(int viewType, Integer... position) {
         ViewHolder viewHolder = null;
-        int indexHash = MathHelpers.hash(mapPosition(position));
+        int indexHash = MathHelpers.hash(position[0] >= 0 ? mapPosition(position) : position);
         //int index = getTotalIndex(item);
         //boolean isNew = false;
         //Log.d("XMBView", "Retrieving view of " + item.title + " whose total index is " + index);
@@ -1121,12 +1172,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         rect.set(expX, expY, right, bottom);
     }
     // calculates the item's rect size with the text to the right of the item
-    private void calcItemRect(int startX, int startY, int horShiftOffset, int verShiftOffset, int totalIndex, Rect rect) {
-        //XMBItem item = getTotalIndexFromTraversable(traversableIndex);
+    private void calcItemRect(int startX, int startY, int horShiftOffset, int verShiftOffset, int colIndex, int localIndex, Rect rect) {
         // get what column the item is in
-        int colIndex = getColIndexFromTotal(totalIndex);
+        //int colIndex = getColIndexFromTotal(totalIndex);
         // get the index within the column of the item we are currently calculating the rect for
-        int localIndex = getLocalIndexFromTotal(totalIndex);
+        //int localIndex = getLocalIndexFromTotal(totalIndex);
+        int totalIndex = getTotalIndex(colIndex, localIndex);
         // get the index of what is actually highlighted currently within the column
         int itemCatIndex = getCachedIndexOfCat(colIndex);
         int halfCatDiff = Math.round(Math.abs(catSize - itemSize) / 2f);
@@ -1160,9 +1211,13 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return adapter.getItem(position);
     }
     protected int mapTotalIndex(int totalIndex) {
+        int mapped = -1;
         int colIndex = getColIndexFromTotal(totalIndex);
-        int localIndex = getLocalIndexFromTotal(totalIndex) + (catHasSubItems(colIndex) ? 1 : 0);
-        return mapper.get(colIndex).get(localIndex);
+        if (colIndex >= 0) {
+            int localIndex = getLocalIndexFromTotal(totalIndex) + (catHasSubItems(colIndex) ? 1 : 0);
+            mapped = mapper.get(colIndex).get(localIndex);
+        }
+        return mapped;
     }
     protected Integer[] mapPosition(Integer... position) {
         Integer[] mappedPosition = new Integer[position.length];
@@ -1216,6 +1271,17 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             }
         }
         return index;
+    }
+    private int getTotalIndex(int colIndex, int localIndex) {
+        int totalIndex = -1;
+        int columnSize = mapper.get(colIndex).size();
+        int properLocalIndex = localIndex + (columnSize > 1 ? 1 : 0);
+        if (properLocalIndex >= 0 && properLocalIndex < columnSize) {
+            totalIndex = properLocalIndex;
+            for (int i = 0; i < colIndex; i++)
+                totalIndex += mapper.get(i).size();
+        }
+        return totalIndex;
     }
 //    private int totalToLocalIndex(int totalIndex) {
 //        int index = -1;

@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
+import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.XMBView;
@@ -52,8 +53,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public void onBindViewHolder(@NonNull XMBViewHolder holder, Integer... position) {
-        XMBItem item = (XMBItem)getItem(position);
-        //Log.d("XMBAdapter", "Binding " + item.title + " to " + position[0]);
+        XMBItem item = null;
+        if (position[0] >= 0)
+            item = (XMBItem)getItem(position);
         holder.bindItem(item);
     }
     @Override
@@ -76,6 +78,12 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     @Override
+    public boolean isColumnHead(Integer... position) {
+        XMBItem item = (XMBItem)getItem(position);
+        return item.obj == null && !(item instanceof HomeItem);
+    }
+
+    @Override
     public boolean hasInnerItems(Integer... position) {
         XMBItem current = (XMBItem)getItem(position);
         return current != null && current.hasInnerItems();
@@ -92,7 +100,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         }
         public void bindItem(XMBItem item) {
             TextView title = itemView.findViewById(R.id.title);
-            title.setText(item.title);
+            title.setText(item != null ? item.title : "Empty");
             title.setSelected(true);
             title.setTypeface(font);
             title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
@@ -103,9 +111,22 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
             ImageView img = itemView.findViewById(R.id.typeIcon);
             ImageView highlight = itemView.findViewById(R.id.iconGlow);
-            Drawable icon = item.getIcon();
+            Drawable icon = item != null ? item.getIcon() : ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24);
             if (icon == null)
-                icon = getItemViewType() == XMBView.CATEGORY_TYPE ? ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24) : ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
+                switch (getItemViewType()) {
+                    case (XMBView.CATEGORY_TYPE):
+                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24);
+                        break;
+                    case (XMBView.ITEM_TYPE):
+                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
+                        break;
+                    case (XMBView.INNER_TYPE):
+                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_construction_24);
+                        break;
+                    default:
+                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
+                        break;
+                }
             img.setBackground(icon);
             highlight.setBackground(icon.getConstantState().newDrawable());
             highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
