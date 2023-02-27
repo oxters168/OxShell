@@ -1252,6 +1252,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     public boolean catHasSubItems(int colIndex) {
         return mapper.get(colIndex).size() > 1;
     }
+    public boolean isColumnHead(int colIndex) {
+        return getAdapter().isColumnHead(mapTotalIndex(getTotalIndexOfCol(colIndex)));
+    }
     private int getLocalIndexFromTraversable(int traversableIndex) {
         int index = -1;
         if (mapper != null && mapper.size() > 0) {
@@ -1586,7 +1589,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (moveMode) {
             if (colIndex > prevColIndex) {
                 // moving right
-                boolean hasSubItems = catHasSubItems(moveColIndex);
+                boolean hasSubItems = isColumnHead(moveColIndex);
                 int nextColIndex = Math.min(moveColIndex + 1, mapper.size() - (hasSubItems ? 1 : 2)); // -2 due to settings
                 if (moveColIndex != nextColIndex) {
                     int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
@@ -1603,7 +1606,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                         moveLocalIndex = 0;
                     } else {
                         // we're in a column made up solely of us, should remove ourselves first before moving
-                        boolean nextHasSubItems = catHasSubItems(nextColIndex);
+                        boolean nextHasSubItems = isColumnHead(nextColIndex);
                         if (nextHasSubItems) {
                             // next column has sub-items, so place within
                             int moveItem = mapper.get(moveColIndex).get(moveLocalIndex);
@@ -1629,7 +1632,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 }
             } else {
                 // moving left
-                boolean hasSubItems = catHasSubItems(moveColIndex);
+                boolean hasSubItems = isColumnHead(moveColIndex);
                 int nextColIndex = Math.max(moveColIndex - 1, hasSubItems ? -1 : 0); // -1 to move out of the 0th column
                 //Log.d("XMBView", "Attempting to move left from " + moveColIndex + " to " + nextColIndex + ", in sub-item column: " + hasSubItems);
                 if (moveColIndex != nextColIndex) {
@@ -1649,7 +1652,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                         moveLocalIndex = 0;
                     } else {
                         // we're in a column made up solely of us, should remove ourselves first before moving
-                        boolean nextHasSubItems = catHasSubItems(nextColIndex);
+                        boolean nextHasSubItems = isColumnHead(nextColIndex);
                         if (nextHasSubItems) {
                             // next column has sub-items, so place within
                             int moveItem = mapper.get(moveColIndex).get(moveLocalIndex);
@@ -1682,7 +1685,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (moveMode) {
             if (localIndex > prevLocalIndex) {
                 // going down
-                int currentLocalIndex = catHasSubItems(moveColIndex) ? moveLocalIndex + 1 : moveLocalIndex;
+                int currentLocalIndex = isColumnHead(moveColIndex) ? moveLocalIndex + 1 : moveLocalIndex;
                 List<Integer> column = mapper.get(moveColIndex);
                 int nextLocalIndex = Math.min(currentLocalIndex + 1, column.size() - 1);
                 if (currentLocalIndex != nextLocalIndex) {
@@ -1694,7 +1697,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 }
             } else {
                 // going up
-                boolean hasSubItems = catHasSubItems(moveColIndex);
+                boolean hasSubItems = isColumnHead(moveColIndex);
                 int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
                 List<Integer> column = mapper.get(moveColIndex);
                 int nextLocalIndex = Math.max(currentLocalIndex - 1, hasSubItems ? 1 : 0);
