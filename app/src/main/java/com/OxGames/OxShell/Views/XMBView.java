@@ -517,7 +517,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 return true;
             float currentX = ev.getRawX();
             float currentY = ev.getRawY();
-            if (!touchVer && !touchHor && Math.abs(currentX - startTouchX) >= touchDeadzone) {
+            if (!isInsideItem() && !touchVer && !touchHor && Math.abs(currentX - startTouchX) >= touchDeadzone) {
                 startTouchIndex = currentIndex;
                 touchMoveDir = Math.signum(currentX - startTouchX);
                 touchMoveStartTime = SystemClock.uptimeMillis();
