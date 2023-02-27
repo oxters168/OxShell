@@ -13,7 +13,9 @@
     </declare-styleable>
     <declare-styleable name="XMBView">
         <attr name="subItemGap" format="dimension"/>
-        <attr name="verticalSpacing" format="dimension"/>
         <attr name="horizontalSpacing" format="dimension"/>
+        <attr name="verticalSpacing" format="dimension"/>
+        <attr name="innerHorizontalSpacing" format="dimension"/>
+        <attr name="innerVerticalSpacing" format="dimension"/>
     </declare-styleable>
 </resources>

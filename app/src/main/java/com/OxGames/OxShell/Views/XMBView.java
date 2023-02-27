@@ -109,6 +109,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 horSpacing = (int) a.getDimension(R.styleable.XMBView_horizontalSpacing, 0);
             if (a.hasValue(R.styleable.XMBView_verticalSpacing))
                 verSpacing = (int) a.getDimension(R.styleable.XMBView_verticalSpacing, 0);
+            if (a.hasValue(R.styleable.XMBView_innerHorizontalSpacing))
+                innerHorSpacing = (int) a.getDimension(R.styleable.XMBView_innerHorizontalSpacing, 0);
+            if (a.hasValue(R.styleable.XMBView_innerVerticalSpacing))
+                innerVerSpacing = (int) a.getDimension(R.styleable.XMBView_innerVerticalSpacing, 0);
 
             a.recycle();
         }
@@ -1127,7 +1131,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int itemCatIndex = getCachedIndexOfCat(colIndex);
         int halfCatDiff = Math.round(Math.abs(catSize - itemSize) / 2f);
         // get the horizontal pixel position of the item
-        int expX = halfCatDiff + (isInsideItem() && totalIndex == getPosition()[0] ? getStartX() + (innerItemEntryPos.size() - 1) * -innerItemSize : startX + horShiftOffset * colIndex);
+        int expX = halfCatDiff + (isInsideItem() && totalIndex == getPosition()[0] ? getStartX() + (innerItemEntryPos.size() - 1) * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);
         // get the vertical pixel position of the item
         int expY = halfCatDiff + (isInsideItem() && totalIndex == getPosition()[0] ? startY : Math.round((startY - catPos.get(colIndex)) + verShiftOffset * localIndex + (localIndex >= itemCatIndex ? catSize + subItemGap : 0)));
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
@@ -1141,7 +1145,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int halfCatDiff = Math.round(Math.abs(catSize - innerItemSize) / 2f);
 
         // get the horizontal pixel position of the item
-        int expX = startX + halfCatDiff + (position.length - innerItemEntryPos.size()) * innerItemSize;
+        int expX = startX + halfCatDiff + (position.length - innerItemEntryPos.size()) * (innerItemSize + horSpacing);
         // get the vertical pixel position of the item
         int expY = startY + halfCatDiff + (position.length > innerItemEntryPos.size() ? position[position.length - 1] * (innerItemSize + verSpacing) - Math.round(innerItemVerPos.peek()) : 0);
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect

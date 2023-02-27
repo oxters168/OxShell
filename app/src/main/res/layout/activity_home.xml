@@ -23,7 +23,9 @@
         android:layout_height="match_parent"
         app:horizontalSpacing="16dip"
         app:subItemGap="32dip"
-        app:verticalSpacing="16dip" />
+        app:verticalSpacing="16dip"
+        app:innerHorizontalSpacing = "16dip"
+        app:innerVerticalSpacing = "16dip" />
 
     <com.OxGames.OxShell.Views.PackagesView
         android:id="@+id/packages_list"
