@@ -835,23 +835,25 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         Integer[] currentEntry = innerItemEntryPos.toArray(new Integer[0]);
+        Integer[] adapterEntry = new Integer[position.length];
         Integer[] innerPosition = new Integer[position.length + 1];
         Integer[] adapterInnerPosition = new Integer[position.length + 1];
-        Integer[] adapterPosition = new Integer[position.length];
         // copy array
         for (int i = 0; i < position.length; i++) {
             innerPosition[i] = position[i];
             int mappedPos = mapTotalIndex(position[i]);
             adapterInnerPosition[i] = (i == 0) ? mappedPos : position[i];
-            adapterPosition[i] = (i == 0) ? mappedPos : position[i];
+            adapterEntry[i] = (i == 0) ? mappedPos : position[i];
         }
         // draw list of inner items
-        for (int i = 0; i < getAdapter().getInnerItemCount(adapterPosition); i++) {
+        for (int i = 0; i < getAdapter().getInnerItemCount(adapterEntry); i++) {
             innerPosition[innerPosition.length - 1] = i;
             adapterInnerPosition[adapterInnerPosition.length - 1] = i;
             if (getAdapter().hasInnerItems(adapterInnerPosition))
                 drawInnerItems(instant, innerPosition);
-            if (currentEntry.length > 0 && isPartOfPosition(innerPosition, currentEntry)) {
+            if (currentEntry.length > 0 && (((innerPosition.length - 1) == currentEntry.length) && isPartOfPosition(innerPosition, currentEntry)) || isPartOfPosition(currentEntry, innerPosition)) {
+                //Log.d("XMBView", Arrays.toString(innerPosition) + " is part of " + Arrays.toString(currentEntry));
+                //Log.d("XMBView", "If in view, draw " + Arrays.toString(innerPosition) + " which is inside of " + Arrays.toString(currentEntry));
                 calcInnerItemRect(reusableRect, getStartX(), getStartY(), Math.round(innerHorSpacing), Math.round(innerVerSpacing), innerPosition);
                 boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
                 if (inBounds)
@@ -952,7 +954,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return true;
     }
     private boolean isPartOfPosition(Integer[] fullPosition, Integer... part) {
-        if (part.length > fullPosition.length)
+        if (part.length > fullPosition.length || fullPosition.length <= 0 || part.length <= 0)
             return false;
         else
             for (int i = 0; i < part.length; i++)
@@ -1139,9 +1141,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         int halfCatDiff = Math.round(Math.abs(catSize - innerItemSize) / 2f);
 
         // get the horizontal pixel position of the item
-        int expX = startX + itemSize + horSpacing + halfCatDiff + (innerItemEntryPos.size() - 1) * -innerItemSize;
+        int expX = startX + halfCatDiff + (position.length - innerItemEntryPos.size()) * innerItemSize;
         // get the vertical pixel position of the item
-        int expY = startY + halfCatDiff + position[position.length - 1] * (innerItemSize + verSpacing) - (isPartOfPosition(position, innerItemEntryPos.toArray(new Integer[0])) ? Math.round(innerItemVerPos.peek()) : 0);
+        int expY = startY + halfCatDiff + (position.length > innerItemEntryPos.size() ? position[position.length - 1] * (innerItemSize + verSpacing) - Math.round(innerItemVerPos.peek()) : 0);
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
         int right = expX + innerItemSize;// + textCushion + rect.width();
         int bottom = expY + innerItemSize;
