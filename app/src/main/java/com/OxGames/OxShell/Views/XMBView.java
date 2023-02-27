@@ -371,11 +371,11 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 }
             }
         } else {
-            float shiftY = innerItemVerPos.peek();
-            if (Math.abs(shiftY - yValue) > EPSILON) {
-                float newYValue = Math.min(Math.max(yValue, 0), (getAdapter().getInnerItemCount(innerItemEntryPos.toArray(new Integer[0])) - 1) * (innerItemSize + verSpacing));
+            float currentY = innerItemVerPos.peek();
+            if (Math.abs(currentY - yValue) > EPSILON) {
+                float adjustedY = Math.min(Math.max(yValue, 0), (getAdapter().getInnerItemCount(innerItemEntryPos.toArray(new Integer[0])) - 1) * (innerItemSize + innerVerSpacing));
                 innerItemVerPos.pop();
-                innerItemVerPos.push(newYValue);
+                innerItemVerPos.push(adjustedY);
                 setViews(false, false);
             }
         }
@@ -385,7 +385,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         //setShiftY(newY, colIndex);
     }
     private void shiftY(float amount, int colIndex) {
-        setShiftY(catPos.get(colIndex) + amount, colIndex);
+        float origAmount;
+        if (isInsideItem())
+            origAmount = innerItemVerPos.peek();
+        else
+            origAmount = catPos.get(colIndex);
+        setShiftY(origAmount + amount, colIndex);
     }
     private int yToIndex(float yValue, int colIndex) {
         // finds the local index closest to the current y value then clamps it to be within the proper range
@@ -399,7 +404,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     private float toNearestColumnItem(float yValue, int colIndex) {
         // finds the local index nearest to the pixel location then turns the index back into pixel location
-        return yToIndex(yValue, colIndex) * getVerShiftOffset();
+        float nearestY;
+        if (isInsideItem())
+            nearestY = innerYToIndex() * (innerItemSize + innerVerSpacing);
+        else
+            nearestY = yToIndex(yValue, colIndex) * getVerShiftOffset();
+        return nearestY;
     }
     private int shiftYDisc(float amount) {
         return shiftYDisc(currentIndex, amount);
@@ -601,7 +611,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private Runnable momentumRunner = new Runnable() {
         @Override
         public void run() {
-            int milliInterval = Math.round((1f / 60) * 1000);
+            int milliInterval = Math.round((1f / 120) * 1000);
 
             boolean hasMomentumX = Math.abs(momentumX) > 0;
             boolean hasMomentumY = Math.abs(momentumY) > 0;
@@ -642,8 +652,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 //shiftYDisc(postMomentumOffset - preMomentumOffset);
             }
             if (hasMomentumX || hasMomentumY) {
-                long millis = SystemClock.uptimeMillis();
-                handler.postAtTime(this, millis + milliInterval);
+                //long millis = SystemClock.uptimeMillis();
+                handler.postDelayed(this, milliInterval);
+                //handler.postAtTime(this, millis + milliInterval);
             } else {
                 setShiftXToNearestColumn();
                 setShiftYToNearestItem(getColIndexFromTraversable(currentIndex));
