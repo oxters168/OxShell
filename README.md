@@ -1,7 +1,13 @@
 # About
 OxShell is a launcher for android. It is an attempt to recreate the feel of the Sony PSP in more modern devices.
 
+
+![xmb3](https://user-images.githubusercontent.com/15348986/221724810-ca4237f8-e889-46b8-9282-a8684b9a2c44.gif)
+
+
+
 At the moment the feature list includes:
+
 - Controller support
 - Live xmb-like background
 - Built in file explorer
