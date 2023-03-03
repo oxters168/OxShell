@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 
@@ -14,6 +13,8 @@ public class OxShellApp extends Application {
     private static OxShellApp instance;
     private static int displayWidth = 0;
     private static int displayHeight = 0;
+    private static int smallestScreenWidthDp = 0;
+    private static int densityDpi = 0;
 
     public static OxShellApp getInstance() {
         return instance;
@@ -73,11 +74,21 @@ public class OxShellApp extends Application {
         DisplayMetrics dm = getResources().getDisplayMetrics();
         displayWidth = dm.widthPixels;
         displayHeight = dm.heightPixels;
+        Configuration cfg = getResources().getConfiguration();
+        smallestScreenWidthDp = cfg.smallestScreenWidthDp;
+        densityDpi = cfg.densityDpi;
+        Log.i("OxShellApp", "Display width: " + displayWidth + "\nDisplay height: " + displayHeight + "\nSmallest screen width: " + smallestScreenWidthDp + "\nDensity DPI: " + densityDpi);
     }
     public static int getDisplayWidth() {
         return displayWidth;
     }
     public static int getDisplayHeight() {
         return displayHeight;
+    }
+    public static int getSmallestScreenWidthDp() {
+        return smallestScreenWidthDp;
+    }
+    public static int getDensityDpi() {
+        return densityDpi;
     }
 }
