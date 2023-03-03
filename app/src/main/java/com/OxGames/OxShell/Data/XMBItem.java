@@ -79,7 +79,17 @@ public class XMBItem<T> implements Serializable {
     public boolean hasInnerItems() {
         return innerItems != null && innerItems.size() > 0;
     }
-    public int getInnerItemCount() { return innerItems != null ? innerItems.size() : 0; }
+    public int getInnerItemCount() {
+        return innerItems != null ? innerItems.size() : 0;
+//        int size = 0;
+//        if (innerItems != null) {
+//            size = innerItems.size();
+//            for (XMBItem innerItem : innerItems)
+//                if (innerItem != null)
+//                    size += innerItem.getInnerItemCount();
+//        }
+//        return size;
+    }
     public XMBItem getInnerItem(int index) {
         return innerItems.get(index);
     }

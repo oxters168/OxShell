@@ -14,27 +14,52 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.HomeItem;
+import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.XMBView;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
-    private XMBItem[] items;
+    //private XMBItem[] items;
+    private ArrayList<ArrayList<XMBItem>> items;
     private Typeface font;
 
-    public XMBAdapter(Context context, XMBItem... items) {
+//    public XMBAdapter(Context context, XMBItem... items) {
+//        this.context = context;
+//        this.items = items.clone();
+//        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
+//    }
+//    public XMBAdapter(Context context, List<XMBItem> items) {
+//        this.context = context;
+//        this.items = items.toArray(new XMBItem[0]);
+//        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
+//    }
+    public XMBAdapter(Context context, ArrayList<ArrayList<XMBItem>> items) {
         this.context = context;
-        this.items = items.clone();
+        //this.items = items;
+        this.items = new ArrayList<>();
+        for (ArrayList<XMBItem> column : items) {
+            this.items.add((ArrayList<XMBItem>)column.clone());
+        }
         font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
     }
-    public XMBAdapter(Context context, List<XMBItem> items) {
-        this.context = context;
-        this.items = items.toArray(new XMBItem[0]);
-        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
-    }
+
+//    protected void moveItem(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
+//        boolean hasSubItems = catHasSubItems(toColIndex);
+//        XMBItem moveItem = allHomeItems.get(fromColIndex).get(fromLocalIndex);
+//
+//        HomeManager.removeItemAt(fromColIndex, fromLocalIndex, false);
+//        if (hasSubItems)
+//            HomeManager.addItemTo(moveItem, toColIndex, toLocalIndex, false);
+//        else
+//            HomeManager.addItemAt(moveItem, toColIndex, false);
+//        refresh();
+//    }
 
     @NonNull
     @Override
@@ -54,14 +79,34 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull XMBViewHolder holder, Integer... position) {
         XMBItem item = null;
-        if (position[0] >= 0)
+        if (position[1] < items.get(position[0]).size()) // empty item condition
             item = (XMBItem)getItem(position);
         holder.bindItem(item);
     }
     @Override
-    public int getItemCount() {
-        return items.length;
+    public int getItemCount(boolean withInnerItems) {
+        int size = 0;
+        for (List<XMBItem> column : items) {
+            if (column != null)
+                size += column.size();
+            if (withInnerItems)
+                for (XMBItem item : column)
+                    if (item != null)
+                        size += item.getInnerItemCount();
+        }
+        return size;
     }
+
+    @Override
+    public int getColumnCount() {
+        return items.size();
+    }
+
+    @Override
+    public int getColumnSize(int columnIndex) {
+        return items.get(columnIndex).size();
+    }
+
     @Override
     public void onViewAttachedToWindow(@NonNull XMBViewHolder holder) {
 
@@ -70,8 +115,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public Object getItem(Integer... position) {
         XMBItem current = null;
         if (position != null && position.length > 0) {
-            current = (XMBItem)items[position[0]];
-            for (int i = 1; i < position.length; i++)
+            current = (XMBItem)items.get(position[0]).get(position[1]);
+            for (int i = 2; i < position.length; i++)
                 current = current.getInnerItem(position[i]);
         }
         return current;

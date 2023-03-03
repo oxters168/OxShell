@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class HomeView extends XMBView implements Refreshable {
-    private ArrayList<ArrayList<XMBItem>> allHomeItems;
+    //private ArrayList<ArrayList<XMBItem>> allHomeItems;
 //    private boolean moveMode;
 //    private int origMoveColIndex;
 //    private int origMoveLocalIndex;
@@ -191,25 +191,27 @@ public class HomeView extends XMBView implements Refreshable {
     public void refresh() {
         //Log.d("HomeView", "Refreshing home view");
         //if (!isInMoveMode()) {
-            allHomeItems = HomeManager.getItems();
-            addSettings();
+            ArrayList<ArrayList<XMBItem>> allHomeItems = HomeManager.getItems();
+            addSettings(allHomeItems);
 //        } else
 //            removeEmptyItems();
 
         //fillEmptyColumns();
 
-        ArrayList<XMBItem> homeItems = new ArrayList<>();
-        int[][] mapper = new int[allHomeItems.size()][];
-        for (int i = 0; i < allHomeItems.size(); i++) {
-            ArrayList<XMBItem> column = allHomeItems.get(i);
-            mapper[i] = new int[column.size()];
-            for (int j = 0; j < column.size(); j++) {
-                mapper[i][j] = homeItems.size();
-                homeItems.add(column.get(j));
-            }
-        }
+//        ArrayList<XMBItem> homeItems = new ArrayList<>();
+//        int[][] mapper = new int[allHomeItems.size()][];
+//        for (int i = 0; i < allHomeItems.size(); i++) {
+//            ArrayList<XMBItem> column = allHomeItems.get(i);
+//            mapper[i] = new int[column.size()];
+//            for (int j = 0; j < column.size(); j++) {
+//                mapper[i][j] = homeItems.size();
+//                homeItems.add(column.get(j));
+//            }
+//        }
 
-        int cachedIndex = currentIndex;
+        //int cachedIndex = currentIndex;
+        int cachedColIndex = colIndex;
+        int cachedRowIndex = rowIndex;
 //        int colIndex;
 //        int localIndex;
 //        if (moveMode) {
@@ -219,35 +221,35 @@ public class HomeView extends XMBView implements Refreshable {
 //            colIndex = getColIndex();
 //            localIndex = getLocalIndex();
 //        }
-        setAdapter(new XMBAdapter(getContext(), homeItems), mapper);
+        setAdapter(new XMBAdapter(getContext(), allHomeItems));
         //setAdapterColor();
         //setIndex(colIndex, localIndex, true);
-        setIndex(cachedIndex, true);
+        setIndex(cachedColIndex, cachedRowIndex, true);
     }
-    private void removeEmptyItems() {
-        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
-            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
-            for (int localIndex = column.size() - 1; localIndex >= 0; localIndex--) {
-                XMBItem item = column.get(localIndex);
-                if (item.obj == null && !(item instanceof HomeItem) && item.title.equals("Empty"))
-                    column.remove(localIndex);
-            }
-        }
-    }
-    private void fillEmptyColumns() {
-        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
-            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
-            if (column.size() <= 1) {
-                XMBItem onlyItem = column.get(0);
-                if (onlyItem.obj == null && !(onlyItem instanceof HomeItem)) {
-                    // this column's only item is meant to be the column identifier
-                    XMBItem emptyItem = new XMBItem(null, "Empty", R.drawable.ic_baseline_block_24, colIndex, 1);
-                    column.add(emptyItem);
-                }
-            }
-        }
-    }
-    private void addSettings() {
+//    private void removeEmptyItems() {
+//        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
+//            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+//            for (int localIndex = column.size() - 1; localIndex >= 0; localIndex--) {
+//                XMBItem item = column.get(localIndex);
+//                if (item.obj == null && !(item instanceof HomeItem) && item.title.equals("Empty"))
+//                    column.remove(localIndex);
+//            }
+//        }
+//    }
+//    private void fillEmptyColumns() {
+//        for (int colIndex = 0; colIndex < allHomeItems.size(); colIndex++) {
+//            ArrayList<XMBItem> column = allHomeItems.get(colIndex);
+//            if (column.size() <= 1) {
+//                XMBItem onlyItem = column.get(0);
+//                if (onlyItem.obj == null && !(onlyItem instanceof HomeItem)) {
+//                    // this column's only item is meant to be the column identifier
+//                    XMBItem emptyItem = new XMBItem(null, "Empty", R.drawable.ic_baseline_block_24, colIndex, 1);
+//                    column.add(emptyItem);
+//                }
+//            }
+//        }
+//    }
+    private void addSettings(ArrayList<ArrayList<XMBItem>> allHomeItems) {
         //XMBItem settings = new HomeItem(HomeItem.Type.settings, "Settings");
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();
         XMBItem[] innerSettings;
@@ -305,18 +307,18 @@ public class HomeView extends XMBView implements Refreshable {
         allHomeItems.add(settingsColumn);
     }
 
-    @Override
-    protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
-        boolean hasSubItems = catHasSubItems(toColIndex);
-        XMBItem moveItem = allHomeItems.get(fromColIndex).get(fromLocalIndex);
-
-        HomeManager.removeItemAt(fromColIndex, fromLocalIndex, false);
-        if (hasSubItems)
-            HomeManager.addItemTo(moveItem, toColIndex, toLocalIndex, false);
-        else
-            HomeManager.addItemAt(moveItem, toColIndex, false);
-        refresh();
-    }
+//    @Override
+//    protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
+//        boolean hasSubItems = catHasSubItems(toColIndex);
+//        XMBItem moveItem = allHomeItems.get(fromColIndex).get(fromLocalIndex);
+//
+//        HomeManager.removeItemAt(fromColIndex, fromLocalIndex, false);
+//        if (hasSubItems)
+//            HomeManager.addItemTo(moveItem, toColIndex, toLocalIndex, false);
+//        else
+//            HomeManager.addItemAt(moveItem, toColIndex, false);
+//        refresh();
+//    }
 
 //    @Override
 //    protected boolean onShiftHorizontally(int colIndex, int prevColIndex) {
