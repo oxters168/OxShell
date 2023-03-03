@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class HomeView extends XMBView implements Refreshable {
     private ArrayList<ArrayList<XMBItem>> allHomeItems;
@@ -257,6 +259,9 @@ public class HomeView extends XMBView implements Refreshable {
         XMBItem settingsItem = new XMBItem(null, "Settings", R.drawable.ic_baseline_settings_24, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
 
+        // TODO: add option to change icon alpha
+        // TODO: add option to reset home items to default
+        // TODO: add option to change home/explorer scale
         innerSettings = new XMBItem[3];
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add explorer item to home");
         List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);

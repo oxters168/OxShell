@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="32dip"
-    android:layout_height="32dip"
+    android:layout_width="32dp"
+    android:layout_height="32dp"
     android:clipChildren="false">
 
     <FrameLayout
-        android:layout_width="32dip"
-        android:layout_height="32dip">
+        android:layout_width="32dp"
+        android:layout_height="32dp">
 
         <ImageView
             android:id="@+id/iconGlow"
-            android:layout_width="32dip"
-            android:layout_height="32dip"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_gravity="top|left"
             android:backgroundTint="#808080"
             android:backgroundTintMode="src_in"
@@ -21,17 +21,17 @@
 
         <ImageView
             android:id="@+id/typeIcon"
-            android:layout_width="28dip"
-            android:layout_height="28dip"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_gravity="center"
             android:scaleType="centerCrop" />
 
         <com.OxGames.OxShell.Views.BetterTextView
             android:id="@+id/title"
-            android:layout_width="256dip"
+            android:layout_width="256dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="6dip"
+            android:layout_marginStart="6dp"
             android:ellipsize="marquee"
             android:gravity="start|center_vertical"
             android:marqueeRepeatLimit="marquee_forever"
@@ -39,8 +39,8 @@
             android:text="HelloWorld"
             android:textAlignment="gravity"
             android:textColor="@color/text"
-            android:textSize="16dip"
-            android:translationX="32dip"
+            android:textSize="16sp"
+            android:translationX="32dp"
             app:outlineColor="#000000"
             app:outlineSize="3dp" />
 
