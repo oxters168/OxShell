@@ -368,9 +368,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         boolean hasSubItems = catHasSubItems(colIndex);
         return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), adapter.getColumnSize(colIndex) - (hasSubItems ? 2 : 1)) + (hasSubItems ? 1 : 0);
     }
-//    protected int getColLocalIndex(int colIndex) {
-//        return yToIndex(catPos.get(colIndex), colIndex);
-//    }
     private void setShiftYToNearestItem(int colIndex) {
         setShiftY(toNearestColumnItem(catPos.get(colIndex), colIndex), colIndex);
     }
@@ -760,7 +757,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         boolean isPartOfPosition = isPartOfPosition(currentPosition, itemPosition);
         viewHolder.isHighlighted = moveMode && isSelection;
         viewHolder.requestHideTitle = isInsideItem() && isPartOfPosition && !isSelection;
-        boolean isOurCat = itemPosition[0] == this.colIndex;
+        boolean isOurCat = itemPosition[0] == this.colIndex && itemPosition[1] == 0;
         float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
         viewHolder.itemView.animate().cancel();
 
