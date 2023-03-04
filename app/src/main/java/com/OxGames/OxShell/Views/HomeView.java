@@ -307,7 +307,21 @@ public class HomeView extends XMBView implements Refreshable {
         allHomeItems.add(settingsColumn);
     }
 
-//    @Override
+    @Override
+    protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
+        ArrayList<ArrayList<Object>> items = getAdapter().getItems();
+        items.remove(items.size() - 1); // remove the settings
+        ArrayList<ArrayList<XMBItem>> casted = new ArrayList<>();
+        for (ArrayList<Object> column : items) {
+            ArrayList<XMBItem> innerCasted = new ArrayList<>();
+            for (Object item : column)
+                innerCasted.add((XMBItem)item);
+            casted.add(innerCasted);
+        }
+        HomeManager.setHomeItems(casted);
+    }
+
+    //    @Override
 //    protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
 //        boolean hasSubItems = catHasSubItems(toColIndex);
 //        XMBItem moveItem = allHomeItems.get(fromColIndex).get(fromLocalIndex);

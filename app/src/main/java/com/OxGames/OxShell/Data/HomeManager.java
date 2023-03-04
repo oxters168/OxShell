@@ -158,6 +158,10 @@ public class HomeManager {
             refreshHomeItems();
         return colIndex;
     }
+    public static void setHomeItems(ArrayList<ArrayList<XMBItem>> newItems) {
+        allHomeItems = newItems;
+        save();
+    }
     private static int addItem(XMBItem homeItem, boolean refresh) {
         ArrayList<XMBItem> newColumn = new ArrayList<>();
         homeItem.colIndex = allHomeItems.size();
