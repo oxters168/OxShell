@@ -190,14 +190,13 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         ArrayList<XMBItem> originColumn = items.get(toBeMovedColIndex);
         XMBItem toBeMoved = originColumn.get(toBeMovedLocalIndex);
         if (createColumn) {
+            originColumn.remove(toBeMovedLocalIndex);
+            removeColIfEmpty(toBeMovedColIndex);
+
             ArrayList<XMBItem> newColumn = new ArrayList<>();
             newColumn.add(toBeMoved);
             items.add(moveToColIndex, newColumn);
-            // fire event that says a new column was added
-            for (XMBAdapterListener listener : listeners)
-                if (listener != null)
-                    listener.onColumnAdded(moveToColIndex);
-            originColumn.remove(toBeMovedLocalIndex);
+            fireColumnAddedEvent(moveToColIndex);
             // TODO: fire event that says an item was removed from a column
         } else {
             ArrayList<XMBItem> moveToColumn = items.get(moveToColIndex);
@@ -205,14 +204,24 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             // TODO: fire event that says an item was added to an existing column
             originColumn.remove(toBeMovedLocalIndex);
             // TODO: fire event that says an item was removed from a column
+            removeColIfEmpty(toBeMovedColIndex);
         }
-        if (originColumn.size() <= 0) {
-            items.remove(originColumn);
-            // fire event that says a column was removed
-            for (XMBAdapterListener listener : listeners)
-                if (listener != null)
-                    listener.onColumnRemoved(toBeMovedColIndex);
+    }
+    private void removeColIfEmpty(int columnIndex) {
+        if (items.get(columnIndex).size() <= 0) {
+            items.remove(columnIndex);
+            fireColumnRemovedEvent(columnIndex);
         }
+    }
+    private void fireColumnAddedEvent(int columnIndex) {
+        for (XMBAdapterListener listener : listeners)
+            if (listener != null)
+                listener.onColumnAdded(columnIndex);
+    }
+    private void fireColumnRemovedEvent(int columnIndex) {
+        for (XMBAdapterListener listener : listeners)
+            if (listener != null)
+                listener.onColumnRemoved(columnIndex);
     }
 //    public void shiftVertically() {
 //        // moving vertically
