@@ -40,10 +40,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public XMBAdapter(Context context, ArrayList<ArrayList<XMBItem>> items) {
         this.context = context;
         //this.items = items;
-        this.items = new ArrayList<>();
-        for (ArrayList<XMBItem> column : items) {
-            this.items.add((ArrayList<XMBItem>)column.clone());
-        }
+        ArrayList<ArrayList<Object>> casted = new ArrayList<>();
+        for (ArrayList<XMBItem> column : items)
+            casted.add(new ArrayList<>(column));
+        setItems(casted);
         font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
     }
 
@@ -121,6 +121,25 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     @Override
+    public ArrayList<ArrayList<Object>> getItems() {
+        ArrayList<ArrayList<Object>> casted = new ArrayList<>();
+        for (ArrayList<XMBItem> column : items)
+            casted.add(new ArrayList<>(column));
+        return casted;
+    }
+
+    @Override
+    public void setItems(ArrayList<ArrayList<Object>> items) {
+        this.items = new ArrayList<>();
+        for (ArrayList<Object> column : items) {
+            ArrayList<XMBItem> casted = new ArrayList<>();
+            for (Object item : column)
+                casted.add((XMBItem)item);
+            this.items.add(casted);
+        }
+    }
+
+    @Override
     public boolean isColumnHead(Integer... position) {
         XMBItem item = (XMBItem)getItem(position);
         return item.obj == null && !(item instanceof HomeItem);
@@ -185,8 +204,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         }
     }
 
-    public void shiftHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
-        Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
+    @Override
+    protected void shiftHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
+        //Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
         ArrayList<XMBItem> originColumn = items.get(toBeMovedColIndex);
         XMBItem toBeMoved = originColumn.get(toBeMovedLocalIndex);
         if (createColumn) {
@@ -207,6 +227,16 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             removeColIfEmpty(toBeMovedColIndex);
         }
     }
+    @Override
+    protected void shiftVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
+        // moving vertically
+        ArrayList<XMBItem> column = items.get(startColIndex);
+        XMBItem toBeMoved = column.get(fromLocalIndex);
+        column.remove(fromLocalIndex);
+        // TODO: fire event that says an item was removed from an existing column
+        column.add(toLocalIndex, toBeMoved);
+        // TODO: fire event that says an item was added to an existing column
+    }
     private void removeColIfEmpty(int columnIndex) {
         if (items.get(columnIndex).size() <= 0) {
             items.remove(columnIndex);
@@ -223,13 +253,4 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             if (listener != null)
                 listener.onColumnRemoved(columnIndex);
     }
-//    public void shiftVertically() {
-//        // moving vertically
-//        ArrayList<XMBItem> column = items.get(toBeMovedColIndex);
-//        XMBItem toBeMoved = column.get(toBeMovedLocalIndex);
-//        column.remove(toBeMovedLocalIndex);
-//        // TODO: fire event that says an item was removed from an existing column
-//        column.add(moveToColIndex, toBeMoved);
-//        // TODO: fire event that says an item was added to an existing column
-//    }
 }

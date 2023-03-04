@@ -149,9 +149,14 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public abstract int getColumnSize(int columnIndex);
         public abstract void onViewAttachedToWindow(@NonNull T holder);
         public abstract Object getItem(Integer... position);
+        public abstract ArrayList<ArrayList<Object>> getItems();
+        public abstract void setItems(ArrayList<ArrayList<Object>> items);
         public abstract boolean hasInnerItems(Integer... position);
         public abstract int getInnerItemCount(Integer... position);
         public abstract boolean isColumnHead(Integer... position);
+
+        protected abstract void shiftHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn);
+        protected abstract void shiftVertically(int startColIndex, int fromLocalIndex, int toLocalIndex);
     }
     public abstract static class ViewHolder {
         protected View itemView;
@@ -331,10 +336,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                     boolean changed = newLocalIndex != this.rowIndex;
                     if (changed) {
                         int prevLocalIndex = getLocalIndex();
-                        onShiftVertically(currentCol, newLocalIndex, prevLocalIndex);
                         this.prevColIndex = this.colIndex;
                         this.colIndex = colIndex;
                         this.rowIndex = newLocalIndex;
+                        onShiftVertically(currentCol, prevLocalIndex, newLocalIndex);
                     }
                     setViews(changed, false);
                 }
@@ -1149,7 +1154,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
         if (moveMode) {
-            Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
+            //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
             boolean isInColumn = catHasSubItems(fromColIndex);
             // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
             int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 1 : 2));
@@ -1162,11 +1167,6 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 // the index we will set the XMBView to once the shift is done
                 int setColIndex = nextColIndex;
                 if (isGoingRight) {
-//                    if (!isInColumn && !nextIsColumn) {
-//                        // if the item is being moved to the right and the next item is not a column that can have items, then skip it
-//                        nextColIndex += 1;
-//                        setColIndex = nextColIndex - 1;
-//                    }
                     if (!isInColumn && nextIsColumn)
                         // since the item is not in a column and its about to enter a column, then we need to account for the removal of the items column
                         setColIndex = fromColIndex;
@@ -1177,8 +1177,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                         setColIndex = fromColIndex;
                     }
                 }
-                //nextColIndex = (!isInColumn || isGoingRight) ? nextColIndex : fromColIndex;
-                ((XMBAdapter)adapter).shiftHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
+                adapter.shiftHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
 
                 this.colIndex = setColIndex;
             } else
@@ -1188,33 +1187,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             this.shiftX = getShiftX(this.colIndex);
         }
     }
-    protected void onShiftVertically(int colIndex, int localIndex, int prevLocalIndex) {
-//        if (moveMode) {
-//            if (localIndex > prevLocalIndex) {
-//                // going down
-//                int currentLocalIndex = adapter.isColumnHead(moveColIndex, 0) ? moveLocalIndex + 1 : moveLocalIndex;
-//                List<Integer> column = mapper.get(moveColIndex);
-//                int nextLocalIndex = Math.min(currentLocalIndex + 1, column.size() - 1);
-//                if (currentLocalIndex != nextLocalIndex) {
-//                    int moveItem = column.get(currentLocalIndex);
-//                    column.remove(currentLocalIndex);
-//                    column.add(nextLocalIndex, moveItem);
-//                    moveLocalIndex += 1;
-//                }
-//            } else {
-//                // going up
-//                boolean hasSubItems = isColumnHead(moveColIndex);
-//                int currentLocalIndex = hasSubItems ? moveLocalIndex + 1 : moveLocalIndex;
-//                List<Integer> column = mapper.get(moveColIndex);
-//                int nextLocalIndex = Math.max(currentLocalIndex - 1, hasSubItems ? 1 : 0);
-//                if (currentLocalIndex != nextLocalIndex) {
-//                    int moveItem = column.get(currentLocalIndex);
-//                    column.remove(currentLocalIndex);
-//                    column.add(nextLocalIndex, moveItem);
-//                    moveLocalIndex -= 1;
-//                }
-//            }
-//        }
+    protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
+        if (moveMode)
+            adapter.shiftVertically(fromColIndex, fromLocalIndex, toLocalIndex);
     }
 //    public void deleteSelection() {
 //    }
