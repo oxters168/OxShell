@@ -14,18 +14,16 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.HomeItem;
-import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.XMBItem;
+import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
-    //private XMBItem[] items;
     private ArrayList<ArrayList<XMBItem>> items;
     private Typeface font;
 
@@ -186,4 +184,43 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 //            xmbItemView.icon = item.getIcon();
         }
     }
+
+    public void shiftHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
+        Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
+        ArrayList<XMBItem> originColumn = items.get(toBeMovedColIndex);
+        XMBItem toBeMoved = originColumn.get(toBeMovedLocalIndex);
+        if (createColumn) {
+            ArrayList<XMBItem> newColumn = new ArrayList<>();
+            newColumn.add(toBeMoved);
+            items.add(moveToColIndex, newColumn);
+            // fire event that says a new column was added
+            for (XMBAdapterListener listener : listeners)
+                if (listener != null)
+                    listener.onColumnAdded(moveToColIndex);
+            originColumn.remove(toBeMovedLocalIndex);
+            // TODO: fire event that says an item was removed from a column
+        } else {
+            ArrayList<XMBItem> moveToColumn = items.get(moveToColIndex);
+            moveToColumn.add(moveToLocalIndex, toBeMoved);
+            // TODO: fire event that says an item was added to an existing column
+            originColumn.remove(toBeMovedLocalIndex);
+            // TODO: fire event that says an item was removed from a column
+        }
+        if (originColumn.size() <= 0) {
+            items.remove(originColumn);
+            // fire event that says a column was removed
+            for (XMBAdapterListener listener : listeners)
+                if (listener != null)
+                    listener.onColumnRemoved(toBeMovedColIndex);
+        }
+    }
+//    public void shiftVertically() {
+//        // moving vertically
+//        ArrayList<XMBItem> column = items.get(toBeMovedColIndex);
+//        XMBItem toBeMoved = column.get(toBeMovedLocalIndex);
+//        column.remove(toBeMovedLocalIndex);
+//        // TODO: fire event that says an item was removed from an existing column
+//        column.add(moveToColIndex, toBeMoved);
+//        // TODO: fire event that says an item was added to an existing column
+//    }
 }
