@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
@@ -155,8 +154,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public abstract int getInnerItemCount(Integer... position);
         public abstract boolean isColumnHead(Integer... position);
 
-        protected abstract void shiftHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn);
-        protected abstract void shiftVertically(int startColIndex, int fromLocalIndex, int toLocalIndex);
+        protected abstract void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn);
+        protected abstract void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex);
     }
     public abstract static class ViewHolder {
         protected View itemView;
@@ -1177,7 +1176,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                         setColIndex = fromColIndex;
                     }
                 }
-                adapter.shiftHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
+                adapter.shiftItemHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
 
                 this.colIndex = setColIndex;
             } else
@@ -1189,7 +1188,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
         if (moveMode)
-            adapter.shiftVertically(fromColIndex, fromLocalIndex, toLocalIndex);
+            adapter.shiftItemVertically(fromColIndex, fromLocalIndex, toLocalIndex);
     }
 //    public void deleteSelection() {
 //    }

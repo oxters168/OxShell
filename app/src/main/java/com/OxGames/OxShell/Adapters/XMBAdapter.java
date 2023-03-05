@@ -39,25 +39,12 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 //    }
     public XMBAdapter(Context context, ArrayList<ArrayList<XMBItem>> items) {
         this.context = context;
-        //this.items = items;
         ArrayList<ArrayList<Object>> casted = new ArrayList<>();
         for (ArrayList<XMBItem> column : items)
             casted.add(new ArrayList<>(column));
         setItems(casted);
         font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
     }
-
-//    protected void moveItem(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
-//        boolean hasSubItems = catHasSubItems(toColIndex);
-//        XMBItem moveItem = allHomeItems.get(fromColIndex).get(fromLocalIndex);
-//
-//        HomeManager.removeItemAt(fromColIndex, fromLocalIndex, false);
-//        if (hasSubItems)
-//            HomeManager.addItemTo(moveItem, toColIndex, toLocalIndex, false);
-//        else
-//            HomeManager.addItemAt(moveItem, toColIndex, false);
-//        refresh();
-//    }
 
     @NonNull
     @Override
@@ -113,7 +100,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public Object getItem(Integer... position) {
         XMBItem current = null;
         if (position != null && position.length > 0) {
-            current = (XMBItem)items.get(position[0]).get(position[1]);
+            current = items.get(position[0]).get(position[1]);
             for (int i = 2; i < position.length; i++)
                 current = current.getInnerItem(position[i]);
         }
@@ -177,35 +164,14 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             Drawable icon = item != null ? item.getIcon() : ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24);
             if (icon == null)
                 icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
-//                switch (getItemViewType()) {
-//                    case (XMBView.CATEGORY_TYPE):
-//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_view_list_24);
-//                        break;
-//                    case (XMBView.ITEM_TYPE):
-//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_hide_image_24);
-//                        break;
-//                    case (XMBView.INNER_TYPE):
-//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_construction_24);
-//                        break;
-//                    default:
-//                        icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
-//                        break;
-//                }
             img.setBackground(icon);
             highlight.setBackground(icon.getConstantState().newDrawable());
             highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
-            //highlight.setBackgroundTintList(ColorStateList.valueOf(isSelection() ? highlightColor : nonHighlightColor));
-            //highlight.setColorFilter(isSelection() ? Color.parseColor("#FFFF0000") : Color.parseColor("#FF000000"));
-            //highlight.setVisibility(isSelection() ? View.VISIBLE : View.INVISIBLE);
-//            XMBItemView xmbItemView = (XMBItemView)itemView;
-//            xmbItemView.isCategory = isCategory();
-//            xmbItemView.title = item.title;
-//            xmbItemView.icon = item.getIcon();
         }
     }
 
     @Override
-    protected void shiftHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
+    protected void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
         //Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
         ArrayList<XMBItem> originColumn = items.get(toBeMovedColIndex);
         XMBItem toBeMoved = originColumn.get(toBeMovedLocalIndex);
@@ -228,7 +194,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         }
     }
     @Override
-    protected void shiftVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
+    protected void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
         // moving vertically
         ArrayList<XMBItem> column = items.get(startColIndex);
         XMBItem toBeMoved = column.get(fromLocalIndex);

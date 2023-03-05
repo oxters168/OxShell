@@ -41,6 +41,30 @@ public class HomeView extends XMBView implements Refreshable {
 //    private int normalHighlightColor = Color.parseColor("#FF808080");
 //    @ColorInt
 //    private int moveHighlightColor = Color.parseColor("#FF808000");
+    SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
+    {
+        toggleMoveMode(true);
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove", () ->
+    {
+        deleteSelection();
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
+    {
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
+    {
+        uninstallSelection();
+        deleteSelection(); //TODO: only if uninstall was successful
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
 
     public HomeView(Context context) {
         super(context);
@@ -113,24 +137,7 @@ public class HomeView extends XMBView implements Refreshable {
         if (!isInMoveMode()) {
             PagedActivity currentActivity = ActivityManager.getCurrentActivity();
             if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
-                SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
-                {
-                    toggleMoveMode(true);
-                    currentActivity.getSettingsDrawer().setShown(false);
-                    return null;
-                });
-                SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove", () ->
-                {
-                    deleteSelection();
-                    currentActivity.getSettingsDrawer().setShown(false);
-                    return null;
-                });
-                SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
-                {
-                    currentActivity.getSettingsDrawer().setShown(false);
-                    return null;
-                });
-                XMBItem selectedItem = (XMBItem) getSelectedItem();
+                XMBItem selectedItem = (XMBItem)getSelectedItem();
                 HomeItem homeItem = null;
                 // TODO: remove delete option for settings and empty
                 // TODO: remove move option for settings and empty
@@ -138,19 +145,20 @@ public class HomeView extends XMBView implements Refreshable {
                 // TODO: add delete column option
                 // TODO: add new column option
                 if (selectedItem instanceof HomeItem)
-                    homeItem = (HomeItem) selectedItem;
-                if (homeItem != null && homeItem.type != HomeItem.Type.explorer && homeItem.type != HomeItem.Type.settings) {
-                    SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
-                    {
-                        uninstallSelection();
-                        deleteSelection(); //TODO: only if uninstall was successful
-                        currentActivity.getSettingsDrawer().setShown(false);
-                        return null;
-                    });
-                    currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, uninstallBtn, cancelBtn);
-                } else
-                    currentActivity.getSettingsDrawer().setButtons(moveBtn, deleteBtn, cancelBtn);
+                    homeItem = (HomeItem)selectedItem;
 
+                ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
+                if (homeItem != null) {
+                    if (homeItem.type != HomeItem.Type.settings) {
+                        btns.add(moveBtn);
+                        btns.add(deleteBtn);
+                        if (homeItem.type != HomeItem.Type.explorer)
+                            btns.add(uninstallBtn);
+                    }
+                }
+                btns.add(cancelBtn);
+
+                currentActivity.getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
                 currentActivity.getSettingsDrawer().setShown(true);
                 return true;
             }
@@ -253,8 +261,8 @@ public class HomeView extends XMBView implements Refreshable {
         settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set background as picture");
-        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set backround as shader");
+        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set picture as background");
+        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set shader as background");
         settingsItem = new XMBItem(null, "Background", R.drawable.ic_baseline_image_24, innerSettings);//, colIndex, localIndex++, innerSettings);
         settingsColumn.add(settingsItem);
 
