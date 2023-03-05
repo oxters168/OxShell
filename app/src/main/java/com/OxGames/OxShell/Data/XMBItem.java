@@ -19,33 +19,33 @@ public class XMBItem<T> implements Serializable {
     public T obj;
     public String title;
     // meant for when reloading items from file to keep their correct positions in the menu (do not set this manually)
-    public int colIndex;
-    public int localIndex;
+    //public int colIndex;
+    //public int localIndex;
     protected Object iconLoc;
     protected boolean iconIsResource;
     private List<XMBItem> innerItems;
 
     //protected transient Drawable icon;
     protected transient Drawable icon;
-    private transient float currentX;
-    private transient float currentY;
-    private transient float prevX;
-    private transient float prevY;
+//    private transient float currentX;
+//    private transient float currentY;
+//    private transient float prevX;
+//    private transient float prevY;
 
-    public XMBItem(T _obj, String _title, Object _iconLoc, int _colIndex, int _localIndex, XMBItem... innerItems) {
+    public XMBItem(T _obj, String _title, Object _iconLoc, XMBItem... innerItems) {
         obj = _obj;
         title = _title;
         iconLoc = _iconLoc;
         iconIsResource = _iconLoc instanceof Integer;
         //icon = _icon;
-        colIndex = _colIndex;
-        localIndex = _localIndex;
+        //colIndex = _colIndex;
+        //localIndex = _localIndex;
         this.innerItems = new ArrayList<>();
         if (innerItems != null)
             Collections.addAll(this.innerItems, innerItems);
     }
     public XMBItem(T _obj, String _title, Object _iconLoc) {
-        this(_obj, _title, _iconLoc, -1, -1, null);
+        this(_obj, _title, _iconLoc, null);
 //        obj = _obj;
 //        title = _title;
 //        iconLoc = _iconLoc;
@@ -56,11 +56,11 @@ public class XMBItem<T> implements Serializable {
 //        this.innerItems = new ArrayList<>();
 //        Collections.addAll(this.innerItems, innerItems);
     }
-    public XMBItem(T _obj, String _title, int _colIndex, int _localIndex, XMBItem... innerItems) {
-        this(_obj, _title, null, _colIndex, _localIndex, innerItems);
-    }
+//    public XMBItem(T _obj, String _title, int _colIndex, int _localIndex, XMBItem... innerItems) {
+//        this(_obj, _title, null, _colIndex, _localIndex, innerItems);
+//    }
     public XMBItem(T _obj, String _title, XMBItem... innerItems) {
-        this(_obj, _title, null, -1, -1, innerItems);
+        this(_obj, _title, null, innerItems);
     }
 
     public Drawable getIcon() {
@@ -94,24 +94,24 @@ public class XMBItem<T> implements Serializable {
         return innerItems.get(index);
     }
 
-    public float getX() {
-        return currentX;
-    }
-    public float getY() {
-        return currentY;
-    }
-    public float getPrevX() {
-        return prevX;
-    }
-    public float getPrevY() {
-        return prevY;
-    }
-    public void setX(float x) {
-        prevX = currentX;
-        currentX = x;
-    }
-    public void setY(float y) {
-        prevY = currentY;
-        currentY = y;
-    }
+//    public float getX() {
+//        return currentX;
+//    }
+//    public float getY() {
+//        return currentY;
+//    }
+//    public float getPrevX() {
+//        return prevX;
+//    }
+//    public float getPrevY() {
+//        return prevY;
+//    }
+//    public void setX(float x) {
+//        prevX = currentX;
+//        currentX = x;
+//    }
+//    public void setY(float y) {
+//        prevY = currentY;
+//        currentY = y;
+//    }
 }

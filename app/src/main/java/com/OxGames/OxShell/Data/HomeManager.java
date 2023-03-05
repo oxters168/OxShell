@@ -147,7 +147,7 @@ public class HomeManager {
     }
     private static int createCategory(Object iconLoc, String name, boolean refresh) {
         ArrayList<XMBItem> newColumn = new ArrayList<>();
-        XMBItem colItem = new XMBItem(null, name, iconLoc, allHomeItems.size(), 0);
+        XMBItem colItem = new XMBItem(null, name, iconLoc);//, allHomeItems.size(), 0);
         newColumn.add(colItem);
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
@@ -164,7 +164,7 @@ public class HomeManager {
     }
     private static int addItem(XMBItem homeItem, boolean refresh) {
         ArrayList<XMBItem> newColumn = new ArrayList<>();
-        homeItem.colIndex = allHomeItems.size();
+        //homeItem.colIndex = allHomeItems.size();
         newColumn.add(homeItem);
         int colIndex = allHomeItems.size();
         allHomeItems.add(newColumn);
@@ -268,8 +268,8 @@ public class HomeManager {
         // adjust all later items' local index within the column
         for (int i = fromLocalIndex; i < column.size(); i++) {
             XMBItem item = column.get(i);
-            item.colIndex = colIndex;
-            item.localIndex = i;
+            //item.colIndex = colIndex;
+            //item.localIndex = i;
         }
     }
     private static void adjustIndicesStartingFrom(int colIndex) {
@@ -278,8 +278,8 @@ public class HomeManager {
             ArrayList<XMBItem> column = allHomeItems.get(i);
             for (int j = 0; j < column.size(); j++) {
                 XMBItem item = column.get(j);
-                item.colIndex = i;
-                item.localIndex = j;
+                //item.colIndex = i;
+                //item.localIndex = j;
             }
         }
     }
@@ -380,28 +380,6 @@ public class HomeManager {
     private static void saveHomeItemsToFile(String parentDir, String fileName) {
         AndroidHelpers.makeDir(parentDir);
         String fullPath = AndroidHelpers.combinePaths(parentDir, fileName);
-        //AndroidHelpers.makeFile(fullPath);
-        // Serialaver.saveFile(homeItems.toArray(), fullPath);
-//        ArrayList<XMBItem> cats = new ArrayList<>();
-//        ArrayList<XMBItem> defaults = new ArrayList<>();
-//        ArrayList<XMBItem<IntentLaunchData>> assocs = new ArrayList<>();
-//        ArrayList<XMBItem<String>> apps = new ArrayList<>();
-//        for (XMBItem homeItem : homeItems) {
-//            if (homeItem instanceof HomeItem) {
-//                if (((HomeItem)homeItem).type == HomeItem.Type.app)
-//                    apps.add(homeItem);
-//                else if (((HomeItem)homeItem).type == HomeItem.Type.assoc)
-//                    assocs.add(homeItem);
-//                else
-//                    defaults.add(homeItem);
-//            } else
-//                cats.add(homeItem);
-//        }
-//        Serialaver.saveAsJSON(cats, fullPath + Paths.HOME_ITEMS_CATS);
-//        Serialaver.saveAsJSON(defaults, fullPath + Paths.HOME_ITEMS_DEFAULTS);
-//        Serialaver.saveAsJSON(apps, fullPath + Paths.HOME_ITEMS_APPS);
-//        Serialaver.saveAsJSON(assocs, fullPath + Paths.HOME_ITEMS_ASSOCS);
-        //Serialaver.saveAsJSON(allHomeItems, fullPath);
         Serialaver.saveFile(allHomeItems, fullPath);
     }
     private static void refreshHomeItems() {

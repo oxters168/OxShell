@@ -8,9 +8,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 
-import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.SelectDirsView;
 
@@ -49,7 +47,7 @@ public class HomeActivity extends PagedActivity {
         setContentView(R.layout.activity_home);
         initViewsTable();
 
-        HomeManager.init();
+        //HomeManager.init();
         goTo(ActivityManager.Page.home);
         showAnnoyingDialog();
     }
