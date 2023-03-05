@@ -72,8 +72,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public void onColumnAdded(int columnIndex) {
             catPos.add(columnIndex, 0f);
             if (colIndex >= columnIndex) {
-                colIndex += 1;
-                prevColIndex += 1;
+                int maxIndex = getAdapter().getColumnCount() - 1;
+                colIndex = Math.min(colIndex + 1, maxIndex);
+                prevColIndex += Math.min(prevColIndex + 1, maxIndex);
             }
             rowIndex = getCachedIndexOfCat(colIndex);
             shiftX = getShiftX(colIndex);
@@ -84,8 +85,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public void onColumnRemoved(int columnIndex) {
             catPos.remove(columnIndex);
             if (columnIndex <= colIndex) {
-                colIndex -= 1;
-                prevColIndex -= 1;
+                colIndex = Math.max(colIndex - 1, 0);
+                prevColIndex = Math.max(prevColIndex - 1, 0);
             }
             rowIndex = getCachedIndexOfCat(colIndex);
             shiftX = getShiftX(colIndex);
