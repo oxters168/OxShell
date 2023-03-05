@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
@@ -76,8 +77,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             }
             rowIndex = getCachedIndexOfCat(colIndex);
             shiftX = getShiftX(colIndex);
+            returnAllViews();
+            setViews(false, true);
         }
-
         @Override
         public void onColumnRemoved(int columnIndex) {
             catPos.remove(columnIndex);
@@ -87,6 +89,22 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             }
             rowIndex = getCachedIndexOfCat(colIndex);
             shiftX = getShiftX(colIndex);
+            returnAllViews();
+            setViews(false, true);
+        }
+        @Override
+        public void onSubItemAdded(int columnIndex, int localIndex) {
+            if (columnIndex == colIndex)
+                rowIndex = getCachedIndexOfCat(colIndex);
+            returnAllViews();
+            setViews(false, true);
+        }
+        @Override
+        public void onSubItemRemoved(int columnIndex, int localIndex) {
+            if (columnIndex == colIndex)
+                rowIndex = getCachedIndexOfCat(colIndex);
+            returnAllViews();
+            setViews(false, true);
         }
     };
 
@@ -156,6 +174,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
 
         protected abstract void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn);
         protected abstract void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex);
+        public abstract void addSubItem(int columnIndex, int localIndex, Object toBeAdded);
+        public abstract void removeSubItem(int columnIndex, int localIndex);
+        public abstract void createColumnAt(int columnIndex, Object head);
+        public abstract void removeColumnAt(int columnIndex);
     }
     public abstract static class ViewHolder {
         protected View itemView;
@@ -649,8 +671,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             int startY = getStartY();
             int horShiftOffset = Math.round(getHorShiftOffset());
             int verShiftOffset = Math.round(getVerShiftOffset());
-            if (moveMode && indexChanged)
-                returnAllViews();
+            //if (moveMode && indexChanged)
+            //    returnAllViews();
             drawCategories(indexChanged, startX, startY, horShiftOffset, instant || moveMode);
             drawItems(indexChanged, instant || moveMode, startX, startY, horShiftOffset, verShiftOffset);
             drawInnerItems(instant || moveMode);
@@ -1176,6 +1198,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                         setColIndex = fromColIndex;
                     }
                 }
+                if (nextIsColumn && adapter.getColumnSize(nextColIndex) == 1)
+                    nextLocalIndex = 1;
                 adapter.shiftItemHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
 
                 this.colIndex = setColIndex;

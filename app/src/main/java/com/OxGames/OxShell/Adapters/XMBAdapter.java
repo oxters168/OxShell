@@ -3,7 +3,6 @@ package com.OxGames.OxShell.Adapters;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -173,41 +172,48 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     protected void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
         //Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
-        ArrayList<XMBItem> originColumn = items.get(toBeMovedColIndex);
-        XMBItem toBeMoved = originColumn.get(toBeMovedLocalIndex);
+        XMBItem toBeMoved = items.get(toBeMovedColIndex).get(toBeMovedLocalIndex);
         if (createColumn) {
-            originColumn.remove(toBeMovedLocalIndex);
-            removeColIfEmpty(toBeMovedColIndex);
-
-            ArrayList<XMBItem> newColumn = new ArrayList<>();
-            newColumn.add(toBeMoved);
-            items.add(moveToColIndex, newColumn);
-            fireColumnAddedEvent(moveToColIndex);
-            // TODO: fire event that says an item was removed from a column
+            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex);
+            createColumnAt(moveToColIndex, toBeMoved);
         } else {
-            ArrayList<XMBItem> moveToColumn = items.get(moveToColIndex);
-            moveToColumn.add(moveToLocalIndex, toBeMoved);
-            // TODO: fire event that says an item was added to an existing column
-            originColumn.remove(toBeMovedLocalIndex);
-            // TODO: fire event that says an item was removed from a column
-            removeColIfEmpty(toBeMovedColIndex);
+            addSubItem(moveToColIndex, moveToLocalIndex, toBeMoved);
+            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex);
         }
     }
     @Override
     protected void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
-        // moving vertically
-        ArrayList<XMBItem> column = items.get(startColIndex);
-        XMBItem toBeMoved = column.get(fromLocalIndex);
-        column.remove(fromLocalIndex);
-        // TODO: fire event that says an item was removed from an existing column
-        column.add(toLocalIndex, toBeMoved);
-        // TODO: fire event that says an item was added to an existing column
+        XMBItem toBeMoved = items.get(startColIndex).get(fromLocalIndex);
+        removeSubItem(startColIndex, fromLocalIndex);
+        addSubItem(startColIndex, toLocalIndex, toBeMoved);
+    }
+    @Override
+    public void addSubItem(int columnIndex, int localIndex, Object toBeAdded) {
+        items.get(columnIndex).add(localIndex, (XMBItem)toBeAdded);
+        fireSubItemAddedEvent(columnIndex, localIndex);
+    }
+    @Override
+    public void removeSubItem(int columnIndex, int localIndex) {
+        items.get(columnIndex).remove(localIndex);
+        fireSubItemRemovedEvent(columnIndex, localIndex);
+        removeColIfEmpty(columnIndex);
+    }
+    @Override
+    public void createColumnAt(int columnIndex, Object head) {
+        ArrayList<XMBItem> newColumn = new ArrayList<>();
+        newColumn.add((XMBItem)head);
+        items.add(columnIndex, newColumn);
+        fireColumnAddedEvent(columnIndex);
+        fireSubItemAddedEvent(columnIndex, 0);
+    }
+    @Override
+    public void removeColumnAt(int columnIndex) {
+        items.remove(columnIndex);
+        fireColumnRemovedEvent(columnIndex);
     }
     private void removeColIfEmpty(int columnIndex) {
-        if (items.get(columnIndex).size() <= 0) {
-            items.remove(columnIndex);
-            fireColumnRemovedEvent(columnIndex);
-        }
+        if (items.get(columnIndex).size() <= 0)
+            removeColumnAt(columnIndex);
     }
     private void fireColumnAddedEvent(int columnIndex) {
         for (XMBAdapterListener listener : listeners)
@@ -218,5 +224,15 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         for (XMBAdapterListener listener : listeners)
             if (listener != null)
                 listener.onColumnRemoved(columnIndex);
+    }
+    private void fireSubItemAddedEvent(int columnIndex, int localIndex) {
+        for (XMBAdapterListener listener : listeners)
+            if (listener != null)
+                listener.onSubItemAdded(columnIndex, localIndex);
+    }
+    private void fireSubItemRemovedEvent(int columnIndex, int localIndex) {
+        for (XMBAdapterListener listener : listeners)
+            if (listener != null)
+                listener.onSubItemRemoved(columnIndex, localIndex);
     }
 }

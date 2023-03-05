@@ -15,7 +15,6 @@ import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
-import com.OxGames.OxShell.Data.HomeManager;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
@@ -181,9 +180,9 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     public void deleteSelection() {
-        XMBItem selectedItem = (XMBItem)getSelectedItem();
-        HomeManager.removeItem(selectedItem);
-        //refresh();
+        Integer[] position = getPosition();
+        getAdapter().removeSubItem(position[0], position[1]);
+        save(getItems());
     }
     public void uninstallSelection() {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
@@ -208,12 +207,12 @@ public class HomeView extends XMBView implements Refreshable {
         if (!cachedItemsExists()) {
             // if no file exists then add apps to the home
             // TODO: make optional?
-            Log.d("HomeManager", "Home items does not exist in data folder, creating...");
+            Log.d("HomeView", "Home items does not exist in data folder, creating...");
             createDefaultItems(prosumer);
         }
         else {
             // if the file exists in the data folder then read it, if the read fails then create defaults
-            Log.d("HomeManager", "Home items exists in data folder, reading...");
+            Log.d("HomeView", "Home items exists in data folder, reading...");
             ArrayList<ArrayList<XMBItem>> items = load();
             if (items == null)
                 createDefaultItems(prosumer);
@@ -282,8 +281,15 @@ public class HomeView extends XMBView implements Refreshable {
 
     @Override
     protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
+        save(getItems());
+    }
+
+    public ArrayList<ArrayList<XMBItem>> getItems() {
         ArrayList<ArrayList<Object>> items = getAdapter().getItems();
         items.remove(items.size() - 1); // remove the settings
+        return cast(items);
+    }
+    private static ArrayList<ArrayList<XMBItem>> cast(ArrayList<ArrayList<Object>> items) {
         ArrayList<ArrayList<XMBItem>> casted = new ArrayList<>();
         for (ArrayList<Object> column : items) {
             ArrayList<XMBItem> innerCasted = new ArrayList<>();
@@ -291,7 +297,7 @@ public class HomeView extends XMBView implements Refreshable {
                 innerCasted.add((XMBItem)item);
             casted.add(innerCasted);
         }
-        HomeManager.setHomeItems(casted);
+        return casted;
     }
 
     private static boolean cachedItemsExists() {
@@ -314,11 +320,11 @@ public class HomeView extends XMBView implements Refreshable {
         if (AndroidHelpers.fileExists(path))
             items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFile(path);
         else
-            Log.e("HomeManager", "Attempted to read non-existant home items file @ " + path);
+            Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
         return items;
     }
     private static void createDefaultItems(Consumer<ArrayList<ArrayList<XMBItem>>> onComplete) {
-        Log.d("HomeManager", "Retrieving default apps");
+        Log.d("HomeView", "Retrieving default apps");
         //addExplorer();
 
         String[] categories = new String[] { "Games", "Audio", "Video", "Image", "Social", "News", "Maps", "Productivity", "Accessibility", "Other" };
