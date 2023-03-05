@@ -79,6 +79,8 @@ dependencies {
     //implementation "androidx.core:core-ktx:+"
     //implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.github.oxters168:ShaderView:0.8.11'
+    implementation 'de.ruedigermoeller:fst:2.57'
+
 }
 repositories {
     mavenCentral()

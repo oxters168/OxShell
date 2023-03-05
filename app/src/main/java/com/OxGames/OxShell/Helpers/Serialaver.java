@@ -4,13 +4,16 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
+import org.nustaq.serialization.FSTConfiguration;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 public class Serialaver {
     public static void saveFile(Serializable obj, String path) {
@@ -37,6 +40,23 @@ public class Serialaver {
             Log.e("Serialaver", e.getMessage());
         }
         return obj;
+    }
+    public static void saveAsFSTJSON(Object data, String absPath) {
+        FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+
+        byte[] bytes = conf.asByteArray(data);
+        try {
+            String json = new String(bytes,"UTF-8");
+            AndroidHelpers.writeToFile(absPath, json);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        Object deser = conf.asObject(bytes);
+    }
+    public static Object loadFromFSTJSON(String absPath) {
+        FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        String json = AndroidHelpers.readFile(absPath);
+        return conf.asObject(json.getBytes(StandardCharsets.UTF_8));
     }
     public static void saveAsJSON(Object data, String absPath) {
         Gson gson = new Gson();

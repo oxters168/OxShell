@@ -255,7 +255,7 @@ public class PagedActivity extends AppCompatActivity {
             boolean childsPlay = false;
             View currentView = allPages.get(currentPage);
             if (currentView instanceof InputReceiver)
-                childsPlay = ((InputReceiver) currentView).receiveKeyEvent(key_event);
+                childsPlay = ((InputReceiver)currentView).receiveKeyEvent(key_event);
             if (childsPlay)
                 return true;
         }

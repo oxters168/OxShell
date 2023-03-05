@@ -9,7 +9,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.SelectDirsView;
 
 import java.io.File;
@@ -55,7 +54,7 @@ public class HomeActivity extends PagedActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        setMarginsFor(R.id.packages_list, R.id.settings_view, R.id.customize_home_view, R.id.assoc_list_view, R.id.selectdirs_view, R.id.shortcuts_view);
+        //setMarginsFor(R.id.packages_list, R.id.settings_view, R.id.customize_home_view, R.id.assoc_list_view, R.id.selectdirs_view, R.id.shortcuts_view);
     }
 
     @Override
@@ -67,12 +66,12 @@ public class HomeActivity extends PagedActivity {
     @Override
     protected void initViewsTable() {
         allPages.put(ActivityManager.Page.home, findViewById(R.id.home_view));
-        allPages.put(ActivityManager.Page.settings, findViewById(R.id.settings_view));
-        allPages.put(ActivityManager.Page.customizeHome, findViewById(R.id.customize_home_view));
-        allPages.put(ActivityManager.Page.pkgList, findViewById(R.id.packages_list));
-        allPages.put(ActivityManager.Page.assocList, findViewById(R.id.assoc_list_view));
-        allPages.put(ActivityManager.Page.selectDirs, findViewById(R.id.selectdirs_view));
-        allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
+//        allPages.put(ActivityManager.Page.settings, findViewById(R.id.settings_view));
+//        allPages.put(ActivityManager.Page.customizeHome, findViewById(R.id.customize_home_view));
+//        allPages.put(ActivityManager.Page.pkgList, findViewById(R.id.packages_list));
+//        allPages.put(ActivityManager.Page.assocList, findViewById(R.id.assoc_list_view));
+//        allPages.put(ActivityManager.Page.selectDirs, findViewById(R.id.selectdirs_view));
+//        allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
     }
 
     private void showAnnoyingDialog() {
