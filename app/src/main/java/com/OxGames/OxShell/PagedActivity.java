@@ -251,12 +251,14 @@ public class PagedActivity extends AppCompatActivity {
         if (dynamicInput.isOverlayShown() && dynamicInput.receiveKeyEvent(key_event))
             return true;
 
-        boolean childsPlay = false;
-        View currentView = allPages.get(currentPage);
-        if (currentView instanceof InputReceiver)
-            childsPlay = ((InputReceiver) currentView).receiveKeyEvent(key_event);
-        if (childsPlay)
-            return true;
+        if (!settingsDrawer.isDrawerOpen() && !dynamicInput.isOverlayShown()) {
+            boolean childsPlay = false;
+            View currentView = allPages.get(currentPage);
+            if (currentView instanceof InputReceiver)
+                childsPlay = ((InputReceiver) currentView).receiveKeyEvent(key_event);
+            if (childsPlay)
+                return true;
+        }
 
         return super.dispatchKeyEvent(key_event);
     }

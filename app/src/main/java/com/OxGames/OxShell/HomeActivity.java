@@ -61,7 +61,7 @@ public class HomeActivity extends PagedActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        refreshHome();
+        //refreshHome();
     }
 
     @Override
@@ -84,10 +84,10 @@ public class HomeActivity extends PagedActivity {
         }
     }
 
-    public void refreshHome() {
-        //TODO: Redo refresh home view with new xmb
-        ((HomeView)allPages.get(ActivityManager.Page.home)).refresh();
-    }
+//    public void refreshHome() {
+//        //TODO: Redo refresh home view with new xmb
+//        ((HomeView)allPages.get(ActivityManager.Page.home)).refresh();
+//    }
 
 //    public void getOverlayPermissionBtn(View view) {
 //        // Check if Android M or higher

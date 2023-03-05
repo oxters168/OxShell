@@ -7,9 +7,12 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 
 import com.OxGames.OxShell.Adapters.XMBAdapter;
+import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.XMBItem;
@@ -46,6 +49,25 @@ public class HomeView extends XMBView implements Refreshable {
         getAdapter().removeColumnAt(getPosition()[0]);
         save(getItems());
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () ->
+    {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+        DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
+        DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
+            getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, titleInput.getText()));
+            save(getItems());
+            dynamicInput.setShown(false);
+        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+            dynamicInput.setShown(false);
+        }, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+        dynamicInput.setItems(new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
+
+        currentActivity.getSettingsDrawer().setShown(false);
+        dynamicInput.setShown(true);
         return null;
     });
     SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
@@ -138,11 +160,11 @@ public class HomeView extends XMBView implements Refreshable {
                 XMBItem selectedItem = (XMBItem)getSelectedItem();
                 HomeItem homeItem = null;
                 // TODO: add move column option
-                // TODO: add new column option
                 if (selectedItem instanceof HomeItem)
                     homeItem = (HomeItem)selectedItem;
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
+                btns.add(createColumnBtn);
                 if (homeItem != null) {
                     if (homeItem.type != HomeItem.Type.settings) {
                         btns.add(moveBtn);
