@@ -13,7 +13,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, app, assoc, settings, }
+    public enum Type { explorer, app, assoc, settings, addApp, addExplorer, }
     public Type type;
     public ArrayList<String> extraData;
 
@@ -25,24 +25,12 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     }
     public HomeItem(Type _type, T _obj, String _title, XMBItem... innerItems) {
         super(_obj, _title, innerItems);
-        //super(_title, _obj);
         type = _type;
         extraData = new ArrayList<>();
     }
     public HomeItem(Type _type, String _title, XMBItem... innerItems) {
         this(_type, null, _title, innerItems);
     }
-//    public HomeItem(Type _type, Object _icon, String _title) {
-//        this(_type, _icon, _title, null, -1, -1);
-//    }
-//    public HomeItem(Type _type, Object _icon, String _title, T _obj) {
-//        this(_type, _icon, _title, _obj, -1, -1);
-//    }
-//    public HomeItem(Type _type, Object _icon, String _title, T _obj, int _colIndex, int _localIndex) {
-//        super(_obj, _title, _icon, _colIndex, _localIndex);
-//        type = _type;
-//        extraData = new ArrayList<>();
-//    }
     @Override
     public Drawable getIcon() {
         //Drawable icon = null;
@@ -50,9 +38,9 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         if (icon == null) {
             if (type == Type.explorer)
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
-            else if (type == Type.app)
+            else if (type == Type.app || type == Type.addApp)
                 icon = PackagesCache.getPackageIcon((String)obj);
-            else if (type == Type.settings)
+            else if (type == Type.settings || type == Type.addExplorer)
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
             else if (type == Type.assoc)
                 icon = PackagesCache.getPackageIcon(((IntentLaunchData) obj).getPackageName());

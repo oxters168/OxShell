@@ -144,6 +144,16 @@ public class HomeView extends XMBView implements Refreshable {
                     IntentShortcutsView.setLaunchItem(selectedItem);
                     ActivityManager.goTo(ActivityManager.Page.intentShortcuts);
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.addApp) {
+                    Adapter adapter = getAdapter();
+                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.app, selectedItem.obj, selectedItem.title));
+                    save(getItems());
+                    return true;
+                } else if (selectedItem.type == HomeItem.Type.addExplorer) {
+                    Adapter adapter = getAdapter();
+                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer"));
+                    save(getItems());
+                    return true;
                 }
             }
         }// else
@@ -265,17 +275,17 @@ public class HomeView extends XMBView implements Refreshable {
         // TODO: add option to change icon alpha
         // TODO: add option to reset home items to default
         // TODO: add option to change home/explorer scale
-        innerSettings = new XMBItem[3];
-        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add explorer item to home");
+        innerSettings = new XMBItem[2];
+        innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
 
         List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
         //long loadHomeStart = SystemClock.uptimeMillis();
-        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(HomeItem.Type.app, currentPkg.activityInfo.packageName, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
+        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(HomeItem.Type.addApp, currentPkg.activityInfo.packageName, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
         //List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new XMBItem(null, PackagesCache.getAppLabel(currentPkg), PackagesCache.getPackageIcon(currentPkg))).collect(Collectors.toList());
         //Log.d("HomeView", "Time to map apps: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s"); // mapping still runs slow on my S8 (removing getPackageIcon shaves off ~3s on my S8)
         sortedApps.sort(Comparator.comparing(o -> o.title.toLowerCase()));
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Add application to home", sortedApps.toArray(new XMBItem[0]));
-        innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
+        //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
         settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, innerSettings);
         settingsColumn.add(settingsItem);
 
@@ -346,15 +356,13 @@ public class HomeView extends XMBView implements Refreshable {
     }
     private static ArrayList<ArrayList<XMBItem>> createDefaultItems() {
         Log.d("HomeView", "Retrieving default apps");
-        //addExplorer();
-        final long[] createDefaultStart = {SystemClock.uptimeMillis()};
+        long createDefaultStart = SystemClock.uptimeMillis();
 
         String[] categories = new String[] { "Games", "Audio", "Video", "Image", "Social", "News", "Maps", "Productivity", "Accessibility", "Other" };
         HashMap<Integer, ArrayList<XMBItem>> sortedApps = new HashMap<>();
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
         List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
-        Log.d("HomeView", "Time to get installed packages: " + ((SystemClock.uptimeMillis() - createDefaultStart[0]) / 1000f) + "s");
-        createDefaultStart[0] = SystemClock.uptimeMillis();
+        Log.d("HomeView", "Time to get installed packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
+        createDefaultStart = SystemClock.uptimeMillis();
         ArrayList<ArrayList<XMBItem>> defaultItems = new ArrayList<>();
         // go through all apps creating HomeItems for them and sorting them into their categories
         int otherIndex = getOtherCategoryIndex();
@@ -379,30 +387,16 @@ public class HomeView extends XMBView implements Refreshable {
             int catIndex = existingCategories.get(index);
             if (catIndex == -1)
                 catIndex = categories.length - 1;
-            // add the category item at the top
-            //int colIndex = createCategory(getDefaultIconForCategory(catIndex), categories[catIndex], false);
             ArrayList<XMBItem> column = new ArrayList<>();
+            // add the category item at the top
             column.add(new XMBItem(null, categories[catIndex], getDefaultIconForCategory(catIndex)));
-            //addItem(new XMBItem(null, categories[catIndex], index + 2, 0), false);
-            // add the apps into the category as items
-            //ArrayList<XMBItem> column = sortedApps.get(existingCategories.get(index));
-            //XMBItem app = column.get(i);
-            //app.colIndex = index + 2;
-            //app.localIndex = i + 1;
-            //addItemTo(app, colIndex, false);
             column.addAll(sortedApps.get(existingCategories.get(index)));
             defaultItems.add(column);
         }
         ArrayList<XMBItem> explorerColumn = new ArrayList<>();
         explorerColumn.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
         defaultItems.add(0, explorerColumn);
-        Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart[0]) / 1000f) + "s");
-        //addItemAt(createExplorerItem(), 0, false);
-        //refreshHomeItems();
-        //saveHomeItemsToFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
-//        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, apps -> currentActivity.runOnUiThread(() -> {
-//            onComplete.accept(defaultItems);
-//        }), Intent.CATEGORY_LAUNCHER);
+        Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         return defaultItems;
     }
     public static int getDefaultIconForCategory(int category) {

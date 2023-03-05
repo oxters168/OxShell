@@ -56,8 +56,6 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             view = layoutInflater.inflate(R.layout.xmb_item, null);
         else if (viewType == XMBView.INNER_TYPE)
             view = layoutInflater.inflate(R.layout.xmb_inner_item, null);
-//        XMBItemView view = new XMBItemView(context);
-//        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return new XMBViewHolder(view);
     }
     @Override
