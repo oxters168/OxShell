@@ -29,26 +29,22 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class HomeView extends XMBView implements Refreshable {
-    //private ArrayList<ArrayList<XMBItem>> allHomeItems;
-//    private boolean moveMode;
-//    private int origMoveColIndex;
-//    private int origMoveLocalIndex;
-//    private int moveColIndex;
-//    private int moveLocalIndex;
-
-//    @ColorInt
-//    private int normalHighlightColor = Color.parseColor("#FF808080");
-//    @ColorInt
-//    private int moveHighlightColor = Color.parseColor("#FF808000");
     SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
     {
         toggleMoveMode(true);
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
         return null;
     });
-    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove", () ->
+    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove Item", () ->
     {
         deleteSelection();
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
+    {
+        getAdapter().removeColumnAt(getPosition()[0]);
+        save(getItems());
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
         return null;
     });
@@ -136,12 +132,12 @@ public class HomeView extends XMBView implements Refreshable {
         if (!isInMoveMode()) {
             PagedActivity currentActivity = ActivityManager.getCurrentActivity();
             if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
+                Integer[] position = getPosition();
+                boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
+                boolean hasColumnHead = getAdapter().isColumnHead(position[0], 0);
                 XMBItem selectedItem = (XMBItem)getSelectedItem();
                 HomeItem homeItem = null;
-                // TODO: remove delete option for settings and empty
-                // TODO: remove move option for settings and empty
                 // TODO: add move column option
-                // TODO: add delete column option
                 // TODO: add new column option
                 if (selectedItem instanceof HomeItem)
                     homeItem = (HomeItem)selectedItem;
@@ -150,11 +146,13 @@ public class HomeView extends XMBView implements Refreshable {
                 if (homeItem != null) {
                     if (homeItem.type != HomeItem.Type.settings) {
                         btns.add(moveBtn);
-                        btns.add(deleteBtn);
                         if (homeItem.type != HomeItem.Type.explorer)
                             btns.add(uninstallBtn);
+                        btns.add(deleteBtn);
                     }
                 }
+                if (isNotSettings && hasColumnHead)
+                    btns.add(deleteColumnBtn);
                 btns.add(cancelBtn);
 
                 currentActivity.getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));

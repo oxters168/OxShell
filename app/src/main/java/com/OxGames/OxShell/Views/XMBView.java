@@ -1158,17 +1158,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         setViews(false, true);
         //refresh();
     }
-//    private void setAdapterHighlightColor(int color) {
-//        getAdapter().highlightColor = color;
-//    }
     private void applyMove() {
-        //boolean hasSubItems = catHasSubItems(this.colIndex);
-        //Log.d("HomeView", "Attempting to move (" + origMoveColIndex + ", " + origMoveLocalIndex + ") => (" + newColIndex + ", " + newLocalIndex + ")");
         if (this.colIndex != origMoveColIndex || this.rowIndex != origMoveLocalIndex)
             onAppliedMove(origMoveColIndex, origMoveLocalIndex, this.colIndex, this.rowIndex);
         toggleMoveMode(false);
-        //setViews(true, true);
-        //refresh();
     }
     protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
         // local indices are total within the columns they represent and not traversable
@@ -1214,10 +1207,4 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (moveMode)
             adapter.shiftItemVertically(fromColIndex, fromLocalIndex, toLocalIndex);
     }
-//    public void deleteSelection() {
-//    }
-//    @Override
-//    public void refresh() {
-//        setViews(false);
-//    }
 }
