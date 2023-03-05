@@ -65,7 +65,7 @@ public class AssocListView extends SlideTouchListView {
         if (selectedItem == null)
             refresh(); //Create new assoc
         else {
-            HomeItem addedItem = new HomeItem(HomeItem.Type.assoc, selectedItem.getDisplayName(), selectedItem);
+            HomeItem addedItem = new HomeItem(HomeItem.Type.assoc, selectedItem, selectedItem.getDisplayName());
             SelectDirsView.setDirsCarrier(addedItem);
             SelectDirsView.setReturnPage(ActivityManager.Page.assocList);
             ActivityManager.goTo(ActivityManager.Page.selectDirs);

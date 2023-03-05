@@ -23,14 +23,14 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public HomeItem(Type _type, String _title) {
         this(_type, _title, null);
     }
-    public HomeItem(Type _type, String _title, T _obj, XMBItem... innerItems) {
+    public HomeItem(Type _type, T _obj, String _title, XMBItem... innerItems) {
         super(_obj, _title, innerItems);
         //super(_title, _obj);
         type = _type;
         extraData = new ArrayList<>();
     }
     public HomeItem(Type _type, String _title, XMBItem... innerItems) {
-        this(_type, _title, null, innerItems);
+        this(_type, null, _title, innerItems);
     }
 //    public HomeItem(Type _type, Object _icon, String _title) {
 //        this(_type, _icon, _title, null, -1, -1);

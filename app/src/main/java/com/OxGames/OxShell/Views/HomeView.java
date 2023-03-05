@@ -226,6 +226,7 @@ public class HomeView extends XMBView implements Refreshable {
 ////            createSettingsColumn(settings -> {
 ////            });
 //        };
+        long loadHomeStart = SystemClock.uptimeMillis();
 
         ArrayList<ArrayList<XMBItem>> items;
         if (!cachedItemsExists()) {
@@ -242,13 +243,12 @@ public class HomeView extends XMBView implements Refreshable {
                 items = createDefaultItems();
         }
         save(items);
-        long loadHomeStart = SystemClock.uptimeMillis();
         items.add(createSettingsColumn());
-        Log.d("HomeView", "Time to create settings: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s");
         int cachedColIndex = colIndex;
         int cachedRowIndex = rowIndex;
         setAdapter(new XMBAdapter(getContext(), items));
         setIndex(cachedColIndex, cachedRowIndex, true);
+        Log.i("HomeView", "Time to load home items: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s");
     }
     private static ArrayList<XMBItem> createSettingsColumn() {
         //XMBItem settings = new HomeItem(HomeItem.Type.settings, "Settings");
@@ -269,19 +269,20 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add explorer item to home");
 
         List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
-        long loadHomeStart = SystemClock.uptimeMillis();
-        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new XMBItem(null, PackagesCache.getAppLabel(currentPkg), PackagesCache.getPackageIcon(currentPkg))).collect(Collectors.toList());
-        Log.d("HomeView", "Time to map apps: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s"); // mapping still runs slow on my S8 (maybe it's due to the getPackageIcon call?)
+        //long loadHomeStart = SystemClock.uptimeMillis();
+        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(HomeItem.Type.app, currentPkg.activityInfo.packageName, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
+        //List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new XMBItem(null, PackagesCache.getAppLabel(currentPkg), PackagesCache.getPackageIcon(currentPkg))).collect(Collectors.toList());
+        //Log.d("HomeView", "Time to map apps: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s"); // mapping still runs slow on my S8 (removing getPackageIcon shaves off ~3s on my S8)
         sortedApps.sort(Comparator.comparing(o -> o.title.toLowerCase()));
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Add application to home", sortedApps.toArray(new XMBItem[0]));
         innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
-        settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, innerSettings);//, colIndex, localIndex++, innerSettings);
+        settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, innerSettings);
         settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set picture as background");
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set shader as background");
-        settingsItem = new XMBItem(null, "Background", R.drawable.ic_baseline_image_24, innerSettings);//, colIndex, localIndex++, innerSettings);
+        settingsItem = new XMBItem(null, "Background", R.drawable.ic_baseline_image_24, innerSettings);
         settingsColumn.add(settingsItem);
 
         //innerSettings = new XMBItem[0];
@@ -291,16 +292,10 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add association to home");
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Create new association");
-        settingsItem = new XMBItem(null, "Associations", R.drawable.ic_baseline_send_time_extension_24, innerSettings);//, colIndex, localIndex++, innerSettings);
+        settingsItem = new XMBItem(null, "Associations", R.drawable.ic_baseline_send_time_extension_24, innerSettings);
         settingsColumn.add(settingsItem);
 
         return settingsColumn;
-
-        //allHomeItems.add(settingsColumn);
-        //return settingsColumn;
-//        PackagesCache.requestInstalledPackages(Intent.ACTION_MAIN, apps -> ActivityManager.getCurrentActivity().runOnUiThread(() -> {
-//            onComplete.accept(settingsColumn);
-//        }), Intent.CATEGORY_LAUNCHER);
     }
 
     @Override
@@ -373,7 +368,7 @@ public class HomeView extends XMBView implements Refreshable {
             if (!sortedApps.containsKey(category))
                 sortedApps.put(category, new ArrayList<>());
             ArrayList<XMBItem> currentList = sortedApps.get(category);
-            currentList.add(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg), currentPkg.activityInfo.packageName));
+            currentList.add(new HomeItem(HomeItem.Type.app, currentPkg.activityInfo.packageName, PackagesCache.getAppLabel(currentPkg)));
         }
         // separate the categories to avoid empty ones and order them into an arraylist so no game in indices occurs
         ArrayList<Integer> existingCategories = new ArrayList<>();

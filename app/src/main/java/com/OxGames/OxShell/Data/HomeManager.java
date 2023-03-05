@@ -315,7 +315,7 @@ public class HomeManager {
                 if (!sortedApps.containsKey(category))
                     sortedApps.put(category, new ArrayList<>());
                 ArrayList<XMBItem> currentList = sortedApps.get(category);
-                currentList.add(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg), currentPkg.activityInfo.packageName));
+                currentList.add(new HomeItem(HomeItem.Type.app, currentPkg.activityInfo.packageName, PackagesCache.getAppLabel(currentPkg)));
             }
             // separate the categories to avoid empty ones and order them into an arraylist so no game in indices occurs
             ArrayList<Integer> existingCategories = new ArrayList<>();

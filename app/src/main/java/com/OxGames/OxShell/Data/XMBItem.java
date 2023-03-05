@@ -22,7 +22,6 @@ public class XMBItem<T> implements Serializable {
     //public int colIndex;
     //public int localIndex;
     protected Object iconLoc;
-    protected boolean iconIsResource;
     private List<XMBItem> innerItems;
 
     //protected transient Drawable icon;
@@ -36,7 +35,7 @@ public class XMBItem<T> implements Serializable {
         obj = _obj;
         title = _title;
         iconLoc = _iconLoc;
-        iconIsResource = _iconLoc instanceof Integer;
+        //iconIsResource = _iconLoc instanceof Integer;
         //icon = _icon;
         //colIndex = _colIndex;
         //localIndex = _localIndex;
@@ -65,11 +64,11 @@ public class XMBItem<T> implements Serializable {
 
     public Drawable getIcon() {
         if (icon == null && iconLoc != null) {
-            if (iconIsResource) {
+            if (iconLoc instanceof Integer) {
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), (Integer)iconLoc);
             } else if (iconLoc instanceof Drawable) {
                 icon = (Drawable)iconLoc;
-            } else if (iconLoc instanceof Bitmap) {
+            } else if (iconLoc instanceof String) {
                 icon = AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)iconLoc));
             }
         }

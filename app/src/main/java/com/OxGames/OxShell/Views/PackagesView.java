@@ -78,7 +78,7 @@ public class PackagesView extends SlideTouchListView {
         //rsvInfo.activityInfo.applicationInfo.category
 
         Log.d("PackagesView", (String)currentItem.obj);
-        HomeManager.addItem(new HomeItem(HomeItem.Type.app, PackagesCache.getAppLabel(rsvInfo), (String)currentItem.obj));
+        HomeManager.addItem(new HomeItem(HomeItem.Type.app, (String)currentItem.obj, PackagesCache.getAppLabel(rsvInfo)));
         Toast.makeText(getContext(), "Added " + ((DetailItem)getItemAtPosition(properPosition)).leftAlignedText + " to home", Toast.LENGTH_SHORT).show();
     }
     @Override
