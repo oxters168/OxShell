@@ -1,21 +1,33 @@
 package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.HomeItem;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.XMBItem;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
+import com.OxGames.OxShell.Views.BetterTextView;
 import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
@@ -25,6 +37,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
     private ArrayList<ArrayList<XMBItem>> items;
     private Typeface font;
+
+    private static final int TITLE_ID = View.generateViewId();
+    private static final int ICON_HIGHLIGHT_ID = View.generateViewId();
+    private static final int ICON_ID = View.generateViewId();
 
 //    public XMBAdapter(Context context, XMBItem... items) {
 //        this.context = context;
@@ -51,11 +67,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         View view = null;
         if (viewType == XMBView.CATEGORY_TYPE)
-            view = layoutInflater.inflate(R.layout.xmb_cat, null);
+            view = createCatView();//layoutInflater.inflate(R.layout.xmb_cat, null);
         else if (viewType == XMBView.ITEM_TYPE)
-            view = layoutInflater.inflate(R.layout.xmb_item, null);
+            view = createItemView();//layoutInflater.inflate(R.layout.xmb_item, null);
         else if (viewType == XMBView.INNER_TYPE)
-            view = layoutInflater.inflate(R.layout.xmb_inner_item, null);
+            view = createInnerItemView();//layoutInflater.inflate(R.layout.xmb_inner_item, null);
         return new XMBViewHolder(view);
     }
     @Override
@@ -146,7 +162,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             super(itemView);
         }
         public void bindItem(XMBItem item) {
-            TextView title = itemView.findViewById(R.id.title);
+            TextView title = itemView.findViewById(TITLE_ID);
             title.setText(item != null ? item.title : "Empty");
             title.setSelected(true);
             title.setTypeface(font);
@@ -156,8 +172,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             //superIcon.setVisibility(View.GONE);
             //superIcon.setVisibility(((HomeItem)item).type == HomeItem.Type.assoc ? View.VISIBLE : View.GONE);
 
-            ImageView img = itemView.findViewById(R.id.typeIcon);
-            ImageView highlight = itemView.findViewById(R.id.iconGlow);
+            ImageView img = itemView.findViewById(ICON_ID);
+            ImageView highlight = itemView.findViewById(ICON_HIGHLIGHT_ID);
             Drawable icon = item != null ? item.getIcon() : ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24);
             if (icon == null)
                 icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
@@ -165,6 +181,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             highlight.setBackground(icon.getConstantState().newDrawable());
             highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
         }
+    }
+
+    @Override
+    protected int getTextSize() {
+        return Math.round(AndroidHelpers.spToPixels(context, 8) * AndroidHelpers.getPixelScale());
     }
 
     @Override
@@ -232,5 +253,199 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         for (XMBAdapterListener listener : listeners)
             if (listener != null)
                 listener.onSubItemRemoved(columnIndex, localIndex);
+    }
+
+    private View createCatView() {
+        float pxScale = AndroidHelpers.getPixelScale();
+        if (SettingsKeeper.hasValue(SettingsKeeper.HOME_ITEM_SCALE))
+            pxScale *= (Float)SettingsKeeper.getValue(SettingsKeeper.HOME_ITEM_SCALE);
+        int catSize = Math.round(AndroidHelpers.dpToPixels(context, 64) * pxScale);
+        int iconSize = catSize - Math.round(AndroidHelpers.dpToPixels(context, 4) * pxScale);
+        int textSize = getTextSize();
+        int textOutlineSize = Math.round(AndroidHelpers.dpToPixels(context, 3) * pxScale);
+
+        RelativeLayout catView = new RelativeLayout(context);
+        RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(catSize, catSize);
+        catView.setLayoutParams(relativeParams);
+        catView.setClipChildren(false);
+
+        FrameLayout.LayoutParams frameParams;
+
+        FrameLayout backFrame = new FrameLayout(context);
+        frameParams = new FrameLayout.LayoutParams(catSize, catSize);
+        backFrame.setLayoutParams(frameParams);
+        catView.addView(backFrame);
+
+        ImageView highlighter = new ImageView(context);
+        highlighter.setId(ICON_HIGHLIGHT_ID);
+        frameParams = new FrameLayout.LayoutParams(catSize, catSize);
+        frameParams.gravity = Gravity.TOP | Gravity.LEFT;
+        highlighter.setLayoutParams(frameParams);
+        highlighter.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFFF00")));
+        highlighter.setBackgroundTintMode(PorterDuff.Mode.SRC_ATOP);
+        highlighter.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        highlighter.setVisibility(View.INVISIBLE);
+        backFrame.addView(highlighter);
+
+        BetterTextView title = new BetterTextView(context);
+        title.setId(TITLE_ID);
+        frameParams = new FrameLayout.LayoutParams(catSize, ViewGroup.LayoutParams.WRAP_CONTENT);
+        frameParams.gravity = Gravity.CENTER_HORIZONTAL;
+        title.setLayoutParams(frameParams);
+        title.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        title.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.TOP);
+        title.setMarqueeRepeatLimit(-1);
+        title.setSingleLine(true);
+        title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        title.setTextColor(context.getColor(R.color.text));
+        title.setTextSize(textSize);
+        title.setTranslationY(catSize);
+        title.setOutlineColor(Color.parseColor("#000000"));
+        title.setOutlineSize(textOutlineSize);
+        backFrame.addView(title);
+
+        FrameLayout frontFrame = new FrameLayout(context);
+        frameParams = new FrameLayout.LayoutParams(catSize, catSize);
+        frontFrame.setLayoutParams(frameParams);
+        catView.addView(frontFrame);
+
+        ImageView icon = new ImageView(context);
+        icon.setId(ICON_ID);
+        frameParams = new FrameLayout.LayoutParams(iconSize, iconSize);
+        frameParams.gravity = Gravity.CENTER;
+        icon.setLayoutParams(frameParams);
+        icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        frontFrame.addView(icon);
+
+        return catView;
+    }
+    private View createItemView() {
+        float pxScale = AndroidHelpers.getPixelScale();
+        if (SettingsKeeper.hasValue(SettingsKeeper.HOME_ITEM_SCALE))
+            pxScale *= (Float)SettingsKeeper.getValue(SettingsKeeper.HOME_ITEM_SCALE);
+        int itemSize = Math.round(AndroidHelpers.dpToPixels(context, 48) * pxScale);
+        int iconSize = itemSize - Math.round(AndroidHelpers.dpToPixels(context, 4) * pxScale);
+        int textSize = getTextSize();
+        int textWidth = Math.round(AndroidHelpers.dpToPixels(context, 128) * pxScale);
+        int textOutlineSize = Math.round(AndroidHelpers.dpToPixels(context, 3) * pxScale);
+        int textStartMargin = Math.round(AndroidHelpers.dpToPixels(context, 6) * pxScale);
+
+        RelativeLayout itemView = new RelativeLayout(context);
+        RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(itemSize, itemSize);
+        itemView.setLayoutParams(relativeParams);
+        itemView.setClipChildren(false);
+
+        FrameLayout.LayoutParams frameParams;
+
+        FrameLayout backFrame = new FrameLayout(context);
+        frameParams = new FrameLayout.LayoutParams(itemSize, itemSize);
+        backFrame.setLayoutParams(frameParams);
+        itemView.addView(backFrame);
+
+        ImageView highlighter = new ImageView(context);
+        highlighter.setId(ICON_HIGHLIGHT_ID);
+        frameParams = new FrameLayout.LayoutParams(itemSize, itemSize);
+        frameParams.gravity = Gravity.TOP | Gravity.LEFT;
+        highlighter.setLayoutParams(frameParams);
+        highlighter.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFFF00")));
+        highlighter.setBackgroundTintMode(PorterDuff.Mode.SRC_ATOP);
+        highlighter.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        highlighter.setVisibility(View.INVISIBLE);
+        backFrame.addView(highlighter);
+
+        BetterTextView title = new BetterTextView(context);
+        title.setId(TITLE_ID);
+        frameParams = new FrameLayout.LayoutParams(textWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
+        frameParams.gravity = Gravity.CENTER_VERTICAL;
+        frameParams.setMarginStart(textStartMargin);
+        title.setLayoutParams(frameParams);
+        title.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        title.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        title.setMarqueeRepeatLimit(-1);
+        title.setSingleLine(true);
+        title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        title.setTextColor(context.getColor(R.color.text));
+        title.setTextSize(textSize);
+        title.setTranslationX(itemSize);
+        title.setOutlineColor(Color.parseColor("#000000"));
+        title.setOutlineSize(textOutlineSize);
+        backFrame.addView(title);
+
+        FrameLayout frontFrame = new FrameLayout(context);
+        frameParams = new FrameLayout.LayoutParams(itemSize, itemSize);
+        frontFrame.setLayoutParams(frameParams);
+        itemView.addView(frontFrame);
+
+        ImageView icon = new ImageView(context);
+        icon.setId(ICON_ID);
+        frameParams = new FrameLayout.LayoutParams(iconSize, iconSize);
+        frameParams.gravity = Gravity.CENTER;
+        icon.setLayoutParams(frameParams);
+        icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        frontFrame.addView(icon);
+
+        return itemView;
+    }
+    private View createInnerItemView() {
+        float pxScale = AndroidHelpers.getPixelScale();
+        if (SettingsKeeper.hasValue(SettingsKeeper.HOME_ITEM_SCALE))
+            pxScale *= (Float)SettingsKeeper.getValue(SettingsKeeper.HOME_ITEM_SCALE);
+        int innerItemSize = Math.round(AndroidHelpers.dpToPixels(context, 32) * pxScale);
+        int iconSize = innerItemSize - Math.round(AndroidHelpers.dpToPixels(context, 4) * pxScale);
+        int textSize = getTextSize();
+        int textWidth = Math.round(AndroidHelpers.dpToPixels(context, 256) * pxScale);
+        int textOutlineSize = Math.round(AndroidHelpers.dpToPixels(context, 3) * pxScale);
+        int textStartMargin = Math.round(AndroidHelpers.dpToPixels(context, 6) * pxScale);
+
+        RelativeLayout innerItemView = new RelativeLayout(context);
+        RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(innerItemSize, innerItemSize);
+        innerItemView.setLayoutParams(relativeParams);
+        innerItemView.setClipChildren(false);
+
+        FrameLayout.LayoutParams frameParams;
+
+        FrameLayout backFrame = new FrameLayout(context);
+        frameParams = new FrameLayout.LayoutParams(innerItemSize, innerItemSize);
+        backFrame.setLayoutParams(frameParams);
+        innerItemView.addView(backFrame);
+
+        ImageView highlighter = new ImageView(context);
+        highlighter.setId(ICON_HIGHLIGHT_ID);
+        frameParams = new FrameLayout.LayoutParams(innerItemSize, innerItemSize);
+        frameParams.gravity = Gravity.TOP | Gravity.LEFT;
+        highlighter.setLayoutParams(frameParams);
+        highlighter.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#FFFF00")));
+        highlighter.setBackgroundTintMode(PorterDuff.Mode.SRC_ATOP);
+        highlighter.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        highlighter.setVisibility(View.INVISIBLE);
+        backFrame.addView(highlighter);
+
+        ImageView icon = new ImageView(context);
+        icon.setId(ICON_ID);
+        frameParams = new FrameLayout.LayoutParams(iconSize, iconSize);
+        frameParams.gravity = Gravity.CENTER;
+        icon.setLayoutParams(frameParams);
+        icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        backFrame.addView(icon);
+
+        BetterTextView title = new BetterTextView(context);
+        title.setId(TITLE_ID);
+        frameParams = new FrameLayout.LayoutParams(textWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
+        frameParams.gravity = Gravity.CENTER_VERTICAL;
+        frameParams.setMarginStart(textStartMargin);
+        title.setLayoutParams(frameParams);
+        title.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        title.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        title.setMarqueeRepeatLimit(-1);
+        title.setSingleLine(true);
+        title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        title.setTextColor(context.getColor(R.color.text));
+        title.setTextSize(textSize);
+        title.setTranslationX(innerItemSize);
+        title.setOutlineColor(Color.parseColor("#000000"));
+        title.setOutlineSize(textOutlineSize);
+        backFrame.addView(title);
+
+        return innerItemView;
     }
 }

@@ -1,10 +1,7 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -16,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.OxGames.OxShell.Adapters.InputRowAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
-import com.OxGames.OxShell.Interfaces.AdapterListener;
 import com.OxGames.OxShell.OxShellApp;
 
 public class DynamicInputRowView extends FrameLayout {
@@ -64,7 +60,7 @@ public class DynamicInputRowView extends FrameLayout {
                 requestFocusOnItem(queuedFocusPosition);
             }
         });
-        int dip = Math.round(AndroidHelpers.dipToPixels(context, 40));
+        int dip = Math.round(AndroidHelpers.dpToPixels(context, 40));
         // this assumes the dynamic input view is taking up the whole screen
         adapter.setRowWidth(OxShellApp.getDisplayWidth() - dip); // TODO: change hardcoded dip value to properly reflect padding of parent recycler
         //adapter.setRowWidth(getMeasuredWidth());

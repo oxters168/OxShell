@@ -7,6 +7,11 @@ import java.util.HashMap;
 
 public class SettingsKeeper {
     public static final String TIMES_LOADED = "times_loaded";
+    public static final String HOME_ITEM_SCALE = "home_item_scale";
+    public static final String HOME_SELECTION_ALPHA = "home_selection_alpha";
+    public static final String HOME_NON_SELECTION_ALPHA = "home_non_selection_alpha";
+    public static final String HOME_BEHIND_INNER_ALPHA = "home_behind_inner_alpha";
+
     private static boolean fileDidExist;
     private static HashMap<String, Object> settingsCache;
 
@@ -17,24 +22,23 @@ public class SettingsKeeper {
         load();
         if (settingsCache == null) {
             settingsCache = new HashMap<>();
-            SettingsKeeper.setValueAndSave(TIMES_LOADED, Integer.valueOf(1));
-            //save();
+            SettingsKeeper.setValueAndSave(TIMES_LOADED, 1);
         } else {
             fileDidExist = true;
             if (SettingsKeeper.hasValue(TIMES_LOADED)) {
-                int timesLoaded = ((Double)SettingsKeeper.getValue(TIMES_LOADED)).intValue(); // even if saved as Integer for some reason it comes back as Double
+                int timesLoaded = (Integer)SettingsKeeper.getValue(TIMES_LOADED); // even if saved as Integer for some reason it comes back as Double
                 SettingsKeeper.setValueAndSave(TIMES_LOADED, timesLoaded + 1);
             }
         }
     }
     public static void load() {
         if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))
-            settingsCache = Serialaver.loadFromJSON(Paths.SETTINGS_INTERNAL_PATH, HashMap.class);
+            settingsCache = (HashMap<String, Object>)Serialaver.loadFromFSTJSON(Paths.SETTINGS_INTERNAL_PATH);
     }
     public static void save() {
         if (!AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))
             AndroidHelpers.makeFile(Paths.SETTINGS_INTERNAL_PATH);
-        Serialaver.saveAsJSON(settingsCache, Paths.SETTINGS_INTERNAL_PATH);
+        Serialaver.saveAsFSTJSON(settingsCache, Paths.SETTINGS_INTERNAL_PATH);
     }
     public static void setValueAndSave(String key, Object value) {
         setValue(key, value);

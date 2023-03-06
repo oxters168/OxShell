@@ -95,7 +95,8 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     public boolean receiveKeyEvent(KeyEvent key_event) {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
         //Log.d("ExplorerView", key_event.toString());
-        // TODO: make context menu that allows for copying/cutting/pasting/deleting and creating launch intent for file type
+        // TODO: add option for creating launch intent for file type
+        // TODO: add option for select all
         if (!currentActivity.getSettingsDrawer().isDrawerOpen() && !currentActivity.getDynamicInput().isOverlayShown()) {
             if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {

@@ -173,6 +173,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public abstract int getInnerItemCount(Integer... position);
         public abstract boolean isColumnHead(Integer... position);
 
+        protected abstract int getTextSize();
         protected abstract void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn);
         protected abstract void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex);
         public abstract void addSubItem(int columnIndex, int localIndex, Object toBeAdded);
@@ -777,6 +778,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         boolean isCat = itemPosition.length == 2 && itemPosition[1] == 0;
         boolean isInnerItem = itemPosition.length > 2;
         ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, itemPosition);
+        if (isCat)
+            viewHolder.itemView.bringToFront();
+        if (isInnerItem)
+            viewHolder.itemView.bringToFront();
         viewHolder.setX(itemBounds.left);
         viewHolder.setY(itemBounds.top);
         Integer[] currentPosition = getPosition();
@@ -973,7 +978,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         // get the horizontal pixel position of the item
         int expX = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? getStartX() + innerItemEntryPos.size() * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);
         // get the vertical pixel position of the item (localIndex is set to -1 since this is a sub-item)
-        int expY = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? startY : Math.round((startY - catPos.get(colIndex)) + verShiftOffset * (localIndex - 1) + ((localIndex - 0) >= itemCatIndex ? catSize + subItemGap : 0)));
+        int expY = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? startY : Math.round((startY - catPos.get(colIndex)) + verShiftOffset * (localIndex - 1) + ((localIndex - 0) >= itemCatIndex ? catSize + adapter.getTextSize() + subItemGap : 0)));
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
         int right = expX + itemSize;// + textCushion + rect.width();
         int bottom = expY + itemSize;

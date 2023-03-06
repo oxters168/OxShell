@@ -13,7 +13,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -23,9 +22,6 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.OxGames.OxShell.BuildConfig;
-import com.OxGames.OxShell.Data.IntentLaunchData;
-import com.OxGames.OxShell.Data.IntentPutExtra;
-import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.OxShellApp;
 
 import java.io.BufferedReader;
@@ -297,8 +293,22 @@ public class AndroidHelpers {
     }
 
     // source: https://stackoverflow.com/questions/8399184/convert-dip-to-px-in-android
-    public static float dipToPixels(Context context, float dipValue) {
-        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
+    public static float dpToPixels(Context context, float dipValue) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, context.getResources().getDisplayMetrics());
+    }
+    public static float dpToInches(Context context, float dipValue) {
+        return pxToInches(context, dpToPixels(context, dipValue));
+    }
+    public static float pxToInches(Context context, float pxValue) {
+        return pxValue / context.getResources().getDisplayMetrics().xdpi;
+    }
+    // source: https://stackoverflow.com/a/51833445/5430992
+    public static float spToPixels(Context context, float sp) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
+    }
+    public static float getPixelScale() {
+        // return 2.952551f / AndroidHelpers.dpToInches(context, OxShellApp.getSmallestScreenWidthDp()); // the smallest width when converted to inches was almost always the same size
+        float percent = OxShellApp.getSmallestScreenWidthDp() / 462f;
+        return (float)Math.pow(percent, 1.2f); // fine tuned to my liking, not scientific
     }
 }

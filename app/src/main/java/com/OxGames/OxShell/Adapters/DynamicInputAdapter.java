@@ -1,7 +1,6 @@
 package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -52,7 +51,7 @@ public class DynamicInputAdapter extends RecyclerView.Adapter<DynamicInputAdapte
     @Override
     public void onBindViewHolder(@NonNull DynamicViewHolder holder, int position) {
         holder.bindItem(items.get(position));
-        int dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
+        int dip = Math.round(AndroidHelpers.dpToPixels(context, 20));
         holder.setPadding(0, 0, 0, position < items.size() - 1 ? dip : 0);
     }
 

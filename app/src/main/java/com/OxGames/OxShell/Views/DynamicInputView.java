@@ -3,7 +3,6 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -20,7 +19,6 @@ import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
-import com.OxGames.OxShell.Interfaces.AdapterListener;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.PagedActivity;
@@ -78,7 +76,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         LayoutParams layoutParams;
 
         FrameLayout header = new FrameLayout(context);
-        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.dipToPixels(context, 40)));
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.dpToPixels(context, 40)));
         layoutParams.gravity = Gravity.TOP;
         header.setLayoutParams(layoutParams);
         header.setBackgroundColor(Color.parseColor("#232323"));
@@ -89,18 +87,18 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         title.setLayoutParams(layoutParams);
         title.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         title.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
-        int dip = Math.round(AndroidHelpers.dipToPixels(context, 8));
+        int dip = Math.round(AndroidHelpers.dpToPixels(context, 8));
         title.setPadding(dip, dip, dip, dip);
         title.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
         header.addView(title);
 
         mainList = new RecyclerView(context);
         RecyclerView.LayoutParams recyclerParams = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        dip = Math.round(AndroidHelpers.dipToPixels(context, 40));
+        dip = Math.round(AndroidHelpers.dpToPixels(context, 40));
         recyclerParams.topMargin = dip;
         recyclerParams.bottomMargin = dip;
         mainList.setLayoutParams(recyclerParams);
-        dip = Math.round(AndroidHelpers.dipToPixels(context, 20));
+        dip = Math.round(AndroidHelpers.dpToPixels(context, 20));
         mainList.setPadding(dip, dip, dip, dip);
         mainList.setBackgroundColor(Color.parseColor("#323232"));
         mainList.setLayoutManager(new LinearLayoutManager(context));
@@ -108,7 +106,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         addView(mainList);
 
         FrameLayout footer = new FrameLayout(context);
-        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.dipToPixels(context, 40)));
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.dpToPixels(context, 40)));
         layoutParams.gravity = Gravity.BOTTOM;
         footer.setLayoutParams(layoutParams);
         footer.setBackgroundColor(Color.parseColor("#232323"));

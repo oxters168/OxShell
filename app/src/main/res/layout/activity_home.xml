@@ -14,6 +14,6 @@
         app:horizontalSpacing="16dip"
         app:innerHorizontalSpacing="16dip"
         app:innerVerticalSpacing="16dip"
-        app:subItemGap="32dip"
+        app:subItemGap="16dip"
         app:verticalSpacing="16dip" />
 </FrameLayout>

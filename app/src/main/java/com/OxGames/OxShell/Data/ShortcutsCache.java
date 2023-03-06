@@ -20,7 +20,7 @@ public class ShortcutsCache {
             launchIntents = new ArrayList<>();
             File[] intents = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
             for (File intent : intents) {
-                launchIntents.add(Serialaver.loadFromJSON(intent.getAbsolutePath(), IntentLaunchData.class));
+                launchIntents.add((IntentLaunchData)Serialaver.loadFromFSTJSON(intent.getAbsolutePath()));
             }
         }
     }
@@ -71,7 +71,7 @@ public class ShortcutsCache {
     }
     private static void saveIntentData(IntentLaunchData intentData, String dir) {
         String fileName = AndroidHelpers.combinePaths(dir, intentData.getDisplayName() + ".json");
-        Serialaver.saveAsJSON(intentData, fileName);
+        Serialaver.saveAsFSTJSON(intentData, fileName);
     }
 
     public static IntentLaunchData[] getStoredIntents() {
