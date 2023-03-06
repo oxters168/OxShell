@@ -5,17 +5,17 @@ import android.graphics.drawable.Drawable;
 
 import androidx.core.content.ContextCompat;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.DirsCarrier;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
-import java.io.Serializable;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.UUID;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, app, assoc, settings, addApp, addExplorer, }
+    public enum Type { explorer, addExplorer, app, addApp, assoc, addAssoc, assocExe, settings, }
     public Type type;
     public ArrayList<String> extraData;
 
@@ -47,8 +47,10 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 icon = PackagesCache.getPackageIcon((String)obj);
             else if (type == Type.settings || type == Type.addExplorer)
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
-            else if (type == Type.assoc)
+            else if (type == Type.assoc || type == Type.addAssoc)
                 icon = PackagesCache.getPackageIcon((ShortcutsCache.getIntent((UUID)obj)).getPackageName());
+            else if (type == Type.assocExe)
+                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24);
         }
         return icon;
     }
@@ -56,6 +58,8 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     @Override
     public String getTitle() {
         if (type == Type.assoc) {
+            return ShortcutsCache.getIntent((UUID)obj).getDisplayName();
+        } else if (type == Type.addAssoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             ResolveInfo rsv = PackagesCache.getResolveInfo(intent.getPackageName());
             String pkgLabel;
@@ -66,6 +70,45 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             return intent.getDisplayName() + " (" + pkgLabel + ")";
         }
         return super.getTitle();
+    }
+
+    @Override
+    public XMBItem getInnerItem(int index) {
+        if (type == Type.assoc) {
+            if (innerItems == null || innerItems.size() <= 0)
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, ShortcutsCache.getIntent((UUID)obj).getExtensions());
+        }
+        return super.getInnerItem(index);
+    }
+    @Override
+    public boolean hasInnerItems() {
+        if (type == Type.assoc) {
+            if (innerItems == null || innerItems.size() <= 0)
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, ShortcutsCache.getIntent((UUID)obj).getExtensions());
+        }
+        return super.hasInnerItems();
+    }
+    @Override
+    public int getInnerItemCount() {
+        if (type == Type.assoc) {
+            if (innerItems == null || innerItems.size() <= 0)
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, ShortcutsCache.getIntent((UUID)obj).getExtensions());
+        }
+        return super.getInnerItemCount();
+    }
+
+    private static ArrayList<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, String[] extensions) {
+        ArrayList<XMBItem> innerItems = null;
+        if (dirs != null && dirs.size() > 0) {
+            innerItems = new ArrayList<>();
+
+            for (String dir : dirs) {
+                ArrayList<File> executables = AndroidHelpers.getItemsInDirWithExt(dir, extensions);
+                for (File exe : executables)
+                    innerItems.add(new HomeItem(exe.toString(), type, AndroidHelpers.removeExtension(exe.getName())));
+            }
+        }
+        return innerItems;
     }
 
     @Override

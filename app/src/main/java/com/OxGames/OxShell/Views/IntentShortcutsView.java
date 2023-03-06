@@ -92,7 +92,7 @@ public class IntentShortcutsView extends SlideTouchListView {
                 IntentLaunchData launchData = (IntentLaunchData) currentIntent.obj;
                 String[] extensions = launchData.getExtensions();
                 for (int i = 0; i < dirs.length; i++) {
-                    ArrayList<File> executables = getItemsInDirWithExt(dirs[i], extensions);
+                    ArrayList<File> executables = AndroidHelpers.getItemsInDirWithExt(dirs[i], extensions);
                     for (int j = 0; j < executables.size(); j++) {
                         intentItems.add(new DetailItem(null, AndroidHelpers.removeExtension(executables.get(j).getName()), null, executables.get(j)));
                     }
@@ -104,20 +104,5 @@ public class IntentShortcutsView extends SlideTouchListView {
             }
         }
         super.refresh();
-    }
-
-    private ArrayList<File> getItemsInDirWithExt(String path, String[] extensions) {
-        ArrayList<File> matching = new ArrayList<>();
-        explorerBehaviour.setDirectory(path);
-        File[] files = explorerBehaviour.listContents();
-        boolean isEmpty = files == null || files.length <= 0;
-        if (!isEmpty) {
-            for (int i = 0; i < files.length; i++) {
-                String ext = AndroidHelpers.getExtension(files[i].getAbsolutePath());
-                if (Arrays.stream(extensions).anyMatch(otherExt -> otherExt.equalsIgnoreCase(ext)))
-                    matching.add(files[i]);
-            }
-        }
-        return matching;
     }
 }

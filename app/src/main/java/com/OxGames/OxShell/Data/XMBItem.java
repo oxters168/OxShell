@@ -19,7 +19,7 @@ public class XMBItem<T> implements Serializable {
     public T obj;
     protected String title;
     protected Object iconLoc;
-    private List<XMBItem> innerItems;
+    protected List<XMBItem> innerItems;
 
     protected transient Drawable icon;
 

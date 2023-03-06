@@ -32,11 +32,13 @@ import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -106,6 +108,35 @@ public class HomeView extends XMBView implements Refreshable {
                     Adapter adapter = getAdapter();
                     adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer"));
                     save(getItems());
+                    return true;
+                } else if (selectedItem.type == HomeItem.Type.addAssoc) {
+                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+                    dynamicInput.setTitle("Choose association directory");
+                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
+                        Adapter adapter = getAdapter();
+                        HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc);
+                        assocItem.addToDirsList(titleInput.getText());
+                        adapter.createColumnAt(adapter.getColumnCount() - 1, assocItem);
+                        save(getItems());
+                        dynamicInput.setShown(false);
+                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        dynamicInput.setShown(false);
+                    }, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+                    dynamicInput.setItems(new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
+
+                    currentActivity.getSettingsDrawer().setShown(false);
+                    dynamicInput.setShown(true);
+                    return true;
+                } else if (selectedItem.type == HomeItem.Type.assocExe) {
+                    String path = (String)selectedItem.obj;
+                    IntentLaunchData launcher = ShortcutsCache.getIntent((UUID)((HomeItem)getAdapter().getItem(getEntryPosition())).obj);
+                    if (PackagesCache.isPackageInstalled(launcher.getPackageName()))
+                        launcher.launch(path);
+                    else
+                        Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
                     return true;
                 }
             }
@@ -228,6 +259,8 @@ public class HomeView extends XMBView implements Refreshable {
         // TODO: add option to change icon alpha
         // TODO: add option to reset home items to default
         // TODO: add option to change home/explorer scale
+        // TODO: move add association to home to home settings
+        // TODO: add edit association option
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
 
@@ -257,7 +290,7 @@ public class HomeView extends XMBView implements Refreshable {
         XMBItem[] intentItems = new XMBItem[intents.length];
         for (int i = 0; i < intents.length; i++) {
             Log.d("HomeView", "Placing intent with id: " + intents[i].getId());
-            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.assoc);
+            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
         }
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add association to home", intentItems);
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Create new association");

@@ -32,6 +32,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class AndroidHelpers {
     public static final char[] ILLEGAL_FAT_CHARS = new char[] { '"', '*', '/', ':', '<', '>', '?', '\\', '|', 0x7F };
@@ -290,6 +292,19 @@ public class AndroidHelpers {
             while (hasExtension(fileName))
                 fileName = fileName.substring(0, fileName.lastIndexOf("."));
         return fileName;
+    }
+    public static ArrayList<File> getItemsInDirWithExt(String path, String[] extensions) {
+        ArrayList<File> matching = new ArrayList<>();
+        File[] files = listContents(path);
+        boolean isEmpty = files == null || files.length <= 0;
+        if (!isEmpty) {
+            for (int i = 0; i < files.length; i++) {
+                String ext = getExtension(files[i].getAbsolutePath());
+                if (Arrays.stream(extensions).anyMatch(otherExt -> otherExt.equalsIgnoreCase(ext)))
+                    matching.add(files[i]);
+            }
+        }
+        return matching;
     }
 
     // source: https://stackoverflow.com/questions/8399184/convert-dip-to-px-in-android
