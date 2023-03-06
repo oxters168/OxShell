@@ -17,7 +17,7 @@ import java.util.List;
 
 public class XMBItem<T> implements Serializable {
     public T obj;
-    public String title;
+    protected String title;
     protected Object iconLoc;
     private List<XMBItem> innerItems;
 
@@ -59,5 +59,8 @@ public class XMBItem<T> implements Serializable {
     }
     public XMBItem getInnerItem(int index) {
         return innerItems.get(index);
+    }
+    public String getTitle() {
+        return title;
     }
 }

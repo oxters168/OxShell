@@ -7,32 +7,33 @@ import com.OxGames.OxShell.Helpers.Serialaver;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class ShortcutsCache {
-    private static ArrayList<IntentLaunchData> launchIntents = new ArrayList<>();
+    private static HashMap<UUID, IntentLaunchData> intents = new HashMap<>();
 
-    public static void clear() {
-        launchIntents.clear();
-    }
     public static void readIntentsFromDisk() {
         if (AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL)) {
-            launchIntents = new ArrayList<>();
-            File[] intents = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
-            for (File intent : intents) {
-                launchIntents.add((IntentLaunchData)Serialaver.loadFromFSTJSON(intent.getAbsolutePath()));
+            intents = new HashMap<>();
+            File[] files = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
+            for (File file : files) {
+                IntentLaunchData intent = (IntentLaunchData)Serialaver.loadFromFSTJSON(file.getAbsolutePath());
+                intents.put(intent.getId(), intent);
             }
         }
     }
     public static void createAndStoreDefaults() {
-        launchIntents.addAll(createDefaultLaunchIntents());
+        for (IntentLaunchData intent : createDefaultLaunchIntents())
+            intents.put(intent.getId(), intent);
         writeIntentsToDisk();
     }
     private static void writeIntentsToDisk() {
         if (!AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL))
             AndroidHelpers.makeDir(Paths.SHORTCUTS_DIR_INTERNAL);
 
-        for (IntentLaunchData intent : launchIntents) {
+        for (IntentLaunchData intent : intents.values()) {
             saveIntentData(intent, Paths.SHORTCUTS_DIR_INTERNAL);
             if (AndroidHelpers.hasWriteStoragePermission())
                 saveIntentData(intent, Paths.SHORTCUTS_DIR_EXTERNAL);
@@ -74,37 +75,30 @@ public class ShortcutsCache {
         Serialaver.saveAsFSTJSON(intentData, fileName);
     }
 
+    public static IntentLaunchData getIntent(UUID id) {
+        return intents.get(id);
+    }
     public static IntentLaunchData[] getStoredIntents() {
-        IntentLaunchData[] intents = new IntentLaunchData[launchIntents.size()];
-        intents = launchIntents.toArray(intents);
-        return intents;
+        return intents.values().toArray(new IntentLaunchData[0]);
     }
     public static IntentLaunchData getLaunchDataForExtension(String extension) {
-        for (int i = 0; i < launchIntents.size(); i++) {
-            IntentLaunchData currentLaunchIntent = launchIntents.get(i);
-            if (currentLaunchIntent.containsExtension(extension)) {
-                return currentLaunchIntent;
-            }
-        }
+        for (IntentLaunchData intent : intents.values())
+            if (intent.containsExtension(extension))
+                return intent;
         return null;
     }
     public static List<IntentLaunchData> getLaunchDatasForExtension(String extension) {
         ArrayList<IntentLaunchData> launchDatas = new ArrayList<>();
-        for (int i = 0; i < launchIntents.size(); i++) {
-            IntentLaunchData currentLaunchIntent = launchIntents.get(i);
-            if (currentLaunchIntent.containsExtension(extension))
-                launchDatas.add(currentLaunchIntent);
-        }
+        for (IntentLaunchData intent : intents.values())
+            if (intent.containsExtension(extension))
+                launchDatas.add(intent);
         return launchDatas;
     }
 
     public static String getPackageNameForExtension(String extension) {
-        for (int i = 0; i < launchIntents.size(); i++) {
-            IntentLaunchData currentLaunchIntent = launchIntents.get(i);
-            if (currentLaunchIntent.containsExtension(extension)) {
-                return currentLaunchIntent.getPackageName();
-            }
-        }
+        for (IntentLaunchData intent : intents.values())
+            if (intent.containsExtension(extension))
+                return intent.getPackageName();
         return null;
     }
 }

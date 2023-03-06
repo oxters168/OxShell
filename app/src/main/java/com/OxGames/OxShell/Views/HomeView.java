@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -12,10 +13,14 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
+
 import com.OxGames.OxShell.Adapters.XMBAdapter;
+import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Data.Paths;
+import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
@@ -36,58 +41,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeView extends XMBView implements Refreshable {
-    SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
-    {
-        toggleMoveMode(true);
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
-        return null;
-    });
-    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove Item", () ->
-    {
-        deleteSelection();
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
-        return null;
-    });
-    SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
-    {
-        getAdapter().removeColumnAt(getPosition()[0]);
-        save(getItems());
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
-        return null;
-    });
-    SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () ->
-    {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-        DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
-        DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
-            String title = titleInput.getText();
-            getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed"));
-            save(getItems());
-            dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
-        DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
-            dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
-        dynamicInput.setItems(new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
-
-        currentActivity.getSettingsDrawer().setShown(false);
-        dynamicInput.setShown(true);
-        return null;
-    });
-    SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
-    {
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
-        return null;
-    });
-    SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
-    {
-        uninstallSelection();
-        deleteSelection(); //TODO: only if uninstall was successful
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
-        return null;
-    });
-
     public HomeView(Context context) {
         super(context);
         refresh();
@@ -146,7 +99,7 @@ public class HomeView extends XMBView implements Refreshable {
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addApp) {
                     Adapter adapter = getAdapter();
-                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.app, selectedItem.obj, selectedItem.title));
+                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle()));
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addExplorer) {
@@ -280,10 +233,10 @@ public class HomeView extends XMBView implements Refreshable {
 
         List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
         //long loadHomeStart = SystemClock.uptimeMillis();
-        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(HomeItem.Type.addApp, currentPkg.activityInfo.packageName, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
+        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
         //List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new XMBItem(null, PackagesCache.getAppLabel(currentPkg), PackagesCache.getPackageIcon(currentPkg))).collect(Collectors.toList());
         //Log.d("HomeView", "Time to map apps: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s"); // mapping still runs slow on my S8 (removing getPackageIcon shaves off ~3s on my S8)
-        sortedApps.sort(Comparator.comparing(o -> o.title.toLowerCase()));
+        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Add application to home", sortedApps.toArray(new XMBItem[0]));
         //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
         settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, innerSettings);
@@ -300,7 +253,13 @@ public class HomeView extends XMBView implements Refreshable {
         //settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add association to home");
+        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
+        XMBItem[] intentItems = new XMBItem[intents.length];
+        for (int i = 0; i < intents.length; i++) {
+            Log.d("HomeView", "Placing intent with id: " + intents[i].getId());
+            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.assoc);
+        }
+        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add association to home", intentItems);
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Create new association");
         settingsItem = new XMBItem(null, "Associations", R.drawable.ic_baseline_send_time_extension_24, innerSettings);
         settingsColumn.add(settingsItem);
@@ -376,7 +335,7 @@ public class HomeView extends XMBView implements Refreshable {
             if (!sortedApps.containsKey(category))
                 sortedApps.put(category, new ArrayList<>());
             ArrayList<XMBItem> currentList = sortedApps.get(category);
-            currentList.add(new HomeItem(HomeItem.Type.app, currentPkg.activityInfo.packageName, PackagesCache.getAppLabel(currentPkg)));
+            currentList.add(new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg)));
         }
         // separate the categories to avoid empty ones and order them into an arraylist so no game in indices occurs
         ArrayList<Integer> existingCategories = new ArrayList<>();
@@ -426,4 +385,58 @@ public class HomeView extends XMBView implements Refreshable {
     private static int getOtherCategoryIndex() {
         return MathHelpers.max(ApplicationInfo.CATEGORY_GAME, ApplicationInfo.CATEGORY_AUDIO, ApplicationInfo.CATEGORY_IMAGE, ApplicationInfo.CATEGORY_SOCIAL, ApplicationInfo.CATEGORY_NEWS, ApplicationInfo.CATEGORY_MAPS, ApplicationInfo.CATEGORY_PRODUCTIVITY, ApplicationInfo.CATEGORY_ACCESSIBILITY) + 1;
     }
+
+    SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
+    {
+        toggleMoveMode(true);
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove Item", () ->
+    {
+        deleteSelection();
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
+    {
+        getAdapter().removeColumnAt(getPosition()[0]);
+        save(getItems());
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () ->
+    {
+        // TODO: add way to pick icon
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+        dynamicInput.setTitle("Create Column");
+        DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
+        DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
+            String title = titleInput.getText();
+            getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed"));
+            save(getItems());
+            dynamicInput.setShown(false);
+        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+            dynamicInput.setShown(false);
+        }, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+        dynamicInput.setItems(new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
+
+        currentActivity.getSettingsDrawer().setShown(false);
+        dynamicInput.setShown(true);
+        return null;
+    });
+    SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
+    {
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
+    {
+        uninstallSelection();
+        deleteSelection(); //TODO: only if uninstall was successful
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
 }

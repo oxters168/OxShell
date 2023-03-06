@@ -161,7 +161,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         }
         public void bindItem(XMBItem item) {
             TextView title = itemView.findViewById(TITLE_ID);
-            title.setText(item != null ? item.title : "Empty");
+            title.setText(item != null ? item.getTitle() : "Empty");
             title.setSelected(true);
             title.setTypeface(font);
             title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);

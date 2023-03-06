@@ -97,6 +97,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         //Log.d("ExplorerView", key_event.toString());
         // TODO: add option for creating launch intent for file type
         // TODO: add option for select all
+        // TODO: add launch with option that lets you pick from a list of assocs that have the proper extension
         if (!currentActivity.getSettingsDrawer().isDrawerOpen() && !currentActivity.getDynamicInput().isOverlayShown()) {
             if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {

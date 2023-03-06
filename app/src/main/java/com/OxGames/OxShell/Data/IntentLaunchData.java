@@ -82,6 +82,9 @@ public class IntentLaunchData implements Serializable {
                 '}';
     }
 
+    public UUID getId() {
+        return id;
+    }
     public void setAction(String value) {
         action = value;
     }

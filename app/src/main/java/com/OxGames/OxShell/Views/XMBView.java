@@ -28,7 +28,7 @@ import java.util.Stack;
 
 public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable {
     private static final float EPSILON = 0.0001f;
-    private final Context context;
+    protected final Context context;
     public static final int CATEGORY_TYPE = 0;
     public static final int ITEM_TYPE = 1;
     public static final int INNER_TYPE = 2;
