@@ -64,7 +64,7 @@ public class PackagesCache {
         } else
             pkgIcon = packageIcons.get(packageName);
 
-        return pkgIcon;
+        return pkgIcon != null ? pkgIcon.getConstantState().newDrawable().mutate() : null;
     }
     public static Drawable getPackageIcon(ResolveInfo rslvInfo) {
         String pkgName = rslvInfo.activityInfo.packageName;
