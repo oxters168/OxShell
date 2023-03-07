@@ -372,6 +372,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             }
         } else {
             float currentY = innerItemVerPos.peek();
+            //Log.d("XMBView", "Attempting to move vertically when inside an item from " + currentY + " to " + yValue);
             if (Math.abs(currentY - yValue) > EPSILON) {
                 float adjustedY = Math.min(Math.max(yValue, 0), (adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerItemSize + innerVerSpacing));
                 innerItemVerPos.pop();
@@ -387,6 +388,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return getVerShiftOffset() * Math.min(Math.max(localIndex, 0), getColTraversableCount(colIndex));
     }
     private void shiftY(float amount, int colIndex) {
+        //Log.d("XMBView", "Shift Y on " + colIndex + " by " + amount);
         float origAmount;
         if (isInsideItem())
             origAmount = innerItemVerPos.peek();
@@ -503,7 +505,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 return true;
             float currentX = ev.getRawX();
             float currentY = ev.getRawY();
-            if (!isInsideItem() && !touchVer && !touchHor && Math.abs(currentX - startTouchX) >= touchDeadzone) {
+            // only acknowledge moving horizontally if we're not inside an item
+            if (!touchVer && !touchHor && Math.abs(currentX - startTouchX) >= touchDeadzone && !isInsideItem()) {
                 startTouchColIndex = this.colIndex;
                 startTouchRowIndex = this.rowIndex;
                 touchMoveDir = Math.signum(currentX - startTouchX);
@@ -512,7 +515,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 touchHor = true;
             }
             // only acknowledge moving vertically if there are items to move vertically through
-            if (!touchHor && !touchVer && Math.abs(currentY - startTouchY) >= touchDeadzone && catHasSubItems(colIndex)) {
+            if (!touchHor && !touchVer && Math.abs(currentY - startTouchY) >= touchDeadzone && (isInsideItem() || catHasSubItems(colIndex))) {
                 startTouchColIndex = this.colIndex;
                 startTouchRowIndex = this.rowIndex;
                 touchMoveDir = Math.signum(currentY - startTouchY);
@@ -965,9 +968,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
 
     // calculates the item's rect with the text below the item
     private void calcCatRect(int startX, int startY, int horShiftOffset, int colIndex, Rect rect) {
-        Integer[] currentPosition = getPosition();
-        // get the horizontal pixel position of the item
-        int expX = (isInsideItem() && isPartOfPosition(getPosition(), colIndex, 0) ? getStartX() + (currentPosition.length - 1) * -innerItemSize : startX + horShiftOffset * colIndex);//getColIndexFromTotal(totalIndex));
+        Integer[] currentPosition = getEntryPosition();
+        // get the horizontal pixel position of the item (using getStartX() instead of startX because startX has shiftX in it)
+        int expX = (isInsideItem() && isPartOfPosition(getPosition(), colIndex, 0) ? getStartX() + innerItemEntryPos.size() * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);//getColIndexFromTotal(totalIndex));
         // the vertical pixel position is the same since the categories go along a straight line
         int expY = startY;
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
@@ -981,7 +984,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         // get the index of what is actually highlighted currently within the column
         int itemCatIndex = getCachedIndexOfCat(colIndex);
         int halfCatDiff = Math.round(Math.abs(catSize - itemSize) / 2f);
-        // get the horizontal pixel position of the item
+        // get the horizontal pixel position of the item (using getStartX() instead of startX because startX has shiftX in it)
         int expX = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? getStartX() + innerItemEntryPos.size() * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);
         // get the vertical pixel position of the item (localIndex is set to -1 since this is a sub-item)
         int expY = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? startY : Math.round((startY - catPos.get(colIndex)) + verShiftOffset * (localIndex - 1) + ((localIndex - 0) >= itemCatIndex ? catSize + adapter.getTextSize() + subItemGap : 0)));
@@ -993,10 +996,12 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private void calcInnerItemRect(Rect rect, int startX, int startY, int horSpacing, int verSpacing, Integer... position) {
         int halfCatDiff = Math.round(Math.abs(catSize - innerItemSize) / 2f);
 
+        int discX = ((position.length - 2) - innerItemEntryPos.size());
         // get the horizontal pixel position of the item
-        int expX = startX + halfCatDiff + ((position.length - 2) - innerItemEntryPos.size()) * (innerItemSize + horSpacing);
+        int expX = startX + halfCatDiff + discX * innerItemSize + (discX + 1) * horSpacing; // discX + 1 so that the first inner items can be offset as well
+        boolean isCurrentInner = (position.length - 2) > innerItemEntryPos.size();
         // get the vertical pixel position of the item
-        int expY = startY + halfCatDiff + ((position.length - 2) > innerItemEntryPos.size() ? position[position.length - 1] * (innerItemSize + verSpacing) - Math.round(innerItemVerPos.peek()) : 0);
+        int expY = startY + halfCatDiff + (isCurrentInner ? position[position.length - 1] * (innerItemSize + verSpacing) - Math.round(innerItemVerPos.peek()) : 0);
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
         int right = expX + innerItemSize;// + textCushion + rect.width();
         int bottom = expY + innerItemSize;

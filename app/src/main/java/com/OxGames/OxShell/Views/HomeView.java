@@ -245,13 +245,8 @@ public class HomeView extends XMBView implements Refreshable {
         Log.i("HomeView", "Time to load home items: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s");
     }
     private static ArrayList<XMBItem> createSettingsColumn() {
-        //XMBItem settings = new HomeItem(HomeItem.Type.settings, "Settings");
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();
         XMBItem[] innerSettings;
-        //XMBItem[] innerInnerSettings;
-        //XMBItem[] innerInnerInnerSettings;
-        //int colIndex = allHomeItems.size();
-        //int localIndex = 0;
 
         XMBItem settingsItem = new XMBItem(null, "Settings", R.drawable.ic_baseline_settings_24);//, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
