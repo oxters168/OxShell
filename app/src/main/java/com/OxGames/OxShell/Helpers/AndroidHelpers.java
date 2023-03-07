@@ -182,7 +182,7 @@ public class AndroidHelpers {
 
     public static Uri uriFromFile(File file) {
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //Unnecessary since version code is always over 24
-            return Uri.parse(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.DOCUMENTS_AUTHORITY, file).toString().replace("%2F", "/"));
+            return Uri.parse(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.DOCUMENTS_AUTHORITY, file).toString().replace("%2F", "/").replace("%20", " "));
         //} else {
         //    return Uri.fromFile(file);
         //}

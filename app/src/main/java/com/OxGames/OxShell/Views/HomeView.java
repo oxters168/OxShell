@@ -205,9 +205,10 @@ public class HomeView extends XMBView implements Refreshable {
     }
     public void uninstallSelection() {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
-        if (selectedItem.type == HomeItem.Type.app) {
+        String packageName = selectedItem.type == HomeItem.Type.app ? (String)selectedItem.obj : selectedItem.type == HomeItem.Type.assoc ? ShortcutsCache.getIntent((UUID)selectedItem.obj).getPackageName() : null;
+        if (packageName != null) {
             Intent intent = new Intent(Intent.ACTION_DELETE);
-            intent.setData(Uri.parse("package:" + selectedItem.obj));
+            intent.setData(Uri.parse("package:" + packageName));
             getContext().startActivity(intent);
             //TODO: Figure out how to get on uninstalled event and remove item when fired
         }

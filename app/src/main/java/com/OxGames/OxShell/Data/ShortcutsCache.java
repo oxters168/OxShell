@@ -44,27 +44,28 @@ public class ShortcutsCache {
 
         //Cheat sheet: http://p.cweiske.de/221
         IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, "com.fastemulator.gba", "com.fastemulator.gba.EmulatorActivity", new String[] { "gba" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        gbaLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
+        gbaLaunchIntent.setDataType(IntentLaunchData.DataType.AbsPathAsProvider);
         defaults.add(gbaLaunchIntent);
         //saveIntentData(gbaLaunchIntent, dir);
 
-        IntentLaunchData ndsLaunchIntent = new IntentLaunchData("NDS", Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        ndsLaunchIntent.addExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsolutePath));
+        IntentLaunchData ndsLaunchIntent = new IntentLaunchData("NDS", Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity", new String[] { "nds" }, Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
+        ndsLaunchIntent.addExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsPathAsProvider));
+        //ndsLaunchIntent.setDataType(IntentLaunchData.DataType.AbsPathAsProvider);
         defaults.add(ndsLaunchIntent);
         //saveIntentData(ndsLaunchIntent, dir);
 
         IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, "org.ppsspp.ppsspp", "org.ppsspp.ppsspp.PpssppActivity", new String[] { "iso", "cso" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
+        pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsPathAsProvider));
         defaults.add(pspLaunchIntent);
         //saveIntentData(pspLaunchIntent, dir);
 
         IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, "xyz.aethersx2.android", "xyz.aethersx2.android.EmulationActivity", new String[] { "iso", "bin", "chd" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        ps2LaunchIntent.addExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
+        ps2LaunchIntent.addExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsPathAsProvider));
         defaults.add(ps2LaunchIntent);
         //saveIntentData(ps2LaunchIntent, dir);
 
         IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, "org.citra.emu", "org.citra.emu.ui.EmulationActivity", new String[] { "3ds", "cxi" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        threedsLaunchIntent.addExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
+        threedsLaunchIntent.addExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsPathAsProvider));
         defaults.add(threedsLaunchIntent);
         //saveIntentData(threedsLaunchIntent, dir);
 

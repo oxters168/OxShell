@@ -47,10 +47,14 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 icon = PackagesCache.getPackageIcon((String)obj);
             else if (type == Type.settings || type == Type.addExplorer)
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
-            else if (type == Type.assoc || type == Type.addAssoc)
-                icon = PackagesCache.getPackageIcon((ShortcutsCache.getIntent((UUID)obj)).getPackageName());
             else if (type == Type.assocExe)
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24);
+            else if (type == Type.assoc || type == Type.addAssoc) {
+                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+                if (intent == null)
+                    return null;
+                icon = PackagesCache.getPackageIcon(intent.getPackageName());
+            }
         }
         return icon;
     }
@@ -58,9 +62,12 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     @Override
     public String getTitle() {
         if (type == Type.assoc) {
-            return ShortcutsCache.getIntent((UUID)obj).getDisplayName();
+            IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+            return intent != null ? intent.getDisplayName() : "Missing";
         } else if (type == Type.addAssoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+            if (intent == null)
+                return "Missing";
             ResolveInfo rsv = PackagesCache.getResolveInfo(intent.getPackageName());
             String pkgLabel;
             if (rsv != null)
@@ -75,24 +82,36 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     @Override
     public XMBItem getInnerItem(int index) {
         if (type == Type.assoc) {
-            if (innerItems == null || innerItems.size() <= 0)
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, ShortcutsCache.getIntent((UUID)obj).getExtensions());
+            if (innerItems == null || innerItems.size() <= 0) {
+                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+                if (intent == null)
+                    return null;
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent.getExtensions());
+            }
         }
         return super.getInnerItem(index);
     }
     @Override
     public boolean hasInnerItems() {
         if (type == Type.assoc) {
-            if (innerItems == null || innerItems.size() <= 0)
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, ShortcutsCache.getIntent((UUID)obj).getExtensions());
+            if (innerItems == null || innerItems.size() <= 0) {
+                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+                if (intent == null)
+                    return false;
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent.getExtensions());
+            }
         }
         return super.hasInnerItems();
     }
     @Override
     public int getInnerItemCount() {
         if (type == Type.assoc) {
-            if (innerItems == null || innerItems.size() <= 0)
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, ShortcutsCache.getIntent((UUID)obj).getExtensions());
+            if (innerItems == null || innerItems.size() <= 0) {
+                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+                if (intent == null)
+                    return 0;
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent.getExtensions());
+            }
         }
         return super.getInnerItemCount();
     }

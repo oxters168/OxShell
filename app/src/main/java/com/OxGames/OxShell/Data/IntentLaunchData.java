@@ -21,7 +21,7 @@ public class IntentLaunchData implements Serializable {
     //Might be best to implement a guid that other data structures can identify by so they don't store copies
     private UUID id;
 
-    public enum DataType { None, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
+    public enum DataType { None, AbsPathAsProvider, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
     private String displayName;
     private ArrayList<String> associatedExtensions;
     private String action;
@@ -117,12 +117,12 @@ public class IntentLaunchData implements Serializable {
         return associatedExtensions.toArray(extensions);
     }
 
-    public Intent buildIntent(String[] extrasValues) {
-        return buildIntent(null, extrasValues);
-    }
-    public Intent buildIntent(String data) {
-        return buildIntent(data, null);
-    }
+//    public Intent buildIntent(String[] extrasValues) {
+//        return buildIntent(null, extrasValues);
+//    }
+//    public Intent buildIntent(String data) {
+//        return buildIntent(data, null);
+//    }
     public Intent buildIntent() {
         return buildIntent(null, null);
     }
@@ -134,8 +134,8 @@ public class IntentLaunchData implements Serializable {
             intent = OxShellApp.getContext().getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent == null)
                 intent = new Intent(Intent.ACTION_MAIN);
-            else
-                Log.d("IntentLaunchData", "Package manager gave intent the action: " + intent.getAction());
+            //else
+            //    Log.d("IntentLaunchData", "Package manager gave intent the action: " + intent.getAction());
         }
 
         if (packageName != null && !packageName.isEmpty()) {
@@ -145,9 +145,9 @@ public class IntentLaunchData implements Serializable {
                 intent.setPackage(packageName);
         }
         for (int i = 0; i < extras.size(); i++)
-            intent.putExtra(extras.get(i).getName(), extrasValues[i]);
+            intent.putExtra(extras.get(i).getName(), formatData(extrasValues[i], extras.get(i).getExtraType()));
         if (data != null && !data.isEmpty())
-            intent.setData(AndroidHelpers.uriFromPath(data));
+            intent.setData(formatData(data, dataType));
             //intent.setData(Uri.parse(data));
         if (flags > 0)
             intent.setFlags(flags);
@@ -159,9 +159,7 @@ public class IntentLaunchData implements Serializable {
         extras.add(extra);
     }
     public IntentPutExtra[] getExtras() {
-        IntentPutExtra[] extrasArray = new IntentPutExtra[extras.size()];
-        extrasArray = extras.toArray(extrasArray);
-        return extrasArray;
+        return extras.toArray(new IntentPutExtra[0]);
     }
 //    public void SetData(String _data) {
 //        data = _data;
@@ -178,8 +176,6 @@ public class IntentLaunchData implements Serializable {
     }
 
     public void launch(String data, String[] extrasValues) {
-        //IntentLaunchData launchData = new IntentLaunchData(Intent.ACTION_VIEW, "com.dsemu.drastic", "com.dsemu.drastic.DraSticActivity");
-        //launchData.AddExtra(new IntentPutExtra("GAMEPATH", clickedItem.absolutePath));
         Intent intent = buildIntent(data, extrasValues);
         Log.i("IntentLaunchData", intent.toString());
         startActivity(OxShellApp.getContext(), intent, null);
@@ -199,5 +195,17 @@ public class IntentLaunchData implements Serializable {
     }
     public void launch() {
         launch(null, null);
+    }
+
+    public static Uri formatData(String data, DataType dataType) {
+        if (dataType == DataType.AbsPathAsProvider)
+            return AndroidHelpers.uriFromPath(data);
+        if (dataType == DataType.AbsolutePath)
+            return Uri.parse(data);
+        if (dataType == DataType.FileNameWithoutExt)
+            return Uri.parse(AndroidHelpers.removeExtension(new File(data).getName()));
+        if (dataType == DataType.FileNameWithExt)
+            return Uri.parse(new File(data).getName());
+        return null;
     }
 }
