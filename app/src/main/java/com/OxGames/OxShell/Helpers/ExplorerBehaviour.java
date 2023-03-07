@@ -109,7 +109,7 @@ public class ExplorerBehaviour {
             tempForCutOrCopy = null;
         }
     }
-    public void delete(String... files) {
+    public static void delete(String... files) {
         for (String path : files) {
             if (AndroidHelpers.isDirectory(path)) {
                 File[] temp = new File(path).listFiles();
@@ -121,7 +121,7 @@ public class ExplorerBehaviour {
             new File(path).delete();
         }
     }
-    private static void copyFiles(String destination, String... files) {
+    public static void copyFiles(String destination, String... files) {
         // TODO: have a list of errors or something that can be shown to the user
         // TODO: possibly change getting all files/folders that will be copied then copy them to allow for copying into self
         for (String path : files) {
@@ -145,9 +145,9 @@ public class ExplorerBehaviour {
                 } else {
                     try {
                         // TODO: add copy options
-                        String dest = AndroidHelpers.combinePaths(destination, new File(path).getName());
+                        //String dest = AndroidHelpers.combinePaths(new File(destination).getParent(), new File(path).getName());
                         //Log.d("ExplorerBehaviour", "Copying " + path + " to " + dest);
-                        Files.copy(Paths.get(path), Paths.get(dest));
+                        Files.copy(Paths.get(path), Paths.get(destination));
                     } catch (Exception e) {
                         Log.e("ExplorerBehaviour", e.toString());
                     }
@@ -156,7 +156,7 @@ public class ExplorerBehaviour {
                 Log.e("ExplorerBehaviour", "Attempted to copy into self");
         }
     }
-    private static void moveFiles(String destination, String... files) {
+    public static void moveFiles(String destination, String... files) {
         // TODO: have a list of errors or something that can be shown to the user
         for (String path : files) {
             if (!destination.toLowerCase().contains(path.toLowerCase())) {
@@ -180,8 +180,8 @@ public class ExplorerBehaviour {
                 } else {
                     try {
                         // TODO: add copy options
-                        String dest = AndroidHelpers.combinePaths(destination, new File(path).getName());
-                        Files.move(Paths.get(path), Paths.get(dest));
+                        //String dest = AndroidHelpers.combinePaths(new File(destination).getParent(), new File(path).getName());
+                        Files.move(Paths.get(path), Paths.get(destination));
                     } catch (Exception e) {
                         Log.e("ExplorerBehaviour", e.toString());
                     }

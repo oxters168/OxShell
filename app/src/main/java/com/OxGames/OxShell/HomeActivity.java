@@ -4,26 +4,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Views.SelectDirsView;
 
 import java.io.File;
 
 public class HomeActivity extends PagedActivity {
-    public ActivityResultLauncher<String> getDir = registerForActivityResult(new ActivityResultContracts.GetContent(),
-            uri -> {
-                Log.i("HomeActivity", "Received result from activity " + uri.toString());
-                SelectDirsView dirsView = (SelectDirsView)allPages.get(ActivityManager.Page.selectDirs);
-                //dirsView.addToList(ProviderHelpers.getRealPathFromURI(this, uri));
-                dirsView.addToList(uri.getPath());
-//                    super.onActivityResult(requestCode, resultCode, data);
-            });
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

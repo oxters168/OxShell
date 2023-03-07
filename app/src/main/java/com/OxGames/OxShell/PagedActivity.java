@@ -2,7 +2,9 @@ package com.OxGames.OxShell;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -39,21 +41,46 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class PagedActivity extends AppCompatActivity {
-    private ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
-    result -> {
-        //Log.d("AndroidHelpers", "Result code: " + result.getResultCode());
-        if (PagedActivity.this.onResult != null)
-            PagedActivity.this.onResult.accept(result);
-        //if (result.getResultCode() == Activity.RESULT_OK) {
-        //Intent intent = result.getData();
-        // Handle the Intent
-        //}
-    });
-    private Consumer<ActivityResult> onResult;
+    private final ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+        result -> {
+            if (PagedActivity.this.onReceivedResult != null)
+                PagedActivity.this.onReceivedResult.accept(result);
+        });
+    private final ActivityResultLauncher<String> mStartForContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
+        uri -> {
+            //Log.i("HomeActivity", "Received result from activity " + uri.toString());
+            if (PagedActivity.this.onReceivedContent != null)
+                PagedActivity.this.onReceivedContent.accept(uri);
+        });
+    // source: https://stackoverflow.com/a/70933975/5430992
+    private final ActivityResultLauncher<Uri> mDirRequest = registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(),
+        uri -> {
+            if (PagedActivity.this.onReceivedDir != null)
+                PagedActivity.this.onReceivedDir.accept(uri);
+//            if (uri != null) {
+//                // call this to persist permission across device reboots
+//                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                // do your stuff
+//            } else {
+//                // request denied by user
+//            }
+        });
+    private Consumer<ActivityResult> onReceivedResult;
+    private Consumer<Uri> onReceivedContent;
+    private Consumer<Uri> onReceivedDir;
 
-    public void startActivityForResult(Intent intent, Consumer<ActivityResult> onResult) {
-        this.onResult = onResult;
+    public void requestResult(Intent intent, Consumer<ActivityResult> onReceived) {
+        this.onReceivedResult = onReceived;
         mStartForResult.launch(intent);
+    }
+    public void requestContent(String type, Consumer<Uri> onReceived) {
+        // some mime types: https://stackoverflow.com/questions/23385520/android-available-mime-types
+        this.onReceivedContent = onReceived;
+        mStartForContent.launch(type);
+    }
+    public void requestDirectoryAccess(Uri initialPath, Consumer<Uri> onReceived) {
+        this.onReceivedDir = onReceived;
+        mDirRequest.launch(initialPath);
     }
 
     private static final int SETTINGS_DRAWER_ID = 1337;
