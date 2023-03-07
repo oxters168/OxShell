@@ -1,17 +1,18 @@
 package com.OxGames.OxShell;
 
+import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowInsets;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
@@ -35,8 +36,26 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class PagedActivity extends AppCompatActivity {
+    private ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+    result -> {
+        //Log.d("AndroidHelpers", "Result code: " + result.getResultCode());
+        if (PagedActivity.this.onResult != null)
+            PagedActivity.this.onResult.accept(result);
+        //if (result.getResultCode() == Activity.RESULT_OK) {
+        //Intent intent = result.getData();
+        // Handle the Intent
+        //}
+    });
+    private Consumer<ActivityResult> onResult;
+
+    public void startActivityForResult(Intent intent, Consumer<ActivityResult> onResult) {
+        this.onResult = onResult;
+        mStartForResult.launch(intent);
+    }
+
     private static final int SETTINGS_DRAWER_ID = 1337;
     private static final int DYNAMIC_INPUT_ID = 1338;
 

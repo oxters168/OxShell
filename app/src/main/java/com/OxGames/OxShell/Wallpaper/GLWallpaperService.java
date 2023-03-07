@@ -56,6 +56,7 @@ public class GLWallpaperService extends WallpaperService {
     @Override
     public void onDestroy() {
         Log.i("GLWallpaperService", "onDestroy");
+        unregisterReceiver(mBatInfoReceiver);
         super.onDestroy();
         currentEngine = null;
         LogcatHelper.getInstance(context).stop();

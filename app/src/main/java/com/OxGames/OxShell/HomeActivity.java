@@ -16,12 +16,13 @@ import java.io.File;
 public class HomeActivity extends PagedActivity {
     public ActivityResultLauncher<String> getDir = registerForActivityResult(new ActivityResultContracts.GetContent(),
             uri -> {
-                Log.i("ActivityResult", uri.toString());
+                Log.i("HomeActivity", "Received result from activity " + uri.toString());
                 SelectDirsView dirsView = (SelectDirsView)allPages.get(ActivityManager.Page.selectDirs);
                 //dirsView.addToList(ProviderHelpers.getRealPathFromURI(this, uri));
                 dirsView.addToList(uri.getPath());
 //                    super.onActivityResult(requestCode, resultCode, data);
             });
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

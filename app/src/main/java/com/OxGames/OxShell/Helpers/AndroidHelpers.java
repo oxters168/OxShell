@@ -1,7 +1,9 @@
 package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.WallpaperManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,12 +19,21 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
+import com.OxGames.OxShell.PagedActivity;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,6 +45,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class AndroidHelpers {
     public static final char[] ILLEGAL_FAT_CHARS = new char[] { '"', '*', '/', ':', '<', '>', '?', '\\', '|', 0x7F };
@@ -61,6 +73,14 @@ public class AndroidHelpers {
         }
     }
 
+    public static void setWallpaper(PagedActivity launchingActivity, String pkgName, String wallpaperService, Consumer<ActivityResult> onResult) {
+        // make sure to include the dot in the wallpaperService
+        ComponentName component = new ComponentName(pkgName, pkgName + wallpaperService);
+        Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
+        intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, component);
+        launchingActivity.startActivityForResult(intent, onResult);
+        //launchingActivity.startActivityForResult(intent, requestCode);
+    }
     public static void setWallpaper(Context context, int resId) {
         if (wallpaperManager == null)
             wallpaperManager = WallpaperManager.getInstance(context);

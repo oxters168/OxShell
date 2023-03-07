@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, addExplorer, app, addApp, assoc, addAssoc, assocExe, settings, }
+    public enum Type { explorer, addExplorer, app, addApp, assoc, addAssoc, assocExe, setShaderBg, settings, }
     public Type type;
     public ArrayList<String> extraData;
 
@@ -45,7 +45,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
             else if (type == Type.app || type == Type.addApp)
                 icon = PackagesCache.getPackageIcon((String)obj);
-            else if (type == Type.settings || type == Type.addExplorer)
+            else if (type == Type.settings || type == Type.addExplorer || type == Type.setShaderBg)
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
             else if (type == Type.assocExe)
                 icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24);

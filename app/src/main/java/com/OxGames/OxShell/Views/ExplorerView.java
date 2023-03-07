@@ -538,50 +538,13 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 if (fileLaunchIntents.size() > 0) {
                     // TODO: show options if more than one launch intent found and none are set as default
                     IntentLaunchData fileLaunchIntent = fileLaunchIntents.get(0);
-                    if (PackagesCache.isPackageInstalled(fileLaunchIntent.getPackageName())) {
-                        //String nameWithExt = file.getName();
-                        //String nameWithoutExt = AndroidHelpers.removeExtension(nameWithExt);
-
-//                        String[] extrasValues = null;
-//                        IntentPutExtra[] extras = fileLaunchIntent.getExtras();
-//                        if (extras != null && extras.length > 0) {
-//                            extrasValues = new String[extras.length];
-//                            for (int i = 0; i < extras.length; i++) {
-//                                IntentPutExtra current = extras[i];
-//                                if (current.getExtraType() == IntentLaunchData.DataType.AbsolutePath)
-//                                    extrasValues[i] = absPath;
-//                                else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithExt)
-//                                    extrasValues[i] = nameWithExt;
-//                                else if (current.getExtraType() == IntentLaunchData.DataType.FileNameWithoutExt)
-//                                    extrasValues[i] = nameWithoutExt;
-////                        else if (current.GetExtraType() == IntentLaunchData.DataType.Uri) {
-////                            String uri = Uri.parse(absPath).getScheme();
-////                            Log.d("Explorer", "Passing " + uri);
-////                            extrasValues[i] = uri;
-////                        }
-//                            }
-//                        }
-
-//                        String data = null;
-//                        if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.AbsolutePath)
-//                            data = absPath;
-//                        else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithExt)
-//                            data = nameWithExt;
-//                        else if (fileLaunchIntent.getDataType() == IntentLaunchData.DataType.FileNameWithoutExt)
-//                            data = nameWithoutExt;
-//                else if (fileLaunchIntent.GetDataType() == IntentLaunchData.DataType.Uri) {
-//                    String uri = Uri.parse(absPath).getScheme();
-//                    Log.d("Explorer", "Passing " + uri);
-//                    data = uri;
-//                }
-
-                        //fileLaunchIntent.launch(data, extrasValues);
+                    if (PackagesCache.isPackageInstalled(fileLaunchIntent.getPackageName()))
                         fileLaunchIntent.launch(absPath);
-                    } else
+                    else
                         Log.e("Explorer", "Failed to launch, " + fileLaunchIntent.getPackageName() + " is not installed on the device");
-                } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
+                } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk"))
                     AndroidHelpers.install(absPath);
-                } else
+                else
                     Log.e("Explorer", "No launch intent associated with extension " + extension);
             } else
                 Log.e("Explorer", "Missing extension, could not identify file");

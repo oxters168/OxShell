@@ -1,5 +1,6 @@
 package com.OxGames.OxShell.Views;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -13,6 +14,12 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Adapters.XMBAdapter;
@@ -34,6 +41,7 @@ import com.OxGames.OxShell.R;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -112,7 +120,7 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.addAssoc) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-                    dynamicInput.setTitle("Choose association directory");
+                    dynamicInput.setTitle("Choose Association Directory");
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
                         Adapter adapter = getAdapter();
@@ -127,7 +135,6 @@ public class HomeView extends XMBView implements Refreshable {
                     }, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
                     dynamicInput.setItems(new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
 
-                    currentActivity.getSettingsDrawer().setShown(false);
                     dynamicInput.setShown(true);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.assocExe) {
@@ -137,6 +144,24 @@ public class HomeView extends XMBView implements Refreshable {
                         launcher.launch(path);
                     else
                         Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
+                    return true;
+                } else if (selectedItem.type == HomeItem.Type.setShaderBg) {
+                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+                    dynamicInput.setTitle("Choose Shader Files");
+                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
+                        AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
+                            if (result.getResultCode() == Activity.RESULT_OK)
+                                dynamicInput.setShown(false);
+                        });
+                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        dynamicInput.setShown(false);
+                    }, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+                    dynamicInput.setItems(new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
+
+                    dynamicInput.setShown(true);
                     return true;
                 }
             }
@@ -273,7 +298,7 @@ public class HomeView extends XMBView implements Refreshable {
 
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set picture as background");
-        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set shader as background");
+        innerSettings[1] = new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background");
         settingsItem = new XMBItem(null, "Background", R.drawable.ic_baseline_image_24, innerSettings);
         settingsColumn.add(settingsItem);
 
@@ -284,10 +309,8 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings = new XMBItem[2];
         IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
         XMBItem[] intentItems = new XMBItem[intents.length];
-        for (int i = 0; i < intents.length; i++) {
-            Log.d("HomeView", "Placing intent with id: " + intents[i].getId());
+        for (int i = 0; i < intents.length; i++)
             intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
-        }
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add association to home", intentItems);
         innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Create new association");
         settingsItem = new XMBItem(null, "Associations", R.drawable.ic_baseline_send_time_extension_24, innerSettings);
