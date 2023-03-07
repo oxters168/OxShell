@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
@@ -32,6 +31,10 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     public static final int CATEGORY_TYPE = 0;
     public static final int ITEM_TYPE = 1;
     public static final int INNER_TYPE = 2;
+    public static final float ITEM_Z = -1;
+    public static final float CAT_Z = 0;
+    public static final float INNER_Z = 1;
+
 
     // col index represents which column we are currently in
     int colIndex = 0;
@@ -778,15 +781,18 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         boolean isCat = itemPosition.length == 2 && itemPosition[1] == 0;
         boolean isInnerItem = itemPosition.length > 2;
         ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, itemPosition);
-        if (isCat)
-            viewHolder.itemView.bringToFront();
-        if (isInnerItem)
-            viewHolder.itemView.bringToFront();
         viewHolder.setX(itemBounds.left);
         viewHolder.setY(itemBounds.top);
         Integer[] currentPosition = getPosition();
         boolean isSelection = isSamePosition(currentPosition, itemPosition);//getTotalIndexFromTraversable(currentIndex) == totalIndex;
         boolean isPartOfPosition = isPartOfPosition(currentPosition, itemPosition);
+        // set z positions
+        float z = ITEM_Z;
+        if (isInnerItem || (isPartOfPosition && isInsideItem()))
+            z = INNER_Z;
+        if (isCat)
+            z = CAT_Z;
+        viewHolder.itemView.setTranslationZ(z);
         viewHolder.isHighlighted = moveMode && isSelection;
         viewHolder.requestHideTitle = isInsideItem() && isPartOfPosition && !isSelection;
         boolean isOurCat = itemPosition[0] == this.colIndex && itemPosition[1] == 0;
