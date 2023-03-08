@@ -341,6 +341,7 @@ public class PagedActivity extends AppCompatActivity {
     public SettingsDrawer getSettingsDrawer() {
         return settingsDrawer;
     }
+    // TODO: fix issue with settings drawer invisibly covering screen sometimes
     private void initSettingsDrawer() {
         settingsDrawer = parentView.findViewById(SETTINGS_DRAWER_ID);
         if (settingsDrawer == null) {
