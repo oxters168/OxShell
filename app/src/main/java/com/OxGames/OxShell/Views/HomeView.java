@@ -35,6 +35,7 @@ import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -111,7 +112,7 @@ public class HomeView extends XMBView implements Refreshable {
                     dynamicInput.setTitle("Choose Association Directory");
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
                     DynamicInputRow.ButtonInput selectDirBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-                        // TODO: work more on this
+                        // TODO: add non-scoped storage alternative for when storage access is granted
                         //if (!AndroidHelpers.hasReadStoragePermission()) {
                             currentActivity.requestDirectoryAccess(null, uri -> {
                                 if (uri != null) {
@@ -154,7 +155,11 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Choose Shader Files");
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
+                    String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
+                    String fragTemp = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.tmp");
+                    final boolean[] alreadyBackedUp = { false };
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
+                        // TODO: add way to choose certain values within chosen shader
                         currentActivity.requestContent("file/*", uri -> {
                             if (uri != null)
                                 titleInput.setText(uri.getPath());
@@ -162,19 +167,44 @@ public class HomeView extends XMBView implements Refreshable {
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Preview", v -> {
                         // TODO: show some kind of error when input is invalid
+                        // TODO: add scoped storage alternative for when no storage access is granted
                         String path = titleInput.getText();
                         if (AndroidHelpers.fileExists(path)) {
-                            String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
-                            if (AndroidHelpers.fileExists(fragDest))
-                                ExplorerBehaviour.delete(fragDest);
-                            ExplorerBehaviour.copyFiles(fragDest, path);
+                            // if the chosen file is not the destination we want to copy to
+                            if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
+                                Log.d("HomeView", path + " != " + fragDest);
+                                // if the a background shader file already exists
+                                if (AndroidHelpers.fileExists(fragDest)) {
+                                    // move background shader to a temporary file if we haven't already or else delete since its the previews the user has been trying out
+                                    if (!alreadyBackedUp[0]) {
+                                        alreadyBackedUp[0] = true;
+                                        ExplorerBehaviour.moveFiles(fragTemp, fragDest);
+                                    } else
+                                        ExplorerBehaviour.delete(fragDest);
+                                }
+                                // copy the chosen file to the destination
+                                ExplorerBehaviour.copyFiles(fragDest, path);
+                            }
                             AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
-                                if (result.getResultCode() == Activity.RESULT_OK)
+                                if (result.getResultCode() == Activity.RESULT_OK) {
+                                    // delete the old background shader
+                                    if (AndroidHelpers.fileExists(fragTemp))
+                                        ExplorerBehaviour.delete(fragTemp);
+                                    // TODO: restart live background to reflect any changes
                                     dynamicInput.setShown(false);
+                                }
                             });
                         }
                     }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        if (AndroidHelpers.fileExists(fragTemp)) {
+                            // delete what was being previewed if anything
+                            if (AndroidHelpers.fileExists(fragDest))
+                                ExplorerBehaviour.delete(fragDest);
+                            // return the old background shader
+                            ExplorerBehaviour.moveFiles(fragDest, fragTemp);
+                        }
+                        // TODO: restart live background to reflect any changes
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
                     dynamicInput.setItems(new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));

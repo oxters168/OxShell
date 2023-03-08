@@ -233,7 +233,9 @@ public class PagedActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
         //fixDrawerLayout();
         initSettingsDrawer();
+        settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
         initDynamicInputView();
+        dynamicInput.setShown(dynamicInput.isOverlayShown());
         //getStatusBarHeight();
         //settingsDrawer.setShown(isContextDrawerOpen());
     }
@@ -341,7 +343,6 @@ public class PagedActivity extends AppCompatActivity {
     public SettingsDrawer getSettingsDrawer() {
         return settingsDrawer;
     }
-    // TODO: fix issue with settings drawer invisibly covering screen sometimes
     private void initSettingsDrawer() {
         settingsDrawer = parentView.findViewById(SETTINGS_DRAWER_ID);
         if (settingsDrawer == null) {
