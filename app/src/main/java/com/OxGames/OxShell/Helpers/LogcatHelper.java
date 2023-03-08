@@ -15,6 +15,7 @@ import java.util.HashMap;
 
 // source: https://stackoverflow.com/questions/45229996/how-do-i-get-the-app-log-from-a-real-android-device
 public class LogcatHelper {
+    // TODO: add option for max logs
     private static final HashMap<String, LogcatHelper> helpers = new HashMap<>();
     //private final String STORAGE_DIR_INTERNAL;
     private final String PATH_LOGCAT;

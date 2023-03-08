@@ -22,26 +22,32 @@ import android.view.WindowManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 //Source: https://www.learnopengles.com/how-to-use-opengl-es-2-in-an-android-live-wallpaper/
 public class GLWallpaperService extends WallpaperService {
     private Context context;
-    private Engine currentEngine;
+    protected static List<GLEngine> createdEngines = new ArrayList<>();
 
     private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context ctxt, Intent intent) {
-            if (currentEngine instanceof GLWallpaperService.GLEngine)
-                ((GLWallpaperService.GLEngine)currentEngine).onBatteryReceive(context, intent);
+            //if (currentEngine instanceof GLWallpaperService.GLEngine)
+            //    ((GLWallpaperService.GLEngine)currentEngine).onBatteryReceive(context, intent);
+            for (GLEngine engine : createdEngines)
+                engine.onBatteryReceive(context, intent);
         }
     };
 
     @Override
     public Engine onCreateEngine() {
-        Log.i("GLWallpaperService", "onCreateEngine");
 //        String STORAGE_DIR_INTERNAL = context.getExternalFilesDir(null).toString();
 //        String SHADER_ITEMS_DIR_INTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Shader");
 //        Process process = Runtime.getRuntime().exec("logcat -f " + (SHADER_ITEMS_DIR_INTERNAL + "/log.txt"));
-        currentEngine = new GLEngine();
+        GLEngine currentEngine = new GLEngine();
+        createdEngines.add(currentEngine);
+        Log.i("GLWallpaperService", "onCreateEngine, engines count: " + createdEngines.size());
         return currentEngine;
     }
 
@@ -58,7 +64,8 @@ public class GLWallpaperService extends WallpaperService {
         Log.i("GLWallpaperService", "onDestroy");
         unregisterReceiver(mBatInfoReceiver);
         super.onDestroy();
-        currentEngine = null;
+        //currentEngine = null;
+        createdEngines.clear();
         LogcatHelper.getInstance(context).stop();
     }
 
@@ -117,8 +124,9 @@ public class GLWallpaperService extends WallpaperService {
         }
         @Override
         public void onDestroy() {
+            GLWallpaperService.createdEngines.remove(this);
+            Log.i("GLEngine", "Destroying engine, engines count: " + GLWallpaperService.createdEngines.size());
             super.onDestroy();
-            Log.i("GLEngine", "Destroying...");
             glSurfaceView.onDestroy();
             unregisterSensors();
         }
@@ -211,6 +219,22 @@ public class GLWallpaperService extends WallpaperService {
             public SurfaceHolder getHolder() {
                 return getSurfaceHolder();
             }
+
+            @Override
+            public void surfaceRedrawNeeded(SurfaceHolder holder) {
+                Log.d("WallpaperGLSurfaceView", "surfaceRedrawNeeded");
+                //if (rendererHasBeenSet)
+                //    if (renderer instanceof GLRenderer)
+                //        ((GLRenderer)renderer).reloadFromFile();
+                super.surfaceRedrawNeeded(holder);
+            }
+
+            @Override
+            public void surfaceRedrawNeededAsync(SurfaceHolder holder, Runnable finishDrawing) {
+                Log.d("WallpaperGLSurfaceView", "surfaceRedrawNeededAsync");
+                super.surfaceRedrawNeededAsync(holder, finishDrawing);
+            }
+
             public void onDestroy() {
                 Log.d("WallpaperGLSurfaceView", "onDestroy");
                 super.onDetachedFromWindow();

@@ -34,6 +34,7 @@ import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
+import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -158,6 +159,9 @@ public class HomeView extends XMBView implements Refreshable {
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
                     String fragTemp = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.tmp");
                     final boolean[] alreadyBackedUp = { false };
+                    if (AndroidHelpers.fileExists(fragTemp))
+                        ExplorerBehaviour.delete(fragTemp);
+
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
                         // TODO: add way to choose certain values within chosen shader
                         currentActivity.requestContent("file/*", uri -> {
