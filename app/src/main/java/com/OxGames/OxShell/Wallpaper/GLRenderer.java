@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.os.BatteryManager;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -23,10 +24,14 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     private Shader shader;
     private int glVersion;
     private int width, height;
-    private boolean mouseDown;
+    private GLWallpaperService.GLEngine callingEngine;
+    //private boolean mouseDown;
+    private long lastChange;
+    public boolean reload = false;
 
-    public GLRenderer(Context context, int glVersion) {
+    public GLRenderer(Context context, int glVersion, GLWallpaperService.GLEngine callingEngine) {
         this.glVersion = glVersion;
+        this.callingEngine = callingEngine;
         //STORAGE_DIR_EXTERNAL = AndroidHelpers.combinePaths(Environment.getExternalStorageDirectory().toString(), "/OxShell");
         //STORAGE_DIR_INTERNAL = context.getExternalFilesDir(null).toString();
         //SHADER_ITEMS_DIR_EXTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_EXTERNAL, "Shader");
@@ -78,10 +83,10 @@ public class GLRenderer implements GLSurfaceView.Renderer {
 //            throw new UnsupportedOperationException("OpenGL version 1 is unsupported");
         //Log.d("GLRenderer", AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh") + ", " + AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh"));
         shader = new Shader(glVersion);
-        reloadFromFile();
+        reloadFromFile(true);
 //        shader = new Shader(glVersion);
     }
-    public void reloadFromFile() {
+    public void reloadFromFile(boolean firstLoad) {
         if (shader != null) {
             String vert = null;
             String frag = null;
@@ -93,32 +98,52 @@ public class GLRenderer implements GLSurfaceView.Renderer {
             if (AndroidHelpers.fileExists(fragPath))
                 frag = AndroidHelpers.readFile(fragPath);
             //shader = new Shader(glVersion, vert, frag);
-            shader.setShaderCode(vert, frag);
+            String oldVert = shader.getVertexShaderCode();
+            String oldFrag = shader.getFragmentShaderCode();
+            boolean shadersChanged = oldVert == null || oldFrag == null || !oldVert.equals(vert) || !oldFrag.equals(frag);
+//            if (!shadersChanged) {
+//                Log.d("GLRenderer", frag);
+//                Log.d("GLRenderer", oldFrag);
+//            }
+            long currentTime = SystemClock.uptimeMillis();
+            //boolean reload = firstLoad || (currentTime - lastChange) > 200;
+            Log.d("GLRenderer", "Attempting to reload " + GLWallpaperService.getEngineIndex(callingEngine) + ", firstLoad: " + firstLoad + ", reload: " + reload + ", timeDiff: " + (!firstLoad ? currentTime - lastChange : null) + ", visibility: " + callingEngine.isVisible() + ", preview: " + callingEngine.isPreview() + ", preview present: " + GLWallpaperService.isPreviewPresent());
+            //if (reload) {
+            if (firstLoad || reload) {
+                Log.d("GLRenderer", "Applying reload on " + GLWallpaperService.getEngineIndex(callingEngine) + ", firstLoad: " + firstLoad + ", reload: " + reload + ", shadersChanged: " + shadersChanged + ", visibility: " + callingEngine.isVisible() + ", preview: " + callingEngine.isPreview() + ", preview present: " + GLWallpaperService.isPreviewPresent());
+                //callingEngine.getSurfaceView().setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+                reload = false;
+                lastChange = currentTime;
+                shader.setShaderCode(vert, frag);
 
-            for (int i = 0; i < Shader.MAX_TEXTURE_COUNT; i++) {
-                String currentImagePath = AndroidHelpers.combinePaths(shaderDir, "channel" + i + ".png");
-                if (AndroidHelpers.fileExists(currentImagePath)) {
-                    Bitmap bitmap = AndroidHelpers.bitmapFromFile(currentImagePath);
-                    shader.bindTexture(bitmap, "iChannel" + i);
-                    bitmap.recycle();
+                for (int i = 0; i < Shader.MAX_TEXTURE_COUNT; i++) {
+                    String currentImagePath = AndroidHelpers.combinePaths(shaderDir, "channel" + i + ".png");
+                    if (AndroidHelpers.fileExists(currentImagePath)) {
+                        Bitmap bitmap = AndroidHelpers.bitmapFromFile(currentImagePath);
+                        shader.bindTexture(bitmap, "iChannel" + i);
+                        bitmap.recycle();
+                    }
                 }
+                //callingEngine.getSurfaceView().setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
             }
         }
     }
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.d("GLRenderer", "Surface changed");
-        //reloadFromFile();
+        reloadFromFile(false);
         this.width = width;
         this.height = height;
         if (shader != null)
             shader.setViewportSize(width, height);
         else
-            Log.e("GLRender", "Shader null");
+            Log.e("GLRender", "Attempting to change values to null shader");
     }
     @Override
     public void onDrawFrame(GL10 gl) {
         if (shader != null)
             shader.draw();
+        else
+            Log.e("GLRenderer", "Cannot draw null shader");
     }
 }

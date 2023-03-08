@@ -9,9 +9,13 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import com.OxGames.OxShell.Data.HomeItem;
+import com.OxGames.OxShell.Data.PackagesCache;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -19,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class Shader {
     private static final int GL_DEFAULT_VERSION = 0x30002;
@@ -103,7 +108,9 @@ public class Shader {
     private BatteryInfo batteryInfo = new BatteryInfo();
 
 
-    private HashMap<Integer, Integer> shaderHandles; // key: shader type, value: shader handle
+    private int glVersion;
+    //private HashMap<Integer, Integer> shaderHandles; // key: shader type, value: shader handle
+    private List<ShaderInfo> shaders;
     private int programHandle;
     private static final String fallbackVertex =
             "#version 300 es                                                       \n"
@@ -171,6 +178,16 @@ public class Shader {
             height = _height;
         }
     }
+    private static class ShaderInfo {
+        public int type;
+        public int handle;
+        public String code;
+        public ShaderInfo(int _type, int _handle, String _code) {
+            type = _type;
+            handle = _handle;
+            code = _code;
+        }
+    }
     public static class BatteryInfo {
         float percent;
         boolean full;
@@ -197,6 +214,7 @@ public class Shader {
     }
 
     public Shader(int glVersion) {
+        this.glVersion = glVersion;
         initValues(glVersion);
 
         //setShaderCode(null);
@@ -204,6 +222,7 @@ public class Shader {
         //prepHandles();
     }
     public Shader(int glVersion, String vertexCode, String fragmentCode) {
+        this.glVersion = glVersion;
         initValues(glVersion);
 
         setShaderCode(vertexCode, fragmentCode);
@@ -219,6 +238,7 @@ public class Shader {
 //        prepHandles();
     }
     public Shader(int glVersion, HashMap<Integer, String> shaderCode) {
+        this.glVersion = glVersion;
         initValues(glVersion);
 
         setShaderCode(shaderCode);
@@ -237,6 +257,24 @@ public class Shader {
         this(GL_DEFAULT_VERSION, shaderCode);
     }
 
+    public String getVertexShaderCode() {
+        try {
+            int vertexType = (int)glClass.getField("GL_VERTEX_SHADER").get(null);
+            for (ShaderInfo shader : shaders)
+                if (shader.type == vertexType)
+                    return shader.code;
+        } catch(Exception e) { Log.e("Shader", "Failed to retrieve vertex shader code"); }
+        return null;
+    }
+    public String getFragmentShaderCode() {
+        try {
+            int fragmentType = (int)glClass.getField("GL_FRAGMENT_SHADER").get(null);
+            for (ShaderInfo shader : shaders)
+                if (shader.type == fragmentType)
+                    return shader.code;
+        } catch(Exception e) { Log.e("Shader", "Failed to retrieve fragment shader code"); }
+        return null;
+    }
     public void setShaderCode(String vertexCode, String fragmentCode) {
         HashMap<Integer, String> shaderCode = new HashMap<>();
         try { shaderCode.put((int)glClass.getField("GL_VERTEX_SHADER").get(null), vertexCode); } catch(Exception e) { Log.e("Shader", "Failed to retrieve constant GL_VERTEX_SHADER: " + e.toString()); }
@@ -246,29 +284,33 @@ public class Shader {
     }
     public void setShaderCode(HashMap<Integer, String> shaderCode) {
         deleteProgram();
+        //initValues(glVersion);
+        resetValues();
 
         programHandle = createProgram(glClass, shaderCode);
         if (programHandle == UNKNOWN_PROGRAM) {
             Log.w("Shader", "Creating shader failed, using fallback shader");
-            deleteProgram();
+            //deleteProgram();
             programHandle = createProgram(glClass, null);
         }
         if (programHandle != UNKNOWN_PROGRAM)
             prepHandles();
     }
-    private void deleteProgram() {
-        if (shaderHandles != null) {
-            for (Integer shaderHandle : shaderHandles.values())
-                if (shaderHandle != UNKNOWN_SHADER)
-                    deleteShader(glClass, shaderHandle);
-            shaderHandles = null;
+    public void deleteProgram() {
+        if (texHandleUnits != null && texHandleUnits.size() > 0)
+            deleteTextures();
+        if (shaders != null) {
+            for (ShaderInfo shader : shaders)
+                if (shader.handle != UNKNOWN_SHADER)
+                    deleteShader(glClass, shader.handle);
+            shaders = null;
         }
         if (programHandle != UNKNOWN_PROGRAM) {
             int toBeDeleted = programHandle;
             programHandle = UNKNOWN_PROGRAM;
             deleteProgram(glClass, toBeDeleted);
         }
-        resetValues();
+        //resetValues();
     }
 
     protected int getProgramHandle() {
@@ -285,6 +327,10 @@ public class Shader {
         //if (programHandle == UNKNOWN_PROGRAM)
         //    return;
 
+        try {
+            glClass.getMethod("glClearColor", float.class, float.class, float.class, float.class).invoke(null, 0.0f, 0.0f, 0.0f, 0.0f);
+            glClass.getMethod("glClear", int.class).invoke(null, ((int) glClass.getField("GL_DEPTH_BUFFER_BIT").get(null)) | ((int) glClass.getField("GL_COLOR_BUFFER_BIT").get(null)));
+        } catch(Exception e) { Log.e("Shader", "Failed to clear during draw: " + e.toString()); }
         try {
             glClass.getMethod("glUseProgram", int.class).invoke(null, getProgramHandle());
             checkGlError("glUseProgram");
@@ -308,10 +354,7 @@ public class Shader {
         //Log.d("Shader", month + "/" + day + "/" + year + " " + seconds);
         //}
         //Log.d("GLRenderer", "Drawing frame, timeElapsed: " + secondsElapsed + "s deltaTime: " + deltaTime + "s fps: " + fps);
-        try {
-            glClass.getMethod("glClearColor", float.class, float.class, float.class, float.class).invoke(null, 0.0f, 0.0f, 0.0f, 0.0f);
-            glClass.getMethod("glClear", int.class).invoke(null, ((int) glClass.getField("GL_DEPTH_BUFFER_BIT").get(null)) | ((int) glClass.getField("GL_COLOR_BUFFER_BIT").get(null)));
-        } catch(Exception e) { Log.e("Shader", "Failed to clear during draw: " + e.toString()); }
+
         try {
             // built-in matrix uniforms
             glClass.getMethod("glUniformMatrix4fv", int.class, int.class, boolean.class, float[].class, int.class).invoke(null, mMVPMatrixHandle, 1, false, matrixMVP, 0);
@@ -441,6 +484,12 @@ public class Shader {
                 Log.w("Shader", "Could not bind texture to non-existent handle " + handleName);
         } catch (Exception e) { Log.e("Shader", "Error binding texture: " + e.toString()); }
     }
+    private void deleteTextures() {
+        try {
+            int[] texIds = texHandleUnits.values().stream().map(texInfo -> texInfo.unit).mapToInt(Integer::intValue).toArray();
+            glClass.getMethod("glDeleteTextures", int.class, IntBuffer.class).invoke(null, texIds.length, IntBuffer.wrap(texIds));
+        } catch (Exception e) { Log.e("Shader", "Error deleting textures: " + e.toString()); }
+    }
 
     /**
      * get location of some input attribute for shader
@@ -515,21 +564,21 @@ public class Shader {
     }
 
     private int createProgram(Class<? extends GLES20> glClass, HashMap<Integer, String> shaderCode) {
-        shaderHandles = new HashMap<>();
-        return createProgram(glClass, shaderCode, shaderHandles);
+        shaders = new ArrayList<>();
+        return createProgram(glClass, shaderCode, shaders);
     }
-    private static int createProgram(Class<? extends GLES20> glClass, HashMap<Integer, String> shaderCode, HashMap<Integer, Integer> outShaderHandles) {
+    private static int createProgram(Class<? extends GLES20> glClass, HashMap<Integer, String> shaderCode, List<ShaderInfo> outShaders) {
         int programHandle = UNKNOWN_PROGRAM;
         //List<Integer> handles = new ArrayList<>();
         if (shaderCode != null) {
             for (Integer shaderType : shaderCode.keySet())
-                outShaderHandles.put(shaderType, loadShader(glClass, shaderType, shaderCode.get(shaderType)));
+                outShaders.add(new ShaderInfo(shaderType, loadShader(glClass, shaderType, shaderCode.get(shaderType)), shaderCode.get(shaderType)));
         } else {
             try {
                 int vertexType = (int)glClass.getField("GL_VERTEX_SHADER").get(null);
                 int fragmentType = (int)glClass.getField("GL_FRAGMENT_SHADER").get(null);
-                outShaderHandles.put(vertexType, loadShader(glClass, vertexType, fallbackVertex));
-                outShaderHandles.put(fragmentType, loadShader(glClass, fragmentType, fallbackFragment));
+                outShaders.add(new ShaderInfo(vertexType, loadShader(glClass, vertexType, fallbackVertex), fallbackVertex));
+                outShaders.add(new ShaderInfo(fragmentType, loadShader(glClass, fragmentType, fallbackFragment), fallbackFragment));
             } catch(Exception e) { Log.e("Shader", "Failed to load fallback shaders: " + e.toString()); }
         }
 
@@ -539,10 +588,10 @@ public class Shader {
             Log.d("Shader", "Created program with handle " + programHandle);
             if (programHandle != UNKNOWN_PROGRAM) {
                 // Bind the vertex,fragment,etc shader to the program.
-                for (Integer handle : outShaderHandles.values())
-                    if (handle != UNKNOWN_SHADER) {
-                        Log.d("Shader", "Attaching shader " + handle + " to program with handle " + programHandle);
-                        glClass.getMethod("glAttachShader", int.class, int.class).invoke(null, programHandle, handle);
+                for (ShaderInfo shader : outShaders)
+                    if (shader.handle != UNKNOWN_SHADER) {
+                        Log.d("Shader", "Attaching shader " + shader.handle + " to program with handle " + programHandle);
+                        glClass.getMethod("glAttachShader", int.class, int.class).invoke(null, programHandle, shader.handle);
                     }
 
                 // Link the two shaders together into a program.
