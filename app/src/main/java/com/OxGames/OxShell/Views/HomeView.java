@@ -270,14 +270,16 @@ public class HomeView extends XMBView implements Refreshable {
                 btns.add(createColumnBtn);
                 if (homeItem != null) {
                     if (homeItem.type != HomeItem.Type.settings) {
-                        btns.add(moveBtn);
+                        btns.add(moveItemBtn);
                         if (homeItem.type != HomeItem.Type.explorer)
                             btns.add(uninstallBtn);
                         btns.add(deleteBtn);
                     }
                 }
-                if (isNotSettings && hasColumnHead)
+                if (isNotSettings && hasColumnHead) {
+                    btns.add(moveColumnBtn);
                     btns.add(deleteColumnBtn);
+                }
                 btns.add(cancelBtn);
 
                 currentActivity.getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
@@ -408,6 +410,7 @@ public class HomeView extends XMBView implements Refreshable {
         save(getItems());
     }
 
+    // TODO: remove assoc inner items
     public ArrayList<ArrayList<XMBItem>> getItems() {
         ArrayList<ArrayList<Object>> items = getAdapter().getItems();
         items.remove(items.size() - 1); // remove the settings
@@ -522,9 +525,15 @@ public class HomeView extends XMBView implements Refreshable {
         return MathHelpers.max(ApplicationInfo.CATEGORY_GAME, ApplicationInfo.CATEGORY_AUDIO, ApplicationInfo.CATEGORY_IMAGE, ApplicationInfo.CATEGORY_SOCIAL, ApplicationInfo.CATEGORY_NEWS, ApplicationInfo.CATEGORY_MAPS, ApplicationInfo.CATEGORY_PRODUCTIVITY, ApplicationInfo.CATEGORY_ACCESSIBILITY) + 1;
     }
 
-    SettingsDrawer.ContextBtn moveBtn = new SettingsDrawer.ContextBtn("Move", () ->
+    SettingsDrawer.ContextBtn moveColumnBtn = new SettingsDrawer.ContextBtn("Move Column", () ->
     {
-        toggleMoveMode(true);
+        toggleMoveMode(true, true);
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        return null;
+    });
+    SettingsDrawer.ContextBtn moveItemBtn = new SettingsDrawer.ContextBtn("Move Item", () ->
+    {
+        toggleMoveMode(true, false);
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
         return null;
     });
@@ -568,7 +577,7 @@ public class HomeView extends XMBView implements Refreshable {
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
         return null;
     });
-    SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall", () ->
+    SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall App", () ->
     {
         uninstallSelection();
         deleteSelection(); //TODO: only if uninstall was successful

@@ -66,6 +66,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
 
     private final ArrayList<Float> catPos; // go from 0 to (adapter.getColumnSize(colIndex) - 1) * getVerShiftOffset()
     private boolean moveMode;
+    private boolean columnMode;
     private int origMoveColIndex;
     private int origMoveLocalIndex;
     //private int moveColIndex;
@@ -96,6 +97,24 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             returnAllViews();
             setViews(false, true);
         }
+
+        @Override
+        public void onColumnShifted(int fromColIndex, int toColIndex) {
+            float origCatPos = catPos.get(fromColIndex);
+            if (toColIndex > fromColIndex) {
+                catPos.add(toColIndex + 1, origCatPos);
+                catPos.remove(fromColIndex);
+            } else {
+                catPos.remove(fromColIndex);
+                catPos.add(toColIndex, origCatPos);
+            }
+            colIndex = toColIndex;
+            rowIndex = getCachedIndexOfCat(colIndex);
+            shiftX = getShiftX(colIndex);
+            returnAllViews();
+            setViews(false, true);
+        }
+
         @Override
         public void onSubItemAdded(int columnIndex, int localIndex) {
             if (columnIndex == colIndex)
@@ -183,6 +202,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         public abstract void removeSubItem(int columnIndex, int localIndex);
         public abstract void createColumnAt(int columnIndex, Object head);
         public abstract void removeColumnAt(int columnIndex);
+        public abstract void shiftColumnTo(int fromColIndex, int toColIndex);
     }
     public abstract static class ViewHolder {
         protected View itemView;
@@ -796,9 +816,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         if (isCat)
             z = CAT_Z;
         viewHolder.itemView.setTranslationZ(z);
-        viewHolder.isHighlighted = moveMode && isSelection;
-        viewHolder.requestHideTitle = isInsideItem() && isPartOfPosition && !isSelection;
         boolean isOurCat = itemPosition[0] == this.colIndex && itemPosition[1] == 0;
+        viewHolder.isHighlighted = moveMode && ((!columnMode && isSelection) || (columnMode && isOurCat));
+        viewHolder.requestHideTitle = isInsideItem() && isPartOfPosition && !isSelection;
         float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
         viewHolder.itemView.animate().cancel();
 
@@ -1151,7 +1171,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
     public boolean cancelAction() {
         if (moveMode) {
-            toggleMoveMode(false);
+            // TODO: add way to revert changes
+            toggleMoveMode(false, false);
             //setViews(false, true);
             return true;
         } else if (isInsideItem()) {
@@ -1166,14 +1187,19 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     public boolean isInMoveMode() {
         return moveMode;
     }
-    public void toggleMoveMode(boolean onOff) {
+    public void toggleMoveMode(boolean onOff, boolean columnMode) {
+        if (moveMode && columnMode)
+            throw new RuntimeException("Cannot enter column move mode from move mode");
+
         moveMode = onOff;
+        this.columnMode = columnMode;
         if (moveMode) {
             //moveColIndex = getColIndex();
             //moveLocalIndex = getLocalIndex();
             origMoveColIndex = this.colIndex;
             origMoveLocalIndex = this.rowIndex;// + (catHasSubItems(moveColIndex) ? 1 : 0);
-        }
+        } else
+            this.columnMode = false;
         //setAdapterHighlightColor(moveMode ? moveHighlightColor : normalHighlightColor);
         setViews(false, true);
         //refresh();
@@ -1181,46 +1207,52 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private void applyMove() {
         if (this.colIndex != origMoveColIndex || this.rowIndex != origMoveLocalIndex)
             onAppliedMove(origMoveColIndex, origMoveLocalIndex, this.colIndex, this.rowIndex);
-        toggleMoveMode(false);
+        toggleMoveMode(false, false);
     }
     protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
         // local indices are total within the columns they represent and not traversable
     }
     protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
         if (moveMode) {
-            //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
-            boolean isInColumn = catHasSubItems(fromColIndex);
-            // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
-            int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 1 : 2));
-            //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
-            if (fromColIndex != nextColIndex) {
-                nextColIndex = Math.max(nextColIndex, 0);
-                boolean nextIsColumn = adapter.isColumnHead(nextColIndex, 0);
-                boolean isGoingRight = nextColIndex > fromColIndex;
-                int nextLocalIndex = isInColumn ? 0 : getCachedIndexOfCat(nextColIndex);
-                // the index we will set the XMBView to once the shift is done
-                int setColIndex = nextColIndex;
-                if (isGoingRight) {
-                    if (!isInColumn && nextIsColumn)
-                        // since the item is not in a column and its about to enter a column, then we need to account for the removal of the items column
-                        setColIndex = fromColIndex;
-                } else {
-                    if (isInColumn) {
-                        // if the item is being moved to the left and it is currently a sub-item, then set the next index to be the same index we are coming from
-                        nextColIndex = fromColIndex;
-                        setColIndex = fromColIndex;
+            if (columnMode) {
+                int nextColIndex = Math.min(Math.max(toColIndex, 0), adapter.getColumnCount() - 2);
+                //if (nextColIndex != fromColIndex)
+                    adapter.shiftColumnTo(fromColIndex, nextColIndex);
+            } else {
+                //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
+                boolean isInColumn = catHasSubItems(fromColIndex);
+                // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
+                int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 1 : 2));
+                //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
+                if (fromColIndex != nextColIndex) {
+                    nextColIndex = Math.max(nextColIndex, 0);
+                    boolean nextIsColumn = adapter.isColumnHead(nextColIndex, 0);
+                    boolean isGoingRight = nextColIndex > fromColIndex;
+                    int nextLocalIndex = isInColumn ? 0 : getCachedIndexOfCat(nextColIndex);
+                    // the index we will set the XMBView to once the shift is done
+                    int setColIndex = nextColIndex;
+                    if (isGoingRight) {
+                        if (!isInColumn && nextIsColumn)
+                            // since the item is not in a column and its about to enter a column, then we need to account for the removal of the items column
+                            setColIndex = fromColIndex;
+                    } else {
+                        if (isInColumn) {
+                            // if the item is being moved to the left and it is currently a sub-item, then set the next index to be the same index we are coming from
+                            nextColIndex = fromColIndex;
+                            setColIndex = fromColIndex;
+                        }
                     }
-                }
-                if (nextIsColumn && adapter.getColumnSize(nextColIndex) == 1)
-                    nextLocalIndex = 1;
-                adapter.shiftItemHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
+                    if (nextIsColumn && adapter.getColumnSize(nextColIndex) == 1)
+                        nextLocalIndex = 1;
+                    adapter.shiftItemHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
 
-                this.colIndex = setColIndex;
-            } else
-                this.colIndex = fromColIndex;
+                    this.colIndex = setColIndex;
+                } else
+                    this.colIndex = fromColIndex;
 
-            this.rowIndex = getCachedIndexOfCat(this.colIndex);
-            this.shiftX = getShiftX(this.colIndex);
+                this.rowIndex = getCachedIndexOfCat(this.colIndex);
+                this.shiftX = getShiftX(this.colIndex);
+            }
         }
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {

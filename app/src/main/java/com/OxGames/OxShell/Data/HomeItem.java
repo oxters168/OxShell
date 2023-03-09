@@ -116,6 +116,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         return super.getInnerItemCount();
     }
 
+    // TODO: order alphabetically
     private static ArrayList<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, String[] extensions) {
         ArrayList<XMBItem> innerItems = null;
         if (dirs != null && dirs.size() > 0) {

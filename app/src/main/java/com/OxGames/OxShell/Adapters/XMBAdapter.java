@@ -228,6 +228,20 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         items.remove(columnIndex);
         fireColumnRemovedEvent(columnIndex);
     }
+
+    @Override
+    public void shiftColumnTo(int fromColIndex, int toColIndex) {
+        ArrayList<XMBItem> origItems = items.get(fromColIndex);
+        if (toColIndex > fromColIndex) {
+            items.add(toColIndex + 1, origItems);
+            items.remove(fromColIndex);
+        } else {
+            items.remove(fromColIndex);
+            items.add(toColIndex, origItems);
+        }
+        fireColumnShiftedEvent(fromColIndex, toColIndex);
+    }
+
     private void removeColIfEmpty(int columnIndex) {
         if (items.get(columnIndex).size() <= 0)
             removeColumnAt(columnIndex);
@@ -251,6 +265,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         for (XMBAdapterListener listener : listeners)
             if (listener != null)
                 listener.onSubItemRemoved(columnIndex, localIndex);
+    }
+    private void fireColumnShiftedEvent(int fromColIndex, int toColIndex) {
+        for (XMBAdapterListener listener : listeners)
+            if (listener != null)
+                listener.onColumnShifted(fromColIndex, toColIndex);
     }
 
     private View createCatView() {
