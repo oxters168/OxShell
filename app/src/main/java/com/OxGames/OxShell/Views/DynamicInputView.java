@@ -75,6 +75,9 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
 
         LayoutParams layoutParams;
 
+        layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        setLayoutParams(layoutParams);
+
         FrameLayout header = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.dpToPixels(context, 40)));
         layoutParams.gravity = Gravity.TOP;
@@ -334,6 +337,8 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                     return true;
                 }
             }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)
+                return true; // in case its not mapped to anything, then don't quit OxShell
         }
         return false;
     }

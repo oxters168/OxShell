@@ -29,6 +29,7 @@ import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Views.DynamicInputView;
+import com.OxGames.OxShell.Views.PromptView;
 import com.OxGames.OxShell.Views.SettingsDrawer;
 import com.appspell.shaderview.ShaderView;
 import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
@@ -83,8 +84,9 @@ public class PagedActivity extends AppCompatActivity {
         mDirRequest.launch(initialPath);
     }
 
-    private static final int SETTINGS_DRAWER_ID = 1337;
-    private static final int DYNAMIC_INPUT_ID = 1338;
+    private static final int SETTINGS_DRAWER_ID = View.generateViewId();
+    private static final int DYNAMIC_INPUT_ID = View.generateViewId();
+    private static final int PROMPT_ID = View.generateViewId();
 
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
     //    private static PagedActivity instance;
@@ -101,15 +103,7 @@ public class PagedActivity extends AppCompatActivity {
     //private View dynamicInputView;
     private DynamicInputView dynamicInput;
     private SettingsDrawer settingsDrawer;
-    //private SlideTouchListView settingsDrawer;
-    //private boolean inputViewOpen;
-    //private boolean settingsDrawerOpen = false;
-    private int settingsDrawerWidth = 512;
-    //private static final float SETTINGS_DRAWER_OPEN_X = 50;
-    //private static final float SETTINGS_DRAWER_CLOSED_X = 0;
-    //private static final float SETTINGS_DRAWER_OPEN_Y = 0;
-    //private static final float SETTINGS_DRAWER_CLOSED_Y = 0;
-    //private static final long SETTINGS_DRAWER_ANIM_TIME = 300;
+    private PromptView prompt;
 
     private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
@@ -155,9 +149,10 @@ public class PagedActivity extends AppCompatActivity {
     }
 
     protected void setMarginsFor(int... ids) {
+        // sets the provided views' margins to avoid the status bar and navigation bar
         for (int id : ids) {
             View parent = findViewById(id);
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) parent.getLayoutParams();
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)parent.getLayoutParams();
             params.setMargins(0, OxShellApp.getStatusBarHeight(), 0, OxShellApp.getNavBarHeight());
             parent.setLayoutParams(params);
         }
@@ -172,6 +167,7 @@ public class PagedActivity extends AppCompatActivity {
         parentView = findViewById(R.id.parent_layout);
         //dynamicInputView = findViewById(R.id.dynamic_input);
         //settingsDrawer = findViewById(R.id.settings_drawer);
+        initPromptView();
         initSettingsDrawer();
         initDynamicInputView();
         //settingsDrawer.setShown(isContextDrawerOpen());
@@ -182,24 +178,6 @@ public class PagedActivity extends AppCompatActivity {
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
         //resumeBackground();
-//        final WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-//        if (AndroidHelpers.hasReadStoragePermission()) {
-//            //Log.d("PagedActivity", "Getting wallpaper drawable");
-//            WallpaperInfo info = wallpaperManager.getWallpaperInfo();
-//            Log.d("PagedActivity", "Wallpaper info: " + info);
-//            final Drawable wallpaperDrawable;
-//            if (info != null) {
-//                wallpaperDrawable = info.loadIcon(getPackageManager());
-//            } else
-//                wallpaperDrawable = wallpaperManager.getDrawable();
-//
-//            ImageView bg = findViewById(R.id.bgView);
-//            bg.setBackground(wallpaperDrawable);
-//        } else {
-//            final Drawable wallpaperDrawable = wallpaperManager.getBuiltInDrawable();
-//            ImageView bg = findViewById(R.id.bgView);
-//            bg.setBackground(wallpaperDrawable);
-//        }
 
         Log.i("PagedActivity", "OnResume " + this);
     }
@@ -232,6 +210,8 @@ public class PagedActivity extends AppCompatActivity {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         //fixDrawerLayout();
+        initPromptView();
+        prompt.setShown(prompt.isPromptShown());
         initSettingsDrawer();
         settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
         initDynamicInputView();
@@ -245,7 +225,6 @@ public class PagedActivity extends AppCompatActivity {
         super.onWindowFocusChanged(hasFocus);
         setActionBarHidden(true);
         setFullscreen(true);
-        //setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
     }
@@ -258,7 +237,7 @@ public class PagedActivity extends AppCompatActivity {
         }
     }
 
-    // TODO: Add more customizability for controls
+    // TODO: add joystick controls
 //    @Override
 //    public boolean dispatchGenericMotionEvent(MotionEvent ev) {
 //        // source: https://stackoverflow.com/questions/34536195/how-to-differentiate-a-d-pad-movement-from-a-joystick-movement/58510631#58510631
@@ -285,21 +264,14 @@ public class PagedActivity extends AppCompatActivity {
 //            }
 //        }
 
-        if (settingsDrawer.isDrawerOpen()) {
-            if (settingsDrawer.receiveKeyEvent(key_event))
-                return true;
-
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
-                    getSettingsDrawer().setShown(false);
-                    return true;
-                }
-            }
-        }
+        if (prompt.isPromptShown() && prompt.receiveKeyEvent(key_event))
+            return true;
+        if (settingsDrawer.isDrawerOpen() && settingsDrawer.receiveKeyEvent(key_event))
+            return true;
         if (dynamicInput.isOverlayShown() && dynamicInput.receiveKeyEvent(key_event))
             return true;
 
-        if (!settingsDrawer.isDrawerOpen() && !dynamicInput.isOverlayShown()) {
+        if (!isInAContextMenu()) {
             boolean childsPlay = false;
             View currentView = allPages.get(currentPage);
             if (currentView instanceof InputReceiver)
@@ -326,15 +298,34 @@ public class PagedActivity extends AppCompatActivity {
 //    public boolean isDynamicInputShown() {
 //        return inputViewOpen;
 //    }
+    public boolean isInAContextMenu() {
+        return prompt.isPromptShown() || settingsDrawer.isDrawerOpen() || dynamicInput.isOverlayShown();
+    }
     private void initDynamicInputView() {
         dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);
         if (dynamicInput == null) {
             Log.d("PagedActivity", "Dynamic input not found, creating...");
             dynamicInput = new DynamicInputView(this);
             dynamicInput.setId(DYNAMIC_INPUT_ID);
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            dynamicInput.setLayoutParams(layoutParams);
             parentView.addView(dynamicInput);
+        }
+    }
+    private void initSettingsDrawer() {
+        settingsDrawer = parentView.findViewById(SETTINGS_DRAWER_ID);
+        if (settingsDrawer == null) {
+            Log.d("PagedActivity", "Settings drawer not found, creating...");
+            settingsDrawer = new SettingsDrawer(this);
+            settingsDrawer.setId(SETTINGS_DRAWER_ID);
+            parentView.addView(settingsDrawer);
+        }
+    }
+    private void initPromptView() {
+        prompt = parentView.findViewById(PROMPT_ID);
+        if (prompt == null) {
+            Log.d("PagedActivity", "Prompt not found, creating...");
+            prompt = new PromptView(this);
+            prompt.setId(PROMPT_ID);
+            parentView.addView(prompt);
         }
     }
     public DynamicInputView getDynamicInput() {
@@ -343,16 +334,8 @@ public class PagedActivity extends AppCompatActivity {
     public SettingsDrawer getSettingsDrawer() {
         return settingsDrawer;
     }
-    private void initSettingsDrawer() {
-        settingsDrawer = parentView.findViewById(SETTINGS_DRAWER_ID);
-        if (settingsDrawer == null) {
-            Log.d("PagedActivity", "Settings drawer not found, creating...");
-            settingsDrawer = new SettingsDrawer(this);
-            settingsDrawer.setId(SETTINGS_DRAWER_ID);
-            FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(settingsDrawerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
-            settingsDrawer.setLayoutParams(layoutParams);
-            parentView.addView(settingsDrawer);
-        }
+    public PromptView getPrompt() {
+        return prompt;
     }
 
     private void trySetStartTime() {

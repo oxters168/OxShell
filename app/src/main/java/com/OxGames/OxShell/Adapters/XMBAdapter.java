@@ -183,7 +183,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
     @Override
     protected int getTextSize() {
-        return Math.round(AndroidHelpers.spToPixels(context, 8) * (float)Math.pow(AndroidHelpers.getUiScale(), 1.8));
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
     }
 
     @Override
@@ -254,13 +254,13 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     private View createCatView() {
-        float scale = AndroidHelpers.getUiScale();
+        float scale = 1;
         if (SettingsKeeper.hasValue(SettingsKeeper.HOME_ITEM_SCALE))
             scale *= (Float)SettingsKeeper.getValue(SettingsKeeper.HOME_ITEM_SCALE);
-        int catSize = Math.round(AndroidHelpers.dpToPixels(context, 64) * scale);
-        int iconSize = catSize - Math.round(AndroidHelpers.dpToPixels(context, 4) * scale);
+        int catSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 64) * scale);
+        int iconSize = catSize - Math.round(AndroidHelpers.getScaledDpToPixels(context, 4) * scale);
         int textSize = getTextSize();
-        int textOutlineSize = Math.round(AndroidHelpers.dpToPixels(context, 3) * scale);
+        int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3) * scale);
 
         RelativeLayout catView = new RelativeLayout(context);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(catSize, catSize);
@@ -318,15 +318,15 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         return catView;
     }
     private View createItemView() {
-        float scale = AndroidHelpers.getUiScale();
+        float scale = 1;
         if (SettingsKeeper.hasValue(SettingsKeeper.HOME_ITEM_SCALE))
             scale *= (Float)SettingsKeeper.getValue(SettingsKeeper.HOME_ITEM_SCALE);
-        int itemSize = Math.round(AndroidHelpers.dpToPixels(context, 48) * scale);
-        int iconSize = itemSize - Math.round(AndroidHelpers.dpToPixels(context, 4) * scale);
+        int itemSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 48) * scale);
+        int iconSize = itemSize - Math.round(AndroidHelpers.getScaledDpToPixels(context, 4) * scale);
         int textSize = getTextSize();
-        int textWidth = Math.round(AndroidHelpers.dpToPixels(context, 128) * scale);
-        int textOutlineSize = Math.round(AndroidHelpers.dpToPixels(context, 3) * scale);
-        int textStartMargin = Math.round(AndroidHelpers.dpToPixels(context, 6) * scale);
+        int textWidth = Math.round(AndroidHelpers.getScaledDpToPixels(context, 128) * scale);
+        int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3) * scale);
+        int textStartMargin = Math.round(AndroidHelpers.getScaledDpToPixels(context, 6) * scale);
 
         RelativeLayout itemView = new RelativeLayout(context);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(itemSize, itemSize);
@@ -385,15 +385,15 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         return itemView;
     }
     private View createInnerItemView() {
-        float scale = AndroidHelpers.getUiScale();
+        float scale = 1;
         if (SettingsKeeper.hasValue(SettingsKeeper.HOME_ITEM_SCALE))
             scale *= (Float)SettingsKeeper.getValue(SettingsKeeper.HOME_ITEM_SCALE);
-        int innerItemSize = Math.round(AndroidHelpers.dpToPixels(context, 32) * scale);
-        int iconSize = innerItemSize - Math.round(AndroidHelpers.dpToPixels(context, 4) * scale);
+        int innerItemSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 32) * scale);
+        int iconSize = innerItemSize - Math.round(AndroidHelpers.getScaledDpToPixels(context, 4) * scale);
         int textSize = getTextSize();
-        int textWidth = Math.round(AndroidHelpers.dpToPixels(context, 256) * scale);
-        int textOutlineSize = Math.round(AndroidHelpers.dpToPixels(context, 3) * scale);
-        int textStartMargin = Math.round(AndroidHelpers.dpToPixels(context, 6) * scale);
+        int textWidth = Math.round(AndroidHelpers.getScaledDpToPixels(context, 256) * scale);
+        int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3) * scale);
+        int textStartMargin = Math.round(AndroidHelpers.getScaledDpToPixels(context, 6) * scale);
 
         RelativeLayout innerItemView = new RelativeLayout(context);
         RelativeLayout.LayoutParams relativeParams = new RelativeLayout.LayoutParams(innerItemSize, innerItemSize);

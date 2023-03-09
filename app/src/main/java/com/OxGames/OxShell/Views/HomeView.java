@@ -62,7 +62,7 @@ public class HomeView extends XMBView implements Refreshable {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        if (!currentActivity.getSettingsDrawer().isDrawerOpen())
+        if (!currentActivity.isInAContextMenu())
             return super.onInterceptTouchEvent(ev);
         else
             return false;
@@ -70,7 +70,7 @@ public class HomeView extends XMBView implements Refreshable {
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        if (!currentActivity.getSettingsDrawer().isDrawerOpen())
+        if (!currentActivity.isInAContextMenu())
             return super.onTouchEvent(ev);
         else
             return false;
@@ -138,7 +138,7 @@ public class HomeView extends XMBView implements Refreshable {
                     }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+                    }, KeyEvent.KEYCODE_ESCAPE);
                     dynamicInput.setItems(new DynamicInputRow(titleInput, selectDirBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
@@ -171,7 +171,7 @@ public class HomeView extends XMBView implements Refreshable {
                     }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+                    }, KeyEvent.KEYCODE_ESCAPE);
                     dynamicInput.setItems(new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
@@ -238,7 +238,7 @@ public class HomeView extends XMBView implements Refreshable {
                             GLWallpaperService.requestReload();
                         }
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+                    }, KeyEvent.KEYCODE_ESCAPE);
                     dynamicInput.setItems(new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
@@ -315,7 +315,7 @@ public class HomeView extends XMBView implements Refreshable {
             Intent intent = new Intent(Intent.ACTION_DELETE);
             intent.setData(Uri.parse("package:" + packageName));
             getContext().startActivity(intent);
-            //TODO: Figure out how to get on uninstalled event and remove item when fired
+            //TODO: figure out how to get on uninstalled event and remove item when fired
         }
     }
     @Override
@@ -552,7 +552,7 @@ public class HomeView extends XMBView implements Refreshable {
         }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+        }, KeyEvent.KEYCODE_ESCAPE);
         dynamicInput.setItems(new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
 
         currentActivity.getSettingsDrawer().setShown(false);

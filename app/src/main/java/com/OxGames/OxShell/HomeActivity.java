@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Views.PromptView;
 
 import java.io.File;
 
@@ -36,7 +37,6 @@ public class HomeActivity extends PagedActivity {
 
         //HomeManager.init();
         goTo(ActivityManager.Page.home);
-        showAnnoyingDialog();
     }
 
     @Override
@@ -48,6 +48,7 @@ public class HomeActivity extends PagedActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        showAnnoyingDialog();
         //refreshHome();
     }
 
@@ -66,6 +67,9 @@ public class HomeActivity extends PagedActivity {
         //TODO: Add dialog for 'free' version to ask for support
         if (!BuildConfig.GOLD) {
             Log.d("HomeActivity", "Not running in gold");
+            PromptView prompt = getPrompt();
+            prompt.setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
+            prompt.setShown(true);
         } else {
             Log.d("HomeActivity", "Running in gold");
         }

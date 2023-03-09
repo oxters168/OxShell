@@ -13,12 +13,13 @@ import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.util.concurrent.Callable;
 
-public class SettingsDrawer extends FrameLayout {
+public class SettingsDrawer extends FrameLayout implements InputReceiver {
     private static final float SETTINGS_DRAWER_OPEN_Y = 0;
     private static final float SETTINGS_DRAWER_CLOSED_Y = 0;
     private static final long SETTINGS_DRAWER_ANIM_TIME = 300;
@@ -54,8 +55,15 @@ public class SettingsDrawer extends FrameLayout {
         setBackgroundColor(Color.parseColor("#323232"));
         setAlpha(0);
 
+        FrameLayout.LayoutParams layoutParams;
+
+        // TODO: change hard coded width to a more appropriate solution (maybe use something like AndroidHelpers.getUiScale())
+        int settingsDrawerWidth = 512;
+        layoutParams = new FrameLayout.LayoutParams(settingsDrawerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
+        setLayoutParams(layoutParams);
+
         listView = new SlideTouchListView(context);
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         listView.setLayoutParams(layoutParams);
         listView.setScrollbarFadingEnabled(false);
         listView.setScrollBarStyle(SCROLLBARS_INSIDE_INSET);
@@ -83,9 +91,19 @@ public class SettingsDrawer extends FrameLayout {
         if (onOff)
             listView.setProperPosition(0);
     }
+    @Override
     public boolean receiveKeyEvent(KeyEvent keyEvent) {
         //Log.d("SettingsDrawer", "Received key event");
-        return listView.receiveKeyEvent(keyEvent);
+        if (listView.receiveKeyEvent(keyEvent))
+            return true;
+        // TODO: add mappings to context buttons
+        if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+            if ((keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
+                setShown(false);
+                return true;
+            }
+        }
+        return false;
     }
 
     public static class ContextBtn {
