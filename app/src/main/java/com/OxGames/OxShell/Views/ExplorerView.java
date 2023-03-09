@@ -40,6 +40,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     //private SlideTouchHandler slideTouch = new SlideTouchHandler();
 //    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.explorer;
 
+    // TODO: fix issue where switching orientation returns to home directory
     public ExplorerView(Context context) {
         super(context);
         //setMargins();

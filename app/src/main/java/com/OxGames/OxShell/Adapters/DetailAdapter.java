@@ -55,20 +55,33 @@ public class DetailAdapter implements ListAdapter {
 //    }
 
     private int getTextSize() {
-        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 4));
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
+    }
+    private int getBtnHeight() {
+        return Math.round(AndroidHelpers.getScaledDpToPixels(context, 32));
+    }
+    private int getBorderMargin() {
+        return Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
+    }
+    private int getImgSize() {
+        return Math.round(getBtnHeight() * 0.8f);
     }
     private View createDetailItem() {
         int textSize = getTextSize();
         int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3));
+        int btnHeight = getBtnHeight();
+        int imgSize = getImgSize();
+        int borderMargin = getBorderMargin();
 
         FrameLayout detailItem = new FrameLayout(context);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 48);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, btnHeight);
         detailItem.setLayoutParams(params);
 
         ImageView typeIcon = new ImageView(context);
         typeIcon.setId(ICON_ID);
-        params = new FrameLayout.LayoutParams(32, 32);
+        params = new FrameLayout.LayoutParams(imgSize, imgSize);
         params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+        params.setMarginStart(borderMargin);
         typeIcon.setLayoutParams(params);
         detailItem.addView(typeIcon);
 
@@ -76,6 +89,7 @@ public class DetailAdapter implements ListAdapter {
         title.setId(TITLE_ID);
         params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+        params.setMarginStart(borderMargin * 2 + imgSize);
         title.setLayoutParams(params);
         title.setEllipsize(TextUtils.TruncateAt.MARQUEE);
         title.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
@@ -92,6 +106,7 @@ public class DetailAdapter implements ListAdapter {
         isDir.setId(IS_DIR_ID);
         params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+        params.setMarginEnd(borderMargin);
         isDir.setLayoutParams(params);
         isDir.setEllipsize(TextUtils.TruncateAt.MARQUEE);
         isDir.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
@@ -128,13 +143,16 @@ public class DetailAdapter implements ListAdapter {
         BetterTextView title = view.findViewById(TITLE_ID);
         title.setText(detailItem.leftAlignedText);
 
-        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)title.getLayoutParams();
-        params.setMargins(detailItem.hasIcon() ? 40 : 0, 0, 0, 0);
-        title.setLayoutParams(params);
-
+        boolean hasRightText = detailItem.rightAlignedText != null && !detailItem.rightAlignedText.isEmpty();
         BetterTextView rightText = view.findViewById(IS_DIR_ID);
-        rightText.setVisibility(detailItem.rightAlignedText != null && !detailItem.rightAlignedText.isEmpty() ? View.VISIBLE : View.INVISIBLE);
+        rightText.setVisibility(hasRightText ? View.VISIBLE : View.INVISIBLE);
         rightText.setText(detailItem.rightAlignedText);
+
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)title.getLayoutParams();
+        params.setMarginStart(detailItem.hasIcon() ? getBorderMargin() * 2 + getImgSize() : getBorderMargin());
+        rightText.measure(0, 0);
+        params.setMarginEnd(hasRightText ? getBorderMargin() * 2 + rightText.getMeasuredWidth() : getBorderMargin());
+        title.setLayoutParams(params);
 
         ImageView typeIcon = view.findViewById(ICON_ID);
         typeIcon.setImageDrawable(detailItem.getIcon());
