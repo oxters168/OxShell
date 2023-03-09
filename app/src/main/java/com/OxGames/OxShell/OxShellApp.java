@@ -40,6 +40,7 @@ public class OxShellApp extends Application {
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        // it seems when the app launches from an app that is forced landscape into portrait, the first time onConfigurationChanged should happen does not fire
         super.onConfigurationChanged(newConfig);
         getDisplayInfo();
     }

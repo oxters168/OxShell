@@ -218,13 +218,12 @@ public class PromptView extends FrameLayout implements InputReceiver {
 
     public void setShown(boolean onOff) {
         isShown = onOff;
-        updatePosition();
-        if (!isShown)
-            resetValues();
-        else {
+        if (isShown) {
             refreshSize();
+            updatePosition();
             rearrangeViews();
-        }
+        } else
+            resetValues();
         setVisibility(onOff ? VISIBLE : GONE);
     }
     public void setPromptImage(int resourceId) {
@@ -263,6 +262,8 @@ public class PromptView extends FrameLayout implements InputReceiver {
         return null;
     }
     public void resetValues() {
+        percentX = 0;
+        percentY = 0;
         chosenWidth = getDefaultWidth();
         chosenHeight = getDefaultHeight();
         isImageSet = false;
@@ -297,11 +298,11 @@ public class PromptView extends FrameLayout implements InputReceiver {
         updatePosition();
     }
     private void updatePosition() {
-        LayoutParams layoutParams = (FrameLayout.LayoutParams)getLayoutParams();
-        int width = layoutParams.width;
-        int height = layoutParams.height;
-        setX((percentX * OxShellApp.getDisplayWidth()) - (width / 2f));
-        setY((percentY * OxShellApp.getDisplayHeight()) - (height / 2f));
+        float x = (percentX * OxShellApp.getDisplayWidth()) - (chosenWidth / 2f);
+        float y = (percentY * OxShellApp.getDisplayHeight()) - (chosenHeight / 2f);
+        //Log.d("PromptView", "Updating position to [" + x + ", " + y + "]");
+        setX(x);
+        setY(y);
     }
     public int getDefaultWidth() {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 300));
