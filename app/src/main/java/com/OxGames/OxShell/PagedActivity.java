@@ -246,9 +246,9 @@ public class PagedActivity extends AppCompatActivity {
 //    }
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
-        //Log.d("PagedActivity", key_event.toString());
+        Log.d("PagedActivity", key_event.toString());
 
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+        if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
                 Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
                 AccessService.showRecentApps();
@@ -258,7 +258,7 @@ public class PagedActivity extends AppCompatActivity {
 //        if (key_event.getAction() == KeyEvent.ACTION_UP) {
 //            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
 //                Log.d("PagedActivity", "Attempting to bring up app switcher");
-//                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_DOWN, 0);
+//                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP, 0);
 //                sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
 //                return true;
 //            }

@@ -99,7 +99,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         // TODO: add option for select all
         // TODO: add launch with option that lets you pick from a list of assocs that have the proper extension
         if (!currentActivity.isInAContextMenu()) {
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (key_event.getAction() == KeyEvent.ACTION_UP) {
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                     if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
                         ActivityManager.goTo(ActivityManager.Page.home);
@@ -270,161 +270,6 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                     SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
                     {
                         currentActivity.getDynamicInput().setTitle("Copy");
-//                        currentActivity.getDynamicInput().setItems
-//                        (
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                                new DynamicInputRow
-//                                        (
-//                                                new DynamicInputRow.Label("Ok"),
-//                                                new DynamicInputRow.Label("Cancel")
-//                                        ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.TextInput("Thing"),
-//                                new DynamicInputRow.TextInput("Majing"),
-//                                new DynamicInputRow.Label("Hey"),
-//                                new DynamicInputRow.ButtonInput("Not ok", null),
-//                                new DynamicInputRow.Label("Hey hey"),
-//                                new DynamicInputRow.TextInput("Majing"),
-//                                new DynamicInputRow.ButtonInput("Maybe ok", null)
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.ButtonInput("Ok", null),
-//                                new DynamicInputRow.ButtonInput("Cancel", null)
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.TextInput("Thing"),
-//                                new DynamicInputRow.TextInput("Majing"),
-//                                new DynamicInputRow.Label("Hey"),
-//                                new DynamicInputRow.ButtonInput("Not ok", null),
-//                                new DynamicInputRow.ButtonInput("Very ok", null),
-//                                new DynamicInputRow.TextInput("Ding"),
-//                                new DynamicInputRow.Label("Ha"),
-//                                new DynamicInputRow.Label("Haha"),
-//                                new DynamicInputRow.Label("Hahaha"),
-//                                new DynamicInputRow.Label("Hahahaha"),
-//                                new DynamicInputRow.Label("Hahahahaha"),
-//                                new DynamicInputRow.Label("Hahahahahaha"),
-//                                new DynamicInputRow.Label("Hahahahahahaha"),
-//                                new DynamicInputRow.ButtonInput("Very bad", null)
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.ButtonInput("Cancel", null)
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            ),
-//                            new DynamicInputRow
-//                            (
-//                                new DynamicInputRow.Label("Ok"),
-//                                new DynamicInputRow.Label("Cancel")
-//                            )
-//                        );
                         String[] filePaths = new String[selection.size()];
                         for (int i = 0; i < selection.size(); i++)
                             filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
@@ -478,7 +323,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             return super.receiveKeyEvent(key_event);
         }
 //        else if (currentActivity.getSettingsDrawer().isDrawerOpen()) {
-//            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+//            if (key_event.getAction() == KeyEvent.ACTION_UP) {
 //                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
 //                    currentActivity.getSettingsDrawer().setShown(false);
 //                    return true;
@@ -486,7 +331,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 //            }
 //        }
 //        else if (currentActivity.getDynamicInput().isOverlayShown()) {
-//            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+//            if (key_event.getAction() == KeyEvent.ACTION_UP) {
 //                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
 //                    currentActivity.getDynamicInput().setShown(false);
 //                    return true;

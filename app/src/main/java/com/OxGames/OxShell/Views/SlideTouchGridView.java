@@ -83,7 +83,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener, 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("SlideTouchGridView", key_event.toString());
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+        if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
                 makeSelection();
                 return true;

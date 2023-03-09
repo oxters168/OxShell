@@ -97,7 +97,7 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
         if (listView.receiveKeyEvent(keyEvent))
             return true;
         // TODO: add mappings to context buttons
-        if (keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
             if ((keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
                 setShown(false);
                 return true;

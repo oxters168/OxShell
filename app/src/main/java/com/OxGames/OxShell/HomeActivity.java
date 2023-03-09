@@ -3,6 +3,7 @@ package com.OxGames.OxShell;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
 
@@ -49,36 +50,25 @@ public class HomeActivity extends PagedActivity {
     protected void onResume() {
         super.onResume();
         showAnnoyingDialog();
-        //refreshHome();
     }
 
     @Override
     protected void initViewsTable() {
         allPages.put(ActivityManager.Page.home, findViewById(R.id.home_view));
-//        allPages.put(ActivityManager.Page.settings, findViewById(R.id.settings_view));
-//        allPages.put(ActivityManager.Page.customizeHome, findViewById(R.id.customize_home_view));
-//        allPages.put(ActivityManager.Page.pkgList, findViewById(R.id.packages_list));
-//        allPages.put(ActivityManager.Page.assocList, findViewById(R.id.assoc_list_view));
-//        allPages.put(ActivityManager.Page.selectDirs, findViewById(R.id.selectdirs_view));
-//        allPages.put(ActivityManager.Page.intentShortcuts, findViewById(R.id.shortcuts_view));
     }
 
     private void showAnnoyingDialog() {
-        //TODO: Add dialog for 'free' version to ask for support
         if (!BuildConfig.GOLD) {
-            Log.d("HomeActivity", "Not running in gold");
+            Log.i("HomeActivity", "Not running in gold");
             PromptView prompt = getPrompt();
             prompt.setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
+            prompt.setMessage("If you enjoy Ox Shell, please consider supporting Ox Games by purchasing the app through the Google Play Store");
+            prompt.setMiddleBtn("Got it", () -> { prompt.setShown(false); }, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START);
             prompt.setShown(true);
         } else {
-            Log.d("HomeActivity", "Running in gold");
+            Log.i("HomeActivity", "Running in gold");
         }
     }
-
-//    public void refreshHome() {
-//        //TODO: Redo refresh home view with new xmb
-//        ((HomeView)allPages.get(ActivityManager.Page.home)).refresh();
-//    }
 
 //    public void getOverlayPermissionBtn(View view) {
 //        // Check if Android M or higher

@@ -252,7 +252,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+        if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
                 int nextRowIndex = rowIndex;
                 int nextColIndex = colIndex;

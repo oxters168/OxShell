@@ -3,7 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.text.TextUtils;
+import android.graphics.drawable.Drawable;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -13,29 +13,51 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
 
+import com.OxGames.OxShell.Data.ImageType;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class PromptView extends FrameLayout implements InputReceiver {
     private Context context;
     private ImageView img;
     private BetterTextView msg;
-    private Button leftBtn;
+    private Button startBtn;
     private Button middleBtn;
-    private Button rightBtn;
+    private Button endBtn;
+    private boolean isImageSet = false;
+    private ImageType imageType = ImageType.none;
+    private Object imgData;
+    private boolean isMsgSet = false;
+    private String message;
+    private boolean isStartBtnSet = false;
+    private String startBtnTxt;
+    private Runnable startBtnAction;
+    private final List<Integer> startBtnKeys = new ArrayList<>();
+    private boolean isMiddleBtnSet = false;
+    private String middleBtnTxt;
+    private Runnable middleBtnAction;
+    private final List<Integer> middleBtnKeys = new ArrayList<>();
+    private boolean isEndBtnSet = false;
+    private String endBtnTxt;
+    private Runnable endBtnAction;
+    private final List<Integer> endBtnKeys = new ArrayList<>();
+
     private boolean isShown = false;
     private float percentX = 0;
     private float percentY = 0;
+    private int chosenWidth = 0;
+    private int chosenHeight = 0;
 
     public PromptView(@NonNull Context context) {
         super(context);
@@ -53,26 +75,39 @@ public class PromptView extends FrameLayout implements InputReceiver {
         init();
     }
 
-    private void init() {
-        int borderMargin = Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
-        int imgSize = Math.round(getDefaultHeight() * 0.33f);
-        int btnWidth = Math.round((getDefaultWidth() - borderMargin * 4) / 3f); // *4 because left, right, and in between btns
-        int btnHeight = Math.round(getDefaultHeight() * 0.22f);
-        int textSize = Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
-        int textStartMargin = borderMargin * 2 + imgSize;
-        int textLowerMargin = borderMargin * 2 + btnHeight;
+    private int getBtnHeight() {
+        return Math.round(chosenHeight * 0.22f);
+    }
+    private int getImageSize() {
+        return Math.round(chosenHeight * 0.33f);
+    }
+    private int getBorderMargin() {
+        return Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
+    }
+    private int getTextSize() {
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
+    }
 
+    private void init() {
         isShown = false;
         setVisibility(GONE);
 
         LayoutParams layoutParams;
 
-        layoutParams = new FrameLayout.LayoutParams(getDefaultWidth(), getDefaultHeight());
+        layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         setLayoutParams(layoutParams);
-
+        setSize(getDefaultWidth(), getDefaultHeight());
         setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
         setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BB323232")));
+
+        int borderMargin = getBorderMargin();
+        int imgSize = getImageSize();
+        int btnWidth = Math.round((chosenWidth - borderMargin * 4) / 3f); // *4 because left, right, and in between btns
+        int btnHeight = getBtnHeight();
+        int textSize = getTextSize();
+        int textStartMargin = borderMargin * 2 + imgSize;
+        int textLowerMargin = borderMargin * 2 + btnHeight;
 
         img = new ImageView(context);
         layoutParams = new FrameLayout.LayoutParams(imgSize, imgSize);
@@ -101,15 +136,19 @@ public class PromptView extends FrameLayout implements InputReceiver {
         msg.setText("Quos voluptas commodi maxime dolore eveniet enim commodi et. Et qui nobis est earum eum. Excepturi quis nostrum consectetur ipsum debitis nihil autem. Vitae maiores ducimus et aut voluptas. Est ipsa aliquam quibusdam id atque. Veritatis nisi non minus quo aut. Qui voluptate eos nihil dolores aut. Atque debitis quidem similique molestias perferendis eum numquam qui. Necessitatibus hic quia nulla minus occaecati occaecati est. Unde qui culpa distinctio ea repellat omnis cumque voluptatibus. Vel ut non iste. Numquam ut est temporibus eveniet et exercitationem maxime. Adipisci rerum magnam ipsa laudantium dolores. Vitae ea rem dicta molestiae ut rerum placeat. Repellat fugiat et quo corporis culpa facilis quia. Vel et rerum doloribus porro reiciendis est aut. Illum nihil non et molestiae nostrum. Molestiae dolor cupiditate a numquam adipisci nobis. Rerum saepe libero doloribus incidunt sunt molestias explicabo. Error inventore libero quam nostrum voluptates minima corporis voluptatem. Culpa illum vel ut qui aut in. Eligendi perferendis pariatur dolorum reiciendis sit. Ut et labore magnam quas debitis. Autem et enim enim quia nam voluptatibus illo.");
         addView(msg);
 
-        leftBtn = new Button(context);
+        startBtn = new Button(context);
         layoutParams = new FrameLayout.LayoutParams(btnWidth, btnHeight);
         layoutParams.gravity = Gravity.BOTTOM | Gravity.START;
         layoutParams.setMargins(0, 0, 0, borderMargin);
         layoutParams.setMarginStart(borderMargin);
-        leftBtn.setLayoutParams(layoutParams);
-        leftBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
-        leftBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
-        addView(leftBtn);
+        startBtn.setLayoutParams(layoutParams);
+        startBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
+        startBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
+        startBtn.setOnClickListener(v -> {
+            if (startBtnAction != null)
+                startBtnAction.run();
+        });
+        addView(startBtn);
 
         middleBtn = new Button(context);
         layoutParams = new FrameLayout.LayoutParams(btnWidth, btnHeight);
@@ -118,32 +157,139 @@ public class PromptView extends FrameLayout implements InputReceiver {
         middleBtn.setLayoutParams(layoutParams);
         middleBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
         middleBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
+        middleBtn.setOnClickListener(v -> {
+            if (middleBtnAction != null)
+                middleBtnAction.run();
+        });
         addView(middleBtn);
 
-        rightBtn = new Button(context);
+        endBtn = new Button(context);
         layoutParams = new FrameLayout.LayoutParams(btnWidth, btnHeight);
         layoutParams.gravity = Gravity.BOTTOM | Gravity.END;
         layoutParams.setMargins(0, 0, 0, borderMargin);
         layoutParams.setMarginEnd(borderMargin);
-        rightBtn.setLayoutParams(layoutParams);
-        rightBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
-        rightBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
-        addView(rightBtn);
+        endBtn.setLayoutParams(layoutParams);
+        endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
+        endBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
+        endBtn.setOnClickListener(v -> {
+            if (endBtnAction != null)
+                endBtnAction.run();
+        });
+        addView(endBtn);
+    }
+    private boolean isAnyBtnSet() {
+        return isStartBtnSet || isMiddleBtnSet || isEndBtnSet;
+    }
+    private void rearrangeViews() {
+        img.setVisibility(isImageSet ? VISIBLE : GONE);
+        startBtn.setVisibility(isStartBtnSet ? VISIBLE : GONE);
+        middleBtn.setVisibility(isMiddleBtnSet ? VISIBLE : GONE);
+        endBtn.setVisibility(isEndBtnSet ? VISIBLE : GONE);
+
+        if (isImageSet)
+            img.setBackground(getImageDrawable());
+        if (isStartBtnSet)
+            startBtn.setText(startBtnTxt);
+        if (isMiddleBtnSet)
+            middleBtn.setText(middleBtnTxt);
+        if (isEndBtnSet)
+            endBtn.setText(endBtnTxt);
+        msg.setText(isMsgSet ? message : "");
+
+        int borderMargin = getBorderMargin();
+        int imgSize = getImageSize();
+        int btnHeight = getBtnHeight();
+        int textStartMargin = borderMargin * 2 + imgSize;
+        int textLowerMargin = borderMargin * 2 + btnHeight;
+
+        LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.gravity = Gravity.TOP | Gravity.END;
+        layoutParams.setMargins(0, borderMargin, 0, isAnyBtnSet() ? textLowerMargin : borderMargin);
+        layoutParams.setMarginStart(isImageSet ? textStartMargin : borderMargin);
+        layoutParams.setMarginEnd(borderMargin);
+        msg.setLayoutParams(layoutParams);
+    }
+    private void refreshSize() {
+        LayoutParams layoutParams = (FrameLayout.LayoutParams)getLayoutParams();
+        layoutParams.width = chosenWidth;
+        layoutParams.height = chosenHeight;
+        setLayoutParams(layoutParams);
     }
 
     public void setShown(boolean onOff) {
         isShown = onOff;
         updatePosition();
+        if (!isShown)
+            resetValues();
+        else {
+            refreshSize();
+            rearrangeViews();
+        }
         setVisibility(onOff ? VISIBLE : GONE);
+    }
+    public void setPromptImage(int resourceId) {
+        isImageSet = true;
+        imageType = ImageType.resource;
+        imgData = resourceId;
+    }
+    public void setStartBtn(String text, Runnable onClick, Integer... keycodes) {
+        isStartBtnSet = true;
+        startBtnTxt = text;
+        startBtnAction = onClick;
+        if (keycodes != null)
+            Collections.addAll(startBtnKeys, keycodes);
+    }
+    public void setMiddleBtn(String text, Runnable onClick, Integer... keycodes) {
+        isMiddleBtnSet = true;
+        middleBtnTxt = text;
+        middleBtnAction = onClick;
+        if (keycodes != null)
+            Collections.addAll(middleBtnKeys, keycodes);
+    }
+    public void setEndBtn(String text, Runnable onClick, Integer... keycodes) {
+        isEndBtnSet = true;
+        endBtnTxt = text;
+        endBtnAction = onClick;
+        if (keycodes != null)
+            Collections.addAll(endBtnKeys, keycodes);
+    }
+    public void setMessage(String text) {
+        isMsgSet = true;
+        message = text;
+    }
+    private Drawable getImageDrawable() {
+        if (imageType == ImageType.resource)
+            return ContextCompat.getDrawable(context, (Integer)imgData);
+        return null;
+    }
+    public void resetValues() {
+        chosenWidth = getDefaultWidth();
+        chosenHeight = getDefaultHeight();
+        isImageSet = false;
+        imageType = ImageType.none;
+        imgData = null;
+        isMsgSet = false;
+        message = null;
+        isStartBtnSet = false;
+        startBtnTxt = null;
+        startBtnAction = null;
+        startBtnKeys.clear();
+        isMiddleBtnSet = false;
+        middleBtnTxt = null;
+        middleBtnAction = null;
+        middleBtnKeys.clear();
+        isEndBtnSet = false;
+        endBtnTxt = null;
+        endBtnAction = null;
+        endBtnKeys.clear();
     }
     public boolean isPromptShown() {
         return isShown;
     }
     public void setSize(int width, int height) {
-        LayoutParams layoutParams = (FrameLayout.LayoutParams)getLayoutParams();
-        layoutParams.width = width;
-        layoutParams.height = height;
-        setLayoutParams(layoutParams);
+        chosenWidth = width;
+        chosenHeight = height;
+        refreshSize();
     }
     public void setCenteredPosition(int x, int y) {
         percentX = x / (float)OxShellApp.getDisplayWidth();
@@ -154,8 +300,8 @@ public class PromptView extends FrameLayout implements InputReceiver {
         LayoutParams layoutParams = (FrameLayout.LayoutParams)getLayoutParams();
         int width = layoutParams.width;
         int height = layoutParams.height;
-        setX(percentX * OxShellApp.getDisplayWidth() - width / 2f);
-        setY(percentY * OxShellApp.getDisplayHeight() - height / 2f);
+        setX((percentX * OxShellApp.getDisplayWidth()) - (width / 2f));
+        setY((percentY * OxShellApp.getDisplayHeight()) - (height / 2f));
     }
     public int getDefaultWidth() {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 300));
@@ -166,6 +312,24 @@ public class PromptView extends FrameLayout implements InputReceiver {
 
     @Override
     public boolean receiveKeyEvent(KeyEvent keyEvent) {
+        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
+            if (isStartBtnSet && startBtnAction != null && startBtnKeys.contains(keyEvent.getKeyCode())) {
+                startBtnAction.run();
+                return true;
+            }
+            if (isMiddleBtnSet && middleBtnAction != null && middleBtnKeys.contains(keyEvent.getKeyCode())) {
+                middleBtnAction.run();
+                return true;
+            }
+            if (isEndBtnSet && endBtnAction != null && endBtnKeys.contains(keyEvent.getKeyCode())) {
+                endBtnAction.run();
+                return true;
+            }
+            if (!isAnyBtnSet() && (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_START)) {
+                setShown(false);
+                return true;
+            }
+        }
         if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK)
             return true; // in case its not mapped to anything, then don't quit OxShell
         return false;

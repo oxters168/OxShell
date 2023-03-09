@@ -85,7 +85,7 @@ public class RunningAppsView extends SlideTouchGridView {
 //    }
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+        if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2) {
                 ActivityManager.goTo(ActivityManager.Page.home);
                 return true;
