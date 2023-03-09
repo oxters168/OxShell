@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.os.BatteryManager;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -16,16 +19,10 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class GLRenderer implements GLSurfaceView.Renderer {
-    //public final String STORAGE_DIR_EXTERNAL;
-    //public final String STORAGE_DIR_INTERNAL;
-    //public final String SHADER_ITEMS_DIR_EXTERNAL;
-    //public final String SHADER_ITEMS_DIR_INTERNAL;
-
     private Shader shader;
     private int glVersion;
     private int width, height;
     private GLWallpaperService.GLEngine callingEngine;
-    //private boolean mouseDown;
     private long lastChange;
     public boolean reload = false;
 
@@ -111,7 +108,6 @@ public class GLRenderer implements GLSurfaceView.Renderer {
             //if (reload) {
             if (firstLoad || reload) {
                 Log.d("GLRenderer", "Applying reload on " + GLWallpaperService.getEngineIndex(callingEngine) + ", firstLoad: " + firstLoad + ", reload: " + reload + ", shadersChanged: " + shadersChanged + ", visibility: " + callingEngine.isVisible() + ", preview: " + callingEngine.isPreview() + ", preview present: " + GLWallpaperService.isPreviewPresent());
-                //callingEngine.getSurfaceView().setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
                 reload = false;
                 lastChange = currentTime;
                 shader.setShaderCode(vert, frag);
@@ -124,26 +120,27 @@ public class GLRenderer implements GLSurfaceView.Renderer {
                         bitmap.recycle();
                     }
                 }
-                //callingEngine.getSurfaceView().setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
             }
         }
     }
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.d("GLRenderer", "Surface changed");
-        reloadFromFile(false);
         this.width = width;
         this.height = height;
-        if (shader != null)
-            shader.setViewportSize(width, height);
-        else
-            Log.e("GLRender", "Attempting to change values to null shader");
+        reloadFromFile(false);
+//        if (shader != null)
+//            shader.setViewportSize(width, height);
+//        else
+//            Log.e("GLRender", "Attempting to change values to null shader");
     }
     @Override
     public void onDrawFrame(GL10 gl) {
-        if (shader != null)
+        //Log.d("GLRenderer", "onDrawFrame");
+        if (shader != null) {
+            shader.setViewportSize(width, height);
             shader.draw();
-        else
+        } else
             Log.e("GLRenderer", "Cannot draw null shader");
     }
 }

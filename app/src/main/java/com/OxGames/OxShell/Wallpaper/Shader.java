@@ -106,6 +106,8 @@ public class Shader {
     //private int setWidth = 1, setHeight = 1;
     private float mousex = 0, mousey = 0, mousez = -1, mousew = -1;
     private BatteryInfo batteryInfo = new BatteryInfo();
+    private int viewportWidth;
+    private int viewportHeight;
 
 
     private int glVersion;
@@ -214,38 +216,15 @@ public class Shader {
     }
 
     public Shader(int glVersion) {
-        this.glVersion = glVersion;
-        initValues(glVersion);
-
-        //setShaderCode(null);
-        //programHandle = createProgram(glClass,null);
-        //prepHandles();
+        prepareGl(glVersion);
     }
     public Shader(int glVersion, String vertexCode, String fragmentCode) {
-        this.glVersion = glVersion;
-        initValues(glVersion);
-
+        prepareGl(glVersion);
         setShaderCode(vertexCode, fragmentCode);
-//        HashMap<Integer, String> shaderCode = new HashMap<>();
-//        try { shaderCode.put((int)glClass.getField("GL_VERTEX_SHADER").get(null), vertexCode); } catch(Exception e) { Log.e("Shader", "Failed to retrieve constant GL_VERTEX_SHADER: " + e.toString()); }
-//        try { shaderCode.put((int)glClass.getField("GL_FRAGMENT_SHADER").get(null), fragmentCode); } catch(Exception e) { Log.e("Shader", "Failed to retrieve constant GL_FRAGMENT_SHADER: " + e.toString()); }
-//
-//        programHandle = createProgram(glClass, shaderCode);
-//        if (programHandle == UNKNOWN_PROGRAM) {
-//            Log.w("Shader", "Creating shader failed, using fallback shader");
-//            programHandle = createProgram(glClass, null);
-//        }
-//        prepHandles();
     }
     public Shader(int glVersion, HashMap<Integer, String> shaderCode) {
-        this.glVersion = glVersion;
-        initValues(glVersion);
-
+        prepareGl(glVersion);
         setShaderCode(shaderCode);
-//        programHandle = createProgram(glClass, shaderCode);
-//        if (programHandle == UNKNOWN_PROGRAM)
-//            programHandle = createProgram(glClass,null);
-//        prepHandles();
     }
     public Shader() {
         this(GL_DEFAULT_VERSION);
@@ -284,8 +263,7 @@ public class Shader {
     }
     public void setShaderCode(HashMap<Integer, String> shaderCode) {
         deleteProgram();
-        //initValues(glVersion);
-        resetValues();
+        initValues();
 
         programHandle = createProgram(glClass, shaderCode);
         if (programHandle == UNKNOWN_PROGRAM) {
@@ -324,9 +302,6 @@ public class Shader {
     }
 
     protected void draw() {
-        //if (programHandle == UNKNOWN_PROGRAM)
-        //    return;
-
         try {
             glClass.getMethod("glClearColor", float.class, float.class, float.class, float.class).invoke(null, 0.0f, 0.0f, 0.0f, 0.0f);
             glClass.getMethod("glClear", int.class).invoke(null, ((int) glClass.getField("GL_DEPTH_BUFFER_BIT").get(null)) | ((int) glClass.getField("GL_COLOR_BUFFER_BIT").get(null)));
@@ -337,6 +312,15 @@ public class Shader {
         } catch(Exception e) {
             Log.e("Shader", "Failed to reference shader in draw: " + e.toString());
             return;
+        }
+        try {
+            glClass.getMethod("glViewport", int.class, int.class, int.class, int.class).invoke(null, 0, 0, viewportWidth, viewportHeight);
+        } catch(Exception e) { Log.e("Shader", "Failed to set viewport: " + e.toString()); }
+
+        if (iResolutionHandle != UNKNOWN_UNIFORM) {
+            try {
+                glClass.getMethod("glUniform3f", int.class, float.class, float.class, float.class).invoke(null, iResolutionHandle, viewportWidth, viewportHeight, 1); //TODO: figure out how to calculate pixel aspect ratio
+            } catch (Exception e) { Log.e("Shader", "Failed to set resolution: " + e.toString()); }
         }
 
         frame++;
@@ -400,19 +384,8 @@ public class Shader {
         // Set the OpenGL viewport to the same size as the surface.
         //Log.d("Shader", width + ", " + height);
         double scale = 1.0;
-        int resizedWidth = (int)Math.floor(width * scale);
-        int resizedHeight = (int)Math.floor(height * scale);
-        //setWidth = resizedWidth;
-        //setHeight = resizedHeight;
-        try {
-            glClass.getMethod("glViewport", int.class, int.class, int.class, int.class).invoke(null, 0, 0, resizedWidth, resizedHeight);
-        } catch(Exception e) { Log.e("Shader", "Failed to set viewport: " + e.toString()); }
-
-        if (iResolutionHandle != UNKNOWN_UNIFORM) {
-            try {
-                glClass.getMethod("glUniform3f", int.class, float.class, float.class, float.class).invoke(null, iResolutionHandle, resizedWidth, resizedHeight, 1); //TODO: figure out how to calculate pixel aspect ratio
-            } catch (Exception e) { Log.e("Shader", "Failed to set resolution: " + e.toString()); }
-        }
+        viewportWidth = (int)Math.floor(width * scale);
+        viewportHeight = (int)Math.floor(height * scale);
     }
     public void setMousePos(float x, float y, float z, float w) {
         mousex = x;
@@ -518,7 +491,8 @@ public class Shader {
         } catch(Exception e) { Log.e("Shader", "Failed to set attribute " + attrName + ": " + e.toString()); }
     }
 
-    private void initValues(int glVersion) {
+    private void prepareGl(int glVersion) {
+        this.glVersion = glVersion;
         switch(glVersion) {
             case 0x30002:
                 Log.i("Shader", "Using GLES32");
@@ -539,8 +513,18 @@ public class Shader {
             default:
                 throw new UnsupportedOperationException("OpenGL version " + glVersion + " (convert to hex) is not supported");
         }
+    }
+    private void initValues() {
+        availableTexUnits = new ArrayDeque<>();
+        texHandleUnits = new HashMap<>();
+        for (int i = 0; i < MAX_TEXTURE_COUNT; i++)
+            availableTexUnits.offer(i);
 
-        resetValues();
+        startTime = System.currentTimeMillis();
+        frame = 0;
+        prevTime = 0;
+        viewportWidth = 0;
+        viewportHeight = 0;
 
         // set array of Quad vertices
         float[] quadVerticesData = new float[] {
@@ -551,16 +535,6 @@ public class Shader {
         };
         quadVertices = ByteBuffer.allocateDirect(quadVerticesData.length * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
         quadVertices.put(quadVerticesData).position(0);
-    }
-    private void resetValues() {
-        availableTexUnits = new ArrayDeque<>();
-        texHandleUnits = new HashMap<>();
-        for (int i = 0; i < MAX_TEXTURE_COUNT; i++)
-            availableTexUnits.offer(i);
-
-        startTime = System.currentTimeMillis();
-        frame = 0;
-        prevTime = 0;
     }
 
     private int createProgram(Class<? extends GLES20> glClass, HashMap<Integer, String> shaderCode) {
@@ -645,7 +619,7 @@ public class Shader {
         return shaderHandle;
     }
     private static void deleteShader(Class<? extends GLES20> glClass, int shaderHandle) {
-        Log.d("Shader", "Deleting shaader with handle " + shaderHandle);
+        Log.d("Shader", "Deleting shader with handle " + shaderHandle);
         try {
             glClass.getMethod("glDeleteShader", int.class).invoke(null, shaderHandle);
         } catch(Exception e) { Log.e("Shader", "Failed to delete shader with handle " + shaderHandle); }

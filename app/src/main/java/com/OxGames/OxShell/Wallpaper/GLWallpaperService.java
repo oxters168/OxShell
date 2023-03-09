@@ -6,17 +6,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ConfigurationInfo;
+import android.graphics.Canvas;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.service.wallpaper.WallpaperService;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.View;
 import android.view.WindowManager;
+
+import androidx.annotation.NonNull;
 
 import com.OxGames.OxShell.Helpers.LogcatHelper;
 
@@ -144,7 +149,6 @@ public class GLWallpaperService extends WallpaperService {
 //        }
         private void requestReload() {
             if (rendererHasBeenSet) {
-                //glSurfaceView.requestRender();
                 if (renderer instanceof GLRenderer)
                     ((GLRenderer)renderer).reload = true;
             }
@@ -154,10 +158,6 @@ public class GLWallpaperService extends WallpaperService {
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             Log.d("GLEngine", "onSurfaceChanged");
             super.onSurfaceChanged(holder, format, width, height);
-            //setupSurfaceView();
-            //if (rendererHasBeenSet)
-            //    if (renderer instanceof GLRenderer)
-            //        ((GLRenderer)renderer).reloadFromFile();
         }
 
         @Override
@@ -254,6 +254,37 @@ public class GLWallpaperService extends WallpaperService {
             public void onDestroy() {
                 Log.d("WallpaperGLSurfaceView", "onDestroy");
                 super.onDetachedFromWindow();
+            }
+
+            @Override
+            protected void onAnimationStart() {
+                Log.d("WallpaperGLSurfaceView", "onAnimationStart");
+                super.onAnimationStart();
+            }
+            @Override
+            protected void onAnimationEnd() {
+                Log.d("WallpaperGLSurfaceView", "onAnimationEnd");
+                super.onAnimationEnd();
+            }
+            @Override
+            protected void onDraw(Canvas canvas) {
+                Log.d("WallpaperGLSurfaceView", "onDraw");
+                super.onDraw(canvas);
+            }
+            @Override
+            protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
+                Log.d("WallpaperGLSurfaceView", "onVisibilityChanged: " + visibility);
+                super.onVisibilityChanged(changedView, visibility);
+            }
+            @Override
+            public void draw(Canvas canvas) {
+                Log.d("WallpaperGLSurfaceView", "draw");
+                super.draw(canvas);
+            }
+            @Override
+            protected void dispatchDraw(Canvas canvas) {
+                Log.d("WallpaperGLSurfaceView", "dispatchDraw");
+                super.dispatchDraw(canvas);
             }
         }
     }
