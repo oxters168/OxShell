@@ -18,7 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.OxGames.OxShell.Data.ImageType;
+import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
@@ -36,7 +36,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
     private Button middleBtn;
     private Button endBtn;
     private boolean isImageSet = false;
-    private ImageType imageType = ImageType.none;
+    private DataLocation imageLoc = DataLocation.none;
     private Object imgData;
     private boolean isMsgSet = false;
     private String message;
@@ -228,7 +228,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
     }
     public void setPromptImage(int resourceId) {
         isImageSet = true;
-        imageType = ImageType.resource;
+        imageLoc = DataLocation.resource;
         imgData = resourceId;
     }
     public void setStartBtn(String text, Runnable onClick, Integer... keycodes) {
@@ -257,7 +257,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         message = text;
     }
     private Drawable getImageDrawable() {
-        if (imageType == ImageType.resource)
+        if (imageLoc == DataLocation.resource)
             return ContextCompat.getDrawable(context, (Integer)imgData);
         return null;
     }
@@ -267,7 +267,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         chosenWidth = getDefaultWidth();
         chosenHeight = getDefaultHeight();
         isImageSet = false;
-        imageType = ImageType.none;
+        imageLoc = DataLocation.none;
         imgData = null;
         isMsgSet = false;
         message = null;

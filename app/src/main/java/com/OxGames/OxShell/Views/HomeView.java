@@ -154,11 +154,10 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.setImageBg) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-                    dynamicInput.setTitle("Choose Shader Files");
-                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
+                    dynamicInput.setTitle("Choose Image");
+                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Image File Path");
 
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-                        // TODO: add way to choose certain values within chosen shader
                         currentActivity.requestContent("file/*", uri -> {
                             if (uri != null)
                                 titleInput.setText(uri.getPath());
@@ -360,11 +359,16 @@ public class HomeView extends XMBView implements Refreshable {
         // TODO: add option to change icon alpha
         // TODO: add option to reset home items to default
         // TODO: add option to change home/explorer scale
-        // TODO: move add association to home to home settings
-        // TODO: add edit association option
+        // TODO: move add association to home settings?
+        // TODO: add edit association option (and/or add it in the context drawer)
+        innerSettings = new XMBItem[2];
+        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set font size");
+        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set typeface");
+        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
+        settingsColumn.add(settingsItem);
+
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
-
         List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
         //long loadHomeStart = SystemClock.uptimeMillis();
         List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());

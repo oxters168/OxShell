@@ -88,6 +88,9 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
                 makeSelection();
                 return true;
             }
+        }
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            // action down since the action gets repeated when held
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
                 selectNextItem();
                 return true;

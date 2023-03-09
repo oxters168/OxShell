@@ -1086,6 +1086,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 cancelAction();
                 return true;
             }
+        }
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            // in action down since we want the repeated events
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
                 stopMomentum();
                 selectLowerItem();

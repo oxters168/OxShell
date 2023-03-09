@@ -3,16 +3,21 @@ package com.OxGames.OxShell.Adapters;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Color;
+import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
+import com.OxGames.OxShell.Views.BetterTextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +26,9 @@ public class DetailAdapter implements ListAdapter {
     Context context;
     List<DetailItem> detailItems;
     //private int highlightedIndex = -1;
+    private final int ICON_ID = View.generateViewId();
+    private final int TITLE_ID = View.generateViewId();
+    private final int IS_DIR_ID = View.generateViewId();
     private final int currentItemColor = Color.parseColor("#33EAF0CE");
     private final int selectedColor = Color.parseColor("#33CEEAF0");
     private final int currentAndSelectedColor = Color.parseColor("#33F0CEEA");
@@ -46,13 +54,66 @@ public class DetailAdapter implements ListAdapter {
 //        highlightedIndex = index;
 //    }
 
+    private int getTextSize() {
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 4));
+    }
+    private View createDetailItem() {
+        int textSize = getTextSize();
+        int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3));
+
+        FrameLayout detailItem = new FrameLayout(context);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 48);
+        detailItem.setLayoutParams(params);
+
+        ImageView typeIcon = new ImageView(context);
+        typeIcon.setId(ICON_ID);
+        params = new FrameLayout.LayoutParams(32, 32);
+        params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+        typeIcon.setLayoutParams(params);
+        detailItem.addView(typeIcon);
+
+        BetterTextView title = new BetterTextView(context);
+        title.setId(TITLE_ID);
+        params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+        title.setLayoutParams(params);
+        title.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        title.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        title.setMarqueeRepeatLimit(-1);
+        title.setSingleLine(true);
+        title.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        title.setTextColor(context.getColor(R.color.text));
+        title.setTextSize(textSize);
+        title.setOutlineColor(Color.parseColor("#000000"));
+        title.setOutlineSize(textOutlineSize);
+        detailItem.addView(title);
+
+        BetterTextView isDir = new BetterTextView(context);
+        isDir.setId(IS_DIR_ID);
+        params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+        isDir.setLayoutParams(params);
+        isDir.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        isDir.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+        isDir.setMarqueeRepeatLimit(-1);
+        isDir.setSingleLine(true);
+        isDir.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+        isDir.setTextColor(context.getColor(R.color.text));
+        isDir.setTextSize(textSize);
+        isDir.setOutlineColor(Color.parseColor("#000000"));
+        isDir.setOutlineSize(textOutlineSize);
+        detailItem.addView(isDir);
+
+        return detailItem;
+    }
     @Override
     public View getView(int position, View view, ViewGroup parent) {
         DetailItem detailItem = detailItems.get(position);
         //Log.d("DetailAdapter", "Item at " + position + ": " + detailItem.leftAlignedText);
         if (view == null) {
-            LayoutInflater layoutInflater = LayoutInflater.from(context);
-            view = layoutInflater.inflate(R.layout.detail_row, null);
+            //LayoutInflater layoutInflater = LayoutInflater.from(context);
+            //view = layoutInflater.inflate(R.layout.detail_row, null);
+            view = createDetailItem();
         }
 
         int color = noneColor;
@@ -64,17 +125,18 @@ public class DetailAdapter implements ListAdapter {
             color = selectedColor;
         view.setBackgroundColor(color); //TODO: implement color theme that can take custom theme from file
 
-        TextView title = view.findViewById(R.id.cat_title);
+        BetterTextView title = view.findViewById(TITLE_ID);
         title.setText(detailItem.leftAlignedText);
 
-        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) title.getLayoutParams();
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)title.getLayoutParams();
         params.setMargins(detailItem.hasIcon() ? 40 : 0, 0, 0, 0);
+        title.setLayoutParams(params);
 
-        TextView rightText = view.findViewById(R.id.isDir);
+        BetterTextView rightText = view.findViewById(IS_DIR_ID);
         rightText.setVisibility(detailItem.rightAlignedText != null && !detailItem.rightAlignedText.isEmpty() ? View.VISIBLE : View.INVISIBLE);
         rightText.setText(detailItem.rightAlignedText);
 
-        ImageView typeIcon = view.findViewById(R.id.typeIcon);
+        ImageView typeIcon = view.findViewById(ICON_ID);
         typeIcon.setImageDrawable(detailItem.getIcon());
         typeIcon.setVisibility(detailItem.hasIcon() ? View.VISIBLE : View.GONE);
 

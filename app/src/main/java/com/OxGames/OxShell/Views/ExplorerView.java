@@ -99,6 +99,16 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         // TODO: add option for select all
         // TODO: add launch with option that lets you pick from a list of assocs that have the proper extension
         if (!currentActivity.isInAContextMenu()) {
+            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+                // within action down since we want the repeat when held
+                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+                    DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
+                    if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+                        setItemSelected(properPosition, !isItemSelected(properPosition));
+                    selectNextItem();
+                    return true;
+                }
+            }
             if (key_event.getAction() == KeyEvent.ACTION_UP) {
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                     if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
@@ -108,13 +118,6 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
                 }
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
                     goUp();
-                    return true;
-                }
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                    DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
-                    if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
-                        setItemSelected(properPosition, !isItemSelected(properPosition));
-                    selectNextItem();
                     return true;
                 }
                 if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
