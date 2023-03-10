@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
@@ -52,7 +54,9 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
 
     private void init() {
         setX(OxShellApp.getDisplayWidth());
-        setBackgroundColor(Color.parseColor("#323232"));
+        //setBackgroundColor(Color.parseColor("#88323232"));
+        setBackground(ContextCompat.getDrawable(context, R.drawable.fading_right_edge));
+        setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#323232")));
         setAlpha(0);
 
         FrameLayout.LayoutParams layoutParams;
