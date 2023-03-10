@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
@@ -61,8 +62,8 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
 
         FrameLayout.LayoutParams layoutParams;
 
-        // TODO: change hard coded width to a more appropriate solution (maybe use something like AndroidHelpers.getUiScale())
-        int settingsDrawerWidth = 512;
+        // TODO: add scale option?
+        int settingsDrawerWidth = Math.round(AndroidHelpers.getScaledDpToPixels(context, 200));
         layoutParams = new FrameLayout.LayoutParams(settingsDrawerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
         setLayoutParams(layoutParams);
 
