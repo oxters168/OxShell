@@ -202,6 +202,7 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        Log.d("PagedActivity", "onConfigurationChanged");
         super.onConfigurationChanged(newConfig);
         //fixDrawerLayout();
         initPromptView();

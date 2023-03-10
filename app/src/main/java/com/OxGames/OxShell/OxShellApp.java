@@ -11,10 +11,6 @@ import androidx.annotation.NonNull;
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
 public class OxShellApp extends Application {
     private static OxShellApp instance;
-    private static int displayWidth = 0;
-    private static int displayHeight = 0;
-    private static int smallestScreenWidthDp = 0;
-    private static int densityDpi = 0;
 
     public static OxShellApp getInstance() {
         return instance;
@@ -73,23 +69,27 @@ public class OxShellApp extends Application {
     }
     private void getDisplayInfo() {
         DisplayMetrics dm = getResources().getDisplayMetrics();
-        displayWidth = dm.widthPixels;
-        displayHeight = dm.heightPixels;
+        int displayWidth = dm.widthPixels;
+        int displayHeight = dm.heightPixels;
         Configuration cfg = getResources().getConfiguration();
-        smallestScreenWidthDp = cfg.smallestScreenWidthDp;
-        densityDpi = cfg.densityDpi;
+        int smallestScreenWidthDp = cfg.smallestScreenWidthDp;
+        int densityDpi = cfg.densityDpi;
         Log.i("OxShellApp", "Display width: " + displayWidth + "\nDisplay height: " + displayHeight + "\nSmallest screen width: " + smallestScreenWidthDp + "\nDensity DPI: " + densityDpi);
     }
     public static int getDisplayWidth() {
-        return displayWidth;
+        DisplayMetrics dm = instance.getResources().getDisplayMetrics();
+        return dm.widthPixels;
     }
     public static int getDisplayHeight() {
-        return displayHeight;
+        DisplayMetrics dm = instance.getResources().getDisplayMetrics();
+        return dm.heightPixels;
     }
     public static int getSmallestScreenWidthDp() {
-        return smallestScreenWidthDp;
+        Configuration cfg = instance.getResources().getConfiguration();
+        return cfg.smallestScreenWidthDp;
     }
     public static int getDensityDpi() {
-        return densityDpi;
+        Configuration cfg = instance.getResources().getConfiguration();
+        return cfg.densityDpi;
     }
 }
