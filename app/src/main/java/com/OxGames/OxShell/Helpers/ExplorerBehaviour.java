@@ -6,21 +6,20 @@ import android.util.Log;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedList;
-import java.util.Locale;
+import java.util.Stack;
 
 public class ExplorerBehaviour {
-    private LinkedList<String> history;
-    private int maxHistory = 100;
+    private Stack<String> history;
+    //private int maxHistory = 100;
     // where we currently are
-    private File current;
+    //private File current;
 
     private String[] tempForCutOrCopy;
     private boolean isCopying;
     private boolean isCutting;
 
     public ExplorerBehaviour() {
-        history = new LinkedList<>();
+        history = new Stack<>();
 
         //TODO: make default path be internal files and make internal and external directories quick access (probably with the use of getFilesDir() & getExternalMediaDirs())
         String startPath = Environment.getExternalStorageDirectory().toString();
@@ -28,7 +27,7 @@ public class ExplorerBehaviour {
     }
 
     public boolean hasParent() {
-        String parentDir = current.getParent();
+        String parentDir = getParent();
         try {
             File parent = new File(parentDir);
             return parent.exists();
@@ -38,28 +37,43 @@ public class ExplorerBehaviour {
         }
     }
     public String getParent() {
-        return current.getParent();
+        return new File(getDirectory()).getParent();
     }
     public void goUp() {
         setDirectory(getParent());
     }
+    public String goBack() {
+        if (history.size() > 1)
+            return history.pop();
+        return null;
+    }
     public void setDirectory(String path) {
         //Log.d("Files", "Path: " + path);
         try {
-            current = new File(path);
-            appendHistory(path);
+            File current = new File(path);
 
-            if (!current.canRead())
-                Log.e("Files", "Cannot read contents of directory");
-            if (!current.exists())
-                Log.e("Files", "Current directory does not exist somehow");
+            if (!current.canRead()) {
+                Log.e("Files", "Cannot read contents of " + path);
+                //return;
+            }
+            if (!current.exists()) {
+                Log.e("Files", path + " does not exist");
+                return;
+            }
+            if (!current.isDirectory()) {
+                Log.e("ExplorerBehaviour", path + " is not a directory");
+                return;
+            }
+
+            //appendHistory(path);
+            history.push(path);
         }
         catch (Exception e) {
-            Log.e("Files", e.toString());
+            Log.e("Files", "Failed to set directory: " + e.toString());
         }
     }
     public String getDirectory() {
-        return current.getAbsolutePath();
+        return history.peek();
     }
     public File[] listContents() {
         if (!AndroidHelpers.hasReadStoragePermission())
@@ -68,17 +82,17 @@ public class ExplorerBehaviour {
         //IntentLaunchData ild = new IntentLaunchData();
         //ild.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
         //ild.launch();
-        return current.listFiles();
+        return new File(getDirectory()).listFiles();
     }
 
-    public String getLastItemInHistory() {
-        return history.get(history.size() - 2);
+    public String getPrevDirectory() {
+        return history.size() > 1 ? history.get(history.size() - 2) : null;
     }
-    private void appendHistory(String path) {
-        history.add(path);
-        while (history.size() > maxHistory)
-            history.removeFirst();
-    }
+//    private void appendHistory(String path) {
+//        history.add(path);
+//        while (history.size() > maxHistory)
+//            history.removeFirst();
+//    }
 
     public boolean isCopying() {
         return isCopying;
@@ -99,10 +113,10 @@ public class ExplorerBehaviour {
     public void paste() {
         if (tempForCutOrCopy != null) {
             if (isCopying) {
-                copyFiles(current.getAbsolutePath(), tempForCutOrCopy);
+                copyFiles(getDirectory(), tempForCutOrCopy);
                 isCopying = false;
             } else if (isCutting) {
-                moveFiles(current.getAbsolutePath(), tempForCutOrCopy);
+                moveFiles(getDirectory(), tempForCutOrCopy);
                 isCutting = false;
             } else
                 Log.e("ExplorerBehaviour", "Could not paste when not cut or copied");
@@ -155,7 +169,7 @@ public class ExplorerBehaviour {
                     }
                 }
             } else
-                Log.e("ExplorerBehaviour", "Attempted to copy into self");
+                Log.e("ExplorerBehaviour", "Failed to copy files, attempted to copy into self");
         }
     }
     public static void moveFiles(String destination, String... files) {
@@ -191,7 +205,7 @@ public class ExplorerBehaviour {
                     }
                 }
             } else
-                Log.e("ExplorerBehaviour", "Attempted to move into self");
+                Log.e("ExplorerBehaviour", "Failed to move files, attempted to move into self");
         }
     }
 }

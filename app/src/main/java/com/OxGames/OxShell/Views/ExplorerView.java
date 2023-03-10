@@ -8,15 +8,11 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
-import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Adapters.DetailAdapter;
@@ -25,7 +21,6 @@ import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Interfaces.PermissionsListener;
-import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
@@ -33,30 +28,26 @@ import com.OxGames.OxShell.Data.ShortcutsCache;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class ExplorerView extends SlideTouchListView implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
-    //private SlideTouchHandler slideTouch = new SlideTouchHandler();
-//    private ActivityManager.Page CURRENT_PAGE = ActivityManager.Page.explorer;
 
-    // TODO: fix issue where switching orientation returns to home directory
     public ExplorerView(Context context) {
         super(context);
-        //setMargins();
-        ActivityManager.getCurrentActivity().addPermissionListener(this);
-        explorerBehaviour = new ExplorerBehaviour();
-        refresh();
+        init();
     }
     public ExplorerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        //setMargins();
-        ActivityManager.getCurrentActivity().addPermissionListener(this);
-        explorerBehaviour = new ExplorerBehaviour();
-        refresh();
+        init();
     }
     public ExplorerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        init();
+    }
+
+    private void init() {
+        //Log.d("ExplorerView", "Creating");
+        //SettingsKeeper.hasValue()
         //setMargins();
         ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
@@ -84,7 +75,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.d("Explorer", "Storage permission granted");
+                Log.i("Explorer", "Storage permission granted");
                 refresh();
             }  else {
                 Log.e("Explorer", "Storage permission denied");
@@ -326,22 +317,6 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
 
             return super.receiveKeyEvent(key_event);
         }
-//        else if (currentActivity.getSettingsDrawer().isDrawerOpen()) {
-//            if (key_event.getAction() == KeyEvent.ACTION_UP) {
-//                if ((key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
-//                    currentActivity.getSettingsDrawer().setShown(false);
-//                    return true;
-//                }
-//            }
-//        }
-//        else if (currentActivity.getDynamicInput().isOverlayShown()) {
-//            if (key_event.getAction() == KeyEvent.ACTION_UP) {
-//                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-//                    currentActivity.getDynamicInput().setShown(false);
-//                    return true;
-//                }
-//            }
-//        }
         return false;
     }
 
@@ -408,12 +383,14 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         tryHighlightPrevDir();
     }
     private void tryHighlightPrevDir() {
-        String previousDir = explorerBehaviour.getLastItemInHistory();
+        tryHighlightItem(explorerBehaviour.getPrevDirectory());
+    }
+    private void tryHighlightItem(String path) {
         for (int i = 0; i < getCount(); i++) {
             File file = ((File)((DetailItem)getItemAtPosition(i)).obj);
             if (file != null) {
                 String itemDir = file.getAbsolutePath();
-                if (itemDir.equalsIgnoreCase(previousDir)) {
+                if (itemDir.equalsIgnoreCase(path)) {
                     requestFocusFromTouch();
                     setProperPosition(i);
                     break;
@@ -423,6 +400,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
     }
     @Override
     public void refresh() {
+        //Log.d("ExplorerView", "Refreshing");
         ArrayList<DetailItem> arrayList = new ArrayList<>();
         File[] files = explorerBehaviour.listContents();
         boolean isEmpty = files == null || files.length <= 0;

@@ -45,6 +45,7 @@ public class HomeActivity extends PagedActivity {
 
         //HomeManager.init();
         goTo(ActivityManager.Page.home);
+        //Log.d("HomeActivity", "onCreate");
     }
 
     @Override
@@ -59,12 +60,14 @@ public class HomeActivity extends PagedActivity {
         super.onResume();
         getDynamicInput().addShownListener(onDynamicInputShown);
         //showAnnoyingDialog();
+        //Log.d("HomeActivity", "onResume");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         getDynamicInput().removeShownListener(onDynamicInputShown);
+        //Log.d("HomeActivity", "onDestroy");
     }
 
     @Override

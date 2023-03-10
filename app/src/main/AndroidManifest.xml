@@ -115,7 +115,8 @@
         <activity
             android:name=".ExplorerActivity"
             android:exported="false"
-            android:theme="@style/Theme.OxShell">
+            android:configChanges="orientation|keyboardHidden|screenSize">
+<!--            android:theme="@style/Theme.OxShell">-->
         </activity>
         <activity
             android:name=".FileChooserActivity"
