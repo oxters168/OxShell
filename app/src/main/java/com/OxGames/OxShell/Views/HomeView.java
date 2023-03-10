@@ -260,26 +260,24 @@ public class HomeView extends XMBView implements Refreshable {
                 Integer[] position = getPosition();
                 boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
                 boolean hasColumnHead = getAdapter().isColumnHead(position[0], 0);
+                boolean isColumnHead = getAdapter().isColumnHead(position);
                 XMBItem selectedItem = (XMBItem)getSelectedItem();
                 HomeItem homeItem = null;
-                // TODO: add move column option
                 if (selectedItem instanceof HomeItem)
                     homeItem = (HomeItem)selectedItem;
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
+                if (isNotSettings && !isColumnHead)
+                    btns.add(moveItemBtn);
+                if (isNotSettings && !isColumnHead)
+                    btns.add(deleteBtn);
+                if (isNotSettings && !isColumnHead && homeItem.type != HomeItem.Type.explorer)
+                    btns.add(uninstallBtn);
                 btns.add(createColumnBtn);
-                if (homeItem != null) {
-                    if (homeItem.type != HomeItem.Type.settings) {
-                        btns.add(moveItemBtn);
-                        if (homeItem.type != HomeItem.Type.explorer)
-                            btns.add(uninstallBtn);
-                        btns.add(deleteBtn);
-                    }
-                }
-                if (isNotSettings && hasColumnHead) {
+                if (isNotSettings && hasColumnHead)
                     btns.add(moveColumnBtn);
+                if (isNotSettings && hasColumnHead)
                     btns.add(deleteColumnBtn);
-                }
                 btns.add(cancelBtn);
 
                 currentActivity.getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
@@ -363,11 +361,11 @@ public class HomeView extends XMBView implements Refreshable {
         // TODO: add option to change home/explorer scale
         // TODO: move add association to home settings?
         // TODO: add edit association option (and/or add it in the context drawer)
-        innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set font size");
-        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set typeface");
-        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
-        settingsColumn.add(settingsItem);
+//        innerSettings = new XMBItem[2];
+//        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set font size");
+//        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set typeface");
+//        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
+//        settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
