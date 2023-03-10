@@ -240,11 +240,11 @@ public class PagedActivity extends AppCompatActivity {
 //    }
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
-        Log.d("PagedActivity", key_event.toString());
+        //Log.d("PagedActivity", key_event.toString());
 
         if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
-                Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
+                //Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
                 AccessService.showRecentApps();
                 return true;
             }

@@ -12,7 +12,10 @@ import com.OxGames.OxShell.R;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public enum Type { explorer, addExplorer, app, addApp, assoc, addAssoc, assocExe, setImageBg, setShaderBg, settings, }
@@ -116,19 +119,11 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         return super.getInnerItemCount();
     }
 
-    // TODO: order alphabetically
-    private static ArrayList<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, String[] extensions) {
-        ArrayList<XMBItem> innerItems = null;
-        if (dirs != null && dirs.size() > 0) {
-            innerItems = new ArrayList<>();
-
-            for (String dir : dirs) {
-                ArrayList<File> executables = AndroidHelpers.getItemsInDirWithExt(dir, extensions);
-                for (File exe : executables)
-                    innerItems.add(new HomeItem(exe.toString(), type, AndroidHelpers.removeExtension(exe.getName())));
-            }
-        }
-        return innerItems;
+    private static List<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, String[] extensions) {
+        if (dirs != null && dirs.size() > 0)
+            // gets the files in the directories as streams then flattens them into one stream then maps them to home items then sorts them then turns the resulting stream into a list
+            return dirs.stream().flatMap(dir -> AndroidHelpers.getItemsInDirWithExt(dir, extensions).stream()).map(exe -> new HomeItem(exe.toString(), type, AndroidHelpers.removeExtension(exe.getName()))).sorted(Comparator.comparing(item -> item.title)).collect(Collectors.toList());
+        return null;
     }
 
     @Override

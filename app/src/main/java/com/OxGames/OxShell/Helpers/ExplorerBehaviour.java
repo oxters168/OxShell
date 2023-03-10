@@ -145,9 +145,11 @@ public class ExplorerBehaviour {
                 } else {
                     try {
                         // TODO: add copy options
-                        //String dest = AndroidHelpers.combinePaths(new File(destination).getParent(), new File(path).getName());
+                        String dest = destination;
+                        if (AndroidHelpers.isDirectory(dest))
+                            dest = AndroidHelpers.combinePaths(dest, new File(path).getName());
                         //Log.d("ExplorerBehaviour", "Copying " + path + " to " + dest);
-                        Files.copy(Paths.get(path), Paths.get(destination));
+                        Files.copy(Paths.get(path), Paths.get(dest));
                     } catch (Exception e) {
                         Log.e("ExplorerBehaviour", e.toString());
                     }
@@ -180,8 +182,10 @@ public class ExplorerBehaviour {
                 } else {
                     try {
                         // TODO: add copy options
-                        //String dest = AndroidHelpers.combinePaths(new File(destination).getParent(), new File(path).getName());
-                        Files.move(Paths.get(path), Paths.get(destination));
+                        String dest = destination;
+                        if (AndroidHelpers.isDirectory(dest))
+                            dest = AndroidHelpers.combinePaths(dest, new File(path).getName());
+                        Files.move(Paths.get(path), Paths.get(dest));
                     } catch (Exception e) {
                         Log.e("ExplorerBehaviour", e.toString());
                     }

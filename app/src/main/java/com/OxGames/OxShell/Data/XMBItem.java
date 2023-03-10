@@ -60,6 +60,10 @@ public class XMBItem<T> implements Serializable {
     public XMBItem getInnerItem(int index) {
         return innerItems.get(index);
     }
+    public void clearInnerItems() {
+        if (innerItems != null)
+            innerItems.clear();
+    }
     public String getTitle() {
         return title;
     }

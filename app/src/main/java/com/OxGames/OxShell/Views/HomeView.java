@@ -414,6 +414,14 @@ public class HomeView extends XMBView implements Refreshable {
     public ArrayList<ArrayList<XMBItem>> getItems() {
         ArrayList<ArrayList<Object>> items = getAdapter().getItems();
         items.remove(items.size() - 1); // remove the settings
+        for (int i = 0; i < items.size(); i++) {
+            ArrayList<Object> column = items.get(i);
+            for (int j = 0; j < column.size(); j++) {
+                Object item = column.get(j);
+                if (item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.assoc)
+                    ((HomeItem)item).clearInnerItems();
+            }
+        }
         return cast(items);
     }
     private static ArrayList<ArrayList<XMBItem>> cast(ArrayList<ArrayList<Object>> items) {
