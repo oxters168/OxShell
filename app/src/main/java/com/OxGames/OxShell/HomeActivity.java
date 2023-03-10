@@ -44,12 +44,13 @@ public class HomeActivity extends PagedActivity {
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         //setMarginsFor(R.id.packages_list, R.id.settings_view, R.id.customize_home_view, R.id.assoc_list_view, R.id.selectdirs_view, R.id.shortcuts_view);
+        showAnnoyingDialog();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        showAnnoyingDialog();
+        //showAnnoyingDialog();
     }
 
     @Override
@@ -62,7 +63,7 @@ public class HomeActivity extends PagedActivity {
             Log.i("HomeActivity", "Not running in gold");
             PromptView prompt = getPrompt();
             prompt.setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
-            prompt.setMessage("If you enjoy Ox Shell, please consider supporting us by purchasing the app from the store");
+            prompt.setMessage("Thank you for using Ox Shell, please consider supporting us by purchasing the app from the store");
             prompt.setMiddleBtn("Got it", () -> { prompt.setShown(false); }, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START);
             prompt.setShown(true);
         } else {

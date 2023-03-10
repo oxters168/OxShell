@@ -4,11 +4,9 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -145,6 +143,7 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+        prepareOtherViews();
         //initBackground();
     }
 
@@ -164,12 +163,7 @@ public class PagedActivity extends AppCompatActivity {
         goTo(currentPage);
         super.onResume();
 
-        parentView = findViewById(R.id.parent_layout);
-        //dynamicInputView = findViewById(R.id.dynamic_input);
-        //settingsDrawer = findViewById(R.id.settings_drawer);
-        initPromptView();
-        initSettingsDrawer();
-        initDynamicInputView();
+        prepareOtherViews();
         //settingsDrawer.setShown(isContextDrawerOpen());
         //settingsDrawer.setX(settingsDrawerWidth);
         //Add an if statement later to have a setting for hiding status bar
@@ -300,6 +294,12 @@ public class PagedActivity extends AppCompatActivity {
 //    }
     public boolean isInAContextMenu() {
         return prompt.isPromptShown() || settingsDrawer.isDrawerOpen() || dynamicInput.isOverlayShown();
+    }
+    private void prepareOtherViews() {
+        parentView = findViewById(R.id.parent_layout);
+        initPromptView();
+        initSettingsDrawer();
+        initDynamicInputView();
     }
     private void initDynamicInputView() {
         dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);
