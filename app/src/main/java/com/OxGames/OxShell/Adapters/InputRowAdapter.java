@@ -67,7 +67,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         int relativeIndex = position % maxVisibleItems;
         int currentVisibleItems = Math.min(MAX_VISIBLE_ITEMS, items.size() - (position - relativeIndex));
         //int maxWidth = Math.round((rowWidth - ((currentVisibleItems - 1) * paddingPx)) / (float)currentVisibleItems);
-        int buttonPx = Math.round(AndroidHelpers.dpToPixels(context, BUTTON_DIP));
+        int buttonPx = Math.round(AndroidHelpers.getScaledDpToPixels(context, BUTTON_DIP));
         int maxWidth;
         if (items.get(position).inputType == DynamicInputRow.DynamicInput.InputType.button)
             maxWidth = buttonPx;
@@ -84,7 +84,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
                 //maxWidth = Math.round((rowWidth - (visibleBtnCount * buttonPx) - ((currentVisibleItems - 1) * paddingPx)) / (float) (currentVisibleItems - visibleBtnCount));
         }
 
-        int paddingPx = Math.round(AndroidHelpers.dpToPixels(context, PADDING));
+        int paddingPx = Math.round(AndroidHelpers.getScaledDpToPixels(context, PADDING));
         //Log.d("InputRowAdapter", "Parent width at " + rowWidth + " current visible items: " + currentVisibleItems + " current item width: " + maxWidth + " resummed: " + (maxWidth * currentVisibleItems + (currentVisibleItems - 1) * paddingPx));
         holder.bindItem(items.get(position));
         holder.setWidth(maxWidth);

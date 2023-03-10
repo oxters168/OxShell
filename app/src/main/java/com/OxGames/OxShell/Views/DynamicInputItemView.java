@@ -118,11 +118,12 @@ public class DynamicInputItemView extends FrameLayout {
         };
         item.addListener(itemListener);
 
+        int itemHeight = Math.round(AndroidHelpers.getScaledDpToPixels(context, 48));
         if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
             DynamicInputRow.TextInput innerItem = (DynamicInputRow.TextInput)item;
             if (inputLayout == null) {
                 inputLayout = new TextInputLayout(context);
-                LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
                 layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 inputLayout.setLayoutParams(layoutParams);
                 inputLayout.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_NONE);
@@ -167,7 +168,7 @@ public class DynamicInputItemView extends FrameLayout {
             DynamicInputRow.ButtonInput innerItem = (DynamicInputRow.ButtonInput)item;
             if (button == null) {
                 button = new Button(context);
-                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 button.setLayoutParams(params);
                 addView(button);
@@ -181,7 +182,7 @@ public class DynamicInputItemView extends FrameLayout {
             DynamicInputRow.Label innerItem = (DynamicInputRow.Label)item;
             if (label == null) {
                 label = new TextView(context);
-                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 label.setLayoutParams(params);
                 addView(label);
@@ -193,7 +194,7 @@ public class DynamicInputItemView extends FrameLayout {
             DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;
             if (toggle == null) {
                 toggle = new CheckBox(context);
-                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 toggle.setLayoutParams(params);
                 addView(toggle);

@@ -60,7 +60,7 @@ public class DynamicInputRowView extends FrameLayout {
                 requestFocusOnItem(queuedFocusPosition);
             }
         });
-        int dip = Math.round(AndroidHelpers.dpToPixels(context, 40));
+        int dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 40));
         // this assumes the dynamic input view is taking up the whole screen
         adapter.setRowWidth(OxShellApp.getDisplayWidth() - dip); // TODO: change hardcoded dip value to properly reflect padding of parent recycler
         //adapter.setRowWidth(getMeasuredWidth());

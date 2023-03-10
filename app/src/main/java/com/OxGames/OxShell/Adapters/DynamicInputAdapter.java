@@ -51,7 +51,7 @@ public class DynamicInputAdapter extends RecyclerView.Adapter<DynamicInputAdapte
     @Override
     public void onBindViewHolder(@NonNull DynamicViewHolder holder, int position) {
         holder.bindItem(items.get(position));
-        int dip = Math.round(AndroidHelpers.dpToPixels(context, 20));
+        int dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 20));
         holder.setPadding(0, 0, 0, position < items.size() - 1 ? dip : 0);
     }
 
