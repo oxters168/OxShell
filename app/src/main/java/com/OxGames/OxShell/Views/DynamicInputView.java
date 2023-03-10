@@ -25,6 +25,7 @@ import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class DynamicInputView extends FrameLayout implements InputReceiver {
     private boolean isShown = false;
@@ -35,7 +36,6 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
 
     private List<DynamicInputRow.ButtonInput> gamepadable;
     private DynamicInputRow[] rows;
-    // TODO: change rowIndex and colIndex when an item gets focus from touch
     private int rowIndex = 0;
     private int colIndex = 0;
     private boolean queuedCol = false;
@@ -46,6 +46,18 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
     private int queuedFocusColIndex = 0;
 
     //private boolean firstRun;
+
+    private List<Consumer<Boolean>> onShownListeners = new ArrayList<>();
+
+    public void addShownListener(Consumer<Boolean> onShownListener) {
+        onShownListeners.add(onShownListener);
+    }
+    public void removeShownListener(Consumer<Boolean> onShownListener) {
+        onShownListeners.remove(onShownListener);
+    }
+    public void clearShownListeners() {
+        onShownListeners.clear();
+    }
 
     public DynamicInputView(@NonNull Context context) {
         super(context);
@@ -77,12 +89,13 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
 
         layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setLayoutParams(layoutParams);
+        setFocusable(false);
 
         FrameLayout header = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.getScaledDpToPixels(context, 40)));
         layoutParams.gravity = Gravity.TOP;
         header.setLayoutParams(layoutParams);
-        header.setBackgroundColor(Color.parseColor("#232323"));
+        header.setBackgroundColor(Color.parseColor("#66646464"));
         addView(header);
 
         title = new TextView(context);
@@ -103,7 +116,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         mainList.setLayoutParams(recyclerParams);
         dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 20));
         mainList.setPadding(dip, dip, dip, dip);
-        mainList.setBackgroundColor(Color.parseColor("#323232"));
+        mainList.setBackgroundColor(Color.parseColor("#66323232"));
         mainList.setLayoutManager(new LinearLayoutManager(context));
         mainList.setVisibility(VISIBLE);
         addView(mainList);
@@ -112,7 +125,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.getScaledDpToPixels(context, 40)));
         layoutParams.gravity = Gravity.BOTTOM;
         footer.setLayoutParams(layoutParams);
-        footer.setBackgroundColor(Color.parseColor("#232323"));
+        footer.setBackgroundColor(Color.parseColor("#66646464"));
         addView(footer);
     }
 
@@ -140,6 +153,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                     @Override
                     public void onFocusChanged(View view, boolean hasFocus) {
                         if (hasFocus) {
+                            // whenever an item receives focus (from touch or otherwise), then update where we are
                             //Log.d("DynamicInputView", "Focus changed to " + inputItems[finalJ].inputType + " @(" + finalI + ", " + finalJ + ")");
                             rowIndex = finalI;
                             colIndex = finalJ;
@@ -156,6 +170,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
 
         //firstRun = true;
         adapter.addListener(() -> {
+            // called when a view is attached to the window
             if (queuedCol) {
                 queuedCol = false;
                 setColIndex(queuedRowIndex, queuedColIndex);
@@ -196,6 +211,10 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         return isShown;
     }
     public void setShown(boolean onOff) {
+        for (Consumer<Boolean> onShownListener : onShownListeners)
+            if (onShownListener != null)
+                onShownListener.accept(onOff);
+
         isShown = onOff;
         setVisibility(onOff ? VISIBLE : GONE);
         PagedActivity current = ActivityManager.getCurrentActivity();

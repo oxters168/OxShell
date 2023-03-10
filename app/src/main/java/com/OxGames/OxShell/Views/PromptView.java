@@ -98,7 +98,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         setLayoutParams(layoutParams);
         setSize(getDefaultWidth(), getDefaultHeight());
-        setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
+        setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
         setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BB323232")));
 
         int borderMargin = getBorderMargin();
@@ -142,7 +142,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         layoutParams.setMargins(0, 0, 0, borderMargin);
         layoutParams.setMarginStart(borderMargin);
         startBtn.setLayoutParams(layoutParams);
-        startBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
+        startBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
         startBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
         startBtn.setOnClickListener(v -> {
             if (startBtnAction != null)
@@ -155,7 +155,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         layoutParams.setMargins(0, 0, 0, borderMargin);
         middleBtn.setLayoutParams(layoutParams);
-        middleBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
+        middleBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
         middleBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
         middleBtn.setOnClickListener(v -> {
             if (middleBtnAction != null)
@@ -169,7 +169,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         layoutParams.setMargins(0, 0, 0, borderMargin);
         layoutParams.setMarginEnd(borderMargin);
         endBtn.setLayoutParams(layoutParams);
-        endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_shape));
+        endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
         endBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
         endBtn.setOnClickListener(v -> {
             if (endBtnAction != null)

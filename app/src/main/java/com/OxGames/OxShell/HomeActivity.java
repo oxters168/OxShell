@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 
@@ -11,8 +12,14 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Views.PromptView;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 public class HomeActivity extends PagedActivity {
+    View homeView;
+    private Consumer<Boolean> onDynamicInputShown = (onOff) -> {
+        homeView.setVisibility(onOff ? View.GONE : View.VISIBLE);
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,12 +57,19 @@ public class HomeActivity extends PagedActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        getDynamicInput().addShownListener(onDynamicInputShown);
         //showAnnoyingDialog();
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getDynamicInput().removeShownListener(onDynamicInputShown);
+    }
+
+    @Override
     protected void initViewsTable() {
-        allPages.put(ActivityManager.Page.home, findViewById(R.id.home_view));
+        allPages.put(ActivityManager.Page.home, homeView = findViewById(R.id.home_view));
     }
 
     private void showAnnoyingDialog() {

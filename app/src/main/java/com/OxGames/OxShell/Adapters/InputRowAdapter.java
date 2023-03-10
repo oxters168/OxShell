@@ -36,6 +36,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         listeners = new ArrayList<>();
     }
 
+    // TODO: remove listeners when dynamic view hidden (potential memory leak)
     public void addListener(AdapterListener listener) {
         listeners.add(listener);
     }
@@ -59,6 +60,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         return items.size();
     }
 
+    // TODO: readjust when orientation changes
     @Override
     public void onBindViewHolder(@NonNull RowViewHolder holder, int position) {
         //Log.d("InputRowAdapter", "Placing item @" + position + " in row");

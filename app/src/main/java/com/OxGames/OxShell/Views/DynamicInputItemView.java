@@ -1,30 +1,33 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
+import com.OxGames.OxShell.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -127,7 +130,9 @@ public class DynamicInputItemView extends FrameLayout {
                 layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 inputLayout.setLayoutParams(layoutParams);
                 inputLayout.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_NONE);
-                inputLayout.setBackgroundColor(Color.parseColor("#232323"));
+                //inputLayout.setBackgroundColor(Color.parseColor("#232323"));
+                inputLayout.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+                inputLayout.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#44323232")));
                 addView(inputLayout);
             }
             inputLayout.setHint(innerItem.hint);
@@ -171,9 +176,28 @@ public class DynamicInputItemView extends FrameLayout {
                 LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 button.setLayoutParams(params);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+                    button.setOutlineSpotShadowColor(Color.TRANSPARENT);
+                StateListDrawable states = new StateListDrawable();
+                states.addState(new int[] { android.R.attr.state_focused }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+                states.addState(new int[] { android.R.attr.state_active }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+                states.addState(new int[] { android.R.attr.state_pressed }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+                states.addState(new int[] { android.R.attr.state_enabled }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+                button.setBackground(states);
+                button.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#88323232")));
                 addView(button);
             }
-            button.setOnFocusChangeListener(innerItem::onFocusChange);
+            // highlight button when pressed by touch
+            button.setOnTouchListener((view, event) -> {
+                boolean isDown = event.getAction() == KeyEvent.ACTION_DOWN;
+                button.setBackgroundTintList(ColorStateList.valueOf((isDown || button.hasFocus()) ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
+                return false;
+            });
+            // highlight button when has focus
+            button.setOnFocusChangeListener((view, hasFocus) -> {
+                button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
+                innerItem.onFocusChange(view, hasFocus);
+            });
             button.setText(innerItem.getLabel());
             if (innerItem.getOnClick() != null)
                 button.setOnClickListener(innerItem.getOnClick());
