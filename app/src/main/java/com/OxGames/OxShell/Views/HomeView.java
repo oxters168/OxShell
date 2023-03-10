@@ -238,7 +238,7 @@ public class HomeView extends XMBView implements Refreshable {
                         }
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(new DynamicInputRow.Label("Hello world")), new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(new DynamicInputRow.ToggleInput("On", "Off", null)), new DynamicInputRow(okBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;

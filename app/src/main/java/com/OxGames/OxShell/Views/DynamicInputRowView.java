@@ -1,7 +1,9 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -22,6 +24,9 @@ public class DynamicInputRowView extends FrameLayout {
 
     private boolean queuedFocus;
     private int queuedFocusPosition;
+
+    private InputRowAdapter adapter;
+    int rowWidth;
 
     public DynamicInputRowView(@NonNull Context context) {
         super(context);
@@ -54,22 +59,38 @@ public class DynamicInputRowView extends FrameLayout {
     }
     public void setInputItems(DynamicInputRow items) {
         rowItems = items;
-        InputRowAdapter adapter = new InputRowAdapter(context, rowItems.getAll());
+        adapter = new InputRowAdapter(context, rowItems.getAll());
         adapter.addListener(() -> {
             if (queuedFocus) {
                 queuedFocus = false;
                 requestFocusOnItem(queuedFocusPosition);
             }
         });
-        int dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 40));
-        // this assumes the dynamic input view is taking up the whole screen
-        adapter.setRowWidth(OxShellApp.getDisplayWidth() - dip); // TODO: change hardcoded dip value to properly reflect padding of parent recycler
-        //adapter.setRowWidth(getMeasuredWidth());
+
+        recalculateRowWidth();
         //adapter.setParent(this);
         row.setAdapter(adapter);
     }
     public RecyclerView getRow() {
         return row;
+    }
+
+    private void recalculateRowWidth() {
+        // this assumes the dynamic input view is taking up the whole screen
+        int dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 40)); // TODO: change hardcoded dip value to properly reflect padding of parent recycler
+        rowWidth = OxShellApp.getDisplayWidth() - dip;
+        //measure(0, 0);
+        //rowWidth = getMeasuredWidth();
+        if (adapter != null)
+            adapter.setRowWidth(rowWidth);
+    }
+    @Override
+    protected void onConfigurationChanged(Configuration newConfig) {
+        //Log.d("DynamicInputRowView", "onConfigurationChanged");
+        super.onConfigurationChanged(newConfig);
+        recalculateRowWidth();
+        if (adapter != null)
+            adapter.refreshItems();
     }
 
     public void unsafeRequestFocusOnItem(int position) {

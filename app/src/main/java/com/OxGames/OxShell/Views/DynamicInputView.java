@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -86,7 +87,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
 
     private void init() {
         ViewTreeObserver.OnGlobalFocusChangeListener onFocusChange = (oldFocus, newFocus) -> {
-            Log.d("DynamicInputView", "onGlobalFocusChange");
+            //Log.d("DynamicInputView", "onGlobalFocusChange");
             boolean isDirectional = directionKeyCode == KeyEvent.KEYCODE_DPAD_UP || directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN || directionKeyCode == KeyEvent.KEYCODE_DPAD_LEFT || directionKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
             if (isDirectional) {
                 View oldDynamicItem = oldFocus;
@@ -107,7 +108,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                     if (directionKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
                         nextCol += 1;
                     nextCol = Math.min(Math.max(nextCol, 0), rows[nextRow].getCount() - 1);
-                    Log.d("DynamicInputView", "[" + oldItem.row + ", " + oldItem.col + "] => [" + nextRow + ", " + nextCol + "]");
+                    //Log.d("DynamicInputView", "[" + oldItem.row + ", " + oldItem.col + "] => [" + nextRow + ", " + nextCol + "]");
                     DynamicInputItemView nextItem = (DynamicInputItemView) rows[nextRow].get(nextCol).view;
                     View newDynamicItem = newFocus;
                     while (newDynamicItem != null && !(newDynamicItem instanceof DynamicInputItemView))
@@ -137,7 +138,8 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         };
 
         setShown(false);
-        setClickable(true); // block out touch input to views behind
+        setFocusable(false);
+        //setClickable(true); // block out touch input to views behind
         //setBackgroundColor(Color.parseColor("#80323232"));
 
         LayoutParams layoutParams;
@@ -152,6 +154,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         layoutParams.gravity = Gravity.TOP;
         header.setLayoutParams(layoutParams);
         header.setBackgroundColor(Color.parseColor("#66646464"));
+        header.setFocusable(false);
         addView(header);
 
         title = new TextView(context);
@@ -162,6 +165,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         int dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
         title.setPadding(dip, dip, dip, dip);
         title.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
+        title.setFocusable(false);
         header.addView(title);
 
         mainList = new RecyclerView(context);
@@ -175,6 +179,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         mainList.setBackgroundColor(Color.parseColor("#66323232"));
         mainList.setLayoutManager(new LinearLayoutManager(context));
         mainList.setVisibility(VISIBLE);
+        mainList.setFocusable(false);
         addView(mainList);
 
         FrameLayout footer = new FrameLayout(context);
@@ -182,6 +187,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         layoutParams.gravity = Gravity.BOTTOM;
         footer.setLayoutParams(layoutParams);
         footer.setBackgroundColor(Color.parseColor("#66646464"));
+        footer.setFocusable(false);
         addView(footer);
     }
 
