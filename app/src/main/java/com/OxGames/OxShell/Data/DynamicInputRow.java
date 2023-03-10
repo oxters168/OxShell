@@ -5,6 +5,7 @@ import android.text.TextWatcher;
 import android.view.View;
 
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
+import com.OxGames.OxShell.Views.DynamicInputItemView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +22,9 @@ public class DynamicInputRow {
         this.inputs = inputs;
     }
 
+    public int getCount() {
+        return inputs.length;
+    }
     public DynamicInput get(int index) {
         return inputs[index];
     }
@@ -35,6 +39,12 @@ public class DynamicInputRow {
             button,
             label,
             toggle
+        }
+        public int row = -1, col = -1;
+        public DynamicInputItemView view;
+        public void setSelected(boolean onOff) {
+            if (view != null)
+                view.refreshSelection(onOff);
         }
         public InputType inputType;
         protected List<DynamicInputListener> listeners = new ArrayList<>();

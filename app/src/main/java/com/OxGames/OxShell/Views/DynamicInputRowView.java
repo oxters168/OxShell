@@ -49,6 +49,7 @@ public class DynamicInputRowView extends FrameLayout {
         row.setLayoutParams(new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         row.setLayoutManager(new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false));
         row.setVisibility(VISIBLE);
+        row.setFocusable(false);
         addView(row);
     }
     public void setInputItems(DynamicInputRow items) {

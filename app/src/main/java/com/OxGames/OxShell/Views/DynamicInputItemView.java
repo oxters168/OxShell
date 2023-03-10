@@ -9,10 +9,12 @@ import android.os.Build;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -63,7 +65,16 @@ public class DynamicInputItemView extends FrameLayout {
         this.context = context;
     }
 
+    public DynamicInputRow.DynamicInput getInputItem() {
+        return inputItem;
+    }
+    public void refreshSelection(boolean onOff) {
+        if (button != null)
+            button.setBackgroundTintList(ColorStateList.valueOf(onOff ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
+    }
     public void setInputItem(DynamicInputRow.DynamicInput item) {
+        item.view = this;
+
         // remove previous listeners from the views if any
         if (inputLayout != null && inputLayout.getEditText() != null && inputWatcher != null)
             inputLayout.getEditText().removeTextChangedListener(inputWatcher);
@@ -146,7 +157,11 @@ public class DynamicInputItemView extends FrameLayout {
             if (innerItem.getValueType() >= 0)
                 textEdit.setInputType(innerItem.getValueType());
             // set the edit text to fire onFocusChange on the current item
-            textEdit.setOnFocusChangeListener(innerItem::onFocusChange);
+            textEdit.setOnFocusChangeListener((view, hasFocus) -> {
+                //Log.d("DynamicInputItemView", "onFocusChange [" + inputItem.row + ", " + inputItem.col + "] hasFocus: " + hasFocus);
+                innerItem.onFocusChange(view, hasFocus);
+            });
+            //textEdit.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             // set the starting value of the view to what the item already had
             textEdit.setText(innerItem.getText());
             // update text value of the item this view currently represents based on user changes
@@ -195,9 +210,11 @@ public class DynamicInputItemView extends FrameLayout {
             });
             // highlight button when has focus
             button.setOnFocusChangeListener((view, hasFocus) -> {
-                button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
+                //Log.d("DynamicInputItemView", "onFocusChange [" + inputItem.row + ", " + inputItem.col + "] hasFocus: " + hasFocus);
+                //button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
                 innerItem.onFocusChange(view, hasFocus);
             });
+            //button.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             button.setText(innerItem.getLabel());
             if (innerItem.getOnClick() != null)
                 button.setOnClickListener(innerItem.getOnClick());
@@ -209,9 +226,12 @@ public class DynamicInputItemView extends FrameLayout {
                 LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 label.setLayoutParams(params);
+                label.setFocusable(false);
+                label.setClickable(false);
                 addView(label);
             }
-            label.setOnFocusChangeListener(innerItem::onFocusChange);
+            //label.setOnFocusChangeListener(innerItem::onFocusChange);
+            //label.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             label.setText(innerItem.getLabel());
             label.setVisibility(VISIBLE);
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
@@ -221,9 +241,12 @@ public class DynamicInputItemView extends FrameLayout {
                 LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 toggle.setLayoutParams(params);
+                toggle.setFocusable(true);
+                toggle.setFocusableInTouchMode(true);
                 addView(toggle);
             }
-            toggle.setOnFocusChangeListener(innerItem::onFocusChange);
+            //toggle.setOnFocusChangeListener(innerItem::onFocusChange);
+            //toggle.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
             toggle.setChecked(innerItem.getOnOff());
             toggle.setOnClickListener((view) -> {
