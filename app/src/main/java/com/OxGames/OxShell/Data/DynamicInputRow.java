@@ -42,7 +42,7 @@ public class DynamicInputRow {
         }
         public int row = -1, col = -1;
         public DynamicInputItemView view;
-        //private int visibility = View.VISIBLE;
+        private int visibility = View.VISIBLE;
         public void setSelected(boolean onOff) {
             if (view != null)
                 view.refreshSelection(onOff);
@@ -76,12 +76,13 @@ public class DynamicInputRow {
                 view.setEnabled(onOff);
         }
         public int getVisibility() {
-            return view != null ? view.getVisibility() : View.GONE;
+            return visibility;
         }
         public void setVisibility(int value) {
-            //visibility = value;
-            if (view != null)
-                view.setVisibility(value);
+            visibility = value;
+            valuesChanged();
+            //if (view != null)
+            //    view.setVisibility(value);
         }
     }
     public static class TextInput extends DynamicInput {
@@ -179,6 +180,11 @@ public class DynamicInputRow {
         }
         public String getLabel() {
             return label;
+        }
+
+        @Override
+        public int getVisibility() {
+            return label != null && !label.isEmpty() ? super.getVisibility() : View.GONE;
         }
     }
     public static class ToggleInput extends DynamicInput {

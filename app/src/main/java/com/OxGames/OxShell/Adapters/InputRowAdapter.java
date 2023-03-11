@@ -55,7 +55,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
     @Override
     public RowViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         DynamicInputItemView view = new DynamicInputItemView(context);
-        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        view.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         RowViewHolder viewHolder = new RowViewHolder(view);
         viewHolders.add(viewHolder);
         return viewHolder;

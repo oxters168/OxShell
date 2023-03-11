@@ -105,28 +105,30 @@ public class DynamicInputItemView extends FrameLayout {
 
             @Override
             public void onValuesChanged() {
-                if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
-                    if (inputLayout != null) {
+                if (inputLayout != null) {
+                    if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
                         EditText textEdit = inputLayout.getEditText();
                         if (textEdit != null)
                             textEdit.setText(((DynamicInputRow.TextInput)item).getText());
                     }
+                    inputLayout.setVisibility(item.getVisibility());
                 }
-                if (item.inputType == DynamicInputRow.DynamicInput.InputType.button) {
-                    if (button != null) {
+                if (button != null) {
+                    if (item.inputType == DynamicInputRow.DynamicInput.InputType.button)
                         button.setText(((DynamicInputRow.ButtonInput)item).getLabel());
-                    }
+                    button.setVisibility(item.getVisibility());
                 }
-                if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {
-                    if (label != null) {
+                if (label != null) {
+                    if (item.inputType == DynamicInputRow.DynamicInput.InputType.label)
                         label.setText(((DynamicInputRow.Label)item).getLabel());
-                    }
+                    label.setVisibility(item.getVisibility());
                 }
-                if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
-                    if (toggle != null) {
+                if (toggle != null) {
+                    if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
                         DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;
                         toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
                     }
+                    toggle.setVisibility(item.getVisibility());
                 }
             }
         };
@@ -233,7 +235,8 @@ public class DynamicInputItemView extends FrameLayout {
             //label.setOnFocusChangeListener(innerItem::onFocusChange);
             //label.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             label.setText(innerItem.getLabel());
-            label.setVisibility(VISIBLE);
+            //label.setVisibility(VISIBLE);
+            label.setVisibility(innerItem.getVisibility());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
             DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;
             if (toggle == null) {
