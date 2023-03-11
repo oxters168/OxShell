@@ -264,22 +264,24 @@ public class HomeView extends XMBView implements Refreshable {
                 boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
                 boolean hasColumnHead = getAdapter().isColumnHead(position[0], 0);
                 boolean isColumnHead = getAdapter().isColumnHead(position);
+                boolean hasInnerItems = getAdapter().hasInnerItems(position);
+                boolean isInnerItem = position.length > 2;
                 XMBItem selectedItem = (XMBItem)getSelectedItem();
                 HomeItem homeItem = null;
                 if (selectedItem instanceof HomeItem)
                     homeItem = (HomeItem)selectedItem;
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
-                if (isNotSettings && !isColumnHead)
+                if (isNotSettings && !isColumnHead && !isInnerItem)
                     btns.add(moveItemBtn);
-                if (isNotSettings && !isColumnHead)
+                if (isNotSettings && !isColumnHead && !isInnerItem)
                     btns.add(deleteBtn);
-                if (isNotSettings && !isColumnHead && homeItem.type != HomeItem.Type.explorer)
+                if (isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && homeItem.type != HomeItem.Type.explorer)
                     btns.add(uninstallBtn);
                 btns.add(createColumnBtn);
-                if (isNotSettings && hasColumnHead)
+                if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(moveColumnBtn);
-                if (isNotSettings && hasColumnHead)
+                if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(deleteColumnBtn);
                 btns.add(cancelBtn);
 
