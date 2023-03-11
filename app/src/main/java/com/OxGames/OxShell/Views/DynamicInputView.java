@@ -97,25 +97,85 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                 if (oldDynamicItem instanceof DynamicInputItemView) {
                     DynamicInputRow.DynamicInput oldItem = ((DynamicInputItemView) oldDynamicItem).getInputItem();
                     int nextRow = oldItem.row;
+                    int nextCol = oldItem.col;
+                    DynamicInputRow.DynamicInput nextItem = null;
+                    boolean withinBounds;
                     if (directionKeyCode == KeyEvent.KEYCODE_DPAD_UP)
                         nextRow -= 1;
                     if (directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN)
                         nextRow += 1;
-                    nextRow = Math.min(Math.max(nextRow, 0), rows.length - 1);
-                    int nextCol = oldItem.col;
+                    //nextRow = Math.min(Math.max(nextRow, 0), rows.length - 1);
                     if (directionKeyCode == KeyEvent.KEYCODE_DPAD_LEFT)
                         nextCol -= 1;
                     if (directionKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
                         nextCol += 1;
-                    nextCol = Math.min(Math.max(nextCol, 0), rows[nextRow].getCount() - 1);
+                    //nextCol = Math.min(Math.max(nextCol, 0), rows[nextRow].getCount() - 1);
+                    do {
+                        withinBounds = (nextRow >= 0 && nextRow < rows.length) && (nextCol >= 0 && nextCol < rows[nextRow].getCount());
+                        if (withinBounds)
+                            nextItem = rows[nextRow].get(nextCol);
+                        boolean foundFocusable = nextItem != null && nextItem.getVisibility() == VISIBLE && nextItem.isEnabled();
+                        if (!foundFocusable) {
+                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT || directionKeyCode == KeyEvent.KEYCODE_DPAD_UP || directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                                // if next item to go to has not been found and we were originally going up, down, or right, then search the right of the row for items
+                                int startCol = nextCol;
+                                while (!foundFocusable && ++nextCol < rows[nextRow].getCount()) {
+                                    if (nextCol >= 0)
+                                        nextItem = rows[nextRow].get(nextCol);
+                                    foundFocusable = nextItem != null && nextItem.getVisibility() == VISIBLE && nextItem.isEnabled();
+                                }
+                                if (!foundFocusable) {
+                                    if (directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN || directionKeyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                                        // if next item still hasn't been found and we were originally going up or down, then search the left side
+                                        nextCol = startCol;
+                                        while (!foundFocusable && --nextCol >= 0) {
+                                            if (nextCol < rows[nextRow].getCount())
+                                                nextItem = rows[nextRow].get(nextCol);
+                                            foundFocusable = nextItem != null && nextItem.getVisibility() == VISIBLE && nextItem.isEnabled();
+                                        }
+                                        if (!foundFocusable) {
+                                            // if still no focusable has been found then go to the next row based on if we were going up or down
+                                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                                                nextRow -= 1;
+                                                if (nextRow >= 0)
+                                                    nextCol = Math.min(Math.max(oldItem.col, 0), rows[nextRow].getCount() - 1);
+                                            }
+                                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
+                                                nextRow += 1;
+                                                if (nextRow < rows.length)
+                                                    nextCol = Math.min(Math.max(oldItem.col, 0), rows[nextRow].getCount() - 1);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+                                // if no focusable was found and we were originally going left then keep searching left
+                                while (!foundFocusable && --nextCol >= 0) {
+                                    if (nextCol < rows[nextRow].getCount())
+                                        nextItem = rows[nextRow].get(nextCol);
+                                    foundFocusable = nextItem != null && nextItem.getVisibility() == VISIBLE && nextItem.isEnabled();
+                                }
+                            }
+                            //}
+                        }
+                        // should go right then left then continue down/up if going down/up
+                        // should go up/down after exhausting left/right if going left/right
+                    } while(withinBounds && !(nextItem != null && nextItem.getVisibility() == VISIBLE && nextItem.isEnabled()));
                     //Log.d("DynamicInputView", "[" + oldItem.row + ", " + oldItem.col + "] => [" + nextRow + ", " + nextCol + "]");
-                    DynamicInputItemView nextItem = (DynamicInputItemView) rows[nextRow].get(nextCol).view;
+                    if (nextItem == null) {
+                        nextItem = oldItem;
+                        nextRow = oldItem.row;
+                        nextCol = oldItem.col;
+                    }
+
+                    DynamicInputItemView nextItemView = nextItem.view;
                     View newDynamicItem = newFocus;
                     while (newDynamicItem != null && !(newDynamicItem instanceof DynamicInputItemView))
                         newDynamicItem = newDynamicItem.getParent() instanceof View ? (View) newDynamicItem.getParent() : null;
-                    if (newFocus != null && newDynamicItem != nextItem)
+                    if (newFocus != null && newDynamicItem != nextItemView)
                         newFocus.clearFocus();
-                    nextItem.requestFocus();
+                    nextItemView.requestFocus();
                     for (int row = 0; row < rows.length; row++)
                         for (int col = 0; col < rows[row].getCount(); col++)
                             rows[row].get(col).setSelected(row == nextRow && col == nextCol);

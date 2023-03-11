@@ -42,6 +42,7 @@ public class DynamicInputRow {
         }
         public int row = -1, col = -1;
         public DynamicInputItemView view;
+        //private int visibility = View.VISIBLE;
         public void setSelected(boolean onOff) {
             if (view != null)
                 view.refreshSelection(onOff);
@@ -66,6 +67,21 @@ public class DynamicInputRow {
             for (DynamicInputListener listener : listeners)
                 if (listener != null)
                     listener.onValuesChanged();
+        }
+        public boolean isEnabled() {
+            return view != null && view.isEnabled();
+        }
+        public void setEnabled(boolean onOff) {
+            if (view != null)
+                view.setEnabled(onOff);
+        }
+        public int getVisibility() {
+            return view != null ? view.getVisibility() : View.GONE;
+        }
+        public void setVisibility(int value) {
+            //visibility = value;
+            if (view != null)
+                view.setVisibility(value);
         }
     }
     public static class TextInput extends DynamicInput {
