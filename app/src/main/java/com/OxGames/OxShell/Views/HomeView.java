@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class HomeView extends XMBView implements Refreshable {
@@ -183,10 +184,22 @@ public class HomeView extends XMBView implements Refreshable {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Choose Shader Files");
+                    String[] options = { "Blue Dune", "Planet", "Custom" };
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
                     String fragTemp = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.tmp");
                     final boolean[] alreadyBackedUp = { false };
+                    Runnable backupExistingShader = () -> {
+                        // if a background shader file already exists
+                        if (AndroidHelpers.fileExists(fragDest)) {
+                            // move background shader to a temporary file if we haven't already or else delete since its the previews the user has been trying out
+                            if (!alreadyBackedUp[0]) {
+                                alreadyBackedUp[0] = true;
+                                ExplorerBehaviour.moveFiles(fragTemp, fragDest);
+                            } else
+                                ExplorerBehaviour.delete(fragDest);
+                        }
+                    };
                     if (AndroidHelpers.fileExists(fragTemp))
                         ExplorerBehaviour.delete(fragTemp);
 
@@ -197,27 +210,40 @@ public class HomeView extends XMBView implements Refreshable {
                                 titleInput.setText(uri.getPath());
                         });
                     });
+                    DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
+                        titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
+                        selectFileBtn.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
+                    }, options);
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Preview", v -> {
                         // TODO: show some kind of error when input is invalid
                         // TODO: add scoped storage alternative for when no storage access is granted
-                        String path = titleInput.getText();
-                        if (AndroidHelpers.fileExists(path)) {
-                            // if the chosen file is not the destination we want to copy to
-                            if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
-                                //Log.d("HomeView", path + " != " + fragDest);
-                                // if the a background shader file already exists
-                                if (AndroidHelpers.fileExists(fragDest)) {
-                                    // move background shader to a temporary file if we haven't already or else delete since its the previews the user has been trying out
-                                    if (!alreadyBackedUp[0]) {
-                                        alreadyBackedUp[0] = true;
-                                        ExplorerBehaviour.moveFiles(fragTemp, fragDest);
-                                    } else
-                                        ExplorerBehaviour.delete(fragDest);
+                        boolean readyForPreview = false;
+                        if (dropdown.getIndex() == 0) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "xmb.fsh"));
+                            readyForPreview = true;
+                        }
+                        if (dropdown.getIndex() == 1) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "planet.fsh"));
+                            readyForPreview = true;
+                        }
+                        if (dropdown.getIndex() == options.length - 1) {
+                            //dropdown.getIndex();
+                            String path = titleInput.getText();
+                            if (AndroidHelpers.fileExists(path)) {
+                                // if the chosen file is not the destination we want to copy to
+                                if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
+                                    //Log.d("HomeView", path + " != " + fragDest);
+                                    backupExistingShader.run();
+                                    // copy the chosen file to the destination
+                                    ExplorerBehaviour.copyFiles(fragDest, path);
+                                    readyForPreview = true;
+                                    //Log.d("HomeView", "Copied new shader to destination");
                                 }
-                                // copy the chosen file to the destination
-                                ExplorerBehaviour.copyFiles(fragDest, path);
-                                Log.d("HomeView", "Copied new shader to destination");
                             }
+                        }
+                        if (readyForPreview)
                             AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
                                 if (result.getResultCode() == Activity.RESULT_OK) {
                                     // delete the old background shader
@@ -228,7 +254,6 @@ public class HomeView extends XMBView implements Refreshable {
                                     dynamicInput.setShown(false);
                                 }
                             });
-                        }
                     }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         if (AndroidHelpers.fileExists(fragTemp)) {
@@ -242,12 +267,6 @@ public class HomeView extends XMBView implements Refreshable {
                         }
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-
-                    String[] options = { "Blue Dune", "Planet", "Custom" };
-                    DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
-                        titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
-                        selectFileBtn.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
-                    }, options);
                     // so that they will only show up when the custom option is selected in the dropdown
                     titleInput.setVisibility(View.GONE);
                     selectFileBtn.setVisibility(View.GONE);

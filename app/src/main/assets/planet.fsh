@@ -5,14 +5,12 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 ^ This means do ANYTHING YOU WANT with this code. Because we are programmers, not lawyers.
 -Otavio Good
 */
-// source: https://www.shadertoy.com/view/XsjGRd
-
 #version 300 es
 precision highp float;
 
 uniform float iTime;
-uniform vec2 iResolution;
-uniform vec2 iMouse;
+uniform vec3 iResolution;
+uniform vec4 iMouse;
 uniform sampler2D iChannel0;
 uniform sampler2D iChannel1;
 uniform sampler2D iChannel2;

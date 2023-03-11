@@ -208,13 +208,24 @@ public class DynamicInputRow {
     public static class Dropdown extends DynamicInput {
         private String[] options;
         private Consumer<Integer> onItemSelected;
+        private int index;
 
         public Dropdown(Consumer<Integer> onItemSelected, String... options) {
             this.inputType = InputType.dropdown;
             this.onItemSelected = onItemSelected;
+            this.index = 0;
             setOptions(false, options);
         }
 
+        public int getIndex() {
+            return index;
+        }
+        public void setIndex(int index) {
+            this.index = index;
+            valuesChanged();
+            if (onItemSelected != null)
+                onItemSelected.accept(index);
+        }
         public void setOptions(String... options) {
             setOptions(true, options);
         }
@@ -230,9 +241,9 @@ public class DynamicInputRow {
         public String getOption(int index) {
             return options[index];
         }
-        public Consumer<Integer> getOnItemSelected() {
-            return onItemSelected;
-        }
+//        public Consumer<Integer> getOnItemSelected() {
+//            return onItemSelected;
+//        }
     }
     public static class Label extends DynamicInput {
         private String label;

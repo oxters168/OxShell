@@ -3,7 +3,7 @@
 precision highp float;
 
 uniform float iTime;
-uniform vec2 iResolution;
+uniform vec3 iResolution;
 
 in vec2 textureCoord;
 out vec4 fragColor;

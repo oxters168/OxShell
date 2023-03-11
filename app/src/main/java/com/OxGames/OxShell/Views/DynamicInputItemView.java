@@ -134,7 +134,10 @@ public class DynamicInputItemView extends FrameLayout {
                 }
                 if (dropdown != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.dropdown) {
-                        setDropdownOptions(((DynamicInputRow.Dropdown)item).getOptions());
+                        DynamicInputRow.Dropdown innerItem = (DynamicInputRow.Dropdown)item;
+                        setDropdownOptions(innerItem.getOptions());
+                        if (dropdown.getSelectedItemPosition() != innerItem.getIndex())
+                            dropdown.setSelection(innerItem.getIndex());
                         dropdown.setVisibility(item.getVisibility());
                     }
                 }
@@ -277,8 +280,10 @@ public class DynamicInputItemView extends FrameLayout {
             dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    if (innerItem.getOnItemSelected() != null)
-                        innerItem.getOnItemSelected().accept(position);
+                    if (innerItem.getIndex() != position)
+                        innerItem.setIndex(position);
+                    //if (innerItem.getOnItemSelected() != null)
+                    //    innerItem.getOnItemSelected().accept(position);
                 }
 
                 @Override
