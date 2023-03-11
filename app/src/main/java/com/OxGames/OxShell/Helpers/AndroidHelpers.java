@@ -65,6 +65,13 @@ public class AndroidHelpers {
         }
     }
 
+    // source: https://stackoverflow.com/a/45661088/5430992
+    public static void uninstallApp(PagedActivity launchingActivity, String pkgName, Consumer<ActivityResult> onResult) {
+        Uri uri = Uri.fromParts("package", pkgName, null);
+        Intent intent = new Intent(Intent.ACTION_UNINSTALL_PACKAGE, uri);
+        intent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+        launchingActivity.requestResult(intent, onResult);
+    }
     public static void setWallpaper(PagedActivity launchingActivity, String pkgName, String wallpaperService, Consumer<ActivityResult> onResult) {
         // make sure to include the dot in the wallpaperService
         ComponentName component = new ComponentName(pkgName, pkgName + wallpaperService);

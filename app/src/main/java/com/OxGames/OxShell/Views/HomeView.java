@@ -18,6 +18,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import androidx.activity.result.ActivityResult;
+
 import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -42,6 +44,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeView extends XMBView implements Refreshable {
@@ -307,15 +310,11 @@ public class HomeView extends XMBView implements Refreshable {
         getAdapter().removeSubItem(position[0], position[1]);
         save(getItems());
     }
-    public void uninstallSelection() {
+    public void uninstallSelection(Consumer<ActivityResult> onResult) {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
         String packageName = selectedItem.type == HomeItem.Type.app ? (String)selectedItem.obj : selectedItem.type == HomeItem.Type.assoc ? ShortcutsCache.getIntent((UUID)selectedItem.obj).getPackageName() : null;
-        if (packageName != null) {
-            Intent intent = new Intent(Intent.ACTION_DELETE);
-            intent.setData(Uri.parse("package:" + packageName));
-            getContext().startActivity(intent);
-            //TODO: figure out how to get on uninstalled event and remove item when fired
-        }
+        if (packageName != null)
+            AndroidHelpers.uninstallApp(ActivityManager.getCurrentActivity(), packageName, onResult);
     }
     @Override
     public void refresh() {
@@ -585,8 +584,10 @@ public class HomeView extends XMBView implements Refreshable {
     });
     SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall App", () ->
     {
-        uninstallSelection();
-        deleteSelection(); //TODO: only if uninstall was successful
+        uninstallSelection((result) -> {
+            if (result.getResultCode() == Activity.RESULT_OK)
+                deleteSelection();
+        });
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
         return null;
     });
