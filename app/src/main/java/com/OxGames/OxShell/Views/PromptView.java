@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -100,6 +102,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         setSize(getDefaultWidth(), getDefaultHeight());
         setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
         setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#BB323232")));
+        setFocusable(false);
 
         int borderMargin = getBorderMargin();
         int imgSize = getImageSize();
@@ -116,6 +119,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         layoutParams.setMarginStart(borderMargin);
         img.setLayoutParams(layoutParams);
         img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_auto_awesome_24));
+        img.setFocusable(false);
         addView(img);
 
         msg = new BetterTextView(context);
@@ -134,6 +138,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         msg.setTextColor(context.getColor(R.color.text));
         msg.setTextSize(textSize);
         msg.setText("Quos voluptas commodi maxime dolore eveniet enim commodi et. Et qui nobis est earum eum. Excepturi quis nostrum consectetur ipsum debitis nihil autem. Vitae maiores ducimus et aut voluptas. Est ipsa aliquam quibusdam id atque. Veritatis nisi non minus quo aut. Qui voluptate eos nihil dolores aut. Atque debitis quidem similique molestias perferendis eum numquam qui. Necessitatibus hic quia nulla minus occaecati occaecati est. Unde qui culpa distinctio ea repellat omnis cumque voluptatibus. Vel ut non iste. Numquam ut est temporibus eveniet et exercitationem maxime. Adipisci rerum magnam ipsa laudantium dolores. Vitae ea rem dicta molestiae ut rerum placeat. Repellat fugiat et quo corporis culpa facilis quia. Vel et rerum doloribus porro reiciendis est aut. Illum nihil non et molestiae nostrum. Molestiae dolor cupiditate a numquam adipisci nobis. Rerum saepe libero doloribus incidunt sunt molestias explicabo. Error inventore libero quam nostrum voluptates minima corporis voluptatem. Culpa illum vel ut qui aut in. Eligendi perferendis pariatur dolorum reiciendis sit. Ut et labore magnam quas debitis. Autem et enim enim quia nam voluptatibus illo.");
+        msg.setFocusable(false);
         addView(msg);
 
         startBtn = new Button(context);
@@ -142,12 +147,11 @@ public class PromptView extends FrameLayout implements InputReceiver {
         layoutParams.setMargins(0, 0, 0, borderMargin);
         layoutParams.setMarginStart(borderMargin);
         startBtn.setLayoutParams(layoutParams);
-        startBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
-        startBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
         startBtn.setOnClickListener(v -> {
             if (startBtnAction != null)
                 startBtnAction.run();
         });
+        setBtnLook(startBtn);
         addView(startBtn);
 
         middleBtn = new Button(context);
@@ -161,6 +165,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
             if (middleBtnAction != null)
                 middleBtnAction.run();
         });
+        setBtnLook(middleBtn);
         addView(middleBtn);
 
         endBtn = new Button(context);
@@ -175,7 +180,31 @@ public class PromptView extends FrameLayout implements InputReceiver {
             if (endBtnAction != null)
                 endBtnAction.run();
         });
+        setBtnLook(endBtn);
         addView(endBtn);
+    }
+    private void setBtnLook(Button button) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            button.setOutlineSpotShadowColor(Color.TRANSPARENT);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[] { android.R.attr.state_focused }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+        states.addState(new int[] { android.R.attr.state_active }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+        states.addState(new int[] { android.R.attr.state_pressed }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+        states.addState(new int[] { android.R.attr.state_enabled }, ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+        button.setBackground(states);
+        button.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
+        //startBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+        //startBtn.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#484848")));
+        button.setOnTouchListener((view, event) -> {
+            boolean isDown = event.getAction() == KeyEvent.ACTION_DOWN;
+            button.setBackgroundTintList(ColorStateList.valueOf((isDown || button.hasFocus()) ? Color.parseColor("#CEEAF0") : Color.parseColor("#484848")));
+            return false;
+        });
+        // highlight button when has focus
+        button.setOnFocusChangeListener((view, hasFocus) -> {
+            //Log.d("DynamicInputItemView", "onFocusChange [" + inputItem.row + ", " + inputItem.col + "] hasFocus: " + hasFocus);
+            button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#CEEAF0") : Color.parseColor("#484848")));
+        });
     }
     private boolean isAnyBtnSet() {
         return isStartBtnSet || isMiddleBtnSet || isEndBtnSet;
