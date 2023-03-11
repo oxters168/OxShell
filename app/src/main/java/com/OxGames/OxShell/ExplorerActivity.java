@@ -1,21 +1,21 @@
 package com.OxGames.OxShell;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Views.ExplorerView;
 
 import java.util.Hashtable;
+import java.util.function.Consumer;
 
 public class ExplorerActivity extends PagedActivity {
+    View explorerView;
+    private Consumer<Boolean> onDynamicInputShown = (onOff) -> {
+        explorerView.setVisibility(onOff ? View.GONE : View.VISIBLE);
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,12 +29,23 @@ public class ExplorerActivity extends PagedActivity {
     @Override
     protected void initViewsTable() {
         allPages = new Hashtable<>();
-        allPages.put(ActivityManager.Page.explorer, findViewById(R.id.explorer_list));
+        allPages.put(ActivityManager.Page.explorer, explorerView = findViewById(R.id.explorer_list));
     }
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         setMarginsFor(R.id.parent_layout);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getDynamicInput().addShownListener(onDynamicInputShown);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getDynamicInput().removeShownListener(onDynamicInputShown);
     }
 }

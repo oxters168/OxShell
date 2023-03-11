@@ -138,7 +138,7 @@ public class SlideTouchHandler {
         }
     }
     private void checkForEvents(Runnable self) {
-        Log.d("SlideTouchHandler", "Checking for events");
+        //Log.d("SlideTouchHandler", "Checking for events");
         if (data.isDown && !data.longPressed) {
             if (!data.movedBeyondDeadZone && (SystemClock.uptimeMillis() - data.startPressTime) >= data.longPressTime) {
                 data.longPressed = true;
