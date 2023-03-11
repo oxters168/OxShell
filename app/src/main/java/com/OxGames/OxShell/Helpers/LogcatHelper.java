@@ -6,16 +6,19 @@ import android.util.Log;
 import com.OxGames.OxShell.Data.Paths;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 
 // source: https://stackoverflow.com/questions/45229996/how-do-i-get-the-app-log-from-a-real-android-device
 public class LogcatHelper {
-    // TODO: add option for max logs
+    public static int maxLogCount = 5;
     private static final HashMap<String, LogcatHelper> helpers = new HashMap<>();
     //private final String STORAGE_DIR_INTERNAL;
     private final String PATH_LOGCAT;
@@ -80,6 +83,13 @@ public class LogcatHelper {
             try {
                 if (!AndroidHelpers.dirExists(Paths.LOGCAT_DIR_INTERNAL))
                     AndroidHelpers.makeDir(Paths.LOGCAT_DIR_INTERNAL);
+                else {
+                    // check if other logs exist and clear them
+                    File[] logs = AndroidHelpers.listContents(Paths.LOGCAT_DIR_INTERNAL);
+                    Arrays.sort(logs, Comparator.comparingLong(File::lastModified).reversed());
+                    for (int i = maxLogCount - 1; i < logs.length; i++)
+                        logs[i].delete();
+                }
 //                File dir = new File(STORAGE_DIR_INTERNAL);
 //                if (!dir.exists())
 //                    dir.mkdirs();
