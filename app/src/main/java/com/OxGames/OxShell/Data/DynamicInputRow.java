@@ -10,6 +10,7 @@ import com.OxGames.OxShell.Views.DynamicInputItemView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class DynamicInputRow {
     private DynamicInput[] inputs;
@@ -38,7 +39,8 @@ public class DynamicInputRow {
             text,
             button,
             label,
-            toggle
+            toggle,
+            dropdown
         }
         public int row = -1, col = -1;
         public DynamicInputItemView view;
@@ -162,31 +164,6 @@ public class DynamicInputRow {
             return label;
         }
     }
-    public static class Label extends DynamicInput {
-        private String label;
-
-        public Label(String label) {
-            this.inputType = InputType.label;
-            this.label = label;
-        }
-
-        public void setLabel(String value) {
-            setLabel(value, true);
-        }
-        public void setLabel(String value, boolean fireEvent) {
-            label = value;
-            if (fireEvent)
-                valuesChanged();
-        }
-        public String getLabel() {
-            return label;
-        }
-
-        @Override
-        public int getVisibility() {
-            return label != null && !label.isEmpty() ? super.getVisibility() : View.GONE;
-        }
-    }
     public static class ToggleInput extends DynamicInput {
         private String onLabel;
         private String offLabel;
@@ -226,6 +203,60 @@ public class DynamicInputRow {
         }
         public View.OnClickListener getOnClick() {
             return onClick;
+        }
+    }
+    public static class Dropdown extends DynamicInput {
+        private String[] options;
+        private Consumer<Integer> onItemSelected;
+
+        public Dropdown(Consumer<Integer> onItemSelected, String... options) {
+            this.inputType = InputType.dropdown;
+            this.onItemSelected = onItemSelected;
+            setOptions(false, options);
+        }
+
+        public void setOptions(String... options) {
+            setOptions(true, options);
+        }
+        private void setOptions(boolean fireEvent, String... options) {
+            if (options != null)
+                this.options = options.clone();
+            if (fireEvent)
+                valuesChanged();
+        }
+        public String[] getOptions() {
+            return options != null ? options.clone() : null;
+        }
+        public String getOption(int index) {
+            return options[index];
+        }
+        public Consumer<Integer> getOnItemSelected() {
+            return onItemSelected;
+        }
+    }
+    public static class Label extends DynamicInput {
+        private String label;
+
+        public Label(String label) {
+            this.inputType = InputType.label;
+            this.label = label;
+        }
+
+        public void setLabel(String value) {
+            setLabel(value, true);
+        }
+        public void setLabel(String value, boolean fireEvent) {
+            label = value;
+            if (fireEvent)
+                valuesChanged();
+        }
+        public String getLabel() {
+            return label;
+        }
+
+        @Override
+        public int getVisibility() {
+            return label != null && !label.isEmpty() ? super.getVisibility() : View.GONE;
         }
     }
 }

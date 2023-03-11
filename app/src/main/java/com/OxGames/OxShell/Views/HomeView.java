@@ -17,6 +17,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 
 import androidx.activity.result.ActivityResult;
 
@@ -241,7 +242,16 @@ public class HomeView extends XMBView implements Refreshable {
                         }
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
+
+                    String[] options = { "Blue Dune", "Planet", "Custom" };
+                    DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
+                        titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
+                        selectFileBtn.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
+                    }, options);
+                    // so that they will only show up when the custom option is selected in the dropdown
+                    titleInput.setVisibility(View.GONE);
+                    selectFileBtn.setVisibility(View.GONE);
+                    dynamicInput.setItems(new DynamicInputRow(dropdown), new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;

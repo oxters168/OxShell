@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -26,6 +27,7 @@ import androidx.core.content.FileProvider;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
+import com.OxGames.OxShell.R;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -65,6 +67,32 @@ public class AndroidHelpers {
         }
     }
 
+    public static StateListDrawable createStateListDrawable(Drawable drawable) {
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[] { android.R.attr.state_focused }, drawable);
+        states.addState(new int[] { android.R.attr.state_active }, drawable);
+        states.addState(new int[] { android.R.attr.state_pressed }, drawable);
+        states.addState(new int[] { android.R.attr.state_enabled }, drawable);
+        states.addState(new int[] { android.R.attr.state_empty }, drawable);
+        states.addState(new int[] { android.R.attr.state_checked }, drawable);
+        states.addState(new int[] { android.R.attr.state_drag_can_accept }, drawable);
+        states.addState(new int[] { android.R.attr.state_window_focused }, drawable);
+        states.addState(new int[] { android.R.attr.state_checkable }, drawable);
+        states.addState(new int[] { android.R.attr.state_above_anchor }, drawable);
+        states.addState(new int[] { android.R.attr.state_selected }, drawable);
+        states.addState(new int[] { android.R.attr.state_activated }, drawable);
+        states.addState(new int[] { android.R.attr.state_accelerated }, drawable);
+        states.addState(new int[] { android.R.attr.state_drag_hovered }, drawable);
+        states.addState(new int[] { android.R.attr.state_expanded }, drawable);
+        states.addState(new int[] { android.R.attr.state_first }, drawable);
+        states.addState(new int[] { android.R.attr.state_last }, drawable);
+        states.addState(new int[] { android.R.attr.state_middle }, drawable);
+        states.addState(new int[] { android.R.attr.state_multiline }, drawable);
+        states.addState(new int[] { android.R.attr.state_single }, drawable);
+        states.addState(new int[] { android.R.attr.state_long_pressable }, drawable);
+        states.addState(new int[] { android.R.attr.state_hovered }, drawable);
+        return states;
+    }
     // source: https://stackoverflow.com/a/45661088/5430992
     public static void uninstallApp(PagedActivity launchingActivity, String pkgName, Consumer<ActivityResult> onResult) {
         Uri uri = Uri.fromParts("package", pkgName, null);
