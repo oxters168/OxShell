@@ -3,6 +3,9 @@ package com.OxGames.OxShell.Helpers;
 import android.util.Log;
 
 public class MathHelpers {
+    public static int calculateMillisForFps(int fps) {
+        return Math.round((1f / fps) * 1000);
+    }
     public static int max(int... values) {
         if (values.length <= 0)
             throw new IllegalArgumentException("Cannot get max of nothing");

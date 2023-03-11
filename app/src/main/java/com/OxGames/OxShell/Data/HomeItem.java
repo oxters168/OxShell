@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
@@ -40,26 +41,44 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         this(_obj, _type, null, innerItems);
     }
     @Override
-    public Drawable getIcon() {
+    public void getIcon(Consumer<Drawable> onIconLoaded) {
         //Drawable icon = null;
-        icon = super.getIcon();
-        if (icon == null) {
-            if (type == Type.explorer)
-                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
-            else if (type == Type.app || type == Type.addApp)
-                icon = PackagesCache.getPackageIcon((String)obj);
-            else if (type == Type.settings || type == Type.addExplorer || type == Type.setImageBg || type == Type.setShaderBg)
-                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
-            else if (type == Type.assocExe)
-                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24);
-            else if (type == Type.assoc || type == Type.addAssoc) {
-                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-                if (intent == null)
-                    return null;
-                icon = PackagesCache.getPackageIcon(intent.getPackageName());
-            }
+        if (type == Type.explorer)
+            onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24));
+        else if (type == Type.app || type == Type.addApp)
+            PackagesCache.requestPackageIcon((String) obj, drawable -> {
+                onIconLoaded.accept(icon = drawable);
+            });
+        else if (type == Type.settings || type == Type.addExplorer || type == Type.setImageBg || type == Type.setShaderBg)
+            onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
+        else if (type == Type.assocExe)
+            onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24));
+        else if (type == Type.assoc || type == Type.addAssoc) {
+            IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+            if (intent == null)
+                onIconLoaded.accept(null);
+            onIconLoaded.accept(icon = PackagesCache.getPackageIcon(intent.getPackageName()));
+        } else {
+            super.getIcon(onIconLoaded);
         }
-        return icon;
+//        icon = super.getIcon();
+//        if (icon == null) {
+//            if (type == Type.explorer)
+//                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
+//            else if (type == Type.app || type == Type.addApp)
+//                icon = PackagesCache.getPackageIcon((String)obj);
+//            else if (type == Type.settings || type == Type.addExplorer || type == Type.setImageBg || type == Type.setShaderBg)
+//                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
+//            else if (type == Type.assocExe)
+//                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24);
+//            else if (type == Type.assoc || type == Type.addAssoc) {
+//                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+//                if (intent == null)
+//                    return null;
+//                icon = PackagesCache.getPackageIcon(intent.getPackageName());
+//            }
+//        }
+//        return icon;
     }
 
     @Override

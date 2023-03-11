@@ -186,7 +186,7 @@ public class SlideTouchHandler {
                     }
                 }
             }
-            int milliInterval = Math.round((1f / 120) * 1000);
+            int milliInterval = MathHelpers.calculateMillisForFps(120);
             handler.postDelayed(self, milliInterval);
         }
     }

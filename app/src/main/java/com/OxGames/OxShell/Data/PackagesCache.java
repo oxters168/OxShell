@@ -5,21 +5,26 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Interfaces.PkgAppsListener;
-import com.OxGames.OxShell.Interfaces.PkgIconListener;
+import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.OxShellApp;
-import com.OxGames.OxShell.PagedActivity;
 
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Stack;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class PackagesCache {
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
     private static Hashtable<String, ApplicationInfo> appInfos = new Hashtable<>();
     private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
+    private static Stack<String> iconRequests = new Stack<>();
+
+    private static final Handler handler = new Handler(Looper.getMainLooper());
 
 //    public abstract class OnIconLoaded implements Runnable {
 //        private Drawable drawable;
@@ -39,10 +44,10 @@ public class PackagesCache {
     public static boolean isSystem(ApplicationInfo appInfo) {
         return (appInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
-    public static List<ApplicationInfo> getAllInstalledApplications() {
-        List<ApplicationInfo> appsList = OxShellApp.getContext().getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
-        return appsList;
-    }
+//    public static List<ApplicationInfo> getAllInstalledApplications() {
+//        List<ApplicationInfo> appsList = OxShellApp.getContext().getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
+//        return appsList;
+//    }
     public static boolean isPackageInstalled(String packageName) {
         try {
             OxShellApp.getContext().getPackageManager().getPackageInfo(packageName, 0);
@@ -70,31 +75,57 @@ public class PackagesCache {
         String pkgName = rslvInfo.activityInfo.packageName;
         return getPackageIcon(pkgName);
     }
-    public static void requestInstalledPackages(String action, PkgAppsListener pkgAppsListener, String... categories) {
-        Thread thread = new Thread(() -> {
-            List<ResolveInfo> pkgAppsList = getInstalledPackages(action, categories);
-            if (pkgAppsListener != null)
-                pkgAppsListener.onQueryApps(pkgAppsList);
-            //Log.d("PackagesView", "Listing apps");
-        });
-        thread.start();
-    }
+//    public static void requestInstalledPackages(String action, PkgAppsListener pkgAppsListener, String... categories) {
+//        Thread thread = new Thread(() -> {
+//            List<ResolveInfo> pkgAppsList = getInstalledPackages(action, categories);
+//            if (pkgAppsListener != null)
+//                pkgAppsListener.onQueryApps(pkgAppsList);
+//            //Log.d("PackagesView", "Listing apps");
+//        });
+//        thread.start();
+//    }
     public static List<ResolveInfo> getInstalledPackages(String action, String... categories) {
         Intent mainIntent = new Intent(action, null);
         for (String category : categories)
             mainIntent.addCategory(category);
-        return OxShellApp.getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+        List<ResolveInfo> pkgs = OxShellApp.getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
+
+        iconRequests.addAll(pkgs.stream().map(pkg -> pkg.activityInfo.packageName).collect(Collectors.toList()));
+        int millis = MathHelpers.calculateMillisForFps(120);
+        Runnable loadIcons = new Runnable() {
+            @Override
+            public void run() {
+                while (!iconRequests.isEmpty()) {
+                    getPackageIcon(iconRequests.pop());
+                    handler.postDelayed(this, millis);
+                }
+            }
+        };
+        handler.postDelayed(loadIcons, millis);
+        return pkgs;
     }
-    public static void requestPackageIcon(String packageName, PkgIconListener pkgIconListener) {
+    public static void requestPackageIcon(String packageName, Consumer<Drawable> pkgIconListener) {
         //Log.d("PackagesCache", "Requesting icon for " + packageName);
-        Thread thread = new Thread(() -> {
-            Drawable icon = getPackageIcon(packageName);
-            if (pkgIconListener != null)
-                pkgIconListener.onIconLoaded(icon);
-        });
-        thread.start();
+        int millis = MathHelpers.calculateMillisForFps(120);
+        Runnable waitForIcon = new Runnable() {
+            @Override
+            public void run() {
+                if (pkgIconListener != null) {
+                    while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName))
+                        handler.postDelayed(this, millis);
+                    pkgIconListener.accept(getPackageIcon(packageName));
+                }
+            }
+        };
+        handler.post(waitForIcon);
+//        Thread thread = new Thread(() -> {
+//            Drawable icon = getPackageIcon(packageName);
+//            if (pkgIconListener != null)
+//                pkgIconListener.accept(icon);
+//        });
+//        thread.start();
     }
-    public static void requestPackageIcon(ResolveInfo rslvInfo, PkgIconListener pkgIconListener) {
+    public static void requestPackageIcon(ResolveInfo rslvInfo, Consumer<Drawable> pkgIconListener) {
         String pkgName = rslvInfo.activityInfo.packageName;
         requestPackageIcon(pkgName, pkgIconListener);
     }

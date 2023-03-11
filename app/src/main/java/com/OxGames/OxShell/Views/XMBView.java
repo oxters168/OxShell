@@ -614,7 +614,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private Runnable momentumRunner = new Runnable() {
         @Override
         public void run() {
-            int milliInterval = Math.round((1f / 120) * 1000);
+            int milliInterval = MathHelpers.calculateMillisForFps(120);
 
             boolean hasMomentumX = Math.abs(momentumX) > 0;
             boolean hasMomentumY = Math.abs(momentumY) > 0;

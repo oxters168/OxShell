@@ -14,6 +14,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class XMBItem<T> implements Serializable {
     public T obj;
@@ -38,17 +39,18 @@ public class XMBItem<T> implements Serializable {
         this(_obj, _title, null, innerItems);
     }
 
-    public Drawable getIcon() {
+    public void getIcon(Consumer<Drawable> onIconLoaded) {
         if (icon == null && iconLoc != null) {
             if (iconLoc instanceof Integer) {
-                icon = ContextCompat.getDrawable(OxShellApp.getContext(), (Integer)iconLoc);
+                onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), (Integer)iconLoc));
             } else if (iconLoc instanceof Drawable) {
-                icon = (Drawable)iconLoc;
+                onIconLoaded.accept(icon = (Drawable)iconLoc);
             } else if (iconLoc instanceof String) {
-                icon = AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)iconLoc));
+                onIconLoaded.accept(icon = AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)iconLoc)));
             }
         }
-        return icon;
+        onIconLoaded.accept(icon);
+        //return icon;
     }
 
     public boolean hasInnerItems() {

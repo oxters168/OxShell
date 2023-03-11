@@ -30,6 +30,7 @@ import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
@@ -172,11 +173,29 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
             ImageView img = itemView.findViewById(ICON_ID);
             ImageView highlight = itemView.findViewById(ICON_HIGHLIGHT_ID);
-            Drawable icon = item != null ? item.getIcon() : ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24);
-            if (icon == null)
-                icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
-            img.setBackground(icon);
-            highlight.setBackground(icon.getConstantState().newDrawable());
+            Drawable icon = null;
+            //Drawable icon = item != null ? item.getIcon() : ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24);
+            if (item != null) {
+                item.getIcon(new Consumer<Drawable>() {
+                    @Override
+                    public void accept(Drawable drawable) {
+                        if (drawable != null) {
+                            img.setBackground(drawable);
+                            highlight.setBackground(drawable.getConstantState().newDrawable());
+                        } else {
+                            img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
+                            highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
+                        }
+                    }
+                });
+            } else {
+                img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+            }
+            //if (icon == null)
+            //    icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
+            //img.setBackground(icon);
+            //highlight.setBackground(icon.getConstantState().newDrawable());
             highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
         }
     }
