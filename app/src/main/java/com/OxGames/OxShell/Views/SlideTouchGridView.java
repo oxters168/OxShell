@@ -63,6 +63,11 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener, 
     public void onClick() {
         makeSelection();
     }
+
+    @Override
+    public void onLongClick() {
+    }
+
     @Override
     public void onSwipeDown() {
         selectLowerItem();

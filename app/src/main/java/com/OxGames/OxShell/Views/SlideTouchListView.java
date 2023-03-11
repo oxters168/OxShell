@@ -54,8 +54,14 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
     }
     @Override
     public void onClick() {
-        makeSelection();
+        primaryAction();
     }
+
+    @Override
+    public void onLongClick() {
+        secondaryAction();
+    }
+
     @Override
     public void onSwipeUp() {
         selectPrevItem();
@@ -85,7 +91,11 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
         //Log.d("SlideTouchListView", "Received key event");
         if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-                makeSelection();
+                primaryAction();
+                return true;
+            }
+            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+                secondaryAction();
                 return true;
             }
         }
@@ -142,9 +152,12 @@ public class SlideTouchListView extends ListView implements SlideTouchListener, 
             prevIndex = 0;
         setProperPosition(prevIndex);
     }
-    public void makeSelection() {
+    public void primaryAction() {
         for (CustomViewListener el : eventListeners)
             el.onMakeSelection(properPosition);
+    }
+    public void secondaryAction() {
+
     }
     public void setProperPosition(int pos) {
 //        Log.d("Explorer", "Setting position to " + pos);

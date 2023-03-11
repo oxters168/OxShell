@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Helpers;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 
 public class SlideTouchHandler {
     public class TouchData {
+        boolean isDown = false;
         float currentTouchX = 0;
         float currentTouchY = 0;
         float prevTouchX = 0;
@@ -34,9 +36,17 @@ public class SlideTouchHandler {
         float deadzone = 0.2f;
 //        int framesPerScroll = 24;
         int millisPerScroll = 1000; //How frequently repeated events should be sent (once per given milliseconds)
+        long startPressTime = 0;
+        float longPressTime = 300; // in milliseconds
+        boolean longPressed = false;
         boolean moved = false;
         boolean movedBeyondDeadZone = false;
     }
+    private float touchMarginTop = 50;
+    private float touchMarginLeft = 50;
+    private float touchMarginRight = 50;
+    private float touchMarginBottom = 50;
+
     private TouchData data;
     private ArrayList<SlideTouchListener> touchListeners = new ArrayList<>();
 
@@ -57,9 +67,9 @@ public class SlideTouchHandler {
     private Runnable eventRunner = new Runnable() {
         @Override
         public void run() {
-            long millis = SystemClock.uptimeMillis();
-            checkForEvents();
-            handler.postAtTime(this, millis + 16);
+            checkForEvents(this);
+            //int milliInterval = Math.round((1f / 120) * 1000);
+            //handler.postDelayed(this, milliInterval);
         }
     };
 
@@ -95,17 +105,23 @@ public class SlideTouchHandler {
 //                Log.d("Touch", "Action_Move (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
             case MotionEvent.ACTION_DOWN:
+                data.isDown = true;
                 data.moved = false;
+                data.longPressed = false;
                 data.movedBeyondDeadZone = false;
                 data.startX = data.currentTouchX;
                 data.startY = data.currentTouchY;
                 data.movingStartTouchX = data.currentTouchX;
                 data.movingStartTouchY = data.currentTouchY;
-                handler.removeCallbacks(eventRunner);
-                handler.post(eventRunner);
+                data.startPressTime = SystemClock.uptimeMillis();
+                //handler.removeCallbacks(eventRunner);
+                boolean touchInsideBorders = data.startX > touchMarginLeft && data.startX < OxShellApp.getDisplayWidth() - touchMarginRight && data.startY > touchMarginTop && data.startY < OxShellApp.getDisplayHeight() - touchMarginBottom;
+                if (touchInsideBorders)
+                    handler.post(eventRunner);
 //                Log.d("Touch", "Action_Down (" + ev.getX() + ", " + ev.getY() + ")");
                 break;
             case MotionEvent.ACTION_UP:
+                data.isDown = false;
                 handler.removeCallbacks(eventRunner);
                 float offsetX = Math.abs(data.currentTouchX - data.startX);
                 float offsetY = Math.abs(data.currentTouchY - data.startY);
@@ -121,47 +137,57 @@ public class SlideTouchHandler {
                 break;
         }
     }
-    private void checkForEvents() {
-        if (data.moved) {
+    private void checkForEvents(Runnable self) {
+        Log.d("SlideTouchHandler", "Checking for events");
+        if (data.isDown && !data.longPressed) {
+            if (!data.movedBeyondDeadZone && (SystemClock.uptimeMillis() - data.startPressTime) >= data.longPressTime) {
+                data.longPressed = true;
+                for (SlideTouchListener stl : touchListeners)
+                    stl.onLongClick();
+            }
+            if (data.moved && !data.longPressed) {
 //            Log.d("Touch", "x " + diffX + " / " + HomeActivity.displayMetrics.widthPixels + " = " + percentScrollX);
 //            Log.d("Touch", "y " + diffY + " / " + HomeActivity.displayMetrics.heightPixels + " = " + percentScrollY);
-            float diffX = data.currentTouchX - data.movingStartTouchX;
-            float percentScrollX = calculatePercentWithDeadzone(diffX);
-            float stretchedFramesPerScrollX = (1 - percentScrollX) * data.millisPerScroll;
-            if (percentScrollX > 0 && diffX > 0) {
-                //Go right
-                if (SystemClock.uptimeMillis() - data.prevScrollRightMilli > stretchedFramesPerScrollX) {
-                    data.prevScrollRightMilli = SystemClock.uptimeMillis();
-                    for (SlideTouchListener stl : touchListeners)
-                        stl.onSwipeRight();
+                float diffX = data.currentTouchX - data.movingStartTouchX;
+                float percentScrollX = calculatePercentWithDeadzone(diffX);
+                float stretchedFramesPerScrollX = (1 - percentScrollX) * data.millisPerScroll;
+                if (percentScrollX > 0 && diffX > 0) {
+                    //Go right
+                    if (SystemClock.uptimeMillis() - data.prevScrollRightMilli > stretchedFramesPerScrollX) {
+                        data.prevScrollRightMilli = SystemClock.uptimeMillis();
+                        for (SlideTouchListener stl : touchListeners)
+                            stl.onSwipeRight();
+                    }
+                } else if (percentScrollX > 0 && diffX < 0) {
+                    //Go left
+                    if (SystemClock.uptimeMillis() - data.prevScrollLeftMilli > stretchedFramesPerScrollX) {
+                        data.prevScrollLeftMilli = SystemClock.uptimeMillis();
+                        for (SlideTouchListener stl : touchListeners)
+                            stl.onSwipeLeft();
+                    }
                 }
-            } else if (percentScrollX > 0 && diffX < 0) {
-                //Go left
-                if (SystemClock.uptimeMillis() - data.prevScrollLeftMilli > stretchedFramesPerScrollX) {
-                    data.prevScrollLeftMilli = SystemClock.uptimeMillis();
-                    for (SlideTouchListener stl : touchListeners)
-                        stl.onSwipeLeft();
-                }
-            }
 
-            float diffY = data.currentTouchY - data.movingStartTouchY;
-            float percentScrollY = calculatePercentWithDeadzone(diffY);
-            float stretchedFramesPerScrollY = (1 - percentScrollY) * data.millisPerScroll;
-            if (percentScrollY > 0 && diffY > 0) {
-                //Go down
-                if (SystemClock.uptimeMillis() - data.prevScrollDownMilli > stretchedFramesPerScrollY) {
-                    data.prevScrollDownMilli = SystemClock.uptimeMillis();
-                    for (SlideTouchListener stl : touchListeners)
-                        stl.onSwipeDown();
-                }
-            } else if (percentScrollY > 0 && diffY < 0) {
-                //Go up
-                if (SystemClock.uptimeMillis() - data.prevScrollUpMilli > stretchedFramesPerScrollY) {
-                    data.prevScrollUpMilli = SystemClock.uptimeMillis();
-                    for (SlideTouchListener stl : touchListeners)
-                        stl.onSwipeUp();
+                float diffY = data.currentTouchY - data.movingStartTouchY;
+                float percentScrollY = calculatePercentWithDeadzone(diffY);
+                float stretchedFramesPerScrollY = (1 - percentScrollY) * data.millisPerScroll;
+                if (percentScrollY > 0 && diffY > 0) {
+                    //Go down
+                    if (SystemClock.uptimeMillis() - data.prevScrollDownMilli > stretchedFramesPerScrollY) {
+                        data.prevScrollDownMilli = SystemClock.uptimeMillis();
+                        for (SlideTouchListener stl : touchListeners)
+                            stl.onSwipeDown();
+                    }
+                } else if (percentScrollY > 0 && diffY < 0) {
+                    //Go up
+                    if (SystemClock.uptimeMillis() - data.prevScrollUpMilli > stretchedFramesPerScrollY) {
+                        data.prevScrollUpMilli = SystemClock.uptimeMillis();
+                        for (SlideTouchListener stl : touchListeners)
+                            stl.onSwipeUp();
+                    }
                 }
             }
+            int milliInterval = Math.round((1f / 120) * 1000);
+            handler.postDelayed(self, milliInterval);
         }
     }
 
