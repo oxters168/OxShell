@@ -12,6 +12,7 @@ import com.OxGames.OxShell.R;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -53,6 +54,9 @@ public class XMBItem<T> implements Serializable {
         //return icon;
     }
 
+    public void setInnerItems(XMBItem... innerItems) {
+        this.innerItems = new ArrayList<>(Arrays.asList(innerItems));
+    }
     public boolean hasInnerItems() {
         return innerItems != null && innerItems.size() > 0;
     }

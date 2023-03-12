@@ -88,8 +88,8 @@ public class HomeView extends XMBView implements Refreshable {
     @Override
     public boolean affirmativeAction() {
         // this is so that we don't both go into the inner items of an item and try to execute it at the same time
-        if (super.affirmativeAction())
-            return true;
+        //if (super.affirmativeAction())
+        //    return true;
 
         if (!isInMoveMode()) {
             if (getSelectedItem() instanceof HomeItem) {
@@ -106,6 +106,11 @@ public class HomeView extends XMBView implements Refreshable {
                     //ActivityManager.goTo(ActivityManager.Page.settings);
                     //return true;
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
+                } else if (selectedItem.type == HomeItem.Type.addAppOuter) {
+                    List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
+                    XMBItem[] sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList()).toArray(new XMBItem[0]);
+                    Arrays.sort(sortedApps, Comparator.comparing(o -> o.getTitle().toLowerCase()));
+                    selectedItem.setInnerItems(sortedApps);
                 } else if (selectedItem.type == HomeItem.Type.addApp) {
                     Adapter adapter = getAdapter();
                     adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle()));
@@ -116,6 +121,12 @@ public class HomeView extends XMBView implements Refreshable {
                     adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer"));
                     save(getItems());
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.addAssocOuter) {
+                    IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
+                    XMBItem[] intentItems = new XMBItem[intents.length];
+                    for (int i = 0; i < intents.length; i++)
+                        intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
+                    selectedItem.setInnerItems(intentItems);
                 } else if (selectedItem.type == HomeItem.Type.addAssoc) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
@@ -407,7 +418,7 @@ public class HomeView extends XMBView implements Refreshable {
         }// else
         //    applyMove();
 
-        return false;
+        return super.affirmativeAction();
     }
     @Override
     public boolean secondaryAction() {
@@ -527,13 +538,10 @@ public class HomeView extends XMBView implements Refreshable {
 
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
-        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
-        //long loadHomeStart = SystemClock.uptimeMillis();
-        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
-        //List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new XMBItem(null, PackagesCache.getAppLabel(currentPkg), PackagesCache.getPackageIcon(currentPkg))).collect(Collectors.toList());
-        //Log.d("HomeView", "Time to map apps: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s"); // mapping still runs slow on my S8 (removing getPackageIcon shaves off ~3s on my S8)
-        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
-        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Add application to home", sortedApps.toArray(new XMBItem[0]));
+//        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
+//        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
+//        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
+        innerSettings[1] = new HomeItem(HomeItem.Type.addAppOuter, "Add application to home");
         //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
         settingsItem = new XMBItem(null, "Home", R.drawable.ic_baseline_home_24, innerSettings);
         settingsColumn.add(settingsItem);
@@ -549,11 +557,11 @@ public class HomeView extends XMBView implements Refreshable {
         //settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[2];
-        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
-        XMBItem[] intentItems = new XMBItem[intents.length];
-        for (int i = 0; i < intents.length; i++)
-            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
-        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add association to home", intentItems);
+//        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
+//        XMBItem[] intentItems = new XMBItem[intents.length];
+//        for (int i = 0; i < intents.length; i++)
+//            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
+        innerSettings[0] = new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home");
         innerSettings[1] = new HomeItem(HomeItem.Type.createAssoc, "Create new association");
         settingsItem = new XMBItem(null, "Associations", R.drawable.ic_baseline_send_time_extension_24, innerSettings);
         settingsColumn.add(settingsItem);
