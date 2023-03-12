@@ -43,6 +43,7 @@ import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -165,13 +166,25 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.TextInput displayNameInput = new DynamicInputRow.TextInput("Display Name");
                     List<ResolveInfo> pkgs = PackagesCache.getLaunchableInstalledPackages();
                     pkgs.sort(Comparator.comparing(PackagesCache::getAppLabel));
-                    String[] pkgNames = pkgs.stream().map(PackagesCache::getAppLabel).toArray(String[]::new);
+                    List<String> pkgNames = pkgs.stream().map(PackagesCache::getAppLabel).collect(Collectors.toList());
+                    pkgNames.add(0, "Unlisted");
                     DynamicInputRow.TextInput pkgNameInput = new DynamicInputRow.TextInput("Package Name");
                     DynamicInputRow.Dropdown pkgsDropdown = new DynamicInputRow.Dropdown(index -> {
-                        Log.d("HomeView", "Dropdown index changed to " + index);
-                        pkgNameInput.setText(pkgs.get(index).activityInfo.packageName);
-                    }, pkgNames);
-
+                        //Log.d("HomeView", "Dropdown index changed to " + index);
+                        if (index >= 1) {
+                            String pkgName = pkgs.get(index).activityInfo.packageName;
+                            pkgNameInput.setText(pkgName);
+                        }
+                    });
+                    final String[][] classNames = new String[1][];
+                    DynamicInputRow.TextInput classNameInput = new DynamicInputRow.TextInput("Class Name");
+                    DynamicInputRow.Dropdown classesDropdown = new DynamicInputRow.Dropdown(index -> {
+                        if (index >= 1) {
+                            String className = classNames[0][index];
+                            classNameInput.setText(className);
+                        }
+                    });
+                    classesDropdown.setVisibility(GONE);
                     pkgNameInput.addListener(new DynamicInputListener() {
                         @Override
                         public void onFocusChanged(View view, boolean hasFocus) {
@@ -180,18 +193,36 @@ public class HomeView extends XMBView implements Refreshable {
 
                         @Override
                         public void onValuesChanged() {
+                            //Log.d("HomeView", "Looking for package in list");
                             // populate next list with class names
-                            int index = -1;
+                            int index = 0;
                             for (int i = 0; i < pkgs.size(); i++)
                                 if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
                                     index = i;
                                     break;
                                 }
-                            if (index >= 0 && pkgsDropdown.getIndex() != index)
-                                pkgsDropdown.setIndex(index);
+                            //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
+                            // if the user is typing and they type a valid package name, then select it in the drop down
+                            String[] classes = new String[0];
+                            pkgsDropdown.setIndex(index);
+                            if (index >= 1) { // 0 is unlisted, so skip
+                                //Log.d("HomeView", "Package exists");
+
+                                String[] tmp = PackagesCache.getClassesOfPkg(pkgNameInput.getText());
+                                if (tmp.length > 0) {
+                                    classes = new String[tmp.length + 1];
+                                    System.arraycopy(tmp, 0, classes, 1, tmp.length);
+                                    classes[0] = "Unlisted";
+                                }
+                            }
+                            classNames[0] = classes;
+                            classesDropdown.setOptions(classes);
+                            classesDropdown.setVisibility(classes.length > 0 ? VISIBLE : GONE);
                             //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
                         }
                     });
+
+                    pkgsDropdown.setOptions(pkgNames.toArray(new String[0]));
 
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
 //                        String path = displayNameInput.getText();
@@ -203,7 +234,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(okBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;

@@ -1,7 +1,9 @@
 package com.OxGames.OxShell.Data;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PackagesCache {
     private static Hashtable<String, Drawable> packageIcons = new Hashtable<>();
@@ -49,6 +52,14 @@ public class PackagesCache {
         }
     }
 
+    public static String[] getClassesOfPkg(String packageName) {
+        String[] classes = new String[0];
+        try {
+            PackageInfo packageInfo = OxShellApp.getContext().getPackageManager().getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            classes = Stream.of(packageInfo.activities).map(a -> a.name).toArray(String[]::new);
+        } catch (PackageManager.NameNotFoundException e) { e.printStackTrace(); }
+        return classes;
+    }
     public static Drawable getPackageIcon(String packageName) {
         Drawable pkgIcon = null;
         if (!packageIcons.containsKey(packageName)) {

@@ -2,6 +2,7 @@ package com.OxGames.OxShell.Data;
 
 import android.text.InputType;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
@@ -103,7 +104,9 @@ public class DynamicInputRow {
         }
 
         public void setText(String value) {
+            //Log.d("TextInput", "Comparing " + text + " and " + value);
             if (!text.equals(value)) {
+                //Log.d("TextInput", "They are different");
                 text = value;
                 valuesChanged();
             }
@@ -217,8 +220,8 @@ public class DynamicInputRow {
         public Dropdown(Consumer<Integer> onItemSelected, String... options) {
             this.inputType = InputType.dropdown;
             this.onItemSelected = onItemSelected;
-            this.index = -1;
-            setOptions(false, options);
+            //this.index = -1;
+            setOptions(options);
         }
 
         public int getIndex() {
@@ -236,10 +239,15 @@ public class DynamicInputRow {
             setOptions(true, options);
         }
         private void setOptions(boolean fireEvent, String... options) {
-            if (options != null)
-                this.options = options.clone();
+            this.options = options != null ? options.clone() : null;
+            this.index = options != null && options.length > 0 ? 0 : -1;
+            if (this.onItemSelected != null)
+                onItemSelected.accept(this.index);
             if (fireEvent)
                 valuesChanged();
+        }
+        public int getCount() {
+            return options != null ? options.length : 0;
         }
         public String[] getOptions() {
             return options != null ? options.clone() : null;

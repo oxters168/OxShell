@@ -144,6 +144,7 @@ public class DynamicInputItemView extends FrameLayout {
                         // getSelectedItemPosition was always returning 0
                         //if (dropdown.getSelectedItemPosition() != innerItem.getIndex()) {
                         //    Log.d("DynamicInputItemView", dropdown.getSelectedItemPosition() + " != " + innerItem.getIndex());
+                        if (innerItem.getCount() > 0)
                             dropdown.setSelection(innerItem.getIndex());
                         //}
                         dropdown.setVisibility(item.getVisibility());
@@ -287,7 +288,7 @@ public class DynamicInputItemView extends FrameLayout {
             dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    Log.d("DynamicInputItemView", "Raw index changed " + position);
+                    //Log.d("DynamicInputItemView", "Raw index changed " + position);
                     innerItem.setIndex(position);
                 }
 
@@ -296,6 +297,8 @@ public class DynamicInputItemView extends FrameLayout {
                 }
             });
             setDropdownOptions(innerItem.getOptions());
+            if (innerItem.getCount() >= 0)
+                dropdown.setSelection(innerItem.getIndex());
             dropdown.setVisibility(innerItem.getVisibility());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {
             DynamicInputRow.Label innerItem = (DynamicInputRow.Label)item;

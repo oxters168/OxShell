@@ -117,6 +117,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         int maxVisibleItems = Math.min(MAX_VISIBLE_ITEMS, items.size());
         DynamicInputRow.DynamicInput item = ((DynamicInputItemView)holder.itemView).getInputItem();
         int relativeIndex = item.col % maxVisibleItems;
+        // TODO: don't consider items that are not visible
         int currentVisibleItems = Math.min(MAX_VISIBLE_ITEMS, items.size() - (item.col - relativeIndex));
         //int maxWidth = Math.round((rowWidth - ((currentVisibleItems - 1) * paddingPx)) / (float)currentVisibleItems);
         int buttonPx = Math.round(AndroidHelpers.getScaledDpToPixels(context, BUTTON_DIP));
@@ -125,6 +126,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
             maxWidth = buttonPx;
         else {
             maxWidth = Math.round(rowWidth / (float)currentVisibleItems);
+            // of the visible items alongside us, figure out which ones are buttons and use that information to more properly set the width
             int visibleBtnCount = 0;
             for (int i = 0; i < currentVisibleItems; i++) {
                 DynamicInputRow.DynamicInput currentItem = items.get(item.col + (i - relativeIndex));
