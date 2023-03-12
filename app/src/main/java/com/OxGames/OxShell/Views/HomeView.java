@@ -170,8 +170,11 @@ public class HomeView extends XMBView implements Refreshable {
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
-                        AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(titleInput.getText()));
-                        dynamicInput.setShown(false);
+                        String path = titleInput.getText();
+                        if (path != null && AndroidHelpers.fileExists(path)) {
+                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
+                            dynamicInput.setShown(false);
+                        }
                     }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
