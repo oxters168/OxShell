@@ -24,14 +24,6 @@ public class PackagesCache {
     private static Hashtable<ApplicationInfo, String> appLabels = new Hashtable<>();
     private static Stack<String> iconRequests = new Stack<>();
 
-    private static final Handler handler = new Handler(Looper.getMainLooper());
-
-//    public abstract class OnIconLoaded implements Runnable {
-//        private Drawable drawable;
-//        @Override
-//        public abstract void run();
-//    }
-
     public static boolean isRunning(String packageName) {
         return isRunning(getPackageInfo(packageName));
     }
@@ -92,38 +84,41 @@ public class PackagesCache {
 
         iconRequests.addAll(pkgs.stream().map(pkg -> pkg.activityInfo.packageName).collect(Collectors.toList()));
         int millis = MathHelpers.calculateMillisForFps(120);
+        Handler loadIconsHandler = new Handler();
         Runnable loadIcons = new Runnable() {
             @Override
             public void run() {
                 while (!iconRequests.isEmpty()) {
-                    getPackageIcon(iconRequests.pop());
-                    handler.postDelayed(this, millis);
+                    String pkgName = iconRequests.pop();
+                    Log.d("PackagesCache", "Caching icon for " + pkgName);
+                    getPackageIcon(pkgName);
+                    loadIconsHandler.postDelayed(this, millis);
                 }
             }
         };
-        handler.postDelayed(loadIcons, millis);
+        loadIconsHandler.postDelayed(loadIcons, millis);
         return pkgs;
     }
     public static void requestPackageIcon(String packageName, Consumer<Drawable> pkgIconListener) {
         //Log.d("PackagesCache", "Requesting icon for " + packageName);
-        int millis = MathHelpers.calculateMillisForFps(120);
-        Runnable waitForIcon = new Runnable() {
-            @Override
-            public void run() {
-                if (pkgIconListener != null) {
-                    while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName))
-                        handler.postDelayed(this, millis);
-                    pkgIconListener.accept(getPackageIcon(packageName));
+        if (!packageIcons.containsKey(packageName)) {
+            int millis = MathHelpers.calculateMillisForFps(120);
+            Handler waitForIconHandler = new Handler();
+            Runnable waitForIcon = new Runnable() {
+                @Override
+                public void run() {
+                    if (pkgIconListener != null) {
+                        while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName)) {
+                            Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
+                            waitForIconHandler.postDelayed(this, millis);
+                        }
+                        pkgIconListener.accept(getPackageIcon(packageName));
+                    }
                 }
-            }
-        };
-        handler.post(waitForIcon);
-//        Thread thread = new Thread(() -> {
-//            Drawable icon = getPackageIcon(packageName);
-//            if (pkgIconListener != null)
-//                pkgIconListener.accept(icon);
-//        });
-//        thread.start();
+            };
+            waitForIconHandler.post(waitForIcon);
+        } else
+            pkgIconListener.accept(getPackageIcon(packageName));
     }
     public static void requestPackageIcon(ResolveInfo rslvInfo, Consumer<Drawable> pkgIconListener) {
         String pkgName = rslvInfo.activityInfo.packageName;
