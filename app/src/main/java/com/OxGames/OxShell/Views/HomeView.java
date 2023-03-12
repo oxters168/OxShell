@@ -51,6 +51,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
     public HomeView(Context context) {
@@ -172,7 +173,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.Dropdown pkgsDropdown = new DynamicInputRow.Dropdown(index -> {
                         //Log.d("HomeView", "Dropdown index changed to " + index);
                         if (index >= 1) {
-                            String pkgName = pkgs.get(index).activityInfo.packageName;
+                            String pkgName = pkgs.get(index - 1).activityInfo.packageName;
                             pkgNameInput.setText(pkgName);
                         }
                     });
@@ -198,7 +199,7 @@ public class HomeView extends XMBView implements Refreshable {
                             int index = 0;
                             for (int i = 0; i < pkgs.size(); i++)
                                 if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
-                                    index = i;
+                                    index = i + 1;
                                     break;
                                 }
                             //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
@@ -221,10 +222,52 @@ public class HomeView extends XMBView implements Refreshable {
                             //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
                         }
                     });
-
                     pkgsDropdown.setOptions(pkgNames.toArray(new String[0]));
+                    String[] intentActions = PackagesCache.getAllIntentActions();
+                    String[] actionsTmp = PackagesCache.getAllIntentActionNames();
+                    String[] intentActionNames = new String[actionsTmp.length + 1];
+                    System.arraycopy(actionsTmp, 0, intentActionNames, 1, actionsTmp.length);
+                    intentActionNames[0] = "Unlisted";
+                    DynamicInputRow.TextInput actionInput = new DynamicInputRow.TextInput("Intent Action");
+                    DynamicInputRow.Dropdown actionsDropdown = new DynamicInputRow.Dropdown(index -> {
+                        if (index > 0) {
+                            String actionName = intentActions[index - 1];
+                            actionInput.setText(actionName);
+                        }
+                    }, intentActionNames);
+                    actionInput.addListener(new DynamicInputListener() {
+                        @Override
+                        public void onFocusChanged(View view, boolean hasFocus) {
+
+                        }
+
+                        @Override
+                        public void onValuesChanged() {
+                            int index = 0;
+                            for (int i = 0; i < intentActions.length; i++)
+                                if (actionInput.getText().equals(intentActions[i])) {
+                                    index = i + 1;
+                                    break;
+                                }
+                            actionsDropdown.setIndex(index);
+                        }
+                    });
+                    DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
 
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
+                        String displayName = displayNameInput.getText();
+                        String pkgName = pkgNameInput.getText();
+                        String actionName = actionInput.getText();
+                        String className = classNameInput.getText();
+                        String extensionsRaw = extensionsInput.getText();
+                        if (!displayName.isEmpty() && !pkgName.isEmpty() && !actionName.isEmpty() && !className.isEmpty() && !extensionsRaw.isEmpty()) {
+                            // TODO: show some kind of error when input is invalid
+                            // TODO: add ability to choose flags
+                            String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
+                            IntentLaunchData newAssoc = new IntentLaunchData(displayName, actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
+                            ShortcutsCache.addIntent(newAssoc);
+                            dynamicInput.setShown(false);
+                        }
 //                        String path = displayNameInput.getText();
 //                        if (path != null && AndroidHelpers.fileExists(path)) {
 //                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
@@ -234,7 +277,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(okBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;

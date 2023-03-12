@@ -29,15 +29,15 @@ public class ShortcutsCache {
             intents.put(intent.getId(), intent);
         writeIntentsToDisk();
     }
+    public static void addIntent(IntentLaunchData intent) {
+        intents.put(intent.getId(), intent);
+        saveIntentData(intent, Paths.SHORTCUTS_DIR_INTERNAL);
+    }
     private static void writeIntentsToDisk() {
-        if (!AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL))
-            AndroidHelpers.makeDir(Paths.SHORTCUTS_DIR_INTERNAL);
-
-        for (IntentLaunchData intent : intents.values()) {
+        for (IntentLaunchData intent : intents.values())
             saveIntentData(intent, Paths.SHORTCUTS_DIR_INTERNAL);
             //if (AndroidHelpers.hasWriteStoragePermission())
             //    saveIntentData(intent, Paths.SHORTCUTS_DIR_EXTERNAL);
-        }
     }
     private static List<IntentLaunchData> createDefaultLaunchIntents() {
         List<IntentLaunchData> defaults = new ArrayList<>();
@@ -72,6 +72,9 @@ public class ShortcutsCache {
         return defaults;
     }
     private static void saveIntentData(IntentLaunchData intentData, String dir) {
+        if (!AndroidHelpers.dirExists(dir))
+            AndroidHelpers.makeDir(dir);
+
         String fileName = AndroidHelpers.combinePaths(dir, intentData.getDisplayName() + ".json");
         Serialaver.saveAsFSTJSON(intentData, fileName);
     }
