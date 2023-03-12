@@ -23,6 +23,7 @@ import androidx.activity.result.ActivityResult;
 
 import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
+import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.ShortcutsCache;
@@ -264,6 +265,10 @@ public class HomeView extends XMBView implements Refreshable {
                         }
                     });
                     DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
+                    String[] dataTypes = { "None", "AbsPathAsProvider", "AbsolutePath", "FileNameWithExt", "FileNameWithoutExt" };
+                    DynamicInputRow.Label dataLabel = new DynamicInputRow.Label("Data");
+                    DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
+                    DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
 
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
                         String displayName = displayNameInput.getText();
@@ -271,11 +276,17 @@ public class HomeView extends XMBView implements Refreshable {
                         String actionName = actionInput.getText();
                         String className = classNameInput.getText();
                         String extensionsRaw = extensionsInput.getText();
-                        if (!displayName.isEmpty() && !pkgName.isEmpty() && !actionName.isEmpty() && !className.isEmpty() && !extensionsRaw.isEmpty()) {
+                        String[] extras = !extrasInput.getText().isEmpty() ? Arrays.stream(extrasInput.getText().split(",")).map(String::trim).toArray(String[]::new) : new String[0];
+                        if (!displayName.isEmpty() && !pkgName.isEmpty() && !actionName.isEmpty() && !className.isEmpty() && !extensionsRaw.isEmpty() && (extras.length % 2 == 0)) {
                             // TODO: show some kind of error when input is invalid
                             // TODO: add ability to choose flags
+                            // TODO: check if name exists
+                            // TODO: work purely with files
                             String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
                             IntentLaunchData newAssoc = new IntentLaunchData(displayName, actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
+                            newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
+                            for (int i = 0; i < extras.length; i += 2)
+                                newAssoc.addExtra(IntentPutExtra.parseFrom(extras[i], extras[i + 1]));
                             ShortcutsCache.addIntent(newAssoc);
                             dynamicInput.setShown(false);
                         }
@@ -288,7 +299,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(okBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel, dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;

@@ -21,7 +21,7 @@ public class IntentLaunchData implements Serializable {
     //Might be best to implement a guid that other data structures can identify by so they don't store copies
     private UUID id;
 
-    public enum DataType { None, AbsPathAsProvider, AbsolutePath, FileNameWithExt, FileNameWithoutExt }
+    public enum DataType { None, AbsPathAsProvider, AbsolutePath, FileNameWithExt, FileNameWithoutExt, Integer, Boolean, Float, String }
     private String displayName;
     private ArrayList<String> associatedExtensions;
     private String action;
@@ -123,10 +123,10 @@ public class IntentLaunchData implements Serializable {
 //    public Intent buildIntent(String data) {
 //        return buildIntent(data, null);
 //    }
-    public Intent buildIntent() {
-        return buildIntent(null, null);
-    }
-    public Intent buildIntent(String data, String[] extrasValues) {
+//    public Intent buildIntent() {
+//        return buildIntent(null, null);
+//    }
+    public Intent buildIntent(String path) {
         Intent intent;
         if (action != null && !action.isEmpty()) {
             intent = new Intent(action);
@@ -144,15 +144,25 @@ public class IntentLaunchData implements Serializable {
             else
                 intent.setPackage(packageName);
         }
-        for (int i = 0; i < extras.size(); i++)
-            intent.putExtra(extras.get(i).getName(), formatData(extrasValues[i], extras.get(i).getExtraType()));
-        if (data != null && !data.isEmpty())
-            intent.setData(formatData(data, dataType));
+        for (IntentPutExtra extra : extras) {
+            DataType extraType = extra.getExtraType();
+            if (extraType != DataType.None) {
+                if (extraType == DataType.AbsPathAsProvider || extraType == DataType.AbsolutePath || extraType == DataType.FileNameWithExt || extraType == DataType.FileNameWithoutExt)
+                    intent.putExtra(extra.getName(), formatData(path, extra.getExtraType()));
+                else
+                    extra.putExtraInto(intent);
+            }
+        }
+        if (dataType != DataType.None && path != null && !path.isEmpty())
+            intent.setData(formatData(path, dataType));
             //intent.setData(Uri.parse(data));
         if (flags > 0)
             intent.setFlags(flags);
 
         return intent;
+    }
+    public Intent buildIntent() {
+        return buildIntent(null);
     }
 
     public void addExtra(IntentPutExtra extra) {
@@ -175,27 +185,35 @@ public class IntentLaunchData implements Serializable {
         return associatedExtensions.contains(extension.toLowerCase());
     }
 
-    public void launch(String data, String[] extrasValues) {
-        Intent intent = buildIntent(data, extrasValues);
-        Log.i("IntentLaunchData", intent.toString());
+    public void launch(String path) {
+        Intent intent = buildIntent(path);
+        Log.i("IntentLaunchData", intent + ", " + intent.getExtras());
         startActivity(OxShellApp.getContext(), intent, null);
     }
-    public void launch(String data) {
-        String dataEntry = null;
-        if (dataType != DataType.None)
-            dataEntry = data;
-
-        String[] extrasValues = null;
-        if (extras != null && extras.size() > 0) {
-            extrasValues = new String[extras.size()];
-            for (int i = 0; i < extras.size(); i++)
-                extrasValues[i] = data;
-        }
-        launch(dataEntry, extrasValues);
-    }
     public void launch() {
-        launch(null, null);
+        launch(null);
     }
+//    public void launch(String data, String[] extrasValues) {
+//        Intent intent = buildIntent(data, extrasValues);
+//        Log.i("IntentLaunchData", intent.toString());
+//        startActivity(OxShellApp.getContext(), intent, null);
+//    }
+//    public void launch(String data) {
+//        String dataEntry = null;
+//        if (dataType != DataType.None)
+//            dataEntry = data;
+//
+//        String[] extrasValues = null;
+//        if (extras != null && extras.size() > 0) {
+//            extrasValues = new String[extras.size()];
+//            for (int i = 0; i < extras.size(); i++)
+//                extrasValues[i] = data;
+//        }
+//        launch(dataEntry, extrasValues);
+//    }
+//    public void launch() {
+//        launch(null, null);
+//    }
 
     public static Uri formatData(String data, DataType dataType) {
         if (dataType == DataType.AbsPathAsProvider)
