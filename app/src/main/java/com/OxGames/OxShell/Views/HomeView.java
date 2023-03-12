@@ -34,7 +34,9 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
+import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
@@ -115,7 +117,7 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.addAssoc) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-                    dynamicInput.setTitle("Choose Association Directory");
+                    dynamicInput.setTitle("Add " + ShortcutsCache.getIntent(((UUID)selectedItem.obj)).getDisplayName() + " Association to Home");
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
                     DynamicInputRow.ButtonInput selectDirBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
                         // TODO: add non-scoped storage alternative for when storage access is granted
@@ -156,10 +158,59 @@ public class HomeView extends XMBView implements Refreshable {
                     else
                         Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.createAssoc) {
+                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+                    dynamicInput.setTitle("Create Association");
+                    DynamicInputRow.TextInput displayNameInput = new DynamicInputRow.TextInput("Display Name");
+                    List<ResolveInfo> pkgs = PackagesCache.getLaunchableInstalledPackages();
+                    pkgs.sort(Comparator.comparing(PackagesCache::getAppLabel));
+                    String[] pkgNames = pkgs.stream().map(PackagesCache::getAppLabel).toArray(String[]::new);
+                    DynamicInputRow.TextInput pkgNameInput = new DynamicInputRow.TextInput("Package Name");
+                    DynamicInputRow.Dropdown pkgsDropdown = new DynamicInputRow.Dropdown(index -> {
+                        Log.d("HomeView", "Dropdown index changed to " + index);
+                        pkgNameInput.setText(pkgs.get(index).activityInfo.packageName);
+                    }, pkgNames);
+
+                    pkgNameInput.addListener(new DynamicInputListener() {
+                        @Override
+                        public void onFocusChanged(View view, boolean hasFocus) {
+
+                        }
+
+                        @Override
+                        public void onValuesChanged() {
+                            // populate next list with class names
+                            int index = -1;
+                            for (int i = 0; i < pkgs.size(); i++)
+                                if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
+                                    index = i;
+                                    break;
+                                }
+                            if (index >= 0 && pkgsDropdown.getIndex() != index)
+                                pkgsDropdown.setIndex(index);
+                            //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
+                        }
+                    });
+
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
+//                        String path = displayNameInput.getText();
+//                        if (path != null && AndroidHelpers.fileExists(path)) {
+//                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
+//                            dynamicInput.setShown(false);
+//                        }
+                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        dynamicInput.setShown(false);
+                    }, KeyEvent.KEYCODE_ESCAPE);
+                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(okBtn, cancelBtn));
+
+                    dynamicInput.setShown(true);
+                    return true;
                 } else if (selectedItem.type == HomeItem.Type.setImageBg) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-                    dynamicInput.setTitle("Choose Image");
+                    dynamicInput.setTitle("Set Image as Background");
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Image File Path");
 
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
@@ -186,7 +237,7 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.setShaderBg) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-                    dynamicInput.setTitle("Choose Shader Files");
+                    dynamicInput.setTitle("Set Shader as Background");
                     String[] options = { "Blue Dune", "Planet", "Custom" };
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
@@ -402,7 +453,7 @@ public class HomeView extends XMBView implements Refreshable {
 
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
-        List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
         //long loadHomeStart = SystemClock.uptimeMillis();
         List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
         //List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new XMBItem(null, PackagesCache.getAppLabel(currentPkg), PackagesCache.getPackageIcon(currentPkg))).collect(Collectors.toList());
@@ -429,7 +480,7 @@ public class HomeView extends XMBView implements Refreshable {
         for (int i = 0; i < intents.length; i++)
             intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
         innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Add association to home", intentItems);
-        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Create new association");
+        innerSettings[1] = new HomeItem(HomeItem.Type.createAssoc, "Create new association");
         settingsItem = new XMBItem(null, "Associations", R.drawable.ic_baseline_send_time_extension_24, innerSettings);
         settingsColumn.add(settingsItem);
 
@@ -497,7 +548,7 @@ public class HomeView extends XMBView implements Refreshable {
 
         String[] categories = new String[] { "Games", "Audio", "Video", "Image", "Social", "News", "Maps", "Productivity", "Accessibility", "Other" };
         HashMap<Integer, ArrayList<XMBItem>> sortedApps = new HashMap<>();
-        List<ResolveInfo> apps = PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
         Log.d("HomeView", "Time to get installed packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         createDefaultStart = SystemClock.uptimeMillis();
         ArrayList<ArrayList<XMBItem>> defaultItems = new ArrayList<>();
@@ -505,6 +556,8 @@ public class HomeView extends XMBView implements Refreshable {
         int otherIndex = getOtherCategoryIndex();
         for (int i = 0; i < apps.size(); i++) {
             ResolveInfo currentPkg = apps.get(i);
+            if (currentPkg.activityInfo.packageName.equals(OxShellApp.getContext().getPackageName()))
+                continue;
             int category = -1;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
                 category = currentPkg.activityInfo.applicationInfo.category;

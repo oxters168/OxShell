@@ -114,8 +114,13 @@ public class DynamicInputItemView extends FrameLayout {
                 if (inputLayout != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
                         EditText textEdit = inputLayout.getEditText();
-                        if (textEdit != null)
-                            textEdit.setText(((DynamicInputRow.TextInput)item).getText());
+                        if (textEdit != null) {
+                            String newText = ((DynamicInputRow.TextInput)item).getText();
+                            if (!textEdit.getText().toString().equals(newText)) {
+                            //    Log.d("DynamicInputItemView", "Setting edit text from " + textEdit.getText() + " to " + newText);
+                                textEdit.setText(newText);
+                            }
+                        }
                         inputLayout.setVisibility(item.getVisibility());
                     }
                 }
@@ -136,8 +141,11 @@ public class DynamicInputItemView extends FrameLayout {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.dropdown) {
                         DynamicInputRow.Dropdown innerItem = (DynamicInputRow.Dropdown)item;
                         setDropdownOptions(innerItem.getOptions());
-                        if (dropdown.getSelectedItemPosition() != innerItem.getIndex())
+                        // getSelectedItemPosition was always returning 0
+                        //if (dropdown.getSelectedItemPosition() != innerItem.getIndex()) {
+                        //    Log.d("DynamicInputItemView", dropdown.getSelectedItemPosition() + " != " + innerItem.getIndex());
                             dropdown.setSelection(innerItem.getIndex());
+                        //}
                         dropdown.setVisibility(item.getVisibility());
                     }
                 }
@@ -192,12 +200,12 @@ public class DynamicInputItemView extends FrameLayout {
 
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    innerItem.setText(s.toString(), false);
+                    innerItem.setText(s.toString());
                 }
 
                 @Override
                 public void afterTextChanged(Editable s) {
-
+                    //innerItem.setText(s.toString());
                 }
             };
             textEdit.addTextChangedListener(inputWatcher);
@@ -266,8 +274,7 @@ public class DynamicInputItemView extends FrameLayout {
                 dropdown.setBackground(AndroidHelpers.createStateListDrawable(ContextCompat.getDrawable(context, R.drawable.rounded_spinner)));
                 //dropdown.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
                 //dropdown.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#44323232")));
-
-                // to not have nothing as an option
+                // I don't actually know what this is for, couldn't get it to do anything, but I'm keeping it anyways just in case
                 dropdown.setPrompt("");
                 // add the Spinner widget to your layout
                 addView(dropdown);
@@ -280,15 +287,12 @@ public class DynamicInputItemView extends FrameLayout {
             dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    if (innerItem.getIndex() != position)
-                        innerItem.setIndex(position);
-                    //if (innerItem.getOnItemSelected() != null)
-                    //    innerItem.getOnItemSelected().accept(position);
+                    Log.d("DynamicInputItemView", "Raw index changed " + position);
+                    innerItem.setIndex(position);
                 }
 
                 @Override
                 public void onNothingSelected(AdapterView<?> parent) {
-
                 }
             });
             setDropdownOptions(innerItem.getOptions());

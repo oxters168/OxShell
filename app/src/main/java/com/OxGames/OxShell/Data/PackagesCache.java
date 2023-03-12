@@ -76,6 +76,9 @@ public class PackagesCache {
 //        });
 //        thread.start();
 //    }
+    public static List<ResolveInfo> getLaunchableInstalledPackages() {
+        return PackagesCache.getInstalledPackages(Intent.ACTION_MAIN, Intent.CATEGORY_LAUNCHER);
+    }
     public static List<ResolveInfo> getInstalledPackages(String action, String... categories) {
         Intent mainIntent = new Intent(action, null);
         for (String category : categories)
@@ -90,7 +93,7 @@ public class PackagesCache {
             public void run() {
                 while (!iconRequests.isEmpty()) {
                     String pkgName = iconRequests.pop();
-                    Log.d("PackagesCache", "Caching icon for " + pkgName);
+                    //Log.d("PackagesCache", "Caching icon for " + pkgName);
                     getPackageIcon(pkgName);
                     loadIconsHandler.postDelayed(this, millis);
                 }
@@ -109,7 +112,7 @@ public class PackagesCache {
                 public void run() {
                     if (pkgIconListener != null) {
                         while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName)) {
-                            Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
+                            //Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
                             waitForIconHandler.postDelayed(this, millis);
                         }
                         pkgIconListener.accept(getPackageIcon(packageName));

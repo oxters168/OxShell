@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, addExplorer, app, addApp, assoc, addAssoc, assocExe, setImageBg, setShaderBg, settings, }
+    public enum Type { explorer, addExplorer, app, addApp, assoc, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, settings, }
     public Type type;
     public ArrayList<String> extraData;
 
@@ -49,7 +49,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             PackagesCache.requestPackageIcon((String) obj, drawable -> {
                 onIconLoaded.accept(icon = drawable);
             });
-        else if (type == Type.settings || type == Type.addExplorer || type == Type.setImageBg || type == Type.setShaderBg)
+        else if (type == Type.settings || type == Type.addExplorer || type == Type.setImageBg || type == Type.setShaderBg || type == Type.createAssoc)
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
         else if (type == Type.assocExe)
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24));

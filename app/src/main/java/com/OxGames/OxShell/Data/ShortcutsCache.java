@@ -35,8 +35,8 @@ public class ShortcutsCache {
 
         for (IntentLaunchData intent : intents.values()) {
             saveIntentData(intent, Paths.SHORTCUTS_DIR_INTERNAL);
-            if (AndroidHelpers.hasWriteStoragePermission())
-                saveIntentData(intent, Paths.SHORTCUTS_DIR_EXTERNAL);
+            //if (AndroidHelpers.hasWriteStoragePermission())
+            //    saveIntentData(intent, Paths.SHORTCUTS_DIR_EXTERNAL);
         }
     }
     private static List<IntentLaunchData> createDefaultLaunchIntents() {

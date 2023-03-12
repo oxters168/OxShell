@@ -102,18 +102,22 @@ public class DynamicInputRow {
             this.text = "";
         }
 
-        // setText should be only accessible from the view, but whatever
         public void setText(String value) {
-            setText(value, true);
+            if (!text.equals(value)) {
+                text = value;
+                valuesChanged();
+            }
+            //setText(value, true);fireEvent
         }
         public String getText() {
             return text;
         }
-        public void setText(String value, boolean fireEvent) {
-            text = value;
-            if (fireEvent)
-                valuesChanged();
-        }
+        // setText should be only accessible from the view, but whatever
+//        public void setText(String value, boolean fireEvent) {
+//            text = value;
+//            if (fireEvent)
+//                valuesChanged();
+//        }
         public int getValueType() {
             return valueType;
         }
@@ -213,7 +217,7 @@ public class DynamicInputRow {
         public Dropdown(Consumer<Integer> onItemSelected, String... options) {
             this.inputType = InputType.dropdown;
             this.onItemSelected = onItemSelected;
-            this.index = 0;
+            this.index = -1;
             setOptions(false, options);
         }
 
@@ -221,10 +225,12 @@ public class DynamicInputRow {
             return index;
         }
         public void setIndex(int index) {
-            this.index = index;
-            valuesChanged();
-            if (onItemSelected != null)
-                onItemSelected.accept(index);
+            if (this.index != index) {
+                this.index = index;
+                valuesChanged();
+                if (onItemSelected != null)
+                    onItemSelected.accept(index);
+            }
         }
         public void setOptions(String... options) {
             setOptions(true, options);

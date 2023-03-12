@@ -202,7 +202,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
     @Override
     protected int getTextSize() {
-        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 6));
     }
 
     @Override
