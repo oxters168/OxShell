@@ -180,16 +180,16 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                     @Override
                     public void accept(Drawable drawable) {
                         if (drawable != null) {
-                            img.setBackground(drawable);
+                            img.setImageDrawable(drawable);
                             highlight.setBackground(drawable.getConstantState().newDrawable());
                         } else {
-                            img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
+                            img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                             highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                         }
                     }
                 });
             } else {
-                img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
                 highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
             }
             //if (icon == null)

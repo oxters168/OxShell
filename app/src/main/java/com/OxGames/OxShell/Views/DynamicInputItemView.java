@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.text.Editable;
@@ -21,6 +22,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -47,6 +49,7 @@ public class DynamicInputItemView extends FrameLayout {
     private TextView label;
     private CheckBox toggle;
     private Spinner dropdown;
+    private ImageView image;
 
 
     public DynamicInputItemView(@NonNull Context context) {
@@ -84,10 +87,16 @@ public class DynamicInputItemView extends FrameLayout {
         // remove previous listeners from the views if any
         if (inputLayout != null && inputLayout.getEditText() != null && inputWatcher != null)
             inputLayout.getEditText().removeTextChangedListener(inputWatcher);
-        if (button != null)
+        if (button != null) {
             button.setOnClickListener(null);
+            button.setOnTouchListener(null);
+        }
         if (toggle != null)
             toggle.setOnClickListener(null);
+        if (dropdown != null) {
+            dropdown.setOnItemSelectedListener(null);
+            dropdown.setOnTouchListener(null);
+        }
 
         // hide all views that exist
         if (inputLayout != null)
@@ -98,6 +107,10 @@ public class DynamicInputItemView extends FrameLayout {
             label.setVisibility(GONE);
         if (toggle != null)
             toggle.setVisibility(GONE);
+        if (dropdown != null)
+            dropdown.setVisibility(GONE);
+        if (image != null)
+            image.setVisibility(GONE);
 
         // remove the previous item's listener
         if (inputItem != null && itemListener != null)
@@ -148,6 +161,12 @@ public class DynamicInputItemView extends FrameLayout {
                             dropdown.setSelection(innerItem.getIndex());
                         //}
                         dropdown.setVisibility(item.getVisibility());
+                    }
+                }
+                if (image != null) {
+                    if (item.inputType == DynamicInputRow.DynamicInput.InputType.image) {
+                        image.setImageDrawable(((DynamicInputRow.ImageDisplay)item).getImage());
+                        image.setVisibility(item.getVisibility());
                     }
                 }
                 if (label != null) {
@@ -300,6 +319,19 @@ public class DynamicInputItemView extends FrameLayout {
             if (innerItem.getCount() >= 0)
                 dropdown.setSelection(innerItem.getIndex());
             dropdown.setVisibility(innerItem.getVisibility());
+        } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.image) {
+            DynamicInputRow.ImageDisplay innerItem = (DynamicInputRow.ImageDisplay)item;
+            if (image == null) {
+                image = new ImageView(context);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
+                params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+                image.setLayoutParams(params);
+                image.setFocusable(false);
+                image.setClickable(false);
+                addView(image);
+            }
+            image.setImageDrawable(innerItem.getImage());
+            image.setVisibility(innerItem.getVisibility());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {
             DynamicInputRow.Label innerItem = (DynamicInputRow.Label)item;
             if (label == null) {

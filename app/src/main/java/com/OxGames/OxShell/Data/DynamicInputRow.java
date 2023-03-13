@@ -1,11 +1,14 @@
 package com.OxGames.OxShell.Data;
 
-import android.text.InputType;
-import android.text.TextWatcher;
-import android.util.Log;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
+
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.Views.DynamicInputItemView;
 
 import java.util.ArrayList;
@@ -41,7 +44,8 @@ public class DynamicInputRow {
             button,
             label,
             toggle,
-            dropdown
+            dropdown,
+            image
         }
         public int row = -1, col = -1;
         public DynamicInputItemView view;
@@ -258,6 +262,41 @@ public class DynamicInputRow {
 //        public Consumer<Integer> getOnItemSelected() {
 //            return onItemSelected;
 //        }
+    }
+    public static class ImageDisplay extends DynamicInput {
+        private DataLocation dataType;
+        private Object imageLoc;
+
+        public ImageDisplay(Object imageLoc, DataLocation dataType) {
+            this.inputType = InputType.image;
+            this.imageLoc = imageLoc;
+            this.dataType = dataType;
+        }
+
+        public void setImage(Object imageLoc, DataLocation dataType) {
+            this.imageLoc = imageLoc;
+            this.dataType = dataType;
+            valuesChanged();
+        }
+        public Drawable getImage() {
+            if (dataType == DataLocation.resource)
+                return ContextCompat.getDrawable(OxShellApp.getContext(), (int)imageLoc);
+            if (dataType == DataLocation.asset)
+                return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readAssetAsBitmap(OxShellApp.getContext(), (String)imageLoc));
+            if (dataType == DataLocation.file)
+                return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)imageLoc));
+            if (dataType == DataLocation.self) {
+                if (imageLoc instanceof Drawable)
+                    return (Drawable) imageLoc;
+                else if (imageLoc instanceof Bitmap)
+                    return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), (Bitmap) imageLoc);
+            }
+            return null;
+        }
+        @Override
+        public int getVisibility() {
+            return imageLoc != null && dataType != DataLocation.none ? super.getVisibility() : View.GONE;
+        }
     }
     public static class Label extends DynamicInput {
         private String label;

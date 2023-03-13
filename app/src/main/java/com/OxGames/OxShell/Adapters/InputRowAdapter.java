@@ -122,7 +122,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
         //int maxWidth = Math.round((rowWidth - ((currentVisibleItems - 1) * paddingPx)) / (float)currentVisibleItems);
         int buttonPx = Math.round(AndroidHelpers.getScaledDpToPixels(context, BUTTON_DIP));
         int maxWidth;
-        if (item.inputType == DynamicInputRow.DynamicInput.InputType.button)
+        if (item.inputType == DynamicInputRow.DynamicInput.InputType.button || item.inputType == DynamicInputRow.DynamicInput.InputType.image)
             maxWidth = buttonPx;
         else {
             maxWidth = Math.round(rowWidth / (float)currentVisibleItems);
@@ -130,7 +130,7 @@ public class InputRowAdapter extends RecyclerView.Adapter<InputRowAdapter.RowVie
             int visibleBtnCount = 0;
             for (int i = 0; i < currentVisibleItems; i++) {
                 DynamicInputRow.DynamicInput currentItem = items.get(item.col + (i - relativeIndex));
-                if (currentItem.inputType == DynamicInputRow.DynamicInput.InputType.button)
+                if (currentItem.inputType == DynamicInputRow.DynamicInput.InputType.button || currentItem.inputType == DynamicInputRow.DynamicInput.InputType.image)
                     visibleBtnCount++;
             }
             if (visibleBtnCount > 0)

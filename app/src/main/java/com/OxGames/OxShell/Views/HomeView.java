@@ -22,6 +22,7 @@ import android.view.View;
 import androidx.activity.result.ActivityResult;
 
 import com.OxGames.OxShell.Adapters.XMBAdapter;
+import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -376,6 +377,11 @@ public class HomeView extends XMBView implements Refreshable {
                         if (dropdown.getIndex() == 1) {
                             backupExistingShader.run();
                             AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "planet.fsh"));
+                            // TODO: save images from assets
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel0.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png"));
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel1.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel1.png"));
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel2.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel2.png"));
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel3.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel3.png"));
                             readyForPreview = true;
                         }
                         if (dropdown.getIndex() == options.length - 1) {
@@ -742,6 +748,7 @@ public class HomeView extends XMBView implements Refreshable {
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle("Create Column");
         DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
+        //DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(null, DataLocation.none);
         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
             String title = titleInput.getText();
             getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed"));

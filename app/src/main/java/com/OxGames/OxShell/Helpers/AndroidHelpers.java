@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,24 +28,19 @@ import androidx.core.content.FileProvider;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
-import com.OxGames.OxShell.R;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class AndroidHelpers {
     public static final char[] ILLEGAL_FAT_CHARS = new char[] { '"', '*', '/', ':', '<', '>', '?', '\\', '|', 0x7F };
@@ -145,6 +141,14 @@ public class AndroidHelpers {
         return new BitmapDrawable(context.getResources(), bitmap);
     }
 
+    public static void saveBitmapToFile(Bitmap bm, String path) {
+        try {
+            FileOutputStream out = new FileOutputStream(path);
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+        } catch(Exception e) { Log.e("AndroidHelpers", e.toString()); }
+    }
     public static String readAssetAsString(Context context, String asset) {
         String assetData = null;
         try {
@@ -161,6 +165,21 @@ public class AndroidHelpers {
         }
         //Log.d("Asset", assetData);
         return assetData;
+    }
+    // source: https://stackoverflow.com/a/8501428/5430992
+    public static Bitmap readAssetAsBitmap(Context context, String filePath) {
+        AssetManager assetManager = context.getAssets();
+
+        InputStream istr;
+        Bitmap bitmap = null;
+        try {
+            istr = assetManager.open(filePath);
+            bitmap = BitmapFactory.decodeStream(istr);
+        } catch (IOException e) {
+            Log.e("AndroidHelpers", "Failed to load bitmap from assets: " + e);
+        }
+
+        return bitmap;
     }
 
     public static int getRelativeLeft(View view) {
