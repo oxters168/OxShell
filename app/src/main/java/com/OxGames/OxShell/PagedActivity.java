@@ -365,8 +365,8 @@ public class PagedActivity extends AppCompatActivity {
         ShaderView shaderView = getBackground();
         Log.d("Paged Activity", "Shader view null: " + (shaderView == null));
         if (shaderView != null) {
-            shaderView.setFragmentShader(AndroidHelpers.readAssetAsString(this, "xmb.fsh"));
-            shaderView.setVertexShader(AndroidHelpers.readAssetAsString(this, "vert.vsh"));
+            shaderView.setFragmentShader(AndroidHelpers.readAssetAsString(this, "Shader/xmb.fsh"));
+            shaderView.setVertexShader(AndroidHelpers.readAssetAsString(this, "Shader/vert.vsh"));
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
             //DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();

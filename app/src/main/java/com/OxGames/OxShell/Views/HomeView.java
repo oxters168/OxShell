@@ -373,20 +373,20 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Preview", v -> {
                         // TODO: show some kind of error when input is invalid
                         // TODO: add scoped storage alternative for when no storage access is granted
-                        AndroidHelpers.writeToFile(vertDest, AndroidHelpers.readAssetAsString(context, "vert.vsh"));
+                        AndroidHelpers.writeToFile(vertDest, AndroidHelpers.readAssetAsString(context, "Shaders/vert.vsh"));
                         boolean readyForPreview = false;
                         if (dropdown.getIndex() == 0) {
                             backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "xmb.fsh"));
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/xmb.fsh"));
                             readyForPreview = true;
                         }
                         if (dropdown.getIndex() == 1) {
                             backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "planet.fsh"));
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel0.png"), channel0Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel1.png"), channel1Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel2.png"), channel2Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel3.png"), channel3Dest);
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel0.png"), channel0Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel1.png"), channel1Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel2.png"), channel2Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel3.png"), channel3Dest);
                             readyForPreview = true;
                         }
                         if (dropdown.getIndex() == options.length - 1) {
