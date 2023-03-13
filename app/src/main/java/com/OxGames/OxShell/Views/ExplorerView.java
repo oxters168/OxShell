@@ -1,7 +1,6 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.text.InputType;
 import android.util.AttributeSet;
@@ -20,7 +19,6 @@ import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
-import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
@@ -29,7 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExplorerView extends SlideTouchListView implements PermissionsListener {
+public class ExplorerView extends SlideTouchListView {//implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
 
     public ExplorerView(Context context) {
@@ -49,7 +47,7 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
         //Log.d("ExplorerView", "Creating");
         //SettingsKeeper.hasValue()
         //setMargins();
-        ActivityManager.getCurrentActivity().addPermissionListener(this);
+        //ActivityManager.getCurrentActivity().addPermissionListener(this);
         explorerBehaviour = new ExplorerBehaviour();
         refresh();
     }
@@ -71,17 +69,17 @@ public class ExplorerView extends SlideTouchListView implements PermissionsListe
             return false;
     }
 
-    @Override
-    public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Log.i("Explorer", "Storage permission granted");
-                refresh();
-            }  else {
-                Log.e("Explorer", "Storage permission denied");
-            }
-        }
-    }
+//    @Override
+//    public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
+//        if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
+//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                Log.i("Explorer", "Storage permission granted");
+//                refresh();
+//            }  else {
+//                Log.e("Explorer", "Storage permission denied");
+//            }
+//        }
+//    }
 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {

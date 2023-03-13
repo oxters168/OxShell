@@ -1,6 +1,7 @@
 package com.OxGames.OxShell;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,7 +25,6 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
-import com.OxGames.OxShell.Interfaces.PermissionsListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
@@ -33,6 +33,8 @@ import com.appspell.shaderview.ShaderView;
 import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +84,28 @@ public class PagedActivity extends AppCompatActivity {
         mDirRequest.launch(initialPath);
     }
 
+    private HashMap<Integer, List<Consumer<Boolean>>> permissionListeners = new HashMap<>();
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        Log.i("PagedActivity", "Received result for " + requestCode + " permissions: " + Arrays.toString(permissions) + " grantResults: " + Arrays.toString(grantResults));
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (permissionListeners.containsKey(requestCode)) {
+            List<Consumer<Boolean>> listeners = permissionListeners.get(requestCode);
+            if (listeners != null) {
+                for (Consumer<Boolean> listener : listeners)
+                    if (listener != null)
+                        listener.accept(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED);
+                listeners.clear();
+            }
+        }
+    }
+    public void addOneTimePermissionListener(int requestCode, Consumer<Boolean> onResult) {
+        if (!permissionListeners.containsKey(requestCode))
+            permissionListeners.put(requestCode, new ArrayList<>());
+        permissionListeners.get(requestCode).add(onResult);
+    }
+
     private static final int SETTINGS_DRAWER_ID = View.generateViewId();
     private static final int DYNAMIC_INPUT_ID = View.generateViewId();
     private static final int PROMPT_ID = View.generateViewId();
@@ -89,7 +113,7 @@ public class PagedActivity extends AppCompatActivity {
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
     //    private static PagedActivity instance;
 //    public static DisplayMetrics displayMetrics;
-    private List<PermissionsListener> permissionListeners = new ArrayList<>();
+    //private List<PermissionsListener> permissionListeners = new ArrayList<>();
     protected ActivityManager.Page currentPage;
 
     private static boolean startTimeSet;
@@ -222,14 +246,6 @@ public class PagedActivity extends AppCompatActivity {
         setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for (PermissionsListener pl : permissionListeners) {
-            pl.onPermissionResponse(requestCode, permissions, grantResults);
-        }
     }
 
     // TODO: add joystick controls
@@ -384,9 +400,9 @@ public class PagedActivity extends AppCompatActivity {
         }
     }
 
-    public void addPermissionListener(PermissionsListener listener) {
-        permissionListeners.add(listener);
-    }
+//    public void addPermissionListener(PermissionsListener listener) {
+//        permissionListeners.add(listener);
+//    }
 
 //    public static PagedActivity GetInstance() {
 //        return instance;

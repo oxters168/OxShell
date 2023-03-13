@@ -323,6 +323,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         setViews(changed, instant);
     }
     private void setShiftX(float xValue) {
+        if (adapter == null)
+            return;
         if (!isInsideItem()) {
             if (Math.abs(shiftX - xValue) > EPSILON) {
                 shiftX = Math.min(Math.max(xValue, 0), (adapter.getColumnCount() - 1) * getHorShiftOffset());
@@ -422,6 +424,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), adapter.getColumnSize(colIndex) - (hasSubItems ? 2 : 1)) + (hasSubItems ? 1 : 0);
     }
     private void setShiftYToNearestItem(int colIndex) {
+        if (colIndex < 0 || colIndex >= catPos.size())
+            return;
         setShiftY(toNearestColumnItem(catPos.get(colIndex), colIndex), colIndex);
     }
     private float toNearestColumnItem(float yValue, int colIndex) {
@@ -694,7 +698,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private void setViews(boolean indexChanged, boolean instant) {
         // indexChanged is true when currentIndex actually changes and false when otherwise
         // it is used to know when to apply fade transitions
-        if (adapter.getItemCount(false) > 0) {
+        if (adapter != null && adapter.getItemCount(false) > 0) {
             int startX = getStartX() - Math.round(shiftX);
             int startY = getStartY();
             int horShiftOffset = Math.round(getHorShiftOffset());
@@ -879,6 +883,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             removeView(goneItemViews.pop().itemView);
     }
     private void createItemViews() {
+        if (adapter == null)
+            return;
         for (int i = 0; i < 5; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, ITEM_TYPE);
             newHolder.itemViewType = ITEM_TYPE;
@@ -891,6 +897,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         }
     }
     private void createCatViews() {
+        if (adapter == null)
+            return;
         for (int i = 0; i < 5; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, CATEGORY_TYPE);
             newHolder.itemViewType = CATEGORY_TYPE;
@@ -903,6 +911,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         }
     }
     private void createInnerItemViews() {
+        if (adapter == null)
+            return;
         for (int i = 0; i < 5; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, INNER_TYPE);
             newHolder.itemViewType = INNER_TYPE;
@@ -1033,7 +1043,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     }
 
     public boolean catHasSubItems(int colIndex) {
-        return adapter.getColumnSize(colIndex) > 1;
+        return adapter != null && adapter.getColumnSize(colIndex) > 1;
     }
 
     protected void setIndex(int colIndex, int localIndex, boolean instant) {

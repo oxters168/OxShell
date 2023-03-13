@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -16,11 +17,14 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 
 import androidx.activity.result.ActivityResult;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
@@ -52,6 +56,7 @@ public class AndroidHelpers {
     public static final int READ_EXTERNAL_STORAGE = 100;
     public static final int WRITE_EXTERNAL_STORAGE = 101;
     public static final int MANAGE_EXTERNAL_STORAGE = 102;
+    public static final int PERMISSION_REQUEST_QUERY_ALL_PACKAGES = 103;
     private static WallpaperManager wallpaperManager;
 
     public static final String RECENT_ACTIVITY;
@@ -223,32 +228,83 @@ public class AndroidHelpers {
     public static boolean hasReadStoragePermission() {
         //Log.d("FileHelpers", "Checking has read permission");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
+            return Environment.isExternalStorageManager();
+            //return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
         else
             return hasPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE);
     }
     public static boolean hasWriteStoragePermission() {
         //Log.d("FileHelpers", "Checking has write permission");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
+            return Environment.isExternalStorageManager();
+            //return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
         else
             return hasPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
-    public static void requestReadStoragePermission() {
-        Log.d("FileHelpers", "Requesting read permission");
+    public static void requestReadStoragePermission(Consumer<Boolean> onResult) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
         //From here https://stackoverflow.com/questions/47292505/exception-writing-exception-to-parcel
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[] { android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
-        else
-            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[] { android.Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
-        //ActivityCompat.shouldShowRequestPermissionRationale(ActivityManager.GetCurrentActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Log.i("AndroidHelpers", "Requesting read permission with result code " + MANAGE_EXTERNAL_STORAGE);
+            //currentActivity.addOneTimePermissionListener(MANAGE_EXTERNAL_STORAGE, onResult);
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.addCategory("android.intent.category.DEFAULT");
+                intent.setData(Uri.parse(String.format("package:%s", OxShellApp.getContext().getPackageName())));
+                currentActivity.requestResult(intent, activityResult -> {
+                    Log.d("AndroidHelpers", "Result is " + activityResult + ", " + activityResult.getData() + ", " + (activityResult.getData() != null ? activityResult.getData().getExtras() : "null"));
+                    // result code is always cancelled, so instead just check if the permission is granted
+                    if (onResult != null)
+                        onResult.accept(hasReadStoragePermission());
+                });
+                //currentActivity.startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE);
+
+            } catch (Exception e) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                currentActivity.requestResult(intent, activityResult -> {
+                    if (onResult != null)
+                        onResult.accept(hasReadStoragePermission());
+                });
+                //currentActivity.startActivity(intent, MANAGE_EXTERNAL_STORAGE);
+            }
+//            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
+        } else {
+            Log.i("AndroidHelpers", "Requesting read permission with result code " + READ_EXTERNAL_STORAGE);
+            currentActivity.addOneTimePermissionListener(READ_EXTERNAL_STORAGE, onResult);
+            ActivityCompat.requestPermissions(currentActivity, new String[]{ android.Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
+            //ActivityCompat.shouldShowRequestPermissionRationale(ActivityManager.GetCurrentActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
     }
-    public static void requestWriteStoragePermission() {
-        Log.d("FileHelpers", "Requesting write permission");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[] { android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
-        else
-            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
+    public static void requestWriteStoragePermission(Consumer<Boolean> onResult) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Log.i("AndroidHelpers", "Requesting write permission with result code " + MANAGE_EXTERNAL_STORAGE);
+            //currentActivity.addOneTimePermissionListener(MANAGE_EXTERNAL_STORAGE, onResult);
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.addCategory("android.intent.category.DEFAULT");
+                intent.setData(Uri.parse(String.format("package:%s", OxShellApp.getContext().getPackageName())));
+                currentActivity.requestResult(intent, activityResult -> {
+                    if (onResult != null)
+                        onResult.accept(hasWriteStoragePermission());
+                });
+                //currentActivity.startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE);
+            } catch (Exception e) {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                currentActivity.requestResult(intent, activityResult -> {
+                    if (onResult != null)
+                        onResult.accept(hasWriteStoragePermission());
+                });
+                //currentActivity.startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE);
+            }
+//            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
+        } else {
+            Log.i("AndroidHelpers", "Requesting write permission with result code " + WRITE_EXTERNAL_STORAGE);
+            currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);
+            ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
+        }
     }
 
     public static Uri uriFromFile(File file) {

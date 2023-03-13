@@ -58,15 +58,19 @@ import java.util.stream.Stream;
 public class HomeView extends XMBView implements Refreshable {
     public HomeView(Context context) {
         super(context);
-        refresh();
+        init();
     }
     public HomeView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        refresh();
+        init();
     }
     public HomeView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 //        setLayoutParams(new GridView.LayoutParams(256, 256));
+        init();
+    }
+
+    private void init() {
         refresh();
     }
 
@@ -98,7 +102,15 @@ public class HomeView extends XMBView implements Refreshable {
                 HomeItem selectedItem = (HomeItem) getSelectedItem();
                 //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
                 if (selectedItem.type == HomeItem.Type.explorer) {
-                    ActivityManager.goTo(ActivityManager.Page.explorer);
+                    // TODO: show pop up explaining permissions?
+                    if (AndroidHelpers.hasReadStoragePermission())
+                        ActivityManager.goTo(ActivityManager.Page.explorer);
+                    else
+                        AndroidHelpers.requestReadStoragePermission(granted -> {
+                            if (granted)
+                                ActivityManager.goTo(ActivityManager.Page.explorer);
+                        });
+
                     return true;
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
                 } else if (selectedItem.type == HomeItem.Type.app) {
@@ -383,6 +395,7 @@ public class HomeView extends XMBView implements Refreshable {
                         if (dropdown.getIndex() == 1) {
                             backupExistingShader.run();
                             AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
+                            //Log.d("HomeView", "Saving channel0 to " + channel0Dest);
                             AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel0.png"), channel0Dest);
                             AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel1.png"), channel1Dest);
                             AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel2.png"), channel2Dest);

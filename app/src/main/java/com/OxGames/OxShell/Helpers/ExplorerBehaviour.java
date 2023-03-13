@@ -76,8 +76,8 @@ public class ExplorerBehaviour {
         return history.peek();
     }
     public File[] listContents() {
-        if (!AndroidHelpers.hasReadStoragePermission())
-            AndroidHelpers.requestReadStoragePermission();
+//        if (!AndroidHelpers.hasReadStoragePermission())
+//            AndroidHelpers.requestReadStoragePermission();
         //Might be how to do it for android 11+
         //IntentLaunchData ild = new IntentLaunchData();
         //ild.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
