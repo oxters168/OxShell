@@ -49,12 +49,12 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "boolean", "GOLD", "true"
-            debuggable true //TODO: Remove when publishing
+            //debuggable true //TODO: Remove when publishing
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            debuggable true //TODO: Remove when publishing
+            //debuggable true //TODO: Remove when publishing
         }
     }
     compileOptions {
@@ -71,13 +71,7 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.0'
     implementation 'com.google.android.material:material:1.8.0'
-    implementation files('libs/gson-2.9.0.jar')
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    //implementation "androidx.core:core-ktx:+"
-    //implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.github.oxters168:ShaderView:0.8.11'
     implementation 'de.ruedigermoeller:fst:2.57'
 

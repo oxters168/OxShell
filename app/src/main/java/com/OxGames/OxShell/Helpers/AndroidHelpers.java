@@ -285,7 +285,7 @@ public class AndroidHelpers {
             if (!file.exists())
                 file.createNewFile();
         } catch (IOException ex) {
-            Log.e("HomeManager", ex.getMessage());
+            Log.e("AndroidHelpers", "Failed to create file (" + fileName + "): " + ex);
         }
     }
     public static boolean isNameFSLegal(String fileName, int filesystem) {
@@ -318,12 +318,15 @@ public class AndroidHelpers {
         return (new File(dirName)).isFile();
     }
     public static void writeToFile(String fileName, String text) {
+        String parentDir = new File(fileName).getParent();
+        if (!dirExists(parentDir))
+            makeDir(parentDir);
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
             writer.write(text);
             writer.close();
         } catch (IOException ex) {
-            Log.e("HomeManager", ex.getMessage());
+            Log.e("AndroidHelpers", "Failed to write to file (" + fileName + "): " + ex);
         }
     }
     public static String readFile(String fileName) {

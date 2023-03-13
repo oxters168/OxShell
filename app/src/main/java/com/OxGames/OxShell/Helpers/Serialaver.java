@@ -2,7 +2,6 @@ package com.OxGames.OxShell.Helpers;
 
 import android.util.Log;
 
-import com.google.gson.Gson;
 
 import org.nustaq.serialization.FSTConfiguration;
 
@@ -12,7 +11,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
 public class Serialaver {
@@ -57,25 +55,5 @@ public class Serialaver {
         FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
         String json = AndroidHelpers.readFile(absPath);
         return conf.asObject(json.getBytes(StandardCharsets.UTF_8));
-    }
-    public static void saveAsJSON(Object data, String absPath) {
-        Gson gson = new Gson();
-        if (!AndroidHelpers.fileExists(absPath))
-            AndroidHelpers.makeFile(absPath);
-        String json = gson.toJson(data);
-        //Log.d("Serialaver", "Saving json to " + absPath + ":\n" + json);
-        AndroidHelpers.writeToFile(absPath, json);
-    }
-    public static <T> T loadFromJSON(String absPath, Class<T> tClass) {
-        Gson gson = new Gson();
-        String json = AndroidHelpers.readFile(absPath);
-        //Log.d("Serialaver", "Read json from " + absPath + ":\n" + json);
-        return gson.fromJson(json, tClass);
-    }
-    public static <T> T loadFromJSON(String absPath, Type tType) {
-        Gson gson = new Gson();
-        String json = AndroidHelpers.readFile(absPath);
-        //Log.d("Serialaver", "Read json from " + absPath + ":\n" + json);
-        return gson.fromJson(json, tType);
     }
 }

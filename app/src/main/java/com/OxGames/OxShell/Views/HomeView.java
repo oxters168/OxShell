@@ -339,6 +339,11 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
                     String fragTemp = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.tmp");
+                    String vertDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh");
+                    String channel0Dest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png");
+                    String channel1Dest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel1.png");
+                    String channel2Dest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel2.png");
+                    String channel3Dest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel3.png");
                     final boolean[] alreadyBackedUp = { false };
                     Runnable backupExistingShader = () -> {
                         // if a background shader file already exists
@@ -368,6 +373,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Preview", v -> {
                         // TODO: show some kind of error when input is invalid
                         // TODO: add scoped storage alternative for when no storage access is granted
+                        AndroidHelpers.writeToFile(vertDest, AndroidHelpers.readAssetAsString(context, "vert.vsh"));
                         boolean readyForPreview = false;
                         if (dropdown.getIndex() == 0) {
                             backupExistingShader.run();
@@ -377,11 +383,10 @@ public class HomeView extends XMBView implements Refreshable {
                         if (dropdown.getIndex() == 1) {
                             backupExistingShader.run();
                             AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "planet.fsh"));
-                            // TODO: save images from assets
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel0.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png"));
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel1.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel1.png"));
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel2.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel2.png"));
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel3.png"), AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel3.png"));
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel0.png"), channel0Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel1.png"), channel1Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel2.png"), channel2Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "channel3.png"), channel3Dest);
                             readyForPreview = true;
                         }
                         if (dropdown.getIndex() == options.length - 1) {

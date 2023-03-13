@@ -11,5 +11,5 @@ out float iTime;
 
 void main() {
     gl_Position = uMVPMatrix * vec4(inPosition.xyz, 1);
-    textureCoord = (uSTMatrix * vec4(inTextureCoord.xy, 0, 0)).xy;
+    textureCoord = (uSTMatrix * vec4(vec2(inTextureCoord.x, 1. - inTextureCoord.y), 0, 0)).xy;
 }
