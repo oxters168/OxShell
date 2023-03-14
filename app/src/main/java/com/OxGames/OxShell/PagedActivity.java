@@ -47,26 +47,24 @@ public class PagedActivity extends AppCompatActivity {
             if (PagedActivity.this.onReceivedResult != null)
                 PagedActivity.this.onReceivedResult.accept(result);
         });
-    private final ActivityResultLauncher<String> mStartForContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
+    private final ActivityResultLauncher<String[]> mStartForContent = registerForActivityResult(new ActivityResultContracts.OpenDocument(),
         uri -> {
-            //Log.i("HomeActivity", "Received result from activity " + uri.toString());
-            //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            if (PagedActivity.this.onReceivedContent != null)
-                PagedActivity.this.onReceivedContent.accept(uri);
+            Log.i("HomeActivity", "Received result from activity " + uri);
+            if (uri != null) {
+                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                if (PagedActivity.this.onReceivedContent != null)
+                    PagedActivity.this.onReceivedContent.accept(uri);
+            }
         });
     // source: https://stackoverflow.com/a/70933975/5430992
     private final ActivityResultLauncher<Uri> mDirRequest = registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(),
         uri -> {
-            //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            if (PagedActivity.this.onReceivedDir != null)
-                PagedActivity.this.onReceivedDir.accept(uri);
-//            if (uri != null) {
-//                // call this to persist permission across device reboots
-//                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                // do your stuff
-//            } else {
-//                // request denied by user
-//            }
+            Log.i("HomeActivity", "Received result from activity " + uri);
+            if (uri != null) {
+                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                if (PagedActivity.this.onReceivedDir != null)
+                    PagedActivity.this.onReceivedDir.accept(uri);
+            }
         });
     private Consumer<ActivityResult> onReceivedResult;
     private Consumer<Uri> onReceivedContent;
@@ -76,10 +74,10 @@ public class PagedActivity extends AppCompatActivity {
         this.onReceivedResult = onReceived;
         mStartForResult.launch(intent);
     }
-    public void requestContent(String type, Consumer<Uri> onReceived) {
+    public void requestContent(Consumer<Uri> onReceived, String... types) {
         // some mime types: https://stackoverflow.com/questions/23385520/android-available-mime-types
         this.onReceivedContent = onReceived;
-        mStartForContent.launch(type);
+        mStartForContent.launch(types);
     }
     public void requestDirectoryAccess(Uri initialPath, Consumer<Uri> onReceived) {
         this.onReceivedDir = onReceived;

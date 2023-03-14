@@ -356,10 +356,10 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Image File Path");
 
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-                        currentActivity.requestContent("image/*", uri -> {
+                        currentActivity.requestContent(uri -> {
                             if (uri != null)
                                 titleInput.setText(getPath(context, uri));
-                        });
+                        }, "image/*");
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
@@ -406,10 +406,10 @@ public class HomeView extends XMBView implements Refreshable {
 
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
                         // TODO: add way to choose certain values within chosen shader
-                        currentActivity.requestContent("file/*", uri -> {
+                        currentActivity.requestContent(uri -> {
                             if (uri != null)
                                 titleInput.setText(uri.getPath());
-                        });
+                        }, "file/*");
                     });
                     DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
                         titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
@@ -812,11 +812,11 @@ public class HomeView extends XMBView implements Refreshable {
             }
         });
         DynamicInputRow.ButtonInput chooseFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-            currentActivity.requestContent("image/*", uri -> {
+            currentActivity.requestContent(uri -> {
                 Log.d("HomeView", "Retrieved Uri: " + uri);
                 if (uri != null)
                     filePathInput.setText(uri.toString());
-            });
+            }, "image/*");
         });
         DynamicInputRow.Dropdown resourcesDropdown = new DynamicInputRow.Dropdown(index -> {
             Log.d("HomeView", "Resources dropdown index set to " + index);
