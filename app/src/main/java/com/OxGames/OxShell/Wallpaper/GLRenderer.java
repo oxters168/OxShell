@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Wallpaper;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.BatteryManager;
 import android.os.Build;
@@ -15,10 +16,13 @@ import android.view.MotionEvent;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 
+import java.io.File;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 public class GLRenderer implements GLSurfaceView.Renderer {
+    private Context context;
     private Shader shader;
     private int glVersion;
     private int width, height;
@@ -27,6 +31,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     public boolean reload = false;
 
     public GLRenderer(Context context, int glVersion, GLWallpaperService.GLEngine callingEngine) {
+        this.context = context;
         this.glVersion = glVersion;
         this.callingEngine = callingEngine;
         //STORAGE_DIR_EXTERNAL = AndroidHelpers.combinePaths(Environment.getExternalStorageDirectory().toString(), "/OxShell");
@@ -93,6 +98,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
             if (AndroidHelpers.fileExists(vertPath))
                 vert = AndroidHelpers.readFile(vertPath);
             if (AndroidHelpers.fileExists(fragPath))
+                //frag = AndroidHelpers.readResolverUriAsString(context, Uri.fromFile(new File(fragPath)));
                 frag = AndroidHelpers.readFile(fragPath);
             //shader = new Shader(glVersion, vert, frag);
             String oldVert = shader.getVertexShaderCode();

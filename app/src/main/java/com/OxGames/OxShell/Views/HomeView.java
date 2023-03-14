@@ -408,8 +408,8 @@ public class HomeView extends XMBView implements Refreshable {
                         // TODO: add way to choose certain values within chosen shader
                         currentActivity.requestContent(uri -> {
                             if (uri != null)
-                                titleInput.setText(uri.getPath());
-                        }, "file/*");
+                                titleInput.setText(uri.toString());
+                        }, "*/*");
                     });
                     DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
                         titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
@@ -438,16 +438,17 @@ public class HomeView extends XMBView implements Refreshable {
                         if (dropdown.getIndex() == options.length - 1) {
                             //dropdown.getIndex();
                             String path = titleInput.getText();
-                            if (AndroidHelpers.fileExists(path)) {
+                            if (AndroidHelpers.uriExists(context, Uri.parse(path))) {
                                 // if the chosen file is not the destination we want to copy to
-                                if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
+                                //if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
                                     //Log.d("HomeView", path + " != " + fragDest);
                                     backupExistingShader.run();
                                     // copy the chosen file to the destination
-                                    ExplorerBehaviour.copyFiles(fragDest, path);
+                                    //ExplorerBehaviour.copyFiles(fragDest, path);
+                                    AndroidHelpers.saveStringToFile(fragDest, AndroidHelpers.readResolverUriAsString(context, Uri.parse(path)));
                                     readyForPreview = true;
                                     //Log.d("HomeView", "Copied new shader to destination");
-                                }
+                                //}
                             }
                         }
                         if (readyForPreview)
@@ -456,7 +457,6 @@ public class HomeView extends XMBView implements Refreshable {
                                     // delete the old background shader
                                     if (AndroidHelpers.fileExists(fragTemp))
                                         ExplorerBehaviour.delete(fragTemp);
-                                    // TODO: restart live background to reflect any changes
                                     GLWallpaperService.requestReload();
                                     dynamicInput.setShown(false);
                                 }
@@ -469,7 +469,6 @@ public class HomeView extends XMBView implements Refreshable {
                                 ExplorerBehaviour.delete(fragDest);
                             // return the old background shader
                             ExplorerBehaviour.moveFiles(fragDest, fragTemp);
-                            // TODO: restart live background to reflect any changes (might not need this one)
                             GLWallpaperService.requestReload();
                         }
                         dynamicInput.setShown(false);

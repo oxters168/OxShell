@@ -1,7 +1,6 @@
 package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -25,16 +24,13 @@ import android.util.TypedValue;
 import android.view.View;
 
 import androidx.activity.result.ActivityResult;
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.OxGames.OxShell.BuildConfig;
-import com.OxGames.OxShell.Data.ResImage;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
-import com.OxGames.OxShell.R;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -45,6 +41,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -171,6 +168,25 @@ public class AndroidHelpers {
             out.flush();
             out.close();
         } catch(Exception e) { Log.e("AndroidHelpers", e.toString()); }
+    }
+    public static void saveStringToFile(String filepath, String data)
+    {
+        final File file = new File(filepath);
+        if (!fileExists(filepath)) {
+            String parentDir = file.getParent();
+            if (!dirExists(parentDir))
+                makeDir(parentDir);
+            makeFile(filepath);
+        }
+
+        try {
+            FileOutputStream fOut = new FileOutputStream(file);
+            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+            myOutWriter.append(data);
+            myOutWriter.close();
+            fOut.flush();
+            fOut.close();
+        } catch (IOException e) { Log.e("AndroidHelpers", "File write failed: " + e); }
     }
     public static String readAssetAsString(Context context, String asset) {
         String assetData = null;
