@@ -199,7 +199,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                     );
             currentActivity.getSettingsDrawer().setShown(false);
             currentActivity.getDynamicInput().setShown(true);
-            return null;
         });
         SettingsDrawer.ContextBtn newFileBtn = new SettingsDrawer.ContextBtn("New File", () ->
         {
@@ -241,7 +240,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                     );
             currentActivity.getSettingsDrawer().setShown(false);
             currentActivity.getDynamicInput().setShown(true);
-            return null;
         });
         SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () ->
         {
@@ -306,7 +304,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput), new DynamicInputRow(okBtn, cancelBtn));
             currentActivity.getSettingsDrawer().setShown(false);
             currentActivity.getDynamicInput().setShown(true);
-            return null;
         });
         SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
         {
@@ -317,7 +314,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             explorerBehaviour.copy(filePaths);
             currentActivity.getSettingsDrawer().setShown(false);
             //currentActivity.getDynamicInput().setShown(true);
-            return null;
         });
         SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () ->
         {
@@ -326,14 +322,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
             explorerBehaviour.cut(filePaths);
             currentActivity.getSettingsDrawer().setShown(false);
-            return null;
         });
         SettingsDrawer.ContextBtn pasteBtn = new SettingsDrawer.ContextBtn("Paste", () ->
         {
             explorerBehaviour.paste();
             refresh();
             currentActivity.getSettingsDrawer().setShown(false);
-            return null;
         });
         SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () ->
         {
@@ -343,7 +337,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             explorerBehaviour.delete(filePaths);
             refresh();
             currentActivity.getSettingsDrawer().setShown(false);
-            return null;
         });
         if (isValidSelection) {
             if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())

@@ -30,8 +30,10 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.OxGames.OxShell.BuildConfig;
+import com.OxGames.OxShell.Data.ResImage;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
+import com.OxGames.OxShell.R;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -252,8 +254,7 @@ public class AndroidHelpers {
                 intent.addCategory("android.intent.category.DEFAULT");
                 intent.setData(Uri.parse(String.format("package:%s", OxShellApp.getContext().getPackageName())));
                 currentActivity.requestResult(intent, activityResult -> {
-                    Log.d("AndroidHelpers", "Result is " + activityResult + ", " + activityResult.getData() + ", " + (activityResult.getData() != null ? activityResult.getData().getExtras() : "null"));
-                    // result code is always cancelled, so instead just check if the permission is granted
+                    // result code is always cancelled, so instead just pass if the permission is granted
                     if (onResult != null)
                         onResult.accept(hasReadStoragePermission());
                 });
@@ -370,8 +371,8 @@ public class AndroidHelpers {
     public static boolean dirExists(String dirName) {
         return (new File(dirName)).isDirectory();
     }
-    public static boolean fileExists(String dirName) {
-        return (new File(dirName)).isFile();
+    public static boolean fileExists(String filePath) {
+        return (new File(filePath)).isFile();
     }
     public static void writeToFile(String fileName, String text) {
         String parentDir = new File(fileName).getParent();

@@ -113,8 +113,8 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
 
     public static class ContextBtn {
         String label;
-        Callable event;
-        public ContextBtn(String label, Callable event) {
+        Runnable event;
+        public ContextBtn(String label, Runnable event) {
             this.label = label;
             this.event = event;
         }
@@ -128,14 +128,14 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
             int btnIndex = i;
             listView.addListener(index -> {
                 if (btnIndex == index) {
-                    try {
+                    //try {
                         if (btn.event != null)
-                            btn.event.call();
+                            btn.event.run();
                         else
-                            Log.e("PagedActivity", "Button event for " + btn.label + " is null");
-                    } catch (Exception ex) {
-                        Log.e("PagedActivity", "Failed to call context event: " + ex);
-                    }
+                            Log.e("SettingsDrawer", "Button event for " + btn.label + " is null");
+//                    } catch (Exception ex) {
+//                        Log.e("SettingsDrawer", "Failed to call context event: " + ex);
+//                    }
                 }
             });
         }

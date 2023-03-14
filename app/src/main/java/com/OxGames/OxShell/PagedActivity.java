@@ -50,12 +50,14 @@ public class PagedActivity extends AppCompatActivity {
     private final ActivityResultLauncher<String> mStartForContent = registerForActivityResult(new ActivityResultContracts.GetContent(),
         uri -> {
             //Log.i("HomeActivity", "Received result from activity " + uri.toString());
+            //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (PagedActivity.this.onReceivedContent != null)
                 PagedActivity.this.onReceivedContent.accept(uri);
         });
     // source: https://stackoverflow.com/a/70933975/5430992
     private final ActivityResultLauncher<Uri> mDirRequest = registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(),
         uri -> {
+            //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (PagedActivity.this.onReceivedDir != null)
                 PagedActivity.this.onReceivedDir.accept(uri);
 //            if (uri != null) {
