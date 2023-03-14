@@ -47,6 +47,9 @@ public class XMBItem<T> implements Serializable {
         onIconLoaded.accept(icon);
         //return icon;
     }
+    public ImageRef getImgRef() {
+        return iconLoc;
+    }
 
     public void setInnerItems(XMBItem... innerItems) {
         this.innerItems = new ArrayList<>(Arrays.asList(innerItems));

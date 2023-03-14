@@ -783,6 +783,9 @@ public class HomeView extends XMBView implements Refreshable {
     });
     SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
     {
+        ImageRef colImgRef = ((XMBItem)getAdapter().getItem(getPosition()[0], 0)).getImgRef();
+        if (colImgRef.getRefType() == DataLocation.file)
+            ExplorerBehaviour.delete((String)colImgRef.getImageObj());
         getAdapter().removeColumnAt(getPosition()[0]);
         save(getItems());
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
