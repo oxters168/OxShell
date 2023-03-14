@@ -358,14 +358,14 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
                         currentActivity.requestContent(uri -> {
                             if (uri != null)
-                                titleInput.setText(getPath(context, uri));
+                                titleInput.setText(uri.toString());
                         }, "image/*");
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
                         String path = titleInput.getText();
-                        if (path != null && AndroidHelpers.fileExists(path)) {
-                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
+                        if (path != null && AndroidHelpers.uriExists(context, Uri.parse(path))) {
+                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
                             dynamicInput.setShown(false);
                         }
                     }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
