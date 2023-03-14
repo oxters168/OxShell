@@ -87,7 +87,6 @@ public class PagedActivity extends AppCompatActivity {
     }
 
     private HashMap<Integer, List<Consumer<Boolean>>> permissionListeners = new HashMap<>();
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         Log.i("PagedActivity", "Received result for " + requestCode + " permissions: " + Arrays.toString(permissions) + " grantResults: " + Arrays.toString(grantResults));

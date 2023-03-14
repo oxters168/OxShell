@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
@@ -148,6 +149,21 @@ public class AndroidHelpers {
         return new BitmapDrawable(context.getResources(), bitmap);
     }
 
+    public static boolean uriExists(Context context, Uri uri) {
+        boolean exists = false;
+        Cursor cursor = null;
+        try {
+            // Query the content provider to get a cursor for the given URI
+            cursor = context.getContentResolver().query(uri, null, null, null, null);
+            exists = cursor != null && cursor.getCount() > 0;
+        } catch (Exception e) {
+            Log.e("AndroidHelpers", "Failed to check if uri exists: " + e);
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return exists;
+    }
     public static void saveBitmapToFile(Bitmap bm, String path) {
         try {
             FileOutputStream out = new FileOutputStream(path);
@@ -160,15 +176,33 @@ public class AndroidHelpers {
         String assetData = null;
         try {
             InputStream inputStream = context.getAssets().open(asset);
+            assetData = readInputStreamAsString(inputStream);
+        } catch (IOException ex) {
+            Log.e("AndroidHelpers", "Failed to open input stream: " + ex);
+        }
+        return assetData;
+    }
+    public static String readResolverUriAsString(Context context, Uri uri) {
+        String assetData = null;
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+            assetData = readInputStreamAsString(inputStream);
+        } catch (IOException ex) {
+            Log.e("AndroidHelpers", "Failed to open input stream: " + ex);
+        }
+        return assetData;
+    }
+    public static String readInputStreamAsString(InputStream inputStream) {
+        String assetData = null;
+        try {
             BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder total = new StringBuilder();
             String line;
-            while ((line = r.readLine()) != null) {
+            while ((line = r.readLine()) != null)
                 total.append(line).append('\n');
-            }
             assetData = total.toString();
         } catch (IOException ex) {
-            Log.e("Reading_Asset_Error", ex.toString());
+            Log.e("AndroidHelpers", "Failed to read text from stream: " + ex);
         }
         //Log.d("Asset", assetData);
         return assetData;
@@ -181,6 +215,18 @@ public class AndroidHelpers {
         Bitmap bitmap = null;
         try {
             istr = assetManager.open(filePath);
+            bitmap = BitmapFactory.decodeStream(istr);
+        } catch (IOException e) {
+            Log.e("AndroidHelpers", "Failed to load bitmap from assets: " + e);
+        }
+
+        return bitmap;
+    }
+    public static Bitmap readResolverUriAsBitmap(Context context, Uri uri) {
+        InputStream istr;
+        Bitmap bitmap = null;
+        try {
+            istr = context.getContentResolver().openInputStream(uri);
             bitmap = BitmapFactory.decodeStream(istr);
         } catch (IOException e) {
             Log.e("AndroidHelpers", "Failed to load bitmap from assets: " + e);

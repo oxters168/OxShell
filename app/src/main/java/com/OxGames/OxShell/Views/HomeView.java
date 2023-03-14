@@ -13,6 +13,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -46,6 +47,8 @@ import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -791,9 +794,7 @@ public class HomeView extends XMBView implements Refreshable {
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle("Create Column");
         List<String> dropdownItems = Arrays.stream(resourceImages).map(img -> img.getName()).collect(Collectors.toList());
-        // TODO: fix issues with retrieving files without permissions or exclusively get files through Ox Shell alone when having permissions
-        if (AndroidHelpers.hasReadStoragePermission())
-            dropdownItems.add("Custom");
+        dropdownItems.add("Custom");
         DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(ImageRef.from(null, DataLocation.none));
         DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
         filePathInput.addListener(new DynamicInputListener() {
@@ -804,21 +805,17 @@ public class HomeView extends XMBView implements Refreshable {
 
             @Override
             public void onValuesChanged() {
-                String filepath = filePathInput.getText();
-                if (AndroidHelpers.fileExists(filepath))
-                    imageDisplay.setImage(ImageRef.from(filepath, DataLocation.file));
+                if (AndroidHelpers.uriExists(context, Uri.parse(filePathInput.getText())))
+                    imageDisplay.setImage(ImageRef.from(filePathInput.getText(), DataLocation.resolverUri));
                 else
                     imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
             }
         });
         DynamicInputRow.ButtonInput chooseFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
             currentActivity.requestContent("image/*", uri -> {
-                if (uri != null) {
-                    Log.d("HomeView", "Received uri: " + uri);
-                    String imgPath = getPath(context, uri);
-                    if (imgPath != null)
-                        filePathInput.setText(imgPath);
-                }
+                Log.d("HomeView", "Retrieved Uri: " + uri);
+                if (uri != null)
+                    filePathInput.setText(uri.toString());
             });
         });
         DynamicInputRow.Dropdown resourcesDropdown = new DynamicInputRow.Dropdown(index -> {
@@ -858,6 +855,40 @@ public class HomeView extends XMBView implements Refreshable {
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
 
+    public static String getRealPathFromURI(Uri uri, Context context) {
+        Cursor returnCursor = context.getContentResolver().query(uri, null, null, null, null);
+        int nameIndex =  returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+//        int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
+        returnCursor.moveToFirst();
+        String name = returnCursor.getString(nameIndex);
+//        String size = Long.toString(returnCursor.getLong(sizeIndex));
+        File file = new File(context.getFilesDir(), name);
+//        try {
+//            InputStream inputStream = context.getContentResolver().openInputStream(uri);
+//            FileOutputStream outputStream = new FileOutputStream(file);
+//            int read = 0;
+//            int maxBufferSize = 1 * 1024 * 1024;
+//            int bytesAvailable = inputStream.available();
+//            //int bufferSize = 1024;
+//            int bufferSize = Math.min(bytesAvailable, maxBufferSize);
+//            byte[] buffers = new byte[bufferSize];
+//            while (inputStream.read(buffers).also {
+//                if (it != null) {
+//                    read = it
+//                }
+//            } != -1) {
+//                outputStream.write(buffers, 0, read)
+//            }
+//            Log.e("File Size", "Size " + file.length())
+//            inputStream?.close()
+//            outputStream.close()
+//            Log.e("File Path", "Path " + file.path)
+//
+//        } catch (Exception e) {
+//            Log.e("Exception", e.getMessage());
+//        }
+        return file.getPath();
+    }
     public static String getPath(final Context context, final Uri uri) {
 
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;

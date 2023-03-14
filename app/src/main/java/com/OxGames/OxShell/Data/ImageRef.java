@@ -2,6 +2,7 @@ package com.OxGames.OxShell.Data;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 
 import androidx.core.content.ContextCompat;
 
@@ -36,6 +37,8 @@ public class ImageRef implements Serializable {
             return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readAssetAsBitmap(OxShellApp.getContext(), (String)imageLoc));
         if (dataType == DataLocation.file)
             return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)imageLoc));
+        if (dataType == DataLocation.resolverUri)
+            return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readResolverUriAsBitmap(OxShellApp.getContext(), Uri.parse((String)imageLoc)));
         if (dataType == DataLocation.self) {
             if (imageLoc instanceof Drawable)
                 return (Drawable) imageLoc;
