@@ -22,6 +22,7 @@ public class Paths {
 
     public static final String HOME_ITEMS_DIR_EXTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_EXTERNAL, "Home");
     public static final String HOME_ITEMS_DIR_INTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Home");
+    public static final String ICONS_DIR_INTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Icons");
     public static final String HOME_ITEMS_FILE_NAME = "HomeItems";
     public static final String HOME_ITEMS_CATS = "_cats";
     public static final String HOME_ITEMS_DEFAULTS = "_defaults";

@@ -60,19 +60,25 @@
 <!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
 <!--                android:resource="@xml/file_paths" />-->
 <!--        </provider>-->
-        <!--<provider
-            android:name=".CustomFileProvider"
-            android:authorities="${documentsAuthority}"
-            android:exported="true"
-            android:grantUriPermissions="true"
-            android:permission="android.permission.MANAGE_DOCUMENTS">
-            <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>
-            </intent-filter>
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"/>
-        </provider>-->
+<!--        <provider-->
+<!--            android:name=".OxProvider"-->
+<!--            android:authorities="${documentsAuthority}"-->
+<!--            android:exported="true"-->
+<!--            android:grantUriPermissions="true"-->
+<!--            android:directBootAware="true"-->
+<!--            android:permission="android.permission.MANAGE_DOCUMENTS"-->
+<!--            android:enabled="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>-->
+<!--&lt;!&ndash;                <action android:name="android.intent.action.OPEN_DOCUMENT"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                <category android:name="android.intent.category.DEFAULT"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                <category android:name="android.intent.category.OPENABLE"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                <data android:mimeType="*/*"/>&ndash;&gt;-->
+<!--            </intent-filter>-->
+<!--            <meta-data-->
+<!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
+<!--                android:resource="@xml/provider_paths"/>-->
+<!--        </provider>-->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${documentsAuthority}"

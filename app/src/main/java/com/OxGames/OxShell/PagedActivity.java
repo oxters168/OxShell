@@ -51,7 +51,7 @@ public class PagedActivity extends AppCompatActivity {
         uri -> {
             Log.i("HomeActivity", "Received result from activity " + uri);
             if (uri != null) {
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 if (PagedActivity.this.onReceivedContent != null)
                     PagedActivity.this.onReceivedContent.accept(uri);
             }
@@ -61,7 +61,7 @@ public class PagedActivity extends AppCompatActivity {
         uri -> {
             Log.i("HomeActivity", "Received result from activity " + uri);
             if (uri != null) {
-                getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 if (PagedActivity.this.onReceivedDir != null)
                     PagedActivity.this.onReceivedDir.accept(uri);
             }

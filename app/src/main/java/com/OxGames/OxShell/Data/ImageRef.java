@@ -30,6 +30,12 @@ public class ImageRef implements Serializable {
     public boolean isValid() {
         return !(imageLoc == null || dataType == DataLocation.none || (dataType == DataLocation.file && !AndroidHelpers.fileExists((String)imageLoc)));
     }
+    public DataLocation getRefType() {
+        return dataType;
+    }
+    public Object getImageObj() {
+        return imageLoc;
+    }
     public Drawable getImage() {
         if (dataType == DataLocation.resource)
             return ContextCompat.getDrawable(OxShellApp.getContext(), (int)imageLoc);

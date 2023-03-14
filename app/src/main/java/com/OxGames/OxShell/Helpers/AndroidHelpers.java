@@ -161,7 +161,15 @@ public class AndroidHelpers {
         }
         return exists;
     }
+    public static void createPathIfNotExist(String filepath) {
+        final File file = new File(filepath);
+        String dirs = filepath;
+        if (!file.isDirectory())
+            dirs = file.getParent();
+        makeDir(dirs);
+    }
     public static void saveBitmapToFile(Bitmap bm, String path) {
+        createPathIfNotExist(path);
         try {
             FileOutputStream out = new FileOutputStream(path);
             bm.compress(Bitmap.CompressFormat.JPEG, 100, out);
@@ -169,18 +177,11 @@ public class AndroidHelpers {
             out.close();
         } catch(Exception e) { Log.e("AndroidHelpers", e.toString()); }
     }
-    public static void saveStringToFile(String filepath, String data)
-    {
-        final File file = new File(filepath);
-        if (!fileExists(filepath)) {
-            String parentDir = file.getParent();
-            if (!dirExists(parentDir))
-                makeDir(parentDir);
-            makeFile(filepath);
-        }
+    public static void saveStringToFile(String filepath, String data) {
+        createPathIfNotExist(filepath);
 
         try {
-            FileOutputStream fOut = new FileOutputStream(file);
+            FileOutputStream fOut = new FileOutputStream(filepath);
             OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
             myOutWriter.append(data);
             myOutWriter.close();

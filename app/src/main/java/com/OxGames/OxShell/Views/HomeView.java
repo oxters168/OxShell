@@ -828,7 +828,13 @@ public class HomeView extends XMBView implements Refreshable {
         DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
             String title = titleInput.getText();
-            getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imageDisplay.getImageRef()));
+            ImageRef imgRef = imageDisplay.getImageRef();
+            if (imgRef.getRefType() == DataLocation.resolverUri) {
+                String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
+                AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse((String)imgRef.getImageObj())), iconPath);
+                imgRef = ImageRef.from(iconPath, DataLocation.file);
+            }
+            getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imgRef));
             save(getItems());
             dynamicInput.setShown(false);
         }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
