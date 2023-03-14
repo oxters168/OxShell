@@ -258,6 +258,8 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         this.adapter.addListener(adapterListener);
         this.colIndex = 0;
         this.prevColIndex = 0;
+        this.innerItemEntryPos.clear();
+        this.innerItemVerPos.clear();
         this.rowIndex = (adapter != null && adapter.getColumnCount() > 0 && adapter.getColumnSize(this.colIndex) > 1) ? 1 : 0;
         removeViews();
         for (int i = 0; i < adapter.getColumnCount(); i++)

@@ -47,8 +47,6 @@ import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -169,10 +167,16 @@ public class HomeView extends XMBView implements Refreshable {
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addAssocOuter) {
+                    XMBItem[] intentItems;
                     IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
-                    XMBItem[] intentItems = new XMBItem[intents.length];
-                    for (int i = 0; i < intents.length; i++)
-                        intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
+                    if (intents.length > 0) {
+                        intentItems = new XMBItem[intents.length];
+                        for (int i = 0; i < intents.length; i++)
+                            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
+                    } else {
+                        intentItems = new XMBItem[1];
+                        intentItems[0] = new XMBItem(null, "None created", ImageRef.from(R.drawable.ic_baseline_block_24, DataLocation.resource));
+                    }
                     selectedItem.setInnerItems(intentItems);
                 } else if (selectedItem.type == HomeItem.Type.addAssoc) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
@@ -518,6 +522,8 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(moveColumnBtn);
                 if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(deleteColumnBtn);
+                if (homeItem != null && homeItem.type == HomeItem.Type.addAssoc)
+                    btns.add(deleteAssocBtn);
                 btns.add(cancelBtn);
 
                 currentActivity.getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
@@ -788,6 +794,13 @@ public class HomeView extends XMBView implements Refreshable {
             ExplorerBehaviour.delete((String)colImgRef.getImageObj());
         getAdapter().removeColumnAt(getPosition()[0]);
         save(getItems());
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn deleteAssocBtn = new SettingsDrawer.ContextBtn("Delete Association", () ->
+    {
+        HomeItem assocItem = (HomeItem)getSelectedItem();
+        ShortcutsCache.deleteIntent((UUID)assocItem.obj);
+        refresh();
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () ->
