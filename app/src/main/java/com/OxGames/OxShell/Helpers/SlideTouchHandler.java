@@ -2,11 +2,8 @@ package com.OxGames.OxShell.Helpers;
 
 import android.os.Handler;
 import android.os.SystemClock;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Interfaces.SlideTouchListener;
 import com.OxGames.OxShell.OxShellApp;
 
@@ -73,7 +70,7 @@ public class SlideTouchHandler {
         }
     };
 
-    public void update(MotionEvent ev) {
+    public void onTouchEvent(MotionEvent ev) {
         data.prevTouchX = data.currentTouchX;
         data.prevTouchY = data.currentTouchY;
         data.currentTouchX = ev.getRawX();

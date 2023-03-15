@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
@@ -508,7 +509,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
             startTouchY = ev.getRawY();
             prevX = startTouchX;
             prevY = startTouchY;
-            touchInsideBorders = startTouchX > touchMarginLeft && startTouchX < getWidth() - touchMarginRight && startTouchY > touchMarginTop && startTouchY < getHeight() - touchMarginBottom;
+            touchInsideBorders = startTouchX > touchMarginLeft && startTouchX < OxShellApp.getDisplayWidth() - touchMarginRight && startTouchY > touchMarginTop && startTouchY < OxShellApp.getDisplayHeight() - touchMarginBottom;
             if (touchInsideBorders) {
                 stopMomentum();
                 Handler longPressHandler = new Handler();
@@ -597,7 +598,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 if (touchVer)
                     momentumY = (startTouchY - ev.getRawY()) / totalTime; // pixels per second
                 if ((touchHor && Math.abs(momentumX) > 0) || (touchVer && Math.abs(momentumY) > 0))
-                    handler.post(momentumRunner);
+                    momentumHandler.post(momentumRunner);
             } else {
                 if (touchHor)
                     setShiftXToNearestColumn();
@@ -614,9 +615,9 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         momentumY = 0;
         //momentumTravelDistX = 0;
         //momentumTravelDistY = 0;
-        handler.removeCallbacks(momentumRunner);
+        momentumHandler.removeCallbacks(momentumRunner);
     }
-    private Handler handler = new Handler();
+    private Handler momentumHandler = new Handler();
     private Runnable momentumRunner = new Runnable() {
         @Override
         public void run() {
@@ -649,7 +650,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
                 shiftY(momentumOffsetY, XMBView.this.colIndex);
             }
             if (hasMomentumX || hasMomentumY) {
-                handler.postDelayed(this, milliInterval);
+                momentumHandler.postDelayed(this, milliInterval);
             } else {
                 setShiftXToNearestColumn();
                 setShiftYToNearestItem(XMBView.this.colIndex);

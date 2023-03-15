@@ -2,14 +2,11 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.widget.GridView;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.GridItem;
 import com.OxGames.OxShell.Helpers.SlideTouchHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
@@ -51,7 +48,7 @@ public class SlideTouchGridView extends GridView implements SlideTouchListener, 
     }
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        slideTouch.update(ev);
+        slideTouch.onTouchEvent(ev);
         return true;
     }
 //    @Override

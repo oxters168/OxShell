@@ -54,16 +54,16 @@ public class DetailAdapter implements ListAdapter {
 //        highlightedIndex = index;
 //    }
 
-    private int getTextSize() {
+    public int getTextSize() {
         return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
     }
-    private int getBtnHeight() {
+    public int getBtnHeight() {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 32));
     }
-    private int getBorderMargin() {
+    public int getBorderMargin() {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
     }
-    private int getImgSize() {
+    public int getImgSize() {
         return Math.round(getBtnHeight() * 0.8f);
     }
     private View createDetailItem() {

@@ -50,7 +50,10 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         //SettingsKeeper.hasValue()
         //setMargins();
         //ActivityManager.getCurrentActivity().addPermissionListener(this);
-        if (!AndroidHelpers.hasReadStoragePermission())
+        if (AndroidHelpers.hasReadStoragePermission()) {
+            explorerBehaviour = new ExplorerBehaviour();
+            refresh();
+        } else
             AndroidHelpers.requestReadStoragePermission(granted -> {
                 if (!granted) {
                     Log.e("ExplorerView", "Failed to get permissions, exiting...");
