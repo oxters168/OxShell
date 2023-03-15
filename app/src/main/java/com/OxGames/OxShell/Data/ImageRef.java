@@ -44,12 +44,12 @@ public class ImageRef implements Serializable {
         if (dataType == DataLocation.file)
             return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)imageLoc));
         if (dataType == DataLocation.resolverUri)
-            return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readResolverUriAsBitmap(OxShellApp.getContext(), Uri.parse((String)imageLoc)));
+            return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readResolverUriAsBitmap(OxShellApp.getContext(), (Uri)imageLoc));
         if (dataType == DataLocation.self) {
             if (imageLoc instanceof Drawable)
-                return (Drawable) imageLoc;
+                return (Drawable)imageLoc;
             else if (imageLoc instanceof Bitmap)
-                return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), (Bitmap) imageLoc);
+                return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), (Bitmap)imageLoc);
         }
         return null;
     }

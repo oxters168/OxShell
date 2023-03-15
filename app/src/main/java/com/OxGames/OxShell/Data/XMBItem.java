@@ -50,6 +50,12 @@ public class XMBItem<T> implements Serializable {
     public ImageRef getImgRef() {
         return iconLoc;
     }
+    public void setImgRef(ImageRef imgRef) {
+        iconLoc = imgRef;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public void setInnerItems(XMBItem... innerItems) {
         this.innerItems = new ArrayList<>(Arrays.asList(innerItems));
