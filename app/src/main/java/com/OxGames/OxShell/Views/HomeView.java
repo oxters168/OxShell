@@ -700,10 +700,11 @@ public class HomeView extends XMBView implements Refreshable {
     private static ArrayList<ArrayList<XMBItem>> loadHomeItemsFromFile(String parentDir, String fileName) {
         ArrayList<ArrayList<XMBItem>> items = null;
         String path = AndroidHelpers.combinePaths(parentDir, fileName);
-        if (AndroidHelpers.fileExists(path))
-            //items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFile(path);
-            items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFromFSTJSON(path);
-        else
+        if (AndroidHelpers.fileExists(path)) {
+            try {
+                items = (ArrayList<ArrayList<XMBItem>>) Serialaver.loadFromFSTJSON(path);
+            } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
+        } else
             Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
         return items;
     }
