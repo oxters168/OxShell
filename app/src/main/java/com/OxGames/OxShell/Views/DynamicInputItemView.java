@@ -248,7 +248,9 @@ public class DynamicInputItemView extends FrameLayout {
                 }
             };
             textEdit.addTextChangedListener(inputWatcher);
-            inputLayout.setHintTextColor(ColorStateList.valueOf(Color.WHITE));
+            inputLayout.setHintTextColor(ColorStateList.valueOf(Color.WHITE));            //inputLayout.setHintEnabled(false);
+            //inputLayout.setExpandedHintEnabled(false);
+            //inputLayout.setHintEnabled(false);
             inputLayout.setDefaultHintTextColor(ColorStateList.valueOf(Color.WHITE));
 
             inputLayout.setVisibility(innerItem.getVisibility());
@@ -365,7 +367,7 @@ public class DynamicInputItemView extends FrameLayout {
             DynamicInputRow.Label innerItem = (DynamicInputRow.Label)item;
             if (label == null) {
                 label = new TextView(context);
-                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 label.setLayoutParams(params);
                 label.setFocusable(false);

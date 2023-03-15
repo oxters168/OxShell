@@ -55,6 +55,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -342,8 +343,6 @@ public class HomeView extends XMBView implements Refreshable {
                         if (!displayName.isEmpty() && !pkgName.isEmpty() && !actionName.isEmpty() && !className.isEmpty() && !extensionsRaw.isEmpty() && (extras.length % 2 == 0)) {
                             // TODO: show some kind of error when input is invalid
                             // TODO: add ability to choose flags
-                            // TODO: check if name exists
-                            // TODO: work purely with files
                             String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
                             IntentLaunchData newAssoc = new IntentLaunchData(displayName, actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
                             newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
@@ -369,26 +368,28 @@ public class HomeView extends XMBView implements Refreshable {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Set Image as Background");
-                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Image File Path");
+                    //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Image File Path");
+                    AtomicReference<Uri> permittedUri = new AtomicReference<>();
 
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-                        currentActivity.requestContent(uri -> {
-                            if (uri != null)
-                                titleInput.setText(Uri.decode(uri.toString()));
-                        }, "image/*");
+                        currentActivity.requestContent(permittedUri::set, "image/*");
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
-                        String path = titleInput.getText();
-                        if (path != null && AndroidHelpers.uriExists(Uri.parse(path))) {
-                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
+                        if (permittedUri.get() != null) {
+                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()));
                             dynamicInput.setShown(false);
                         }
+//                        String path = titleInput.getText();
+//                        if (path != null && AndroidHelpers.uriExists(Uri.parse(path))) {
+//                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
+//                            dynamicInput.setShown(false);
+//                        }
                     }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;
@@ -397,7 +398,8 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Set Shader as Background");
                     String[] options = { "Blue Dune", "Planet", "Custom" };
-                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
+                    //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
+                    AtomicReference<Uri> permittedUri = new AtomicReference<>();
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
                     String fragTemp = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.tmp");
                     String vertDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh");
@@ -422,13 +424,10 @@ public class HomeView extends XMBView implements Refreshable {
 
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
                         // TODO: add way to choose certain values within chosen shader
-                        currentActivity.requestContent(uri -> {
-                            if (uri != null)
-                                titleInput.setText(Uri.decode(uri.toString()));
-                        }, "*/*");
+                        currentActivity.requestContent(permittedUri::set, "*/*");
                     });
                     DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
-                        titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
+                        //titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
                         selectFileBtn.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
                     }, options);
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Preview", v -> {
@@ -453,19 +452,24 @@ public class HomeView extends XMBView implements Refreshable {
                         }
                         if (dropdown.getIndex() == options.length - 1) {
                             //dropdown.getIndex();
-                            String path = titleInput.getText();
-                            if (AndroidHelpers.uriExists(Uri.parse(path))) {
-                                // if the chosen file is not the destination we want to copy to
-                                //if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
-                                    //Log.d("HomeView", path + " != " + fragDest);
-                                    backupExistingShader.run();
-                                    // copy the chosen file to the destination
-                                    //ExplorerBehaviour.copyFiles(fragDest, path);
-                                    AndroidHelpers.saveStringToFile(fragDest, AndroidHelpers.readResolverUriAsString(context, Uri.parse(path)));
-                                    readyForPreview = true;
-                                    //Log.d("HomeView", "Copied new shader to destination");
-                                //}
+                            if (permittedUri.get() != null) {
+                                backupExistingShader.run();
+                                AndroidHelpers.saveStringToFile(fragDest, AndroidHelpers.readResolverUriAsString(context, permittedUri.get()));
+                                readyForPreview = true;
                             }
+//                            String path = titleInput.getText();
+//                            if (AndroidHelpers.uriExists(Uri.parse(path))) {
+//                                // if the chosen file is not the destination we want to copy to
+//                                //if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
+//                                    //Log.d("HomeView", path + " != " + fragDest);
+//                                    backupExistingShader.run();
+//                                    // copy the chosen file to the destination
+//                                    //ExplorerBehaviour.copyFiles(fragDest, path);
+//                                    AndroidHelpers.saveStringToFile(fragDest, AndroidHelpers.readResolverUriAsString(context, Uri.parse(path)));
+//                                    readyForPreview = true;
+//                                    //Log.d("HomeView", "Copied new shader to destination");
+//                                //}
+//                            }
                         }
                         if (readyForPreview)
                             AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
@@ -490,9 +494,9 @@ public class HomeView extends XMBView implements Refreshable {
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
                     // so that they will only show up when the custom option is selected in the dropdown
-                    titleInput.setVisibility(View.GONE);
+                    //titleInput.setVisibility(View.GONE);
                     selectFileBtn.setVisibility(View.GONE);
-                    dynamicInput.setItems(new DynamicInputRow(dropdown), new DynamicInputRow(titleInput, selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(dropdown), new DynamicInputRow(selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;

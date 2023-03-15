@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -186,11 +187,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         {
             DynamicInputRow.TextInput folderNameTxtInput = new DynamicInputRow.TextInput("Folder Name");
             DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
+            errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
             currentActivity.getDynamicInput().setTitle("Create Folder");
             currentActivity.getDynamicInput().setItems
                     (
-                            new DynamicInputRow(errorLabel),
                             new DynamicInputRow(folderNameTxtInput),
+                            new DynamicInputRow(errorLabel),
                             new DynamicInputRow
                                     (
                                             new DynamicInputRow.ButtonInput("Ok", v ->
@@ -220,11 +222,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         {
             DynamicInputRow.TextInput fileNameTxtInput = new DynamicInputRow.TextInput("File Name");
             DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
+            errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
             currentActivity.getDynamicInput().setTitle("Create File");
             currentActivity.getDynamicInput().setItems
                     (
-                            new DynamicInputRow(errorLabel),
                             new DynamicInputRow(fileNameTxtInput),
+                            new DynamicInputRow(errorLabel),
                             new DynamicInputRow
                                     (
                                             new DynamicInputRow.ButtonInput("Ok", v ->
