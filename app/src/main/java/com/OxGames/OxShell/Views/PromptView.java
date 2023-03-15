@@ -218,6 +218,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         Typeface font = SettingsKeeper.getFont();
         button.setTypeface(font);
         button.setTextSize(getBtnTextSize());
+        button.setTextColor(Color.WHITE);
         button.setAllCaps(false);
     }
     private boolean isAnyBtnSet() {

@@ -199,11 +199,10 @@ public class DynamicInputItemView extends FrameLayout {
             DynamicInputRow.TextInput innerItem = (DynamicInputRow.TextInput)item;
             if (inputLayout == null) {
                 inputLayout = new TextInputLayout(context);
-                LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
+                LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
                 inputLayout.setLayoutParams(layoutParams);
                 inputLayout.setBoxBackgroundMode(TextInputLayout.BOX_BACKGROUND_NONE);
-                //inputLayout.setBackgroundColor(Color.parseColor("#232323"));
                 inputLayout.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
                 inputLayout.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#44323232")));
                 addView(inputLayout);
@@ -213,7 +212,7 @@ public class DynamicInputItemView extends FrameLayout {
             EditText textEdit = inputLayout.getEditText();
             if (textEdit == null) {
                 textEdit = new TextInputEditText(context);
-                inputLayout.addView(textEdit, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                inputLayout.addView(textEdit, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight));
             }
             inputLayout.setTypeface(font);
             // sets the input type of the edit text (number/password/email/etc)
@@ -228,7 +227,9 @@ public class DynamicInputItemView extends FrameLayout {
             // set the starting value of the view to what the item already had
             textEdit.setText(innerItem.getText());
             textEdit.setTextSize(getTextSize());
+            textEdit.setTextColor(Color.WHITE);
             textEdit.setTypeface(font);
+            //textEdit.bringToFront();
             // update text value of the item this view currently represents based on user changes
             inputWatcher = new TextWatcher() {
                 @Override
@@ -247,7 +248,9 @@ public class DynamicInputItemView extends FrameLayout {
                 }
             };
             textEdit.addTextChangedListener(inputWatcher);
-            // make the view visible
+            inputLayout.setHintTextColor(ColorStateList.valueOf(Color.WHITE));
+            inputLayout.setDefaultHintTextColor(ColorStateList.valueOf(Color.WHITE));
+
             inputLayout.setVisibility(innerItem.getVisibility());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.button) {
             DynamicInputRow.ButtonInput innerItem = (DynamicInputRow.ButtonInput)item;
@@ -276,9 +279,10 @@ public class DynamicInputItemView extends FrameLayout {
             });
             //button.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             button.setText(innerItem.getLabel());
-            button.setTextSize(getBtnTextSize());
+            button.setTextSize(getTextSize());
             button.setAllCaps(false);
             button.setTypeface(font);
+            button.setTextColor(Color.WHITE);
             if (innerItem.getOnClick() != null)
                 button.setOnClickListener(innerItem.getOnClick());
             button.setVisibility(innerItem.getVisibility());
@@ -297,6 +301,7 @@ public class DynamicInputItemView extends FrameLayout {
             //toggle.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
             toggle.setTextSize(getTextSize());
+            toggle.setTextColor(Color.WHITE);
             toggle.setTypeface(font);
             toggle.setChecked(innerItem.getOnOff());
             toggle.setOnClickListener((view) -> {
@@ -338,6 +343,7 @@ public class DynamicInputItemView extends FrameLayout {
                 public void onNothingSelected(AdapterView<?> parent) {
                 }
             });
+            dropdown.setPopupBackgroundDrawable(new ColorDrawable(Color.DKGRAY));
             dropdown.setAdapter(new DropdownAdapter(innerItem.getOptions()));
             if (innerItem.getCount() >= 0)
                 dropdown.setSelection(innerItem.getIndex());
@@ -370,6 +376,7 @@ public class DynamicInputItemView extends FrameLayout {
             //label.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             label.setText(innerItem.getLabel());
             label.setTextSize(getTextSize());
+            label.setTextColor(Color.WHITE);
             label.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
             label.setGravity(innerItem.getGravity());
             label.setTypeface(font);
@@ -423,6 +430,7 @@ public class DynamicInputItemView extends FrameLayout {
                 label.setFocusable(false);
                 label.setClickable(false);
                 label.setTextSize(getTextSize());
+                label.setTextColor(Color.WHITE);
                 label.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
                 label.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
                 label.setTypeface(SettingsKeeper.getFont());

@@ -338,7 +338,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         title.setTextColor(context.getColor(R.color.text));
         title.setTextSize(textSize);
         title.setTranslationY(catSize);
-        title.setOutlineColor(Color.parseColor("#000000"));
+        title.setOutlineColor(Color.BLACK);
         title.setOutlineSize(textOutlineSize);
         backFrame.addView(title);
 

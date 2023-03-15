@@ -328,7 +328,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
                     String[] dataTypes = { "None", "AbsolutePath", "FileNameWithExt", "FileNameWithoutExt" };
                     DynamicInputRow.Label dataLabel = new DynamicInputRow.Label("Data");
-                    dataLabel.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+                    dataLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
                     DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
                     DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
 
@@ -361,7 +361,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
                     }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel, dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(okBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
                     return true;

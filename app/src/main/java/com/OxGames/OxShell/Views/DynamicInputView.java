@@ -37,7 +37,7 @@ import java.util.function.Consumer;
 public class DynamicInputView extends FrameLayout implements InputReceiver {
     private boolean isShown = false;
     private final Context context;
-    private TextView title;
+    private BetterTextView title;
     private RecyclerView mainList;
     private int prevUIState;
 
@@ -112,14 +112,18 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         header.setFocusable(false);
         addView(header);
 
-        title = new TextView(context);
+        title = new BetterTextView(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         title.setLayoutParams(layoutParams);
         title.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        title.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+        //title.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
         int dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
-        title.setPadding(dip, dip, dip, dip);
+        title.setPadding(dip, 0, dip, 0);
         title.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
+        title.setTextColor(Color.WHITE);
+        title.setTypeface(SettingsKeeper.getFont());
+        title.setOutlineColor(Color.BLACK);
+        title.setOutlineSize(Math.round(AndroidHelpers.getScaledDpToPixels(context, 3)));
         title.setFocusable(false);
         header.addView(title);
 
@@ -278,7 +282,6 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
             }
         }
 
-        title.setTypeface(SettingsKeeper.getFont());
         // TODO: figure out how to request focus here on the first item
     }
 
