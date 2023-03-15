@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Adapters;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,6 +16,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Views.BetterTextView;
@@ -34,16 +37,24 @@ public class DetailAdapter implements ListAdapter {
     private final int currentAndSelectedColor = Color.parseColor("#33F0CEEA");
     private final int noneColor = Color.parseColor("#00000000");
 //    boolean hideExtensions;
+    //private Typeface font = null;
 
     public DetailAdapter(Context _context) {
         context = _context;
         detailItems = new ArrayList<>();
+        //reloadFont();
     }
     public DetailAdapter(Context _context, List<DetailItem> _detailItems) {
         context = _context;
         detailItems = _detailItems;
+        //reloadFont();
 //        hideExtensions = _hideExtensions;
     }
+
+//    private void reloadFont() {
+//        if (SettingsKeeper.hasValue(SettingsKeeper.FONT_REF))
+//            font = ((FontRef)SettingsKeeper.getValue(SettingsKeeper.FONT_REF)).getFont();
+//    }
 
     public void add(DetailItem detailItem) {
         detailItems.add(detailItem);
@@ -72,6 +83,7 @@ public class DetailAdapter implements ListAdapter {
         int btnHeight = getBtnHeight();
         int imgSize = getImgSize();
         int borderMargin = getBorderMargin();
+        Typeface font = SettingsKeeper.getFont();
 
         FrameLayout detailItem = new FrameLayout(context);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, btnHeight);
@@ -100,6 +112,7 @@ public class DetailAdapter implements ListAdapter {
         title.setTextSize(textSize);
         title.setOutlineColor(Color.parseColor("#000000"));
         title.setOutlineSize(textOutlineSize);
+        title.setTypeface(font);
         detailItem.addView(title);
 
         BetterTextView isDir = new BetterTextView(context);
@@ -117,6 +130,7 @@ public class DetailAdapter implements ListAdapter {
         isDir.setTextSize(textSize);
         isDir.setOutlineColor(Color.parseColor("#000000"));
         isDir.setOutlineSize(textOutlineSize);
+        isDir.setTypeface(font);
         detailItem.addView(isDir);
 
         return detailItem;

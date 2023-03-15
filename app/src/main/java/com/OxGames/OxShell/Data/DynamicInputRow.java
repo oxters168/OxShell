@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Data;
 
 import android.graphics.drawable.Drawable;
+import android.view.Gravity;
 import android.view.View;
 
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
@@ -283,10 +284,12 @@ public class DynamicInputRow {
     }
     public static class Label extends DynamicInput {
         private String label;
+        private int gravity;
 
         public Label(String label) {
             this.inputType = InputType.label;
             this.label = label;
+            this.gravity = Gravity.LEFT | Gravity.TOP;
         }
 
         public void setLabel(String value) {
@@ -299,6 +302,13 @@ public class DynamicInputRow {
         }
         public String getLabel() {
             return label;
+        }
+        public void setGravity(int gravity) {
+            this.gravity = gravity;
+            valuesChanged();
+        }
+        public int getGravity() {
+            return this.gravity;
         }
 
         @Override

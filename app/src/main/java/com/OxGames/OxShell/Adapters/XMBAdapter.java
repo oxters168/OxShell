@@ -19,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
+import com.OxGames.OxShell.Data.FontRef;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.XMBItem;
@@ -35,7 +36,6 @@ import java.util.function.Consumer;
 public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
     private ArrayList<ArrayList<XMBItem>> items;
-    private Typeface font;
 
     private static final int TITLE_ID = View.generateViewId();
     private static final int ICON_HIGHLIGHT_ID = View.generateViewId();
@@ -57,7 +57,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         for (ArrayList<XMBItem> column : items)
             casted.add(new ArrayList<>(column));
         setItems(casted);
-        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
+        //if (SettingsKeeper.hasValue(SettingsKeeper.FONT_REF))
+        //    font = ((FontRef)SettingsKeeper.getValue(SettingsKeeper.FONT_REF)).getFont();
+        //font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
     }
 
     @NonNull
@@ -164,7 +166,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             TextView title = itemView.findViewById(TITLE_ID);
             title.setText(item != null ? item.getTitle() : "Empty");
             title.setSelected(true);
-            title.setTypeface(font);
+            title.setTypeface(SettingsKeeper.getFont());
             title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
 
             //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);

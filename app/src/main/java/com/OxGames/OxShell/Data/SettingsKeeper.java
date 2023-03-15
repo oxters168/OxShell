@@ -1,5 +1,7 @@
 package com.OxGames.OxShell.Data;
 
+import android.graphics.Typeface;
+
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 
@@ -11,6 +13,7 @@ public class SettingsKeeper {
     public static final String HOME_SELECTION_ALPHA = "home_selection_alpha";
     public static final String HOME_NON_SELECTION_ALPHA = "home_non_selection_alpha";
     public static final String HOME_BEHIND_INNER_ALPHA = "home_behind_inner_alpha";
+    public static final String FONT_REF = "font_ref";
 
     private static boolean fileDidExist;
     private static HashMap<String, Object> settingsCache;
@@ -52,5 +55,11 @@ public class SettingsKeeper {
     }
     public static boolean hasValue(String key) {
         return settingsCache.containsKey(key);
+    }
+
+    public static Typeface getFont() {
+        if (hasValue(FONT_REF))
+            return ((FontRef)getValue(FONT_REF)).getFont();
+        return null;
     }
 }

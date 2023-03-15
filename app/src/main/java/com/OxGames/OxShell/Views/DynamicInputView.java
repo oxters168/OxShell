@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -21,6 +22,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
+import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
@@ -272,67 +275,11 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                 DynamicInputRow.DynamicInput item = inputItems[j];
                 item.row = i;
                 item.col = j;
-//                if (item.inputType == DynamicInputRow.DynamicInput.InputType.button && ((DynamicInputRow.ButtonInput)item).isKeycodeSet())
-//                    gamepadable.add((DynamicInputRow.ButtonInput)item);
-//                int finalI = i;
-//                int finalJ = j;
-//                // when the items have their focus set by touch, then update rowIndex and colIndex to reflect what has focus
-//                item.addListener(new DynamicInputListener() {
-//                    @Override
-//                    public void onFocusChanged(View view, boolean hasFocus) {
-//                        if (hasFocus) {
-//                            // whenever an item receives focus (from touch or otherwise), then update where we are
-//                            //Log.d("DynamicInputView", "Focus changed to " + inputItems[finalJ].inputType + " @(" + finalI + ", " + finalJ + ")");
-//                            rowIndex = finalI;
-//                            colIndex = finalJ;
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onValuesChanged() {
-//
-//                    }
-//                });
             }
         }
 
-        //firstRun = true;
-//        adapter.addListener(() -> {
-//            // called when a view is attached to the window
-//            if (queuedCol) {
-//                queuedCol = false;
-//                setColIndex(queuedRowIndex, queuedColIndex);
-//            }
-//            if (queuedRequestFocus) {
-//                queuedRequestFocus = false;
-//                requestFocus(queuedFocusRowIndex, queuedFocusColIndex);
-//            }
-////            if (firstRun) {
-////                firstRun = false;
-////                int firstRowIndex = 0;
-////                int firstColIndex = 0;
-////                for (int i = 0; i < rows.length; i++) {
-////                    DynamicInputRow.DynamicInput[] inputs = rows[i].getAll();
-////                    boolean foundFocusable = false;
-////                    for (int j = 0; j < inputs.length; j++) {
-////                        if (inputs[j].inputType != DynamicInputRow.DynamicInput.InputType.label) {
-////                            firstRowIndex = i;
-////                            firstColIndex = j;
-////                            foundFocusable = true;
-////                            break;
-////                        }
-////                    }
-////                    if (foundFocusable)
-////                        break;
-////                }
-////                setColIndex(firstRowIndex, firstColIndex);
-////                requestFocus(firstRowIndex, firstColIndex);
-////            }
-//        });
-        // TODO: figure out why requesting focus here does not work
-        //colIndex = 0;
-        //rowIndex = 0;
-        //requestFocus(0, 0);
+        title.setTypeface(SettingsKeeper.getFont());
+        // TODO: figure out how to request focus here on the first item
     }
 
     public boolean isOverlayShown() {

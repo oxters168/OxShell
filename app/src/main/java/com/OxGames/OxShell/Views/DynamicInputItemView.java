@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
@@ -18,6 +19,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -32,6 +34,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.R;
@@ -80,6 +83,15 @@ public class DynamicInputItemView extends FrameLayout {
             button.setBackgroundTintList(ColorStateList.valueOf(onOff ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
         if (dropdown != null)
             dropdown.setBackgroundTintList(onOff ? ColorStateList.valueOf(Color.parseColor("#88CEEAF0")) : null);
+    }
+    public int getItemHeight() {
+        return Math.round(AndroidHelpers.getScaledDpToPixels(context, 48));
+    }
+    private int getTextSize() {
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
+    }
+    private int getBtnTextSize() {
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 5));
     }
     public void setInputItem(DynamicInputRow.DynamicInput item) {
         item.view = this;
@@ -153,7 +165,7 @@ public class DynamicInputItemView extends FrameLayout {
                 if (dropdown != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.dropdown) {
                         DynamicInputRow.Dropdown innerItem = (DynamicInputRow.Dropdown)item;
-                        setDropdownOptions(innerItem.getOptions());
+                        dropdown.setAdapter(new DropdownAdapter(innerItem.getOptions()));
                         // getSelectedItemPosition was always returning 0
                         //if (dropdown.getSelectedItemPosition() != innerItem.getIndex()) {
                         //    Log.d("DynamicInputItemView", dropdown.getSelectedItemPosition() + " != " + innerItem.getIndex());
@@ -171,7 +183,9 @@ public class DynamicInputItemView extends FrameLayout {
                 }
                 if (label != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {
-                        label.setText(((DynamicInputRow.Label) item).getLabel());
+                        DynamicInputRow.Label innerItem = (DynamicInputRow.Label)item;
+                        label.setText(innerItem.getLabel());
+                        label.setGravity(innerItem.getGravity());
                         label.setVisibility(item.getVisibility());
                     }
                 }
@@ -179,7 +193,8 @@ public class DynamicInputItemView extends FrameLayout {
         };
         item.addListener(itemListener);
 
-        int itemHeight = Math.round(AndroidHelpers.getScaledDpToPixels(context, 48));
+        int itemHeight = getItemHeight();
+        Typeface font = SettingsKeeper.getFont();
         if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
             DynamicInputRow.TextInput innerItem = (DynamicInputRow.TextInput)item;
             if (inputLayout == null) {
@@ -200,6 +215,7 @@ public class DynamicInputItemView extends FrameLayout {
                 textEdit = new TextInputEditText(context);
                 inputLayout.addView(textEdit, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             }
+            inputLayout.setTypeface(font);
             // sets the input type of the edit text (number/password/email/etc)
             if (innerItem.getValueType() >= 0)
                 textEdit.setInputType(innerItem.getValueType());
@@ -211,6 +227,8 @@ public class DynamicInputItemView extends FrameLayout {
             //textEdit.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             // set the starting value of the view to what the item already had
             textEdit.setText(innerItem.getText());
+            textEdit.setTextSize(getTextSize());
+            textEdit.setTypeface(font);
             // update text value of the item this view currently represents based on user changes
             inputWatcher = new TextWatcher() {
                 @Override
@@ -258,6 +276,9 @@ public class DynamicInputItemView extends FrameLayout {
             });
             //button.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             button.setText(innerItem.getLabel());
+            button.setTextSize(getBtnTextSize());
+            button.setAllCaps(false);
+            button.setTypeface(font);
             if (innerItem.getOnClick() != null)
                 button.setOnClickListener(innerItem.getOnClick());
             button.setVisibility(innerItem.getVisibility());
@@ -275,6 +296,8 @@ public class DynamicInputItemView extends FrameLayout {
             //toggle.setOnFocusChangeListener(innerItem::onFocusChange);
             //toggle.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
+            toggle.setTextSize(getTextSize());
+            toggle.setTypeface(font);
             toggle.setChecked(innerItem.getOnOff());
             toggle.setOnClickListener((view) -> {
                 innerItem.setOnOff(toggle.isChecked(), false);
@@ -315,7 +338,7 @@ public class DynamicInputItemView extends FrameLayout {
                 public void onNothingSelected(AdapterView<?> parent) {
                 }
             });
-            setDropdownOptions(innerItem.getOptions());
+            dropdown.setAdapter(new DropdownAdapter(innerItem.getOptions()));
             if (innerItem.getCount() >= 0)
                 dropdown.setSelection(innerItem.getIndex());
             dropdown.setVisibility(innerItem.getVisibility());
@@ -346,18 +369,71 @@ public class DynamicInputItemView extends FrameLayout {
             //label.setOnFocusChangeListener(innerItem::onFocusChange);
             //label.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             label.setText(innerItem.getLabel());
+            label.setTextSize(getTextSize());
+            label.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
+            label.setGravity(innerItem.getGravity());
+            label.setTypeface(font);
             //label.setVisibility(VISIBLE);
             label.setVisibility(innerItem.getVisibility());
         }
 
         inputItem = item;
     }
-    private void setDropdownOptions(String[] options) {
-        // create an ArrayAdapter that uses the array of items as its data source
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item, options);
-        // set the layout resource to use for the dropdown list
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // set the adapter for the Spinner widget
-        dropdown.setAdapter(adapter);
+
+    private class DropdownAdapter extends BaseAdapter {
+        private String[] items;
+        private final int TITLE_ID = View.generateViewId();
+        public DropdownAdapter(String[] items) {
+            this.items = items.clone();
+        }
+
+        public int getMarginSize() {
+            return Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
+        }
+
+        @Override
+        public int getCount() {
+            return items.length;
+        }
+        @Override
+        public Object getItem(int position) {
+            return position;
+        }
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            FrameLayout view = (FrameLayout)convertView;
+            if (view == null) {
+                view = new FrameLayout(context);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getItemHeight());
+                view.setLayoutParams(params);
+                //view.setBackgroundColor(Color.GREEN);
+
+                TextView label = new TextView(context);
+                label.setId(TITLE_ID);
+                params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+                int mrgn = getMarginSize();
+                params.setMargins(mrgn, 0, mrgn, 0);
+                params.gravity = Gravity.CENTER;
+                label.setLayoutParams(params);
+                label.setFocusable(false);
+                label.setClickable(false);
+                label.setTextSize(getTextSize());
+                label.setTextAlignment(TEXT_ALIGNMENT_GRAVITY);
+                label.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+                label.setTypeface(SettingsKeeper.getFont());
+                view.addView(label);
+            }
+
+            TextView label = view.findViewById(TITLE_ID);
+            if (label != null)
+                label.setText(items[position]);
+
+            return view;
+        }
     }
 }

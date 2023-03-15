@@ -16,6 +16,7 @@ import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -327,6 +328,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
                     String[] dataTypes = { "None", "AbsolutePath", "FileNameWithExt", "FileNameWithoutExt" };
                     DynamicInputRow.Label dataLabel = new DynamicInputRow.Label("Data");
+                    dataLabel.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
                     DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
                     DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
 

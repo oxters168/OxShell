@@ -19,6 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.OxGames.OxShell.Data.DataLocation;
+import com.OxGames.OxShell.Data.FontRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -141,6 +143,7 @@ public class PagedActivity extends AppCompatActivity {
         SettingsKeeper.loadOrCreateSettings();
         if (SettingsKeeper.fileDidNotExist()) {
             ShortcutsCache.createAndStoreDefaults();
+            SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, FontRef.from("Fonts/exo.regular.otf", DataLocation.asset));
             Log.i("PagedActivity", "Settings did not exist, first time launch");
         } else {
             ShortcutsCache.readIntentsFromDisk();

@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
@@ -21,6 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DataLocation;
+import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
@@ -89,10 +92,14 @@ public class PromptView extends FrameLayout implements InputReceiver {
     private int getTextSize() {
         return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
     }
+    private int getBtnTextSize() {
+        return Math.round(AndroidHelpers.getScaledSpToPixels(context, 5));
+    }
 
     private void init() {
         isShown = false;
         setVisibility(GONE);
+
 
         LayoutParams layoutParams;
 
@@ -139,6 +146,8 @@ public class PromptView extends FrameLayout implements InputReceiver {
         msg.setTextSize(textSize);
         msg.setText("Quos voluptas commodi maxime dolore eveniet enim commodi et. Et qui nobis est earum eum. Excepturi quis nostrum consectetur ipsum debitis nihil autem. Vitae maiores ducimus et aut voluptas. Est ipsa aliquam quibusdam id atque. Veritatis nisi non minus quo aut. Qui voluptate eos nihil dolores aut. Atque debitis quidem similique molestias perferendis eum numquam qui. Necessitatibus hic quia nulla minus occaecati occaecati est. Unde qui culpa distinctio ea repellat omnis cumque voluptatibus. Vel ut non iste. Numquam ut est temporibus eveniet et exercitationem maxime. Adipisci rerum magnam ipsa laudantium dolores. Vitae ea rem dicta molestiae ut rerum placeat. Repellat fugiat et quo corporis culpa facilis quia. Vel et rerum doloribus porro reiciendis est aut. Illum nihil non et molestiae nostrum. Molestiae dolor cupiditate a numquam adipisci nobis. Rerum saepe libero doloribus incidunt sunt molestias explicabo. Error inventore libero quam nostrum voluptates minima corporis voluptatem. Culpa illum vel ut qui aut in. Eligendi perferendis pariatur dolorum reiciendis sit. Ut et labore magnam quas debitis. Autem et enim enim quia nam voluptatibus illo.");
         msg.setFocusable(false);
+        Typeface font = SettingsKeeper.getFont();
+        msg.setTypeface(font);
         addView(msg);
 
         startBtn = new Button(context);
@@ -205,6 +214,11 @@ public class PromptView extends FrameLayout implements InputReceiver {
             //Log.d("DynamicInputItemView", "onFocusChange [" + inputItem.row + ", " + inputItem.col + "] hasFocus: " + hasFocus);
             button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#CEEAF0") : Color.parseColor("#484848")));
         });
+
+        Typeface font = SettingsKeeper.getFont();
+        button.setTypeface(font);
+        button.setTextSize(getBtnTextSize());
+        button.setAllCaps(false);
     }
     private boolean isAnyBtnSet() {
         return isStartBtnSet || isMiddleBtnSet || isEndBtnSet;
