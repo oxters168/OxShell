@@ -58,10 +58,11 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                     Intent returnIntent = new Intent();
                     currentActivity.setResult(Activity.RESULT_CANCELED, returnIntent);
                     currentActivity.finish();
+                } else {
+                    explorerBehaviour = new ExplorerBehaviour();
+                    refresh();
                 }
             });
-        explorerBehaviour = new ExplorerBehaviour();
-        refresh();
     }
 
     @Override
