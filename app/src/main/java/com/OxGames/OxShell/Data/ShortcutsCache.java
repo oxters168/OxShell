@@ -51,7 +51,7 @@ public class ShortcutsCache {
         String myBoyPkg = "com.fastemulator.gba";
         if (PackagesCache.isPackageInstalled(myBoyPkg)) {
             IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, myBoyPkg, "com.fastemulator.gba.EmulatorActivity", new String[]{"gba"}, Intent.FLAG_ACTIVITY_NEW_TASK);
-            gbaLaunchIntent.setDataType(IntentLaunchData.DataType.AbsPathAsProvider);
+            gbaLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
             defaults.add(gbaLaunchIntent);
         }
 
@@ -60,28 +60,28 @@ public class ShortcutsCache {
 //        if (PackagesCache.isPackageInstalled(drasticPkg)) {
 //            IntentLaunchData ndsLaunchIntent = new IntentLaunchData("NDS", Intent.ACTION_VIEW, drasticPkg, "com.dsemu.drastic.DraSticActivity", new String[]{"nds"}, Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
 //            ndsLaunchIntent.addExtra(new IntentPutExtra("GAMEPATH", IntentLaunchData.DataType.AbsPathAsProvider));
-//            //ndsLaunchIntent.setDataType(IntentLaunchData.DataType.AbsPathAsProvider);
+//            //ndsLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
 //            defaults.add(ndsLaunchIntent);
 //        }
 
         String ppssppPkg = "org.ppsspp.ppsspp";
         if (PackagesCache.isPackageInstalled(ppssppPkg)) {
             IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, ppssppPkg, "org.ppsspp.ppsspp.PpssppActivity", new String[]{"iso", "cso"}, Intent.FLAG_ACTIVITY_NEW_TASK);
-            pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsPathAsProvider));
+            pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
             defaults.add(pspLaunchIntent);
         }
 
         String aetherSx2Pkg = "xyz.aethersx2.android";
         if (PackagesCache.isPackageInstalled(aetherSx2Pkg)) {
             IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, aetherSx2Pkg, "xyz.aethersx2.android.EmulationActivity", new String[]{"iso", "bin", "chd"}, Intent.FLAG_ACTIVITY_NEW_TASK);
-            ps2LaunchIntent.addExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsPathAsProvider));
+            ps2LaunchIntent.addExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
             defaults.add(ps2LaunchIntent);
         }
 
         String citraPkg = "org.citra.emu";
         if (PackagesCache.isPackageInstalled(citraPkg)) {
             IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, citraPkg, "org.citra.emu.ui.EmulationActivity", new String[]{"3ds", "cxi"}, Intent.FLAG_ACTIVITY_NEW_TASK);
-            threedsLaunchIntent.addExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsPathAsProvider));
+            threedsLaunchIntent.addExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
             defaults.add(threedsLaunchIntent);
         }
 

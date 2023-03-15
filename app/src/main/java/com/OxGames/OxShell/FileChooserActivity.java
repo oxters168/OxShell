@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
@@ -43,13 +44,15 @@ public class FileChooserActivity extends PagedActivity {
     }
 
     public void sendResult(String path) {
-        final Uri data = AndroidHelpers.uriFromPath(path);
+        //final Uri uri = AndroidHelpers.uriFromPath(path);
+        //Uri uri = FileProvider.getUriForFile(this, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
+        Uri uri = Uri.parse(path);
+        //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         Intent returnIntent = new Intent();
-        returnIntent.setData(data);
-        returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        returnIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        returnIntent.setData(uri);
+        returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         setResult(Activity.RESULT_OK, returnIntent);
-        Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + data);
+        Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + uri);
         finish();
     }
 }

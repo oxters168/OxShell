@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Helpers;
 import android.Manifest;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -18,6 +19,7 @@ import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.TypedValue;
@@ -27,6 +29,7 @@ import androidx.activity.result.ActivityResult;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
@@ -146,12 +149,12 @@ public class AndroidHelpers {
         return new BitmapDrawable(context.getResources(), bitmap);
     }
 
-    public static boolean uriExists(Context context, Uri uri) {
+    public static boolean uriExists(Uri uri) {
         boolean exists = false;
         Cursor cursor = null;
         try {
             // Query the content provider to get a cursor for the given URI
-            cursor = context.getContentResolver().query(uri, null, null, null, null);
+            cursor = OxShellApp.getContext().getContentResolver().query(uri, null, null, null, null);
             exists = cursor != null && cursor.getCount() > 0;
         } catch (Exception e) {
             Log.e("AndroidHelpers", "Failed to check if uri exists: " + e);
@@ -161,6 +164,41 @@ public class AndroidHelpers {
         }
         return exists;
     }
+//    public static boolean queryUri(Uri uri) {
+//        boolean exists = false;
+//        Cursor cursor = null;
+//        try {
+//            String[] projection = { MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.DISPLAY_NAME };
+//            cursor = OxShellApp.getContext().getContentResolver().query(uri, projection, null, null, null);
+//
+//            if (cursor != null) {
+//                int idIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
+//                int nameIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+//                while (cursor.moveToNext()) {
+//                    long fileId = cursor.getLong(idIndex);
+//                    String fileName = cursor.getString(nameIndex);
+//                    Uri fileUri = ContentUris.withAppendedId(uri, fileId);
+//                    Log.d("AndroidHelpers", fileUri + ": " + fileName);
+////                    if (fileName.endsWith(".gba")) {
+////                        // do something with the file name (e.g. display it in a list)
+////                    }
+//                }
+//            }
+//        } catch (Exception e) {
+//            Log.e("AndroidHelpers", "Failed to query uri: " + e);
+//        } finally {
+//            if (cursor != null)
+//                cursor.close();
+//        }
+//        return exists;
+//    }
+//    public static void queryUri(Uri uri) {
+//        DocumentFile directory = DocumentFile.fromTreeUri(OxShellApp.getContext(), uri);
+//        DocumentFile[] files = directory.listFiles();
+//        for (DocumentFile file : files) {
+//            Log.d("AndroidHelpers", file.toString());
+//        }
+//    }
     public static void createPathIfNotExist(String filepath) {
         final File file = new File(filepath);
         String dirs = filepath;

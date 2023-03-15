@@ -1,7 +1,9 @@
 package com.OxGames.OxShell.Data;
 
+import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 
 import androidx.core.content.ContextCompat;
 
@@ -140,9 +142,10 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     }
 
     private static List<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, String[] extensions) {
-        if (dirs != null && dirs.size() > 0)
+        if (dirs != null && dirs.size() > 0) {
             // gets the files in the directories as streams then flattens them into one stream then maps them to home items then sorts them then turns the resulting stream into a list
             return dirs.stream().flatMap(dir -> AndroidHelpers.getItemsInDirWithExt(dir, extensions).stream()).map(exe -> new HomeItem(exe.toString(), type, AndroidHelpers.removeExtension(exe.getName()))).sorted(Comparator.comparing(item -> item.title)).collect(Collectors.toList());
+        }
         return null;
     }
 

@@ -50,59 +50,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OxShell" >
-        <!--android:hardwareAccelerated="true"-->
 <!--        <provider-->
 <!--            android:name="androidx.core.content.FileProvider"-->
-<!--            android:authorities="com.OxGames.OxShell.CustomFileProvider"-->
+<!--            android:authorities="${documentsAuthority}"-->
 <!--            android:exported="false"-->
 <!--            android:grantUriPermissions="true">-->
-<!--            <meta-data-->
-<!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
-<!--                android:resource="@xml/file_paths" />-->
-<!--        </provider>-->
-<!--        <provider-->
-<!--            android:name=".OxProvider"-->
-<!--            android:authorities="${documentsAuthority}"-->
-<!--            android:exported="true"-->
-<!--            android:grantUriPermissions="true"-->
-<!--            android:directBootAware="true"-->
-<!--            android:permission="android.permission.MANAGE_DOCUMENTS"-->
-<!--            android:enabled="true">-->
 <!--            <intent-filter>-->
 <!--                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>-->
-<!--&lt;!&ndash;                <action android:name="android.intent.action.OPEN_DOCUMENT"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                <category android:name="android.intent.category.DEFAULT"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                <category android:name="android.intent.category.OPENABLE"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                <data android:mimeType="*/*"/>&ndash;&gt;-->
 <!--            </intent-filter>-->
 <!--            <meta-data-->
 <!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
-<!--                android:resource="@xml/provider_paths"/>-->
+<!--                android:resource="@xml/provider_paths" />-->
 <!--        </provider>-->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${documentsAuthority}"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>
-            </intent-filter>
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths" />
-        </provider>
-<!--        <activity-alias android:name="com.OxGames.OxShell.FileChooserAlias"-->
-<!--            android:targetActivity="com.OxGames.OxShell.FileChooserActivity">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.GET_CONTENT"/>-->
-<!--                <action android:name="android.intent.action.OPEN_DOCUMENT"/>-->
-<!--                <category android:name="android.intent.category.OPENABLE"/>-->
-<!--                <category android:name="android.intent.category.DEFAULT"/>-->
-<!--                <data android:mimeType="file/*"/>-->
-<!--                <data android:mimeType="image/*"/>-->
-<!--                <data android:mimeType="video/*"/>-->
-<!--            </intent-filter>-->
-<!--        </activity-alias>-->
         <service
             android:name=".AccessService"
             android:enabled="true"
@@ -138,16 +97,16 @@
         <activity
             android:name=".FileChooserActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.GET_CONTENT"/>
-                <action android:name="android.intent.action.OPEN_DOCUMENT"/>
-                <action android:name="android.intent.action.OPEN_DOCUMENT_TREE"/>
-                <category android:name="android.intent.category.OPENABLE"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:mimeType="*/*"/>
-<!--                <data android:mimeType="image/*"/>-->
-<!--                <data android:mimeType="video/*"/>-->
-            </intent-filter>
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.GET_CONTENT"/>-->
+<!--                <action android:name="android.intent.action.OPEN_DOCUMENT"/>-->
+<!--                <action android:name="android.intent.action.OPEN_DOCUMENT_TREE"/>-->
+<!--                <category android:name="android.intent.category.OPENABLE"/>-->
+<!--                <category android:name="android.intent.category.DEFAULT"/>-->
+<!--                <data android:mimeType="*/*"/>-->
+<!--&lt;!&ndash;                <data android:mimeType="image/*"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                <data android:mimeType="video/*"/>&ndash;&gt;-->
+<!--            </intent-filter>-->
         </activity>
         <activity
             android:name=".HomeActivity"

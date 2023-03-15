@@ -32,6 +32,7 @@ import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.ResImage;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Data.XMBItem;
+import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
@@ -134,13 +135,13 @@ public class HomeView extends XMBView implements Refreshable {
                 //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
                 if (selectedItem.type == HomeItem.Type.explorer) {
                     // TODO: show pop up explaining permissions?
-                    if (AndroidHelpers.hasReadStoragePermission())
+                    //if (AndroidHelpers.hasReadStoragePermission())
                         ActivityManager.goTo(ActivityManager.Page.explorer);
-                    else
-                        AndroidHelpers.requestReadStoragePermission(granted -> {
-                            if (granted)
-                                ActivityManager.goTo(ActivityManager.Page.explorer);
-                        });
+//                    else
+//                        AndroidHelpers.requestReadStoragePermission(granted -> {
+//                            if (granted)
+//                                ActivityManager.goTo(ActivityManager.Page.explorer);
+//                        });
 
                     return true;
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
@@ -184,16 +185,25 @@ public class HomeView extends XMBView implements Refreshable {
                     dynamicInput.setTitle("Add " + ShortcutsCache.getIntent(((UUID)selectedItem.obj)).getDisplayName() + " Association to Home");
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
                     DynamicInputRow.ButtonInput selectDirBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-                        // TODO: add non-scoped storage alternative for when storage access is granted
+                        Intent intent = new Intent();
+                        //intent.setPackage(context.getPackageName());
+                        intent.setClass(context, FileChooserActivity.class);
+                        currentActivity.requestResult(intent, result -> {
+                            Log.d("HomeView", result.toString() + ", " + (result.getData() != null ? result.getData().toString() : null) + ", " + (result.getData() != null && result.getData().getExtras() != null ? result.getData().getExtras().toString() : null));
+                            if (result.getResultCode() == Activity.RESULT_OK) {
+                                titleInput.setText(Uri.decode(result.getData().getData().toString()));
+                            }
+                        });
                         //if (!AndroidHelpers.hasReadStoragePermission()) {
-                            currentActivity.requestDirectoryAccess(null, uri -> {
-                                if (uri != null) {
-                                    currentActivity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                    Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-                                    //String path = getPath(this, docUri);
-                                    titleInput.setText(getPath(context, docUri));
-                                }
-                            });
+//                            currentActivity.requestDirectoryAccess(null, uri -> {
+//                                if (uri != null) {
+//                                    //currentActivity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                                    //Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+//                                    //String path = getPath(this, docUri);
+//                                    //titleInput.setText(getPath(context, docUri));
+//                                    titleInput.setText(Uri.decode(uri.toString()));
+//                                }
+//                            });
                         //} else {
 
                         //}
@@ -315,7 +325,7 @@ public class HomeView extends XMBView implements Refreshable {
                         }
                     });
                     DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
-                    String[] dataTypes = { "None", "AbsPathAsProvider", "AbsolutePath", "FileNameWithExt", "FileNameWithoutExt" };
+                    String[] dataTypes = { "None", "AbsolutePath", "FileNameWithExt", "FileNameWithoutExt" };
                     DynamicInputRow.Label dataLabel = new DynamicInputRow.Label("Data");
                     DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
                     DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
@@ -362,13 +372,13 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
                         currentActivity.requestContent(uri -> {
                             if (uri != null)
-                                titleInput.setText(uri.toString());
+                                titleInput.setText(Uri.decode(uri.toString()));
                         }, "image/*");
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
                         String path = titleInput.getText();
-                        if (path != null && AndroidHelpers.uriExists(context, Uri.parse(path))) {
+                        if (path != null && AndroidHelpers.uriExists(Uri.parse(path))) {
                             AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
                             dynamicInput.setShown(false);
                         }
@@ -412,7 +422,7 @@ public class HomeView extends XMBView implements Refreshable {
                         // TODO: add way to choose certain values within chosen shader
                         currentActivity.requestContent(uri -> {
                             if (uri != null)
-                                titleInput.setText(uri.toString());
+                                titleInput.setText(Uri.decode(uri.toString()));
                         }, "*/*");
                     });
                     DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
@@ -442,7 +452,7 @@ public class HomeView extends XMBView implements Refreshable {
                         if (dropdown.getIndex() == options.length - 1) {
                             //dropdown.getIndex();
                             String path = titleInput.getText();
-                            if (AndroidHelpers.uriExists(context, Uri.parse(path))) {
+                            if (AndroidHelpers.uriExists(Uri.parse(path))) {
                                 // if the chosen file is not the destination we want to copy to
                                 //if (!new File(path).getAbsolutePath().equalsIgnoreCase(new File(fragDest).getAbsolutePath())) {
                                     //Log.d("HomeView", path + " != " + fragDest);
@@ -820,7 +830,7 @@ public class HomeView extends XMBView implements Refreshable {
 
             @Override
             public void onValuesChanged() {
-                if (AndroidHelpers.uriExists(context, Uri.parse(filePathInput.getText())))
+                if (AndroidHelpers.uriExists(Uri.parse(filePathInput.getText())))
                     imageDisplay.setImage(ImageRef.from(filePathInput.getText(), DataLocation.resolverUri));
                 else
                     imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
@@ -830,7 +840,7 @@ public class HomeView extends XMBView implements Refreshable {
             currentActivity.requestContent(uri -> {
                 Log.d("HomeView", "Retrieved Uri: " + uri);
                 if (uri != null)
-                    filePathInput.setText(uri.toString());
+                    filePathInput.setText(Uri.decode(uri.toString()));
             }, "image/*");
         });
         DynamicInputRow.Dropdown resourcesDropdown = new DynamicInputRow.Dropdown(index -> {

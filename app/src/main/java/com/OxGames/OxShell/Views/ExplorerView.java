@@ -1,6 +1,8 @@
 package com.OxGames.OxShell.Views;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.text.InputType;
 import android.util.AttributeSet;
@@ -48,6 +50,16 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         //SettingsKeeper.hasValue()
         //setMargins();
         //ActivityManager.getCurrentActivity().addPermissionListener(this);
+        if (!AndroidHelpers.hasReadStoragePermission())
+            AndroidHelpers.requestReadStoragePermission(granted -> {
+                if (!granted) {
+                    Log.e("ExplorerView", "Failed to get permissions, exiting...");
+                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    Intent returnIntent = new Intent();
+                    currentActivity.setResult(Activity.RESULT_CANCELED, returnIntent);
+                    currentActivity.finish();
+                }
+            });
         explorerBehaviour = new ExplorerBehaviour();
         refresh();
     }
