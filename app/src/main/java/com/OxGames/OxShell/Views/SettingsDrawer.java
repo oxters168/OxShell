@@ -5,7 +5,9 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -53,26 +55,35 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
         init();
     }
 
-    private void init() {
-        setX(OxShellApp.getDisplayWidth());
-        //setBackgroundColor(Color.parseColor("#88323232"));
-        setBackground(ContextCompat.getDrawable(context, R.drawable.fading_right_edge));
-        setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#323232")));
-        setAlpha(0);
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        //Log.d("SettingsDrawer", event.toString());
+        if (event.getAction() == MotionEvent.ACTION_UP)
+            setShown(false);
+        return true;
+    }
 
+    private int getDrawerWidth() {
+        return Math.round(AndroidHelpers.getScaledDpToPixels(context, 200));
+    }
+    private void init() {
         FrameLayout.LayoutParams layoutParams;
 
-        // TODO: add scale option?
-        int settingsDrawerWidth = Math.round(AndroidHelpers.getScaledDpToPixels(context, 200));
-        layoutParams = new FrameLayout.LayoutParams(settingsDrawerWidth, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setLayoutParams(layoutParams);
+        //setBackgroundColor(Color.parseColor("#88323232"));
+        setX(OxShellApp.getDisplayWidth());
+        setAlpha(0);
 
         listView = new SlideTouchListView(context);
-        layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams = new FrameLayout.LayoutParams(getDrawerWidth(), ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.gravity = Gravity.END;
         listView.setLayoutParams(layoutParams);
         listView.setScrollbarFadingEnabled(false);
         listView.setScrollBarStyle(SCROLLBARS_INSIDE_INSET);
         listView.setSelector(R.color.transparent);
+        listView.setBackground(ContextCompat.getDrawable(context, R.drawable.fading_right_edge));
+        listView.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#323232")));
         addView(listView);
     }
 
