@@ -308,7 +308,7 @@ public class Shader {
         } catch(Exception e) { Log.e("Shader", "Failed to clear during draw: " + e.toString()); }
         try {
             glClass.getMethod("glUseProgram", int.class).invoke(null, getProgramHandle());
-            checkGlError("glUseProgram");
+            checkGlError(glClass, "glUseProgram");
         } catch(Exception e) {
             Log.e("Shader", "Failed to reference shader in draw: " + e.toString());
             return;
@@ -368,7 +368,7 @@ public class Shader {
         } catch(Exception e) { Log.e("Shader", "Failed to set and enable blend func during draw: " + e.toString()); }
         try {
             glClass.getMethod("glDrawArrays", int.class, int.class, int.class).invoke(null, glClass.getField("GL_TRIANGLE_STRIP").get(null), 0, 4);
-            checkGlError("glDrawArrays");
+            checkGlError(glClass, "glDrawArrays");
         } catch(Exception e) { Log.e("Shader", "Failed to draw arrays: " + e.toString()); }
         try {
             glClass.getMethod("glFinish").invoke(null);
@@ -418,7 +418,8 @@ public class Shader {
                     texHandleUnits.put(handleName, new TextureInfo(texIndex, texture.getWidth(), texture.getHeight()));
 
                     // Bind to the texture in OpenGL
-                    glClass.getMethod("glActiveTexture", int.class).invoke(null, texIndex);
+                    //Log.i("Shader", "Setting " + handleName + " to index " + texIndex);
+                    //glClass.getMethod("glActiveTexture", int.class).invoke(null, texIndex);
                     glClass.getMethod("glBindTexture", int.class, int.class).invoke(null, glClass.getField("GL_TEXTURE_2D").get(null), texHandle);
 //                    String minFilter = "GL_NEAREST";
 //                    int width = texture.getWidth();
@@ -471,7 +472,7 @@ public class Shader {
         int attrLocation = UNKNOWN_ATTRIBUTE;
         try {
             attrLocation = (int)glClass.getMethod("glGetAttribLocation", int.class, String.class).invoke(null, getProgramHandle(), attrName);
-            checkGlError("glGetAttribLocation " + attrName);
+            checkGlError(glClass, "glGetAttribLocation " + attrName);
         } catch(Exception e) { Log.e("Shader", "Failed to get attribute location of " + attrName + ": " + e.toString()); }
         return attrLocation;
     }
@@ -485,9 +486,9 @@ public class Shader {
         try {
             quadVertices.position(offset);
             glClass.getMethod("glVertexAttribPointer", int.class, int.class, int.class, boolean.class, int.class, java.nio.Buffer.class).invoke(null, attrLocation, size, (int)glClass.getField("GL_FLOAT").get(null), false, TRIANGLE_VERTICES_DATA_STRIDE_BYTES, quadVertices);
-            checkGlError("glVertexAttribPointer " + attrName);
+            checkGlError(glClass, "glVertexAttribPointer " + attrName);
             glClass.getMethod("glEnableVertexAttribArray", int.class).invoke(null, attrLocation);
-            checkGlError("glEnableVertexAttribArray " + attrName);
+            checkGlError(glClass, "glEnableVertexAttribArray " + attrName);
         } catch(Exception e) { Log.e("Shader", "Failed to set attribute " + attrName + ": " + e.toString()); }
     }
 
@@ -608,7 +609,9 @@ public class Shader {
                 glClass.getMethod("glGetShaderiv", int.class, int.class, int[].class, int.class).invoke(null, shaderHandle, (int)glClass.getField("GL_COMPILE_STATUS").get(null), compileStatus, 0);
                 // If the compilation failed, delete the shader.
                 if (compileStatus[0] == 0) {
-                    Log.e("Shader", "Error compiling shader (type " + shaderType + ")");
+                    String infoLog = (String)glClass.getMethod("glGetShaderInfoLog", int.class).invoke(null, shaderHandle);
+                    Log.e("Shader", "Error compiling shader (type " + shaderType + "): " + infoLog);
+
                     deleteShader(glClass, shaderHandle);
                     //glClass.getMethod("glDeleteShader", int.class).invoke(null, shaderHandle);
                     shaderHandle = UNKNOWN_SHADER;
@@ -652,7 +655,7 @@ public class Shader {
         } catch(Exception e) { Log.e("Shader", "An issue occurred while retrieving handles: " + e.toString()); }
     }
 
-    private void checkGlError(String op) {
+    private static void checkGlError(Class<? extends GLES20> glClass, String op) {
         int error = 0;
         int glNoErrorCode = 0;
         try {

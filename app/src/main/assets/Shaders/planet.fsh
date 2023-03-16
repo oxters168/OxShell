@@ -1,3 +1,4 @@
+#version 300 es
 /*--------------------------------------------------------------------------------------
 License CC0 - http://creativecommons.org/publicdomain/zero/1.0/
 To the extent possible under law, the author(s) have dedicated all copyright and related and neighboring rights to this software to the public domain worldwide. This software is distributed without any warranty.
@@ -5,7 +6,7 @@ To the extent possible under law, the author(s) have dedicated all copyright and
 ^ This means do ANYTHING YOU WANT with this code. Because we are programmers, not lawyers.
 -Otavio Good
 */
-#version 300 es
+
 precision highp float;
 
 uniform float iTime;
