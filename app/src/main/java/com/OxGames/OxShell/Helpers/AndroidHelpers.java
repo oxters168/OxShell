@@ -36,16 +36,20 @@ import com.OxGames.OxShell.PagedActivity;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class AndroidHelpers {
     public static final char[] ILLEGAL_FAT_CHARS = new char[] { '"', '*', '/', ':', '<', '>', '?', '\\', '|', 0x7F };
@@ -145,6 +149,37 @@ public class AndroidHelpers {
     }
     public static Drawable bitmapToDrawable(Context context, Bitmap bitmap) {
         return new BitmapDrawable(context.getResources(), bitmap);
+    }
+    public static void writeToUriAsZip(Uri uri, String... paths) {
+        OutputStream stream = null;
+        ZipOutputStream zipOut = null;
+        try {
+            stream = OxShellApp.getContext().getContentResolver().openOutputStream(uri);
+            zipOut = new ZipOutputStream(stream);
+
+            for (String filePath : paths) {
+                File fileToZip = new File(filePath);
+                FileInputStream fis = new FileInputStream(fileToZip);
+                ZipEntry zipEntry = new ZipEntry(fileToZip.getName());
+                zipOut.putNextEntry(zipEntry);
+
+                byte[] bytes = new byte[1024];
+                int length;
+                while((length = fis.read(bytes)) >= 0)
+                    zipOut.write(bytes, 0, length);
+                fis.close();
+            }
+        } catch (Exception e) { Log.e("AndroidHelpers", "Failed to write to uri: " + uri); }
+        finally {
+            if (zipOut != null)
+                try {
+                    zipOut.close();
+                } catch (Exception e) { Log.e("AndroidHelpers", "Failed to close zipper stream: " + e); }
+            if (stream != null)
+                try {
+                    stream.close();
+                } catch (Exception e) { Log.e("AndroidHelpers", "Failed to close output stream: " + e); }
+        }
     }
 
     public static boolean uriExists(Uri uri) {

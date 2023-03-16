@@ -69,6 +69,15 @@ public class PagedActivity extends AppCompatActivity {
                     PagedActivity.this.onReceivedDir.accept(uri);
             }
         });
+    private final ActivityResultLauncher<String> mCreateRequest = registerForActivityResult(new ActivityResultContracts.CreateDocument("application/zip"),
+            uri -> {
+                Log.i("HomeActivity", "Received result from activity " + uri);
+                if (uri != null) {
+                    getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    if (PagedActivity.this.onReceivedContent != null)
+                        PagedActivity.this.onReceivedContent.accept(uri);
+                }
+            });
     private Consumer<ActivityResult> onReceivedResult;
     private Consumer<Uri> onReceivedContent;
     private Consumer<Uri> onReceivedDir;
@@ -85,6 +94,11 @@ public class PagedActivity extends AppCompatActivity {
     public void requestDirectoryAccess(Uri initialPath, Consumer<Uri> onReceived) {
         this.onReceivedDir = onReceived;
         mDirRequest.launch(initialPath);
+    }
+    public void requestCreateZipFile(Consumer<Uri> onReceived, String type) {
+        // some mime types: https://stackoverflow.com/questions/23385520/android-available-mime-types
+        this.onReceivedContent = onReceived;
+        mCreateRequest.launch(type);
     }
 
     private HashMap<Integer, List<Consumer<Boolean>>> permissionListeners = new HashMap<>();

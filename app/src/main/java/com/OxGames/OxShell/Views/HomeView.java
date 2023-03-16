@@ -88,7 +88,8 @@ public class HomeView extends XMBView implements Refreshable {
         new ResImage(R.drawable.ic_baseline_audio_file_24, "Audio File"),
         new ResImage(R.drawable.ic_baseline_video_file_24, "Video File"),
         new ResImage(R.drawable.ic_baseline_view_list_24, "List"),
-        new ResImage(R.drawable.ic_baseline_work_24, "Suitcase")
+        new ResImage(R.drawable.ic_baseline_work_24, "Suitcase"),
+        new ResImage(R.drawable.baseline_info_24, "Info")
     };
 
     public HomeView(Context context) {
@@ -173,6 +174,18 @@ public class HomeView extends XMBView implements Refreshable {
                         intentItems[0] = new XMBItem(null, "None created", ImageRef.from(R.drawable.ic_baseline_block_24, DataLocation.resource));
                     }
                     selectedItem.setInnerItems(intentItems);
+                } else if (selectedItem.type == HomeItem.Type.appInfo) {
+                    
+                } else if (selectedItem.type == HomeItem.Type.saveLogs) {
+                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    String[] logs = Arrays.stream(AndroidHelpers.listContents(Paths.LOGCAT_DIR_INTERNAL)).map(file -> file.getName().endsWith(".log") ? file.getAbsolutePath() : null).toArray(String[]::new);
+                    if (logs.length > 0) {
+                        currentActivity.requestCreateZipFile(uri -> {
+                            AndroidHelpers.writeToUriAsZip(uri, logs);
+                            Toast.makeText(currentActivity, "Saved " + logs.length + " log(s)", Toast.LENGTH_LONG).show();
+                        }, "logs.zip");
+                    } else
+                        Toast.makeText(currentActivity, "No logs to save", Toast.LENGTH_LONG).show();
                 } else if (selectedItem.type == HomeItem.Type.addAssoc) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
@@ -521,6 +534,12 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings[0] = new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home");
         innerSettings[1] = new HomeItem(HomeItem.Type.createAssoc, "Create new association");
         settingsItem = new XMBItem(null, "Associations", ImageRef.from(R.drawable.ic_baseline_send_time_extension_24, DataLocation.resource), innerSettings);
+        settingsColumn.add(settingsItem);
+
+        innerSettings = new XMBItem[2];
+        innerSettings[0] = new HomeItem(HomeItem.Type.appInfo, "App info");
+        innerSettings[1] = new HomeItem(HomeItem.Type.saveLogs, "Save logs to file");
+        settingsItem = new XMBItem(null, "About", ImageRef.from(R.drawable.baseline_info_24, DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         return settingsColumn;
