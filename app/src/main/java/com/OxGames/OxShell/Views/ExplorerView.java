@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.ExplorerActivity;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Adapters.DetailAdapter;
@@ -145,6 +146,10 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 
     @Override
     public void primaryAction() {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (!(currentActivity instanceof ExplorerActivity || currentActivity instanceof FileChooserActivity))
+            return;
+
         DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
         if (clickedItem.obj == null) {
             if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
@@ -170,205 +175,50 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 
     @Override
     public void secondaryAction() {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        if (!(currentActivity instanceof ExplorerActivity || currentActivity instanceof FileChooserActivity))
+            return;
+
         super.secondaryAction();
         showSettingsDrawer();
     }
 
-    private void showSettingsDrawer() {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        //DetailItem selectedItem = (DetailItem)getItemAtPosition(properPosition);
+    private void setupBtns() {
+        DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
+        boolean isCurrentValid = currentItem.obj != null && !currentItem.leftAlignedText.equals("..");
         List<DetailItem> selection = getSelectedItems();
         boolean isValidSelection = true;
         if (selection.size() == 1)
             isValidSelection = selection.get(0).obj != null && !selection.get(0).leftAlignedText.equals("..");
-        //File file = (File)selectedItem.obj;
-        //boolean isValidSelection = file != null && !selectedItem.leftAlignedText.equals("..");
-        SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () ->
-        {
-            DynamicInputRow.TextInput folderNameTxtInput = new DynamicInputRow.TextInput("Folder Name");
-            DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
-            errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
-            currentActivity.getDynamicInput().setTitle("Create Folder");
-            currentActivity.getDynamicInput().setItems
-                    (
-                            new DynamicInputRow(folderNameTxtInput),
-                            new DynamicInputRow(errorLabel),
-                            new DynamicInputRow
-                                    (
-                                            new DynamicInputRow.ButtonInput("Ok", v ->
-                                            {
-                                                //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
-                                                String folderName = folderNameTxtInput.getText();
-                                                if (folderName != null && folderName.length() > 0) {
-                                                    String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), folderName);
-                                                    boolean success = new File(newPath).mkdir();
-                                                    Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
-                                                    refresh();
-                                                    currentActivity.getDynamicInput().setShown(false);
-                                                } else
-                                                    errorLabel.setLabel("Folder name is invalid");
-                                            }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
-                                            new DynamicInputRow.ButtonInput("Cancel", v ->
-                                            {
-                                                //Log.d("ExplorerDynamicView", "Clicked cancel");
-                                                currentActivity.getDynamicInput().setShown(false);
-                                            }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
-                                    )
-                    );
-            currentActivity.getSettingsDrawer().setShown(false);
-            currentActivity.getDynamicInput().setShown(true);
-        });
-        SettingsDrawer.ContextBtn newFileBtn = new SettingsDrawer.ContextBtn("New File", () ->
-        {
-            DynamicInputRow.TextInput fileNameTxtInput = new DynamicInputRow.TextInput("File Name");
-            DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
-            errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
-            currentActivity.getDynamicInput().setTitle("Create File");
-            currentActivity.getDynamicInput().setItems
-                    (
-                            new DynamicInputRow(fileNameTxtInput),
-                            new DynamicInputRow(errorLabel),
-                            new DynamicInputRow
-                                    (
-                                            new DynamicInputRow.ButtonInput("Ok", v ->
-                                            {
-                                                //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
-                                                String fileName = fileNameTxtInput.getText();
-                                                if (fileName != null && fileName.length() > 0) {
-                                                    String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), fileName);
-                                                    if (!AndroidHelpers.fileExists(newPath)) {
-                                                        try {
-                                                            boolean success = new File(newPath).createNewFile();
-                                                            Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
-                                                        } catch (Exception e) {
-                                                            Log.e("ExplorerView", e.toString());
-                                                        }
-                                                        refresh();
-                                                        currentActivity.getDynamicInput().setShown(false);
-                                                    } else
-                                                        errorLabel.setLabel("File already exists");
-                                                } else
-                                                    errorLabel.setLabel("File name is invalid");
-                                            }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
-                                            new DynamicInputRow.ButtonInput("Cancel", v ->
-                                            {
-                                                //Log.d("ExplorerDynamicView", "Clicked cancel");
-                                                currentActivity.getDynamicInput().setShown(false);
-                                            }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
-                                    )
-                    );
-            currentActivity.getSettingsDrawer().setShown(false);
-            currentActivity.getDynamicInput().setShown(true);
-        });
-        SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () ->
-        {
-            // TODO: add option to only add on and not outright change (ex. abc.txt, def.txt, ghi.txt addon prefix of demo_ => demo_abc.txt, demo_def.txt, demo_ghi.txt)
-            // there will always be at least one item in the selection
-            File firstFile = (File)selection.get(0).obj;
-            boolean isMulti = selection.size() > 1;
-            boolean isDir = firstFile.isDirectory();
-            DynamicInputRow.TextInput renamedTxtInput = new DynamicInputRow.TextInput(isMulti ? "Prefix" : isDir ? "Folder Name" : "File Name");
-            DynamicInputRow.TextInput suffixTxtInput = new DynamicInputRow.TextInput("Suffix");
-            DynamicInputRow.TextInput startTxtInput = new DynamicInputRow.TextInput("Index Start", InputType.TYPE_CLASS_NUMBER);
-            renamedTxtInput.setText(isMulti ? (AndroidHelpers.hasExtension(firstFile.getName()) ? AndroidHelpers.removeExtension(firstFile.getName()) : firstFile.getName()) : firstFile.getName());
-            suffixTxtInput.setText(AndroidHelpers.hasExtension(firstFile.getName()) ? "." + AndroidHelpers.getExtension(firstFile.getName()) : "");
-            startTxtInput.setText("0");
-            DynamicInputRow.Label errorLabel = new DynamicInputRow.Label(isMulti ? "Renaming " + selection.size() + " items" : "");
-            DynamicInputRow.ToggleInput fillZerosToggle = new DynamicInputRow.ToggleInput("Place zeros", "Don't place zeros", null);
-            DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Ok", v ->
-            {
-                if (isMulti) {
-                    String value = startTxtInput.getText();
-                    boolean fillZeros = fillZerosToggle.getOnOff();
-                    int startIndex = 0;
-                    if (value.length() > 0) {
-                        try {
-                            startIndex = Integer.parseInt(value);
-                        } catch(Exception e) { Log.e("ExplorerView", e.toString()); }
-                    }
-                    int maxDigitCount = getDigitCount(startIndex + (selection.size() - 1));
-                    for (int i = 0; i < selection.size(); i++) {
-                        File current = (File)selection.get(i).obj;
-                        int index = (startIndex + i);
-                        String zeros = "";
-                        if (fillZeros) {
-                            int currentDigitCount = getDigitCount(index);
-                            for (int j = 0; j < (maxDigitCount - currentDigitCount); j++)
-                                zeros += "0";
-                        }
-                        String newName = renamedTxtInput.getText() + zeros + index + suffixTxtInput.getText();
-                        current.renameTo(new File(AndroidHelpers.combinePaths(current.getParent(), newName)));
-                    }
-                    refresh();
-                    currentActivity.getDynamicInput().setShown(false);
-                } else {
-                    String newName = renamedTxtInput.getText();
-                    if (newName != null && newName.length() > 0) {
-                        firstFile.renameTo(new File(AndroidHelpers.combinePaths(firstFile.getParent(), newName)));
-                        refresh();
-                        currentActivity.getDynamicInput().setShown(false);
-                    } else
-                        errorLabel.setLabel("Name is invalid");
-                }
-            }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
-            DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v ->
-            {
-                //Log.d("ExplorerDynamicView", "Clicked cancel");
-                currentActivity.getDynamicInput().setShown(false);
-            }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B);
-            currentActivity.getDynamicInput().setTitle("Rename" + (isMulti ? " Items" : (isDir ? " Folder" : " File")));
-            if (isMulti)
-                currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput, suffixTxtInput), new DynamicInputRow(startTxtInput), new DynamicInputRow(fillZerosToggle), new DynamicInputRow(okBtn, cancelBtn));
-            else
-                currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput), new DynamicInputRow(okBtn, cancelBtn));
-            currentActivity.getSettingsDrawer().setShown(false);
-            currentActivity.getDynamicInput().setShown(true);
-        });
-        SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () ->
-        {
-            currentActivity.getDynamicInput().setTitle("Copy");
-            String[] filePaths = new String[selection.size()];
-            for (int i = 0; i < selection.size(); i++)
-                filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
-            explorerBehaviour.copy(filePaths);
-            currentActivity.getSettingsDrawer().setShown(false);
-            //currentActivity.getDynamicInput().setShown(true);
-        });
-        SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () ->
-        {
-            String[] filePaths = new String[selection.size()];
-            for (int i = 0; i < selection.size(); i++)
-                filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
-            explorerBehaviour.cut(filePaths);
-            currentActivity.getSettingsDrawer().setShown(false);
-        });
-        SettingsDrawer.ContextBtn pasteBtn = new SettingsDrawer.ContextBtn("Paste", () ->
-        {
-            explorerBehaviour.paste();
-            refresh();
-            currentActivity.getSettingsDrawer().setShown(false);
-        });
-        SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () ->
-        {
-            String[] filePaths = new String[selection.size()];
-            for (int i = 0; i < selection.size(); i++)
-                filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
-            explorerBehaviour.delete(filePaths);
-            refresh();
-            currentActivity.getSettingsDrawer().setShown(false);
-        });
-        if (isValidSelection) {
-            if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())
-                currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn, renameBtn, copyBtn, cutBtn, pasteBtn, deleteBtn);
-            else
-                currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn, renameBtn, copyBtn, cutBtn, deleteBtn);
-        } else
-        if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())
-            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn, pasteBtn);
-        else
-            currentActivity.getSettingsDrawer().setButtons(newFolderBtn, newFileBtn);
 
-        currentActivity.getSettingsDrawer().setShown(true);
+        List<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
+        btns.add(newFolderBtn);
+        btns.add(newFileBtn);
+        if (getCount() > 1)
+            btns.add(selectAllBtn);
+        if (selection.size() > 1)
+            btns.add(deselectBtn);
+        if (selection.size() > 1 && selection.size() < getCount() - 1)
+            btns.add(invertSelectionBtn);
+        if (isCurrentValid)
+            btns.add(toggleSelection);
+        if (isValidSelection)
+            btns.add(renameBtn);
+        if (isValidSelection)
+            btns.add(copyBtn);
+        if (isValidSelection)
+            btns.add(cutBtn);
+        if (explorerBehaviour.isCopying() || explorerBehaviour.isCutting())
+            btns.add(pasteBtn);
+        if (isValidSelection)
+            btns.add(deleteBtn);
+        btns.add(cancelBtn);
+
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
+    }
+    private void showSettingsDrawer() {
+        setupBtns();
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(true);
     }
 
     public static void tryRun(File file) {
@@ -484,4 +334,218 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         }
         super.refresh();
     }
+
+    SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () -> {
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn selectAllBtn = new SettingsDrawer.ContextBtn("Select All", () -> {
+        for (int i = 0; i < getCount(); i++) {
+            DetailItem currentItem = (DetailItem)getItemAtPosition(i);
+            if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+                setItemSelected(i, true);
+        }
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn deselectBtn = new SettingsDrawer.ContextBtn("Deselect All", () -> {
+        for (int i = 0; i < getCount(); i++) {
+            DetailItem currentItem = (DetailItem)getItemAtPosition(i);
+            if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+                setItemSelected(i, false);
+        }
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn invertSelectionBtn = new SettingsDrawer.ContextBtn("Invert Selection", () -> {
+        for (int i = 0; i < getCount(); i++) {
+            DetailItem currentItem = (DetailItem)getItemAtPosition(i);
+            if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+                setItemSelected(i, !isItemSelected(i));
+        }
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn toggleSelection = new SettingsDrawer.ContextBtn("Toggle Selection", () -> {
+        DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
+        if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+            setItemSelected(properPosition, !isItemSelected(properPosition));
+        selectNextItem();
+        //ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        setupBtns();
+    });
+    SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () -> {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        DynamicInputRow.TextInput folderNameTxtInput = new DynamicInputRow.TextInput("Folder Name");
+        DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
+        errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
+        currentActivity.getDynamicInput().setTitle("Create Folder");
+        currentActivity.getDynamicInput().setItems
+                (
+                        new DynamicInputRow(folderNameTxtInput),
+                        new DynamicInputRow(errorLabel),
+                        new DynamicInputRow
+                                (
+                                        new DynamicInputRow.ButtonInput("Ok", v ->
+                                        {
+                                            //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
+                                            String folderName = folderNameTxtInput.getText();
+                                            if (folderName != null && folderName.length() > 0) {
+                                                String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), folderName);
+                                                boolean success = new File(newPath).mkdir();
+                                                Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
+                                                refresh();
+                                                currentActivity.getDynamicInput().setShown(false);
+                                            } else
+                                                errorLabel.setLabel("Folder name is invalid");
+                                        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
+                                        new DynamicInputRow.ButtonInput("Cancel", v ->
+                                        {
+                                            //Log.d("ExplorerDynamicView", "Clicked cancel");
+                                            currentActivity.getDynamicInput().setShown(false);
+                                        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
+                                )
+                );
+        currentActivity.getSettingsDrawer().setShown(false);
+        currentActivity.getDynamicInput().setShown(true);
+    });
+    SettingsDrawer.ContextBtn newFileBtn = new SettingsDrawer.ContextBtn("New File", () -> {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        DynamicInputRow.TextInput fileNameTxtInput = new DynamicInputRow.TextInput("File Name");
+        DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
+        errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
+        currentActivity.getDynamicInput().setTitle("Create File");
+        currentActivity.getDynamicInput().setItems
+                (
+                        new DynamicInputRow(fileNameTxtInput),
+                        new DynamicInputRow(errorLabel),
+                        new DynamicInputRow
+                                (
+                                        new DynamicInputRow.ButtonInput("Ok", v ->
+                                        {
+                                            //Log.d("ExplorerDynamicView", "Clicked ok, folder name is " + folderName.getText());
+                                            String fileName = fileNameTxtInput.getText();
+                                            if (fileName != null && fileName.length() > 0) {
+                                                String newPath = AndroidHelpers.combinePaths(explorerBehaviour.getDirectory(), fileName);
+                                                if (!AndroidHelpers.fileExists(newPath)) {
+                                                    try {
+                                                        boolean success = new File(newPath).createNewFile();
+                                                        Log.d("ExplorerView", "Creating " + newPath + " success: " + success);
+                                                    } catch (Exception e) {
+                                                        Log.e("ExplorerView", e.toString());
+                                                    }
+                                                    refresh();
+                                                    currentActivity.getDynamicInput().setShown(false);
+                                                } else
+                                                    errorLabel.setLabel("File already exists");
+                                            } else
+                                                errorLabel.setLabel("File name is invalid");
+                                        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
+                                        new DynamicInputRow.ButtonInput("Cancel", v ->
+                                        {
+                                            //Log.d("ExplorerDynamicView", "Clicked cancel");
+                                            currentActivity.getDynamicInput().setShown(false);
+                                        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
+                                )
+                );
+        currentActivity.getSettingsDrawer().setShown(false);
+        currentActivity.getDynamicInput().setShown(true);
+    });
+    SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () -> {
+        // TODO: add option to only add on and not outright change (ex. abc.txt, def.txt, ghi.txt addon prefix of demo_ => demo_abc.txt, demo_def.txt, demo_ghi.txt)
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        List<DetailItem> selection = getSelectedItems();
+        // there will always be at least one item in the selection
+        File firstFile = (File)selection.get(0).obj;
+        boolean isMulti = selection.size() > 1;
+        boolean isDir = firstFile.isDirectory();
+        DynamicInputRow.TextInput renamedTxtInput = new DynamicInputRow.TextInput(isMulti ? "Prefix" : isDir ? "Folder Name" : "File Name");
+        DynamicInputRow.TextInput suffixTxtInput = new DynamicInputRow.TextInput("Suffix");
+        DynamicInputRow.TextInput startTxtInput = new DynamicInputRow.TextInput("Index Start", InputType.TYPE_CLASS_NUMBER);
+        renamedTxtInput.setText(isMulti ? (AndroidHelpers.hasExtension(firstFile.getName()) ? AndroidHelpers.removeExtension(firstFile.getName()) : firstFile.getName()) : firstFile.getName());
+        suffixTxtInput.setText(AndroidHelpers.hasExtension(firstFile.getName()) ? "." + AndroidHelpers.getExtension(firstFile.getName()) : "");
+        startTxtInput.setText("0");
+        DynamicInputRow.Label errorLabel = new DynamicInputRow.Label(isMulti ? "Renaming " + selection.size() + " items" : "");
+        DynamicInputRow.ToggleInput fillZerosToggle = new DynamicInputRow.ToggleInput("Place zeros", "Don't place zeros", null);
+        DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Ok", v ->
+        {
+            if (isMulti) {
+                String value = startTxtInput.getText();
+                boolean fillZeros = fillZerosToggle.getOnOff();
+                int startIndex = 0;
+                if (value.length() > 0) {
+                    try {
+                        startIndex = Integer.parseInt(value);
+                    } catch(Exception e) { Log.e("ExplorerView", e.toString()); }
+                }
+                int maxDigitCount = getDigitCount(startIndex + (selection.size() - 1));
+                for (int i = 0; i < selection.size(); i++) {
+                    File current = (File)selection.get(i).obj;
+                    int index = (startIndex + i);
+                    String zeros = "";
+                    if (fillZeros) {
+                        int currentDigitCount = getDigitCount(index);
+                        for (int j = 0; j < (maxDigitCount - currentDigitCount); j++)
+                            zeros += "0";
+                    }
+                    String newName = renamedTxtInput.getText() + zeros + index + suffixTxtInput.getText();
+                    current.renameTo(new File(AndroidHelpers.combinePaths(current.getParent(), newName)));
+                }
+                refresh();
+                currentActivity.getDynamicInput().setShown(false);
+            } else {
+                String newName = renamedTxtInput.getText();
+                if (newName != null && newName.length() > 0) {
+                    firstFile.renameTo(new File(AndroidHelpers.combinePaths(firstFile.getParent(), newName)));
+                    refresh();
+                    currentActivity.getDynamicInput().setShown(false);
+                } else
+                    errorLabel.setLabel("Name is invalid");
+            }
+        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
+        DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v ->
+        {
+            //Log.d("ExplorerDynamicView", "Clicked cancel");
+            currentActivity.getDynamicInput().setShown(false);
+        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B);
+        currentActivity.getDynamicInput().setTitle("Rename" + (isMulti ? " Items" : (isDir ? " Folder" : " File")));
+        if (isMulti)
+            currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput, suffixTxtInput), new DynamicInputRow(startTxtInput), new DynamicInputRow(fillZerosToggle), new DynamicInputRow(okBtn, cancelBtn));
+        else
+            currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput), new DynamicInputRow(okBtn, cancelBtn));
+        currentActivity.getSettingsDrawer().setShown(false);
+        currentActivity.getDynamicInput().setShown(true);
+    });
+    SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () -> {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        List<DetailItem> selection = getSelectedItems();
+        currentActivity.getDynamicInput().setTitle("Copy");
+        String[] filePaths = new String[selection.size()];
+        for (int i = 0; i < selection.size(); i++)
+            filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
+        explorerBehaviour.copy(filePaths);
+        currentActivity.getSettingsDrawer().setShown(false);
+        //currentActivity.getDynamicInput().setShown(true);
+    });
+    SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () -> {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        List<DetailItem> selection = getSelectedItems();
+        String[] filePaths = new String[selection.size()];
+        for (int i = 0; i < selection.size(); i++)
+            filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
+        explorerBehaviour.cut(filePaths);
+        currentActivity.getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn pasteBtn = new SettingsDrawer.ContextBtn("Paste", () -> {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        explorerBehaviour.paste();
+        refresh();
+        currentActivity.getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () -> {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        List<DetailItem> selection = getSelectedItems();
+        String[] filePaths = new String[selection.size()];
+        for (int i = 0; i < selection.size(); i++)
+            filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
+        ExplorerBehaviour.delete(filePaths);
+        refresh();
+        currentActivity.getSettingsDrawer().setShown(false);
+    });
 }

@@ -292,7 +292,8 @@ public class SlideTouchListView extends ListView implements InputReceiver, Refre
         setProperPosition(prevIndex);
     }
     public void primaryAction() {
-        for (CustomViewListener el : eventListeners)
+        CustomViewListener[] listeners = eventListeners.toArray(new CustomViewListener[0]);
+        for (CustomViewListener el : listeners)
             el.onMakeSelection(properPosition);
     }
     public void secondaryAction() {
