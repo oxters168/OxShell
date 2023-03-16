@@ -32,7 +32,7 @@ public class ShortcutsCache {
         //    intents.put(intent.getId(), intent);
         writeIntentsToDisk(createDefaultLaunchIntents());
     }
-    public static void addIntent(IntentLaunchData intent) {
+    public static void saveIntentAndReload(IntentLaunchData intent) {
         //intents.put(intent.getId(), intent);
         saveIntentData(intent);
         readIntentsFromDisk();

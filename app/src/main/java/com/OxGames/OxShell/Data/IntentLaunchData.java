@@ -165,6 +165,9 @@ public class IntentLaunchData implements Serializable {
         return buildIntent(null);
     }
 
+    public void clearExtras() {
+        extras.clear();
+    }
     public void addExtra(IntentPutExtra extra) {
         extras.add(extra);
     }
@@ -188,7 +191,9 @@ public class IntentLaunchData implements Serializable {
     public void launch(String path) {
         Intent intent = buildIntent(path);
         Log.i("IntentLaunchData", intent + ", " + intent.getExtras());
-        startActivity(OxShellApp.getContext(), intent, null);
+        try {
+            startActivity(OxShellApp.getContext(), intent, null);
+        } catch (Exception e) { Log.e("IntentLaunchData", "Failed to launch " + getPackageName() + ": " + e); }
     }
     public void launch() {
         launch(null);

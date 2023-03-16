@@ -37,6 +37,9 @@ public class IntentPutExtra implements Serializable {
     }
 //    public void setExtraType(IntentLaunchData.DataType _extraType) { extraType = _extraType; }
     public IntentLaunchData.DataType getExtraType() { return extraType; }
+    public Object getValue() {
+        return value;
+    }
     public void putExtraInto(Intent intent) {
         if (extraType == IntentLaunchData.DataType.Integer)
             intent.putExtra(name, (int)value);
@@ -64,6 +67,15 @@ public class IntentPutExtra implements Serializable {
 //            return new IntentPutExtra(name, value, IntentLaunchData.DataType.Boolean);
 //        } catch (Exception e) {}
 
-        return new IntentPutExtra(name, toBeParsed, IntentLaunchData.DataType.String);
+        IntentPutExtra extra;
+        if (toBeParsed.equals(IntentLaunchData.DataType.AbsolutePath.toString()))
+            extra = new IntentPutExtra(name, null, IntentLaunchData.DataType.AbsolutePath);
+        else if (toBeParsed.equals(IntentLaunchData.DataType.FileNameWithExt.toString()))
+            extra = new IntentPutExtra(name, null, IntentLaunchData.DataType.FileNameWithExt);
+        else if (toBeParsed.equals(IntentLaunchData.DataType.FileNameWithoutExt.toString()))
+            extra = new IntentPutExtra(name, null, IntentLaunchData.DataType.FileNameWithoutExt);
+        else
+            extra = new IntentPutExtra(name, toBeParsed, IntentLaunchData.DataType.String);
+        return extra;
     }
 }

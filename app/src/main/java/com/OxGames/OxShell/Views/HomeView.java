@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
@@ -138,23 +139,12 @@ public class HomeView extends XMBView implements Refreshable {
                 //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
                 if (selectedItem.type == HomeItem.Type.explorer) {
                     // TODO: show pop up explaining permissions?
-                    //if (AndroidHelpers.hasReadStoragePermission())
-                        ActivityManager.goTo(ActivityManager.Page.explorer);
-//                    else
-//                        AndroidHelpers.requestReadStoragePermission(granted -> {
-//                            if (granted)
-//                                ActivityManager.goTo(ActivityManager.Page.explorer);
-//                        });
-
+                    ActivityManager.goTo(ActivityManager.Page.explorer);
                     return true;
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
                 } else if (selectedItem.type == HomeItem.Type.app) {
                     (IntentLaunchData.createFromPackage((String)selectedItem.obj, Intent.FLAG_ACTIVITY_NEW_TASK)).launch();
                     return true;
-                } else if (selectedItem.type == HomeItem.Type.settings) {
-                    //ActivityManager.goTo(ActivityManager.Page.settings);
-                    //return true;
-//            HomeActivity.GetInstance().GoTo(HomeActivity.Page.addToHome);
                 } else if (selectedItem.type == HomeItem.Type.addAppOuter) {
                     List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
                     XMBItem[] sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList()).toArray(new XMBItem[0]);
@@ -225,134 +215,7 @@ public class HomeView extends XMBView implements Refreshable {
                         Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.createAssoc) {
-                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-                    DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-                    dynamicInput.setTitle("Create Association");
-                    DynamicInputRow.TextInput displayNameInput = new DynamicInputRow.TextInput("Display Name");
-                    List<ResolveInfo> pkgs = PackagesCache.getLaunchableInstalledPackages();
-                    pkgs.sort(Comparator.comparing(PackagesCache::getAppLabel));
-                    List<String> pkgNames = pkgs.stream().map(PackagesCache::getAppLabel).collect(Collectors.toList());
-                    pkgNames.add(0, "Unlisted");
-                    DynamicInputRow.TextInput pkgNameInput = new DynamicInputRow.TextInput("Package Name");
-                    DynamicInputRow.Dropdown pkgsDropdown = new DynamicInputRow.Dropdown(index -> {
-                        //Log.d("HomeView", "Dropdown index changed to " + index);
-                        if (index >= 1) {
-                            String pkgName = pkgs.get(index - 1).activityInfo.packageName;
-                            pkgNameInput.setText(pkgName);
-                        }
-                    });
-                    final String[][] classNames = new String[1][];
-                    DynamicInputRow.TextInput classNameInput = new DynamicInputRow.TextInput("Class Name");
-                    DynamicInputRow.Dropdown classesDropdown = new DynamicInputRow.Dropdown(index -> {
-                        if (index >= 1) {
-                            String className = classNames[0][index];
-                            classNameInput.setText(className);
-                        }
-                    });
-                    classesDropdown.setVisibility(GONE);
-                    pkgNameInput.addListener(new DynamicInputListener() {
-                        @Override
-                        public void onFocusChanged(View view, boolean hasFocus) {
-
-                        }
-
-                        @Override
-                        public void onValuesChanged() {
-                            //Log.d("HomeView", "Looking for package in list");
-                            // populate next list with class names
-                            int index = 0;
-                            for (int i = 0; i < pkgs.size(); i++)
-                                if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
-                                    index = i + 1;
-                                    break;
-                                }
-                            //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
-                            // if the user is typing and they type a valid package name, then select it in the drop down
-                            String[] classes = new String[0];
-                            pkgsDropdown.setIndex(index);
-                            if (index >= 1) { // 0 is unlisted, so skip
-                                //Log.d("HomeView", "Package exists");
-
-                                String[] tmp = PackagesCache.getClassesOfPkg(pkgNameInput.getText());
-                                if (tmp.length > 0) {
-                                    classes = new String[tmp.length + 1];
-                                    System.arraycopy(tmp, 0, classes, 1, tmp.length);
-                                    classes[0] = "Unlisted";
-                                }
-                            }
-                            classNames[0] = classes;
-                            classesDropdown.setOptions(classes);
-                            classesDropdown.setVisibility(classes.length > 0 ? VISIBLE : GONE);
-                            //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
-                        }
-                    });
-                    pkgsDropdown.setOptions(pkgNames.toArray(new String[0]));
-                    String[] intentActions = PackagesCache.getAllIntentActions();
-                    String[] actionsTmp = PackagesCache.getAllIntentActionNames();
-                    String[] intentActionNames = new String[actionsTmp.length + 1];
-                    System.arraycopy(actionsTmp, 0, intentActionNames, 1, actionsTmp.length);
-                    intentActionNames[0] = "Unlisted";
-                    DynamicInputRow.TextInput actionInput = new DynamicInputRow.TextInput("Intent Action");
-                    DynamicInputRow.Dropdown actionsDropdown = new DynamicInputRow.Dropdown(index -> {
-                        if (index > 0) {
-                            String actionName = intentActions[index - 1];
-                            actionInput.setText(actionName);
-                        }
-                    }, intentActionNames);
-                    actionInput.addListener(new DynamicInputListener() {
-                        @Override
-                        public void onFocusChanged(View view, boolean hasFocus) {
-
-                        }
-
-                        @Override
-                        public void onValuesChanged() {
-                            int index = 0;
-                            for (int i = 0; i < intentActions.length; i++)
-                                if (actionInput.getText().equals(intentActions[i])) {
-                                    index = i + 1;
-                                    break;
-                                }
-                            actionsDropdown.setIndex(index);
-                        }
-                    });
-                    DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
-                    String[] dataTypes = { "None", "AbsolutePath", "FileNameWithExt", "FileNameWithoutExt" };
-                    DynamicInputRow.Label dataLabel = new DynamicInputRow.Label("Data");
-                    dataLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
-                    DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
-                    DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
-
-                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
-                        String displayName = displayNameInput.getText();
-                        String pkgName = pkgNameInput.getText();
-                        String actionName = actionInput.getText();
-                        String className = classNameInput.getText();
-                        String extensionsRaw = extensionsInput.getText();
-                        String[] extras = !extrasInput.getText().isEmpty() ? Arrays.stream(extrasInput.getText().split(",")).map(String::trim).toArray(String[]::new) : new String[0];
-                        if (!displayName.isEmpty() && !pkgName.isEmpty() && !actionName.isEmpty() && !className.isEmpty() && !extensionsRaw.isEmpty() && (extras.length % 2 == 0)) {
-                            // TODO: show some kind of error when input is invalid
-                            // TODO: add ability to choose flags
-                            String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
-                            IntentLaunchData newAssoc = new IntentLaunchData(displayName, actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
-                            newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
-                            for (int i = 0; i < extras.length; i += 2)
-                                newAssoc.addExtra(IntentPutExtra.parseFrom(extras[i], extras[i + 1]));
-                            ShortcutsCache.addIntent(newAssoc);
-                            dynamicInput.setShown(false);
-                        }
-//                        String path = displayNameInput.getText();
-//                        if (path != null && AndroidHelpers.fileExists(path)) {
-//                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
-//                            dynamicInput.setShown(false);
-//                        }
-                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
-                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
-                        dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE);
-                    dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(okBtn, cancelBtn));
-
-                    dynamicInput.setShown(true);
+                    showAssocEditor("Create Association", null);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.setImageBg) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
@@ -528,15 +391,18 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(deleteBtn);
                 if (isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && homeItem.type != HomeItem.Type.explorer)
                     btns.add(uninstallBtn);
-                btns.add(createColumnBtn);
+                if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc))
+                    btns.add(editAssocBtn);
+                if (homeItem != null && homeItem.type == HomeItem.Type.addAssoc)
+                    btns.add(deleteAssocBtn);
+                if (!isInnerItem)
+                    btns.add(createColumnBtn);
                 if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(moveColumnBtn);
                 if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(editColumnBtn);
                 if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(deleteColumnBtn);
-                if (homeItem != null && homeItem.type == HomeItem.Type.addAssoc)
-                    btns.add(deleteAssocBtn);
                 btns.add(cancelBtn);
 
                 currentActivity.getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
@@ -786,6 +652,193 @@ public class HomeView extends XMBView implements Refreshable {
         return MathHelpers.max(ApplicationInfo.CATEGORY_GAME, ApplicationInfo.CATEGORY_AUDIO, ApplicationInfo.CATEGORY_IMAGE, ApplicationInfo.CATEGORY_SOCIAL, ApplicationInfo.CATEGORY_NEWS, ApplicationInfo.CATEGORY_MAPS, ApplicationInfo.CATEGORY_PRODUCTIVITY, ApplicationInfo.CATEGORY_ACCESSIBILITY) + 1;
     }
 
+//    private void editAssocBtn(IntentLaunchData toBeEdited) {
+//        showAssocEditor("Edit Association", toBeEdited);
+//    }
+//    private void createAssocBtn() {
+//        showAssocEditor("Create Association", null);
+//    }
+    private void showAssocEditor(String title, IntentLaunchData toBeEdited) {
+        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+        dynamicInput.setTitle(title);
+        DynamicInputRow.TextInput displayNameInput = new DynamicInputRow.TextInput("Display Name");
+        List<ResolveInfo> pkgs = PackagesCache.getLaunchableInstalledPackages();
+        pkgs.sort(Comparator.comparing(PackagesCache::getAppLabel));
+        List<String> pkgNames = pkgs.stream().map(PackagesCache::getAppLabel).collect(Collectors.toList());
+        pkgNames.add(0, "Unlisted");
+        DynamicInputRow.TextInput pkgNameInput = new DynamicInputRow.TextInput("Package Name");
+        DynamicInputRow.Dropdown pkgsDropdown = new DynamicInputRow.Dropdown(index -> {
+            //Log.d("HomeView", "Dropdown index changed to " + index);
+            if (index >= 1) {
+                String pkgName = pkgs.get(index - 1).activityInfo.packageName;
+                pkgNameInput.setText(pkgName);
+            }
+        });
+        final String[][] classNames = new String[1][];
+        DynamicInputRow.TextInput classNameInput = new DynamicInputRow.TextInput("Class Name");
+        DynamicInputRow.Dropdown classesDropdown = new DynamicInputRow.Dropdown(index -> {
+            if (index >= 1) {
+                String className = classNames[0][index];
+                classNameInput.setText(className);
+            }
+        });
+        classesDropdown.setVisibility(GONE);
+        classNameInput.addListener(new DynamicInputListener() {
+            @Override
+            public void onFocusChanged(View view, boolean hasFocus) {
+
+            }
+
+            @Override
+            public void onValuesChanged() {
+                //Log.d("HomeView", "Looking for package in list");
+                // populate next list with class names
+                String[] currentClassNames = classesDropdown.getOptions();
+                if (currentClassNames != null) {
+                    int index = 0;
+                    for (int i = 0; i < currentClassNames.length; i++)
+                        if (currentClassNames[i].equals(classNameInput.getText())) {
+                            index = i;
+                            break;
+                        }
+                    // if the user is typing and they type a valid class name, then select it in the drop down
+                    classesDropdown.setIndex(index);
+                }
+            }
+        });
+        pkgNameInput.addListener(new DynamicInputListener() {
+            @Override
+            public void onFocusChanged(View view, boolean hasFocus) {
+
+            }
+
+            @Override
+            public void onValuesChanged() {
+                //Log.d("HomeView", "Looking for package in list");
+                // populate next list with class names
+                int index = 0;
+                for (int i = 0; i < pkgs.size(); i++)
+                    if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
+                        index = i + 1;
+                        break;
+                    }
+                //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
+                // if the user is typing and they type a valid package name, then select it in the drop down
+                String[] classes = new String[0];
+                pkgsDropdown.setIndex(index);
+                if (index >= 1) { // 0 is unlisted, so skip
+                    //Log.d("HomeView", "Package exists");
+
+                    String[] tmp = PackagesCache.getClassesOfPkg(pkgNameInput.getText());
+                    if (tmp.length > 0) {
+                        classes = new String[tmp.length + 1];
+                        System.arraycopy(tmp, 0, classes, 1, tmp.length);
+                        classes[0] = "Unlisted";
+                    }
+                }
+                classNames[0] = classes;
+                classesDropdown.setOptions(classes);
+                classesDropdown.setVisibility(classes.length > 0 ? VISIBLE : GONE);
+                //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
+            }
+        });
+        pkgsDropdown.setOptions(pkgNames.toArray(new String[0]));
+        String[] intentActions = PackagesCache.getAllIntentActions();
+        String[] actionsTmp = PackagesCache.getAllIntentActionNames();
+        String[] intentActionNames = new String[actionsTmp.length + 1];
+        System.arraycopy(actionsTmp, 0, intentActionNames, 1, actionsTmp.length);
+        intentActionNames[0] = "Unlisted";
+        DynamicInputRow.TextInput actionInput = new DynamicInputRow.TextInput("Intent Action");
+        DynamicInputRow.Dropdown actionsDropdown = new DynamicInputRow.Dropdown(index -> {
+            if (index > 0) {
+                String actionName = intentActions[index - 1];
+                actionInput.setText(actionName);
+            }
+        }, intentActionNames);
+        actionInput.addListener(new DynamicInputListener() {
+            @Override
+            public void onFocusChanged(View view, boolean hasFocus) {
+
+            }
+
+            @Override
+            public void onValuesChanged() {
+                int index = 0;
+                for (int i = 0; i < intentActions.length; i++)
+                    if (actionInput.getText().equals(intentActions[i])) {
+                        index = i + 1;
+                        break;
+                    }
+                actionsDropdown.setIndex(index);
+            }
+        });
+        DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
+        String[] dataTypes = { IntentLaunchData.DataType.None.toString(), IntentLaunchData.DataType.AbsolutePath.toString(), IntentLaunchData.DataType.FileNameWithExt.toString(), IntentLaunchData.DataType.FileNameWithoutExt.toString() };
+        DynamicInputRow.Label dataLabel = new DynamicInputRow.Label("Data");
+        dataLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+        DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
+        DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
+
+        DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput(toBeEdited != null ? "Apply" : "Create", v -> {
+            String displayName = displayNameInput.getText();
+            String pkgName = pkgNameInput.getText();
+            String actionName = actionInput.getText();
+            String className = classNameInput.getText();
+            String extensionsRaw = extensionsInput.getText();
+            String[] extras = !extrasInput.getText().isEmpty() ? Arrays.stream(extrasInput.getText().split(",")).map(String::trim).toArray(String[]::new) : new String[0];
+            if (!displayName.isEmpty() && !pkgName.isEmpty() && !actionName.isEmpty() && !className.isEmpty() && !extensionsRaw.isEmpty() && (extras.length % 2 == 0)) {
+                // TODO: show some kind of error when input is invalid
+                // TODO: add ability to choose flags
+                String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
+                IntentLaunchData newAssoc = toBeEdited;
+                if (newAssoc != null) {
+                    newAssoc.setDisplayName(displayName);
+                    newAssoc.setAction(actionName);
+                    newAssoc.setPackageName(pkgName);
+                    newAssoc.setClassName(className);
+                    newAssoc.setExtensions(extensions);
+                    newAssoc.clearExtras();
+                } else
+                    newAssoc = new IntentLaunchData(displayName, actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
+                for (int i = 0; i < extras.length; i += 2)
+                    newAssoc.addExtra(IntentPutExtra.parseFrom(extras[i], extras[i + 1]));
+                ShortcutsCache.saveIntentAndReload(newAssoc);
+                dynamicInput.setShown(false);
+            }
+//                        String path = displayNameInput.getText();
+//                        if (path != null && AndroidHelpers.fileExists(path)) {
+//                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
+//                            dynamicInput.setShown(false);
+//                        }
+        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+            dynamicInput.setShown(false);
+        }, KeyEvent.KEYCODE_ESCAPE);
+
+        if (toBeEdited != null) {
+            // set values to assoc being edited
+            displayNameInput.setText(toBeEdited.getDisplayName());
+            pkgNameInput.setText(toBeEdited.getPackageName());
+            classNameInput.setText(toBeEdited.getClassName());
+            // running after 100 ms to allow for the classes dropdown to populate through package name setting
+            //new Handler().postDelayed(() -> { classNameInput.setText(toBeEdited.getClassName()); }, 100);
+            actionInput.setText(toBeEdited.getAction());
+            extensionsInput.setText(Arrays.toString(toBeEdited.getExtensions()).replace("[", "").replace("]", ""));
+            for (int i = 0; i < dataTypes.length; i++) {
+                if (dataTypes[i].equals(toBeEdited.getDataType().toString())) {
+                    dataDropdown.setIndex(i);
+                    break;
+                }
+            }
+            extrasInput.setText(Arrays.stream(toBeEdited.getExtras()).map(extra -> extra.getName() + ", " + (extra.getValue() != null ? extra.getValue() : extra.getExtraType())).collect(Collectors.joining(", ")));
+        }
+        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(okBtn, cancelBtn));
+        dynamicInput.setShown(true);
+    }
+
     SettingsDrawer.ContextBtn moveColumnBtn = new SettingsDrawer.ContextBtn("Move Column", () ->
     {
         toggleMoveMode(true, true);
@@ -815,6 +868,13 @@ public class HomeView extends XMBView implements Refreshable {
         HomeItem assocItem = (HomeItem)getSelectedItem();
         ShortcutsCache.deleteIntent((UUID)assocItem.obj);
         refresh();
+        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn editAssocBtn = new SettingsDrawer.ContextBtn("Edit Association", () ->
+    {
+        HomeItem assocItem = (HomeItem)getSelectedItem();
+        showAssocEditor("Edit Association", ShortcutsCache.getIntent((UUID)assocItem.obj));
+        //refresh();
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn editColumnBtn = new SettingsDrawer.ContextBtn("Edit Column", () -> {
