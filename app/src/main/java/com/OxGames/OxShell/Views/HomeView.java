@@ -779,16 +779,28 @@ public class HomeView extends XMBView implements Refreshable {
         dataLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
         DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
         DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
+        DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
+        //errorLabel.setVisibility(GONE);
 
         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput(toBeEdited != null ? "Apply" : "Create", v -> {
             String displayName = displayNameInput.getText();
+            displayName = displayName.isEmpty() ? "Unnamed" : displayName;
             String pkgName = pkgNameInput.getText();
             String actionName = actionInput.getText();
             String className = classNameInput.getText();
             String extensionsRaw = extensionsInput.getText();
             String[] extras = !extrasInput.getText().isEmpty() ? Arrays.stream(extrasInput.getText().split(",")).map(String::trim).toArray(String[]::new) : new String[0];
-            if (!displayName.isEmpty() && !pkgName.isEmpty() && !actionName.isEmpty() && !className.isEmpty() && !extensionsRaw.isEmpty() && (extras.length % 2 == 0)) {
-                // TODO: show some kind of error when input is invalid
+            if (pkgName.isEmpty())
+                errorLabel.setLabel("Must provide package name");
+            else if (className.isEmpty())
+                errorLabel.setLabel("Must provide class name");
+            else if (actionName.isEmpty())
+                errorLabel.setLabel("Must provide action");
+            else if (extensionsRaw.isEmpty())
+                errorLabel.setLabel("Must provide associated extensions");
+            else if (extras.length % 2 != 0)
+                errorLabel.setLabel("Extras must be a multiple of two");
+            else {
                 // TODO: add ability to choose flags
                 String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
                 IntentLaunchData newAssoc = toBeEdited;
@@ -823,8 +835,6 @@ public class HomeView extends XMBView implements Refreshable {
             displayNameInput.setText(toBeEdited.getDisplayName());
             pkgNameInput.setText(toBeEdited.getPackageName());
             classNameInput.setText(toBeEdited.getClassName());
-            // running after 100 ms to allow for the classes dropdown to populate through package name setting
-            //new Handler().postDelayed(() -> { classNameInput.setText(toBeEdited.getClassName()); }, 100);
             actionInput.setText(toBeEdited.getAction());
             extensionsInput.setText(Arrays.toString(toBeEdited.getExtensions()).replace("[", "").replace("]", ""));
             for (int i = 0; i < dataTypes.length; i++) {
@@ -835,7 +845,7 @@ public class HomeView extends XMBView implements Refreshable {
             }
             extrasInput.setText(Arrays.stream(toBeEdited.getExtras()).map(extra -> extra.getName() + ", " + (extra.getValue() != null ? extra.getValue() : extra.getExtraType())).collect(Collectors.joining(", ")));
         }
-        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(okBtn, cancelBtn));
+        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(errorLabel), new DynamicInputRow(okBtn, cancelBtn));
         dynamicInput.setShown(true);
     }
 
