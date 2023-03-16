@@ -397,7 +397,7 @@ public class HomeView extends XMBView implements Refreshable {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Set Shader as Background");
-                    String[] options = { "Blue Dune", "Planet", "Custom" };
+                    String[] options = { "Blue Dune", "The Other Dune", "Planet", "Custom" };
                     //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     AtomicReference<Uri> permittedUri = new AtomicReference<>();
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
@@ -437,10 +437,15 @@ public class HomeView extends XMBView implements Refreshable {
                         boolean readyForPreview = false;
                         if (dropdown.getIndex() == 0) {
                             backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/xmb.fsh"));
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/blue_dune.fsh"));
                             readyForPreview = true;
                         }
                         if (dropdown.getIndex() == 1) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/other_dune.fsh"));
+                            readyForPreview = true;
+                        }
+                        if (dropdown.getIndex() == 2) {
                             backupExistingShader.run();
                             AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
                             //Log.d("HomeView", "Saving channel0 to " + channel0Dest);
@@ -975,65 +980,6 @@ public class HomeView extends XMBView implements Refreshable {
         currentActivity.getSettingsDrawer().setShown(false);
         dynamicInput.setShown(true);
     });
-//    SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () -> {
-//        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-//        DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-//        dynamicInput.setTitle("Create Column");
-//        List<String> dropdownItems = Arrays.stream(resourceImages).map(img -> img.getName()).collect(Collectors.toList());
-//        dropdownItems.add("Custom");
-//        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(ImageRef.from(null, DataLocation.none));
-//        DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
-//        filePathInput.addListener(new DynamicInputListener() {
-//            @Override
-//            public void onFocusChanged(View view, boolean hasFocus) {
-//
-//            }
-//
-//            @Override
-//            public void onValuesChanged() {
-//                if (AndroidHelpers.uriExists(Uri.parse(filePathInput.getText())))
-//                    imageDisplay.setImage(ImageRef.from(filePathInput.getText(), DataLocation.resolverUri));
-//                else
-//                    imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
-//            }
-//        });
-//        DynamicInputRow.ButtonInput chooseFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-//            currentActivity.requestContent(uri -> {
-//                Log.d("HomeView", "Retrieved Uri: " + uri);
-//                if (uri != null)
-//                    filePathInput.setText(Uri.decode(uri.toString()));
-//            }, "image/*");
-//        });
-//        DynamicInputRow.Dropdown resourcesDropdown = new DynamicInputRow.Dropdown(index -> {
-//            Log.d("HomeView", "Resources dropdown index set to " + index);
-//            boolean isResource = index < resourceImages.length;
-//            filePathInput.setVisibility(isResource ? GONE : VISIBLE);
-//            chooseFileBtn.setVisibility(isResource ? GONE : VISIBLE);
-//            if (index >= 0 && isResource)
-//                imageDisplay.setImage(ImageRef.from(resourceImages[index].getId(), DataLocation.resource));
-//        }, dropdownItems.toArray(new String[0]));
-//        DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
-//        DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
-//            String title = titleInput.getText();
-//            ImageRef imgRef = imageDisplay.getImageRef();
-//            if (imgRef.getRefType() == DataLocation.resolverUri) {
-//                String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
-//                AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse((String)imgRef.getImageObj())), iconPath);
-//                imgRef = ImageRef.from(iconPath, DataLocation.file);
-//            }
-//            getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imgRef));
-//            save(getItems());
-//            dynamicInput.setShown(false);
-//        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
-//        DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
-//            dynamicInput.setShown(false);
-//        }, KeyEvent.KEYCODE_ESCAPE);
-//
-//        dynamicInput.setItems(new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(filePathInput, chooseFileBtn), new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
-//
-//        currentActivity.getSettingsDrawer().setShown(false);
-//        dynamicInput.setShown(true);
-//    });
     SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
     {
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
