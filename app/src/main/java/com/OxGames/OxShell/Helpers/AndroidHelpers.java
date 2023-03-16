@@ -3,7 +3,6 @@ package com.OxGames.OxShell.Helpers;
 import android.Manifest;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -19,7 +18,7 @@ import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.TypedValue;
@@ -29,7 +28,6 @@ import androidx.activity.result.ActivityResult;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.documentfile.provider.DocumentFile;
 
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
@@ -163,6 +161,20 @@ public class AndroidHelpers {
                 cursor.close();
         }
         return exists;
+    }
+    public static String queryUriDisplayName(Uri uri) {
+        String displayName = null;
+        Cursor cursor = OxShellApp.getContext().getContentResolver().query(uri, null, null, null, null);
+        if (cursor != null) {
+            try {
+                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                cursor.moveToFirst();
+                displayName = cursor.getString(nameIndex);
+            } finally {
+                cursor.close();
+            }
+        }
+        return displayName;
     }
 //    public static boolean queryUri(Uri uri) {
 //        boolean exists = false;

@@ -10,7 +10,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
@@ -277,7 +276,13 @@ public class HomeView extends XMBView implements Refreshable {
 
                     DynamicInputRow.ButtonInput selectFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
                         // TODO: add way to choose certain values within chosen shader
-                        currentActivity.requestContent(permittedUri::set, "*/*");
+                        currentActivity.requestContent(uri -> {
+                            String fileName = AndroidHelpers.queryUriDisplayName(uri);
+                            if (fileName != null && fileName.endsWith(".fsh"))
+                                permittedUri.set(uri);
+                            else
+                                Toast.makeText(currentActivity, "File must end with .fsh", Toast.LENGTH_LONG).show();
+                        }, "*/*");
                     });
                     DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
                         //titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
