@@ -20,6 +20,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 
@@ -162,11 +163,13 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.addApp) {
                     Adapter adapter = getAdapter();
                     adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle()));
+                    Toast.makeText(ActivityManager.getCurrentActivity(), selectedItem.getTitle() + " added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addExplorer) {
                     Adapter adapter = getAdapter();
                     adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer"));
+                    Toast.makeText(ActivityManager.getCurrentActivity(), "Explorer added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addAssocOuter) {
@@ -196,19 +199,6 @@ public class HomeView extends XMBView implements Refreshable {
                                 titleInput.setText(Uri.decode(result.getData().getData().toString()));
                             }
                         });
-                        //if (!AndroidHelpers.hasReadStoragePermission()) {
-//                            currentActivity.requestDirectoryAccess(null, uri -> {
-//                                if (uri != null) {
-//                                    //currentActivity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                                    //Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-//                                    //String path = getPath(this, docUri);
-//                                    //titleInput.setText(getPath(context, docUri));
-//                                    titleInput.setText(Uri.decode(uri.toString()));
-//                                }
-//                            });
-                        //} else {
-
-                        //}
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
                         // TODO: show some kind of error when input is invalid
