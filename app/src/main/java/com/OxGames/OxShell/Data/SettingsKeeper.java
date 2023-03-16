@@ -14,6 +14,7 @@ public class SettingsKeeper {
     public static final String HOME_NON_SELECTION_ALPHA = "home_non_selection_alpha";
     public static final String HOME_BEHIND_INNER_ALPHA = "home_behind_inner_alpha";
     public static final String FONT_REF = "font_ref";
+    public static final String VERSION_CODE = "version_code";
 
     private static boolean fileDidExist;
     private static HashMap<String, Object> settingsCache;

@@ -155,6 +155,8 @@ public class PagedActivity extends AppCompatActivity {
         ActivityManager.instanceCreated(this);
 
         SettingsKeeper.loadOrCreateSettings();
+        // in the future we would use this value to upgrade the serialization
+        SettingsKeeper.setValueAndSave(SettingsKeeper.VERSION_CODE, BuildConfig.VERSION_CODE);
         if (SettingsKeeper.fileDidNotExist()) {
             ShortcutsCache.createAndStoreDefaults();
             SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, FontRef.from("Fonts/exo.regular.otf", DataLocation.asset));

@@ -25,6 +25,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResult;
 
 import com.OxGames.OxShell.Adapters.XMBAdapter;
+import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.ImageRef;
@@ -175,7 +176,26 @@ public class HomeView extends XMBView implements Refreshable {
                     }
                     selectedItem.setInnerItems(intentItems);
                 } else if (selectedItem.type == HomeItem.Type.appInfo) {
-                    
+                    DynamicInputView dynamicInput = ActivityManager.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Ox Shell Info");
+                    DynamicInputRow.Label versionLabel = new DynamicInputRow.Label("Version: " + BuildConfig.VERSION_NAME);
+                    versionLabel.setGravity(Gravity.CENTER);
+                    DynamicInputRow.Label goldLabel = new DynamicInputRow.Label("Running in gold");
+                    goldLabel.setGravity(Gravity.CENTER);
+                    DynamicInputRow.Label byLabel = new DynamicInputRow.Label("Created by: Oxters Wyzgowski");
+                    byLabel.setGravity(Gravity.CENTER);
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Ok", v -> {
+                        dynamicInput.setShown(false);
+                    }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START);
+
+                    List<DynamicInputRow> rows = new ArrayList<>();
+                    rows.add(new DynamicInputRow(versionLabel));
+                    if (BuildConfig.GOLD)
+                        rows.add(new DynamicInputRow(goldLabel));
+                    rows.add(new DynamicInputRow(byLabel));
+                    rows.add(new DynamicInputRow(okBtn));
+                    dynamicInput.setItems(rows.toArray(new DynamicInputRow[0]));
+                    dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.saveLogs) {
                     PagedActivity currentActivity = ActivityManager.getCurrentActivity();
                     String[] logs = Arrays.stream(AndroidHelpers.listContents(Paths.LOGCAT_DIR_INTERNAL)).map(file -> file.getName().endsWith(".log") ? file.getAbsolutePath() : null).toArray(String[]::new);
