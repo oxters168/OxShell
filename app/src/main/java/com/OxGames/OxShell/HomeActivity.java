@@ -81,7 +81,7 @@ public class HomeActivity extends PagedActivity {
         if (!BuildConfig.GOLD) {
             Log.i("HomeActivity", "Not running in gold");
             PromptView prompt = getPrompt();
-            prompt.setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
+            prompt.setCenterOfScreen();
             prompt.setMessage("Thank you for using Ox Shell, please consider supporting us by purchasing the app from the store");
             prompt.setMiddleBtn("Got it", () -> { prompt.setShown(false); }, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START);
             prompt.setShown(true);

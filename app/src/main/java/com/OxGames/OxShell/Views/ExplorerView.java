@@ -234,9 +234,28 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                         fileLaunchIntent.launch(absPath);
                     else
                         Log.e("Explorer", "Failed to launch, " + fileLaunchIntent.getPackageName() + " is not installed on the device");
-                } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk"))
-                    AndroidHelpers.install(absPath);
-                else
+                } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
+                    String pkgName = AndroidHelpers.getPkgNameFromApk(absPath);
+                    if (pkgName != null) {
+                        PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+                        prompt.setMessage("Attempting to install " + pkgName);
+                        prompt.setStartBtn("Continue", () -> {
+                            prompt.setShown(false);
+                            if (!AndroidHelpers.hasInstallPermission()) {
+                                AndroidHelpers.requestInstallPermission(granted -> {
+                                    if (granted)
+                                        AndroidHelpers.install(absPath);
+                                });
+                            } else
+                                AndroidHelpers.install(absPath);
+                        });
+                        prompt.setEndBtn("Cancel", () -> {
+                            prompt.setShown(false);
+                        });
+                        prompt.setCenterOfScreen();
+                        prompt.setShown(true);
+                    }
+                } else
                     Log.e("Explorer", "No launch intent associated with extension " + extension);
             } else
                 Log.e("Explorer", "Missing extension, could not identify file");

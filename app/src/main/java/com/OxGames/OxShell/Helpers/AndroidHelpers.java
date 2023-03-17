@@ -1,10 +1,14 @@
 package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -29,7 +33,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
-import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
@@ -46,6 +49,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -456,10 +461,26 @@ public class AndroidHelpers {
             ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
         }
     }
+    public static boolean hasInstallPermission() {
+        //Log.d("FileHelpers", "Checking has write permission");
+        return OxShellApp.getContext().getPackageManager().canRequestPackageInstalls();
+        //return hasPermission(Manifest.permission.INSTALL_PACKAGES);
+    }
+    public static void requestInstallPermission(Consumer<Boolean> onResult) {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+        ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
+            if (onResult != null)
+                onResult.accept(hasInstallPermission());
+        });
+//        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+//        currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);
+//        ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.INSTALL_PACKAGES }, WRITE_EXTERNAL_STORAGE);
+    }
 
     public static Uri uriFromFile(File file) {
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //Unnecessary since version code is always over 24
-            return Uri.parse(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.DOCUMENTS_AUTHORITY, file).toString().replace("%2F", "/").replace("%20", " "));
+        return Uri.parse(Uri.decode(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.DOCUMENTS_AUTHORITY, file).toString()));
         //} else {
         //    return Uri.fromFile(file);
         //}
@@ -470,12 +491,124 @@ public class AndroidHelpers {
 
     public static void install(String path) {
         Context context = OxShellApp.getContext();
-        final Uri contentUri = uriFromPath(path);
+        //final Uri contentUri = Uri.parse(path);
+        final Uri contentUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID, new File(path));
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(intent);
+    }
+//    public static void install(String apkPath) {
+//        PackageInstaller.Session session = null;
+//        String pkgName = getPkgNameFromApk(apkPath);
+//        if (pkgName == null) {
+//            Log.e("AndroidHelpers", "Failed to install apk, bad file");
+//            return;
+//        }
+//
+//        try {
+//            InputStream in = Files.newInputStream(Paths.get(apkPath));
+//
+//            PackageInstaller packageInstaller = OxShellApp.getContext().getPackageManager().getPackageInstaller();
+//            PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+//            params.setAppPackageName(pkgName);
+//
+//            int sessionId = packageInstaller.createSession(params);
+//            session = packageInstaller.openSession(sessionId);
+//            OutputStream out = session.openWrite(new File(apkPath).getName(), 0, -1);
+//            final byte[] buffer = new byte[65536];
+//            int bytes_read;
+//            while((bytes_read = in.read(buffer)) != -1)
+//                out.write(buffer, 0, bytes_read);
+//
+//            session.fsync(out);
+//            in.close();
+//            out.close();
+//
+//            session.commit(createIntentSender(OxShellApp.getContext(), sessionId));
+//        } catch (IOException e) {
+//            Log.e("AndroidHelpers", "Failed to install package " + pkgName + ": " + e.getMessage());
+//        } finally {
+//            //if (session != null)
+//            //    session.close();
+//        }
+//    }
+//
+//
+//    private static IntentSender createIntentSender(Context context, int sessionId) {
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, sessionId, new Intent(Intent.ACTION_INSTALL_PACKAGE), PendingIntent.FLAG_IMMUTABLE);
+//        return pendingIntent.getIntentSender();
+//    }
+//    public static void install(String apkPath) {
+//        PackageInstaller.Session session = null;
+//        String pkgName = getPkgNameFromApk(apkPath);
+//
+//        if (pkgName == null) {
+//            Log.e("AndroidHelpers", "Failed to install " + apkPath + ", returned package name was null");
+//            return;
+//        }
+//        Log.d("AndroidHelpers", "Beginning install of " + pkgName);
+//        try {
+//            PackageInstaller packageInstaller = OxShellApp.getContext().getPackageManager().getPackageInstaller();
+//            PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+//
+//            int sessionId = packageInstaller.createSession(params);
+//            Intent intent = new Intent(Intent.ACTION_VIEW);
+//            intent.setDataAndType(Uri.parse(apkPath), "application/vnd.android.package-archive");
+//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+//
+//            PendingIntent pendingIntent = PendingIntent.getActivity(OxShellApp.getContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
+//            session = packageInstaller.openSession(sessionId);
+//
+//            OutputStream out = session.openWrite(pkgName, 0, -1);
+//
+//            InputStream in = Files.newInputStream(Paths.get(apkPath));
+//            byte[] buffer = new byte[65536];
+//            int c;
+//
+//            while ((c = in.read(buffer)) != -1) {
+//                out.write(buffer, 0, c);
+//            }
+//
+//            session.fsync(out);
+//            in.close();
+//            out.close();
+//
+//            Intent installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+//            installIntent.setData(Uri.parse(apkPath));
+//            installIntent.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+//            installIntent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true);
+//            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+////            PackageInstaller.SessionInfo sessionInfo = packageInstaller.getSessionInfo(sessionId);
+////            Intent installIntent = packageInstaller.createInstallIntent();
+////            installIntent.putExtra(PackageInstaller.EXTRA_SESSION_ID, sessionId);
+////            installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//
+//            pendingIntent.send(OxShellApp.getContext(), 0, installIntent, null, null, null, null);
+////            PackageInstaller.SessionInfo sessionInfo = packageInstaller.getSessionInfo(sessionId);
+////            IntentSender intentSender = pendingIntent.getIntentSender();
+////            pendingIntent.send(OxShellApp.getContext(), 0, intentSender, null, new Handler(Looper.getMainLooper()), null, null);
+////            PackageInstaller.SessionInfo sessionInfo = session.getSessionInfo();
+////            IntentSender intentSender = pendingIntent.getIntentSender().getIntentSenderForUpdate();
+////
+////            session.commit(intentSender);
+////            IntentSender intentSender = session.createIntentSender();
+////            startIntentSenderForResult(intentSender, 0, null, 0, 0, 0);
+//
+//            Log.d("AndroidHelpers", "Finished install of " + pkgName);
+//            //session.commit(createIntentSender(OxShellApp.getContext(), sessionId));
+//        } catch (Exception e) {
+//            Log.e("AndroidHelpers", "Failed to install " + pkgName + ": " + e);
+//        } finally {
+//            if (session != null) {
+//                session.close();
+//            }
+//        }
+//    }
+    public static String getPkgNameFromApk(String apkPath) {
+        PackageInfo info = OxShellApp.getContext().getPackageManager().getPackageArchiveInfo(apkPath, 0);
+        return info != null ? info.packageName : null;
     }
 
     public static File[] listContents(String dirName) {

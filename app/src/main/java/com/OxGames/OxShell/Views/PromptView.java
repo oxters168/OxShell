@@ -260,6 +260,9 @@ public class PromptView extends FrameLayout implements InputReceiver {
         setLayoutParams(layoutParams);
     }
 
+    public void setCenterOfScreen() {
+        setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
+    }
     public void setShown(boolean onOff) {
         isShown = onOff;
         if (isShown) {

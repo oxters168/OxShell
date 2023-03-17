@@ -76,7 +76,7 @@ public class AccessService extends AccessibilityService {
     public static void showRecentApps() {
         if (!isEnabled()) {
             PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
-            prompt.setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
+            prompt.setCenterOfScreen();
             prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
             prompt.setStartBtn("Continue", () -> {
                 prompt.setShown(false);
