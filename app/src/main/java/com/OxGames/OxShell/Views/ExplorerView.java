@@ -340,6 +340,8 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                             String packageName = ShortcutsCache.getPackageNameForExtension(extension);
                             if (packageName != null)
                                 icon = PackagesCache.getPackageIcon(packageName);
+                            else if (extension.contains("apk"))
+                                icon = AndroidHelpers.getApkIcon(absolutePath);
                         }
                     }
                     else

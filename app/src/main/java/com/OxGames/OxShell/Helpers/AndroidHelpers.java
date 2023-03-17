@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
@@ -498,6 +499,18 @@ public class AndroidHelpers {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(intent);
+    }
+    public static Drawable getApkIcon(String path) {
+        PackageManager pm = OxShellApp.getContext().getPackageManager();
+        PackageInfo info = pm.getPackageArchiveInfo(path, PackageManager.GET_ACTIVITIES);
+        if (info != null) {
+            ApplicationInfo appInfo = info.applicationInfo;
+            appInfo.sourceDir = path;
+            appInfo.publicSourceDir = path;
+
+            return pm.getApplicationIcon(appInfo);
+        }
+        return null;
     }
 //    public static void install(String apkPath) {
 //        PackageInstaller.Session session = null;
