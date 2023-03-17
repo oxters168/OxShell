@@ -5,9 +5,12 @@ import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Views.PromptView;
 
 public class AccessService extends AccessibilityService {
     private static AccessService instance;
@@ -61,17 +64,24 @@ public class AccessService extends AccessibilityService {
     public void onInterrupt() {
 
     }
+    public static boolean hasPermission() {
+        return instance != null;
+    }
 
     public static void showRecentApps() {
-        if (instance != null)
+        if (!hasPermission()) {
+            PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+            prompt.setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
+            prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
+            prompt.setStartBtn("Continue", () -> {
+                prompt.setShown(false);
+                IntentLaunchData.createFromAction(Settings.ACTION_ACCESSIBILITY_SETTINGS, Intent.FLAG_ACTIVITY_NEW_TASK).launch();
+            }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
+            prompt.setEndBtn("Cancel", () -> {
+                prompt.setShown(false);
+            }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK);
+            prompt.setShown(true);
+        } else
             instance.performGlobalAction(GLOBAL_ACTION_RECENTS);
-        else {
-            //TODO: show popup telling user why they're about to go to the accessibility settings and option to cancel
-            Log.e("AccessService", "Service not turned on");
-            IntentLaunchData.createFromAction(Settings.ACTION_ACCESSIBILITY_SETTINGS, Intent.FLAG_ACTIVITY_NEW_TASK).launch();
-            //context.startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-            //IntentLaunchData recents = new IntentLaunchData("com.android.settings.accessibility.AccessibilitySettings");
-            //recents.launch();
-        }
     }
 }

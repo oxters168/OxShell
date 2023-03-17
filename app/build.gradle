@@ -38,7 +38,7 @@ android {
 
         buildConfigField "boolean", "GOLD", "false"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         if (keystoreProperties != null)
             signingConfig signingConfigs.release

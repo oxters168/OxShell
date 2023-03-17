@@ -29,6 +29,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
@@ -455,6 +456,15 @@ public class AndroidHelpers {
             ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.WRITE_EXTERNAL_STORAGE }, WRITE_EXTERNAL_STORAGE);
         }
     }
+//    public static void requestAccessibilityPermissions(Consumer<Boolean> onResult) {
+//        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+//        intent.addCategory("android.intent.category.DEFAULT");
+//        ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
+//            // result code is always cancelled, so instead just pass if the permission is granted
+//            if (onResult != null)
+//                onResult.accept(AccessService.hasPermission());
+//        });
+//    }
 
     public static Uri uriFromFile(File file) {
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //Unnecessary since version code is always over 24
