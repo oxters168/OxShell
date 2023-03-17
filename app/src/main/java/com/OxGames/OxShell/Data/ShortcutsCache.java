@@ -67,7 +67,8 @@ public class ShortcutsCache {
         String ppssppPkg = "org.ppsspp.ppsspp";
         if (PackagesCache.isPackageInstalled(ppssppPkg)) {
             IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, ppssppPkg, "org.ppsspp.ppsspp.PpssppActivity", new String[]{"iso", "cso"}, Intent.FLAG_ACTIVITY_NEW_TASK);
-            pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
+            pspLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
+            //pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
             defaults.add(pspLaunchIntent);
         }
 
