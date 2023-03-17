@@ -235,26 +235,23 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                     else
                         Log.e("Explorer", "Failed to launch, " + fileLaunchIntent.getPackageName() + " is not installed on the device");
                 } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
-                    String pkgName = AndroidHelpers.getPkgNameFromApk(absPath);
-                    if (pkgName != null) {
+                    if (!AndroidHelpers.hasInstallPermission()) {
                         PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
-                        prompt.setMessage("Attempting to install " + pkgName);
+                        prompt.setMessage("Ox Shell requires permission to install unknown packages in order to continue");
                         prompt.setStartBtn("Continue", () -> {
                             prompt.setShown(false);
-                            if (!AndroidHelpers.hasInstallPermission()) {
-                                AndroidHelpers.requestInstallPermission(granted -> {
-                                    if (granted)
-                                        AndroidHelpers.install(absPath);
-                                });
-                            } else
-                                AndroidHelpers.install(absPath);
-                        });
+                            AndroidHelpers.requestInstallPermission(granted -> {
+                                if (granted)
+                                    AndroidHelpers.install(absPath);
+                            });
+                        }, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_BUTTON_START);
                         prompt.setEndBtn("Cancel", () -> {
                             prompt.setShown(false);
-                        });
+                        }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
                         prompt.setCenterOfScreen();
                         prompt.setShown(true);
-                    }
+                    } else
+                        AndroidHelpers.install(absPath);
                 } else
                     Log.e("Explorer", "No launch intent associated with extension " + extension);
             } else
