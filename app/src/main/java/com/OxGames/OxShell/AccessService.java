@@ -2,6 +2,7 @@ package com.OxGames.OxShell;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Context;
 import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.view.accessibility.AccessibilityEvent;
 
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.ActivityManager;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Views.PromptView;
 
 public class AccessService extends AccessibilityService {
@@ -64,12 +66,15 @@ public class AccessService extends AccessibilityService {
     public void onInterrupt() {
 
     }
-    public static boolean hasPermission() {
-        return instance != null;
+    public static boolean isEnabled()
+    {
+        Context context = OxShellApp.getContext();
+        String prefString = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        return prefString!= null && prefString.contains(context.getPackageName() + "/" + AccessService.class.getName());
     }
 
     public static void showRecentApps() {
-        if (!hasPermission()) {
+        if (!isEnabled()) {
             PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
             prompt.setCenteredPosition(Math.round(OxShellApp.getDisplayWidth() / 2f), Math.round(OxShellApp.getDisplayHeight() / 2f));
             prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
