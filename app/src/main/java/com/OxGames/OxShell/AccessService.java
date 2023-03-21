@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.accessibilityservice.AccessibilityGestureEvent;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
@@ -8,6 +9,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
+
+import androidx.annotation.NonNull;
 
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -66,6 +69,25 @@ public class AccessService extends AccessibilityService {
     public void onInterrupt() {
 
     }
+
+    @Override
+    protected boolean onKeyEvent(KeyEvent event) {
+        //Log.d("AccessService", event.toString());
+        if (event.getAction() == KeyEvent.ACTION_UP) {
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
+                //Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
+                showRecentApps();
+                return true;
+            }
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_C) {
+                //Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
+                goHome();
+                return true;
+            }
+        }
+        return super.onKeyEvent(event);
+    }
+
     public static boolean isEnabled()
     {
         Context context = OxShellApp.getContext();
@@ -74,19 +96,9 @@ public class AccessService extends AccessibilityService {
     }
 
     public static void showRecentApps() {
-        if (!isEnabled()) {
-            PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
-            prompt.setCenterOfScreen();
-            prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
-            prompt.setStartBtn("Continue", () -> {
-                prompt.setShown(false);
-                IntentLaunchData.createFromAction(Settings.ACTION_ACCESSIBILITY_SETTINGS, Intent.FLAG_ACTIVITY_NEW_TASK).launch();
-            }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
-            prompt.setEndBtn("Cancel", () -> {
-                prompt.setShown(false);
-            }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK);
-            prompt.setShown(true);
-        } else
-            instance.performGlobalAction(GLOBAL_ACTION_RECENTS);
+        instance.performGlobalAction(GLOBAL_ACTION_RECENTS);
+    }
+    public static void goHome() {
+        instance.performGlobalAction(GLOBAL_ACTION_HOME);
     }
 }

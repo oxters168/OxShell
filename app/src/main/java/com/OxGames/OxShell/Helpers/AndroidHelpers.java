@@ -34,6 +34,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
@@ -473,6 +474,17 @@ public class AndroidHelpers {
         ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
             if (onResult != null)
                 onResult.accept(hasInstallPermission());
+        });
+//        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+//        currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);
+//        ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.INSTALL_PACKAGES }, WRITE_EXTERNAL_STORAGE);
+    }
+    public static void requestAccessibilityService(Consumer<Boolean> onResult) {
+        Intent intent = new Intent();
+        intent.setAction(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
+            if (onResult != null)
+                onResult.accept(AccessService.isEnabled());
         });
 //        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
 //        currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);

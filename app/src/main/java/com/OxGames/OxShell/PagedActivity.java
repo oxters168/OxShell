@@ -5,8 +5,10 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
@@ -21,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -274,6 +277,12 @@ public class PagedActivity extends AppCompatActivity {
 //        Log.d("PagedActivity", "x: " + ev.getAxisValue(MotionEvent.AXIS_X) + " y: " + ev.getAxisValue(MotionEvent.AXIS_Y) + " z: " + ev.getAxisValue(MotionEvent.AXIS_Z) + " rz: " + ev.getAxisValue(MotionEvent.AXIS_RZ));
 //        return super.dispatchGenericMotionEvent(ev);
 //    }
+
+//    @Override
+//    public boolean dispatchGenericMotionEvent(MotionEvent ev) {
+//        Log.d("PagedActivity", ev.toString());
+//        return super.dispatchGenericMotionEvent(ev);
+//    }
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
@@ -281,7 +290,22 @@ public class PagedActivity extends AppCompatActivity {
         if (key_event.getAction() == KeyEvent.ACTION_UP) {
             if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
                 //Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
-                AccessService.showRecentApps();
+                if (!AccessService.isEnabled()) {
+                    PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+                    prompt.setCenterOfScreen();
+                    prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
+                    prompt.setStartBtn("Continue", () -> {
+                        prompt.setShown(false);
+                        AndroidHelpers.requestAccessibilityService(granted -> {
+                            Log.d("PagedActivity", "Accessibility permission granted: " + granted);
+                        });
+                    }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
+                    prompt.setEndBtn("Cancel", () -> {
+                        prompt.setShown(false);
+                    }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK);
+                    prompt.setShown(true);
+                }
+                //AccessService.showRecentApps();
                 return true;
             }
         }
