@@ -22,18 +22,22 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DataLocation;
-import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.KeyCombo;
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class PromptView extends FrameLayout implements InputReceiver {
+    private InputHandler inputHandler;
     private Context context;
     private ImageView img;
     private BetterTextView msg;
@@ -48,15 +52,15 @@ public class PromptView extends FrameLayout implements InputReceiver {
     private boolean isStartBtnSet = false;
     private String startBtnTxt;
     private Runnable startBtnAction;
-    private final List<Integer> startBtnKeys = new ArrayList<>();
+    //private final List<KeyCombo> startBtnKeys = new ArrayList<>();
     private boolean isMiddleBtnSet = false;
     private String middleBtnTxt;
     private Runnable middleBtnAction;
-    private final List<Integer> middleBtnKeys = new ArrayList<>();
+    //private final List<KeyCombo> middleBtnKeys = new ArrayList<>();
     private boolean isEndBtnSet = false;
     private String endBtnTxt;
     private Runnable endBtnAction;
-    private final List<Integer> endBtnKeys = new ArrayList<>();
+    //private final List<KeyCombo> endBtnKeys = new ArrayList<>();
 
     private boolean isShown = false;
     private float percentX = 0;
@@ -98,6 +102,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
 
     private void init() {
         isShown = false;
+        inputHandler = new InputHandler();
         setVisibility(GONE);
 
 
@@ -269,6 +274,8 @@ public class PromptView extends FrameLayout implements InputReceiver {
             refreshSize();
             updatePosition();
             rearrangeViews();
+            if (!isAnyBtnSet())
+                inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getCancelInput()).map(keycode -> new KeyComboAction(keycode, () -> setShown(false))).toArray(KeyComboAction[]::new));
         } else
             resetValues();
         setVisibility(onOff ? VISIBLE : GONE);
@@ -278,26 +285,29 @@ public class PromptView extends FrameLayout implements InputReceiver {
         imageLoc = DataLocation.resource;
         imgData = resourceId;
     }
-    public void setStartBtn(String text, Runnable onClick, Integer... keycodes) {
+    public void setStartBtn(String text, Runnable onClick, KeyCombo... keycodes) {
         isStartBtnSet = true;
         startBtnTxt = text;
         startBtnAction = onClick;
-        if (keycodes != null)
-            Collections.addAll(startBtnKeys, keycodes);
+        inputHandler.addKeyComboActions(Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, startBtnAction)).toArray(KeyComboAction[]::new));
+//        if (keycodes != null)
+//            Collections.addAll(startBtnKeys, keycodes);
     }
-    public void setMiddleBtn(String text, Runnable onClick, Integer... keycodes) {
+    public void setMiddleBtn(String text, Runnable onClick, KeyCombo... keycodes) {
         isMiddleBtnSet = true;
         middleBtnTxt = text;
         middleBtnAction = onClick;
-        if (keycodes != null)
-            Collections.addAll(middleBtnKeys, keycodes);
+        inputHandler.addKeyComboActions(Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, middleBtnAction)).toArray(KeyComboAction[]::new));
+//        if (keycodes != null)
+//            Collections.addAll(middleBtnKeys, keycodes);
     }
-    public void setEndBtn(String text, Runnable onClick, Integer... keycodes) {
+    public void setEndBtn(String text, Runnable onClick, KeyCombo... keycodes) {
         isEndBtnSet = true;
         endBtnTxt = text;
         endBtnAction = onClick;
-        if (keycodes != null)
-            Collections.addAll(endBtnKeys, keycodes);
+        inputHandler.addKeyComboActions(Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, endBtnAction)).toArray(KeyComboAction[]::new));
+        //if (keycodes != null)
+        //    Collections.addAll(endBtnKeys, keycodes);
     }
     public void setMessage(String text) {
         isMsgSet = true;
@@ -321,15 +331,16 @@ public class PromptView extends FrameLayout implements InputReceiver {
         isStartBtnSet = false;
         startBtnTxt = null;
         startBtnAction = null;
-        startBtnKeys.clear();
+        //startBtnKeys.clear();
         isMiddleBtnSet = false;
         middleBtnTxt = null;
         middleBtnAction = null;
-        middleBtnKeys.clear();
+        //middleBtnKeys.clear();
         isEndBtnSet = false;
         endBtnTxt = null;
         endBtnAction = null;
-        endBtnKeys.clear();
+        //endBtnKeys.clear();
+        inputHandler.clearKeyComboActions();
     }
     public boolean isPromptShown() {
         return isShown;
@@ -360,26 +371,27 @@ public class PromptView extends FrameLayout implements InputReceiver {
 
     @Override
     public boolean receiveKeyEvent(KeyEvent keyEvent) {
-        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
-            if (isStartBtnSet && startBtnAction != null && startBtnKeys.contains(keyEvent.getKeyCode())) {
-                startBtnAction.run();
-                return true;
-            }
-            if (isMiddleBtnSet && middleBtnAction != null && middleBtnKeys.contains(keyEvent.getKeyCode())) {
-                middleBtnAction.run();
-                return true;
-            }
-            if (isEndBtnSet && endBtnAction != null && endBtnKeys.contains(keyEvent.getKeyCode())) {
-                endBtnAction.run();
-                return true;
-            }
-            if (!isAnyBtnSet() && (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_START)) {
-                setShown(false);
-                return true;
-            }
-        }
-        if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK)
-            return true; // in case its not mapped to anything, then don't quit OxShell
-        return false;
+        return inputHandler.onInputEvent(keyEvent);
+//        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
+//            if (isStartBtnSet && startBtnAction != null && startBtnKeys.contains(keyEvent.getKeyCode())) {
+//                startBtnAction.run();
+//                return true;
+//            }
+//            if (isMiddleBtnSet && middleBtnAction != null && middleBtnKeys.contains(keyEvent.getKeyCode())) {
+//                middleBtnAction.run();
+//                return true;
+//            }
+//            if (isEndBtnSet && endBtnAction != null && endBtnKeys.contains(keyEvent.getKeyCode())) {
+//                endBtnAction.run();
+//                return true;
+//            }
+//            if (!isAnyBtnSet() && (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_START)) {
+//                setShown(false);
+//                return true;
+//            }
+//        }
+//        if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK)
+//            return true; // in case its not mapped to anything, then don't quit OxShell
+//        return false;
     }
 }

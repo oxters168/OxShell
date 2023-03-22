@@ -9,6 +9,7 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Views.PromptView;
@@ -83,7 +84,7 @@ public class HomeActivity extends PagedActivity {
             PromptView prompt = getPrompt();
             prompt.setCenterOfScreen();
             prompt.setMessage("Thank you for using Ox Shell, please consider supporting us by purchasing the app from the store");
-            prompt.setMiddleBtn("Got it", () -> { prompt.setShown(false); }, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START);
+            prompt.setMiddleBtn("Got it", () -> { prompt.setShown(false); }, SettingsKeeper.getPrimaryInput());
             prompt.setShown(true);
         } else {
             Log.i("HomeActivity", "Running in gold");

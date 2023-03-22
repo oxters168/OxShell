@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.ExplorerActivity;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
@@ -103,9 +104,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     public boolean receiveKeyEvent(KeyEvent key_event) {
         PagedActivity currentActivity = ActivityManager.getCurrentActivity();
         //Log.d("ExplorerView", key_event.toString());
-        // TODO: add option for creating launch intent for file type
-        // TODO: add option for select all
-        // TODO: add launch with option that lets you pick from a list of assocs that have the proper extension
         if (!currentActivity.isInAContextMenu()) {
             if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
                 // within action down since we want the repeat when held
@@ -184,6 +182,9 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     }
 
     private void setupBtns() {
+        // TODO: add option for creating launch intent for file type
+        // TODO: add launch with option that lets you pick from a list of assocs that have the proper extension
+
         DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
         boolean isCurrentValid = currentItem.obj != null && !currentItem.leftAlignedText.equals("..");
         List<DetailItem> selection = getSelectedItems();
@@ -244,10 +245,10 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                                 if (granted)
                                     AndroidHelpers.install(absPath);
                             });
-                        }, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_BUTTON_START);
+                        }, SettingsKeeper.getPrimaryInput());
                         prompt.setEndBtn("Cancel", () -> {
                             prompt.setShown(false);
-                        }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+                        }, SettingsKeeper.getCancelInput());
                         prompt.setCenterOfScreen();
                         prompt.setShown(true);
                     } else

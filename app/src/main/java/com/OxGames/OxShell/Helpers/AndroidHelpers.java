@@ -471,6 +471,7 @@ public class AndroidHelpers {
     public static void requestInstallPermission(Consumer<Boolean> onResult) {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
             if (onResult != null)
                 onResult.accept(hasInstallPermission());
@@ -482,6 +483,7 @@ public class AndroidHelpers {
     public static void requestAccessibilityService(Consumer<Boolean> onResult) {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
             if (onResult != null)
                 onResult.accept(AccessService.isEnabled());

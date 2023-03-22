@@ -3,13 +3,13 @@ package com.OxGames.OxShell;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -23,11 +23,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.FontRef;
-import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Data.KeyCombo;
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
@@ -39,6 +41,7 @@ import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -104,7 +107,7 @@ public class PagedActivity extends AppCompatActivity {
         mCreateRequest.launch(type);
     }
 
-    private HashMap<Integer, List<Consumer<Boolean>>> permissionListeners = new HashMap<>();
+    private final HashMap<Integer, List<Consumer<Boolean>>> permissionListeners = new HashMap<>();
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         Log.i("PagedActivity", "Received result for " + requestCode + " permissions: " + Arrays.toString(permissions) + " grantResults: " + Arrays.toString(grantResults));
@@ -148,8 +151,31 @@ public class PagedActivity extends AppCompatActivity {
 
     private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
+    private InputHandler inputHandler;
+    private boolean isKeyboardShown;
+    private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
+    private final Runnable accessibilityPopup = () -> {
+        if (!AccessService.isEnabled()) {
+            PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+            prompt.setCenterOfScreen();
+            prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
+            prompt.setStartBtn("Continue", () -> {
+                prompt.setShown(false);
+                AndroidHelpers.requestAccessibilityService(granted -> {
+                    Log.d("PagedActivity", "Accessibility permission granted: " + granted);
+                });
+            }, SettingsKeeper.getPrimaryInput());
+            prompt.setEndBtn("Cancel", () -> {
+                prompt.setShown(false);
+            }, SettingsKeeper.getCancelInput());
+            prompt.setShown(true);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        inputHandler = new InputHandler();
+
         trySetStartTime();
         super.onCreate(savedInstanceState);
 //        instance = this;
@@ -228,6 +254,35 @@ public class PagedActivity extends AppCompatActivity {
         // use outState.putFloat, putInt, putString...
         super.onSaveInstanceState(outState);
     }
+
+    @Override
+    protected void onStart() {
+        Log.i("PagedActivity", "OnStart " + this);
+        startCheckIfKeyboardOpen();
+        List<KeyCombo> accessPopupCombos = new ArrayList<>();
+        Collections.addAll(accessPopupCombos, SettingsKeeper.getRecentsCombos());
+        Collections.addAll(accessPopupCombos, SettingsKeeper.getHomeCombos());
+        inputHandler.addKeyComboActions(accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, accessibilityPopup)).toArray(KeyComboAction[]::new));
+
+        super.onStart();
+    }
+    private void startCheckIfKeyboardOpen() {
+        View rootView = getWindow().getDecorView();
+        if (keyboardListener != null)
+            rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
+        keyboardListener = () -> {
+            Rect r = new Rect();
+            rootView.getWindowVisibleDisplayFrame(r);
+
+            int heightDiff = rootView.getHeight() - (r.bottom - r.top);
+            isKeyboardShown = heightDiff > 100;
+        };
+        rootView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
+    }
+    public boolean isKeyboardShown() {
+        return isKeyboardShown;
+    }
+
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
@@ -237,6 +292,7 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         Log.i("PagedActivity", "OnStop " + this);
+        inputHandler.clearKeyComboActions();
         super.onStop();
     }
     @Override
@@ -251,12 +307,13 @@ public class PagedActivity extends AppCompatActivity {
         Log.d("PagedActivity", "onConfigurationChanged");
         super.onConfigurationChanged(newConfig);
         //fixDrawerLayout();
-        initPromptView();
-        prompt.setShown(prompt.isPromptShown());
-        initSettingsDrawer();
-        settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
-        initDynamicInputView();
-        dynamicInput.setShown(dynamicInput.isOverlayShown());
+        prepareOtherViews();
+//        initSettingsDrawer();
+//        settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
+//        initDynamicInputView();
+//        dynamicInput.setShown(dynamicInput.isOverlayShown());
+//        initPromptView();
+//        prompt.setShown(prompt.isPromptShown());
         //getStatusBarHeight();
         //settingsDrawer.setShown(isContextDrawerOpen());
     }
@@ -286,38 +343,10 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
-
-        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
-                //Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
-                if (!AccessService.isEnabled()) {
-                    PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
-                    prompt.setCenterOfScreen();
-                    prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
-                    prompt.setStartBtn("Continue", () -> {
-                        prompt.setShown(false);
-                        AndroidHelpers.requestAccessibilityService(granted -> {
-                            Log.d("PagedActivity", "Accessibility permission granted: " + granted);
-                        });
-                    }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
-                    prompt.setEndBtn("Cancel", () -> {
-                        prompt.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK);
-                    prompt.setShown(true);
-                }
-                //AccessService.showRecentApps();
-                return true;
-            }
-        }
-//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
-//                Log.d("PagedActivity", "Attempting to bring up app switcher");
-//                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP, 0);
-//                sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
-//                return true;
-//            }
-//        }
-
+        if (isKeyboardShown() && (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B))
+            return super.dispatchKeyEvent(key_event);
+        if (inputHandler.onInputEvent(key_event) || (inputHandler.actionHasRun() && inputHandler.isDown()))
+            return true;
         if (prompt.isPromptShown() && prompt.receiveKeyEvent(key_event))
             return true;
         if (settingsDrawer.isDrawerOpen() && settingsDrawer.receiveKeyEvent(key_event))
@@ -333,8 +362,56 @@ public class PagedActivity extends AppCompatActivity {
             if (childsPlay)
                 return true;
         }
+        return true;
 
-        return super.dispatchKeyEvent(key_event);
+//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
+//                //Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
+//                if (!AccessService.isEnabled()) {
+//                    PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+//                    prompt.setCenterOfScreen();
+//                    prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
+//                    prompt.setStartBtn("Continue", () -> {
+//                        prompt.setShown(false);
+//                        AndroidHelpers.requestAccessibilityService(granted -> {
+//                            Log.d("PagedActivity", "Accessibility permission granted: " + granted);
+//                        });
+//                    }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
+//                    prompt.setEndBtn("Cancel", () -> {
+//                        prompt.setShown(false);
+//                    }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK);
+//                    prompt.setShown(true);
+//                }
+//                //AccessService.showRecentApps();
+//                return true;
+//            }
+//        }
+////        if (key_event.getAction() == KeyEvent.ACTION_UP) {
+////            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+////                Log.d("PagedActivity", "Attempting to bring up app switcher");
+////                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP, 0);
+////                sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
+////                return true;
+////            }
+////        }
+//
+//        if (prompt.isPromptShown() && prompt.receiveKeyEvent(key_event))
+//            return true;
+//        if (settingsDrawer.isDrawerOpen() && settingsDrawer.receiveKeyEvent(key_event))
+//            return true;
+//        if (dynamicInput.isOverlayShown() && dynamicInput.receiveKeyEvent(key_event))
+//            return true;
+//
+//        if (!isInAContextMenu()) {
+//            boolean childsPlay = false;
+//            View currentView = allPages.get(currentPage);
+//            if (currentView instanceof InputReceiver)
+//                childsPlay = ((InputReceiver)currentView).receiveKeyEvent(key_event);
+//            if (childsPlay)
+//                return true;
+//        }
+//
+//        return super.dispatchKeyEvent(key_event);
     }
     private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
         //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
@@ -357,9 +434,12 @@ public class PagedActivity extends AppCompatActivity {
     }
     private void prepareOtherViews() {
         parentView = findViewById(R.id.parent_layout);
-        initPromptView();
         initSettingsDrawer();
+        settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
         initDynamicInputView();
+        dynamicInput.setShown(dynamicInput.isOverlayShown());
+        initPromptView();
+        prompt.setShown(prompt.isPromptShown());
     }
     private void initDynamicInputView() {
         dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);
