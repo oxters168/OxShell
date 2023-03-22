@@ -57,6 +57,7 @@ public class InputHandler {
         boolean firstPress = !isDown();
         if (!currentlyDownKeys.contains(event.getKeyCode())) {
             // a new key has been pressed
+            actionHasRun = false;
             downStartTime = SystemClock.uptimeMillis();
             currentlyDownKeys.add(event.getKeyCode());
             // reset history every time a new key is pressed, this way if they had pressed a key then stopped while other keys are pressed then that key
@@ -66,7 +67,7 @@ public class InputHandler {
         }
         if (firstPress) {
             // first time pressing a button
-            actionHasRun = false;
+            //actionHasRun = false;
             handler.post(runnable);
         }
     }
