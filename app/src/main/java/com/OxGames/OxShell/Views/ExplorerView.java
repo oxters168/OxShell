@@ -413,12 +413,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                                                 currentActivity.getDynamicInput().setShown(false);
                                             } else
                                                 errorLabel.setLabel("Folder name is invalid");
-                                        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
+                                        }, SettingsKeeper.getSuperPrimaryInput()),
                                         new DynamicInputRow.ButtonInput("Cancel", v ->
                                         {
                                             //Log.d("ExplorerDynamicView", "Clicked cancel");
                                             currentActivity.getDynamicInput().setShown(false);
-                                        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
+                                        }, SettingsKeeper.getCancelInput())
                                 )
                 );
         currentActivity.getSettingsDrawer().setShown(false);
@@ -455,12 +455,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                                                     errorLabel.setLabel("File already exists");
                                             } else
                                                 errorLabel.setLabel("File name is invalid");
-                                        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
+                                        }, SettingsKeeper.getSuperPrimaryInput()),
                                         new DynamicInputRow.ButtonInput("Cancel", v ->
                                         {
                                             //Log.d("ExplorerDynamicView", "Clicked cancel");
                                             currentActivity.getDynamicInput().setShown(false);
-                                        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
+                                        }, SettingsKeeper.getCancelInput())
                                 )
                 );
         currentActivity.getSettingsDrawer().setShown(false);
@@ -517,12 +517,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 } else
                     errorLabel.setLabel("Name is invalid");
             }
-        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v ->
         {
             //Log.d("ExplorerDynamicView", "Clicked cancel");
             currentActivity.getDynamicInput().setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B);
+        }, SettingsKeeper.getCancelInput());
         currentActivity.getDynamicInput().setTitle("Rename" + (isMulti ? " Items" : (isDir ? " Folder" : " File")));
         if (isMulti)
             currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput, suffixTxtInput), new DynamicInputRow(startTxtInput), new DynamicInputRow(fillZerosToggle), new DynamicInputRow(okBtn, cancelBtn));

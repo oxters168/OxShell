@@ -11,6 +11,7 @@ import java.util.HashMap;
 public class SettingsKeeper {
     public static final String TIMES_LOADED = "times_loaded";
 
+    public static final String SUPER_PRIMARY_INPUT = "super_primary_input";
     public static final String PRIMARY_INPUT = "primary_input";
     public static final String SECONDARY_INPUT = "secondary_input";
     public static final String CANCEL_INPUT = "cancel_input";
@@ -70,6 +71,13 @@ public class SettingsKeeper {
         if (hasValue(FONT_REF))
             return ((FontRef)getValue(FONT_REF)).getFont();
         return null;
+    }
+    public static KeyCombo[] getSuperPrimaryInput() {
+        // create default if not existing
+        if (!hasValue(SUPER_PRIMARY_INPUT))
+            setValue(SUPER_PRIMARY_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_START), KeyCombo.createUpCombo(KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_NUMPAD_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_NUMPAD_ENTER) });
+
+        return ((KeyCombo[])getValue(SUPER_PRIMARY_INPUT));
     }
     public static KeyCombo[] getPrimaryInput() {
         // create default if not existing

@@ -343,8 +343,14 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
-        if (isKeyboardShown() && (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B))
-            return super.dispatchKeyEvent(key_event);
+        boolean isDpadInput = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
+        if (isKeyboardShown()) {// && (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B))
+            if (!isDpadInput) {
+                Log.d("PagedActivity", "Passing to keyboard: " + key_event.toString());
+                return super.dispatchKeyEvent(key_event);
+            } else
+                return true;
+        }
         if (inputHandler.onInputEvent(key_event) || (inputHandler.actionHasRun() && inputHandler.isDown()))
             return true;
         if (prompt.isPromptShown() && prompt.receiveKeyEvent(key_event))
@@ -361,6 +367,11 @@ public class PagedActivity extends AppCompatActivity {
                 childsPlay = ((InputReceiver)currentView).receiveKeyEvent(key_event);
             if (childsPlay)
                 return true;
+        }
+
+        if (!isDpadInput && key_event.getKeyCode() != KeyEvent.KEYCODE_BACK) {
+            Log.d("PagedActivity", "Passing to system: " + key_event.toString());
+            return super.dispatchKeyEvent(key_event);
         }
         return true;
 

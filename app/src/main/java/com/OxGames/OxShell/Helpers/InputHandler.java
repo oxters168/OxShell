@@ -22,16 +22,23 @@ public class InputHandler {
     private final Handler handler;
     private long downStartTime;
     private boolean actionHasRun;
+    private int repeatCount;
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            // TODO: fix issue where the action will run every LISTEN_DELAY milliseconds
-            if (!actionHasRun && isDown()) {
-                for (KeyComboAction comboAction : findComboActions(currentlyDownKeys))
-                    if (comboAction.keyCombo.isOnDown() && SystemClock.uptimeMillis() - downStartTime >= comboAction.keyCombo.getHoldMillis()) {
-                        comboAction.action.run();
-                        actionHasRun = true;
+            if (isDown()) {
+                for (KeyComboAction comboAction : findComboActions(currentlyDownKeys)) {
+                    long timePassed = SystemClock.uptimeMillis() - downStartTime;
+                    int repeatMillis = comboAction.keyCombo.getRepeatMillis();
+                    if (!actionHasRun || repeatMillis >= 0) {
+                        int timeRepeatCount = ((int) timePassed - comboAction.keyCombo.getHoldMillis()) / (repeatMillis > 0 ? repeatMillis : LISTEN_DELAY);
+                        if (comboAction.keyCombo.isOnDown() && timePassed >= comboAction.keyCombo.getHoldMillis() && (repeatMillis == 0 || timeRepeatCount > repeatCount)) {
+                            comboAction.action.run();
+                            actionHasRun = true;
+                            repeatCount = Math.max(timeRepeatCount, 0);
+                        }
                     }
+                }
                 handler.postDelayed(runnable, LISTEN_DELAY);
             }
         }
@@ -47,7 +54,7 @@ public class InputHandler {
     public boolean onInputEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN)
             onDown(event);
-        boolean hasCombo = findComboActions(keysHistory).size() > 0;
+        boolean hasCombo = findComboActions(keysHistory).size() > 0; // this is here since there's a chance that on up will have an action to clear out combos
         if (event.getAction() == KeyEvent.ACTION_UP)
             onUp(event);
         //Log.d("InputHandler", "onInputEvent\ncurrentlyDown: " + currentlyDownKeys.toString() + "\nhistory: " + keysHistory.toString() + "\nhasCombo: " + hasCombo);
@@ -58,6 +65,7 @@ public class InputHandler {
         if (!currentlyDownKeys.contains(event.getKeyCode())) {
             // a new key has been pressed
             actionHasRun = false;
+            repeatCount = 0;
             downStartTime = SystemClock.uptimeMillis();
             currentlyDownKeys.add(event.getKeyCode());
             // reset history every time a new key is pressed, this way if they had pressed a key then stopped while other keys are pressed then that key

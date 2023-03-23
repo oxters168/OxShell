@@ -19,7 +19,7 @@ import com.OxGames.OxShell.OxShellApp;
 
 public class DynamicInputRowView extends FrameLayout {
     private DynamicInputRow rowItems;
-    private Context context;
+    private final Context context;
     private RecyclerView row;
 
     private boolean queuedFocus;
@@ -58,6 +58,7 @@ public class DynamicInputRowView extends FrameLayout {
         addView(row);
     }
     public void setInputItems(DynamicInputRow items) {
+        items.view = this;
         rowItems = items;
         adapter = new InputRowAdapter(context, rowItems.getAll());
         adapter.addListener(() -> {

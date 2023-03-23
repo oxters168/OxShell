@@ -23,14 +23,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -41,13 +44,16 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
     private RecyclerView mainList;
     private int prevUIState;
 
-    private List<DynamicInputRow.ButtonInput> gamepadable;
     private DynamicInputRow[] rows;
 
+    //private int row;
+    //private int col;
+    //private List<DynamicInputRow.ButtonInput> gamepadable;
     //private boolean firstRun;
-    private int directionKeyCode = -1;
+    //private int directionKeyCode = -1;
 
-    private List<Consumer<Boolean>> onShownListeners = new ArrayList<>();
+    private final List<Consumer<Boolean>> onShownListeners = new ArrayList<>();
+    private InputHandler inputHandler;
 
     public void addShownListener(Consumer<Boolean> onShownListener) {
         onShownListeners.add(onShownListener);
@@ -80,10 +86,8 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         init();
     }
 
-    private boolean canFocusOn(DynamicInputRow.DynamicInput item) {
-        return item != null && item.getVisibility() == VISIBLE && item.isEnabled() && item.inputType != DynamicInputRow.DynamicInput.InputType.label;
-    }
     private void init() {
+        inputHandler = new InputHandler();
         setShown(false);
         setFocusable(false);
         //setClickable(true); // block out touch input to views behind
@@ -94,7 +98,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         setLayoutParams(layoutParams);
         setFocusable(false);
-        getViewTreeObserver().addOnGlobalFocusChangeListener(onFocusChange);
+        //getViewTreeObserver().addOnGlobalFocusChangeListener(onFocusChange);
 
         FrameLayout header = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(AndroidHelpers.getScaledDpToPixels(context, 40)));
@@ -141,118 +145,10 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         footer.setFocusable(false);
         addView(footer);
     }
-    ViewTreeObserver.OnGlobalFocusChangeListener onFocusChange = (oldFocus, newFocus) -> {
-        //Log.d("DynamicInputView", "onGlobalFocusChange");
-        boolean isDirectional = directionKeyCode == KeyEvent.KEYCODE_DPAD_UP || directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN || directionKeyCode == KeyEvent.KEYCODE_DPAD_LEFT || directionKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT;
-        if (isDirectional) {
-            View oldDynamicItem = oldFocus;
-            int timeout = 0;
-            while (oldDynamicItem != null && !(oldDynamicItem instanceof DynamicInputItemView) && timeout++ < 100)
-                oldDynamicItem = oldDynamicItem.getParent() instanceof View ? (View) oldDynamicItem.getParent() : null;
-            if (oldDynamicItem instanceof DynamicInputItemView) {
-                DynamicInputRow.DynamicInput oldItem = ((DynamicInputItemView) oldDynamicItem).getInputItem();
-                int nextRow = oldItem.row;
-                int nextCol = oldItem.col;
-                DynamicInputRow.DynamicInput nextItem = null;
-                boolean withinBounds;
-                if (directionKeyCode == KeyEvent.KEYCODE_DPAD_UP)
-                    nextRow -= 1;
-                if (directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN)
-                    nextRow += 1;
-                //nextRow = Math.min(Math.max(nextRow, 0), rows.length - 1);
-                if (directionKeyCode == KeyEvent.KEYCODE_DPAD_LEFT)
-                    nextCol -= 1;
-                if (directionKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
-                    nextCol += 1;
-                //nextCol = Math.min(Math.max(nextCol, 0), rows[nextRow].getCount() - 1);
-                do {
-                    withinBounds = (nextRow >= 0 && nextRow < rows.length) && (nextCol >= 0 && nextCol < rows[nextRow].getCount());
-                    if (nextRow >= 0 && nextRow < rows.length) {
-                        if (withinBounds)
-                            nextItem = rows[nextRow].get(nextCol);
-                        boolean foundFocusable = canFocusOn(nextItem);
-                        if (!foundFocusable) {
-                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_RIGHT || directionKeyCode == KeyEvent.KEYCODE_DPAD_UP || directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                                // if next item to go to has not been found and we were originally going up, down, or right, then search the right of the row for items
-                                int startCol = nextCol;
-                                while (!foundFocusable && ++nextCol < rows[nextRow].getCount()) {
-                                    if (nextCol >= 0)
-                                        nextItem = rows[nextRow].get(nextCol);
-                                    foundFocusable = canFocusOn(nextItem);
-                                }
-                                if (!foundFocusable) {
-                                    if (directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN || directionKeyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                                        // if next item still hasn't been found and we were originally going up or down, then search the left side
-                                        nextCol = startCol;
-                                        while (!foundFocusable && --nextCol >= 0) {
-                                            if (nextCol < rows[nextRow].getCount())
-                                                nextItem = rows[nextRow].get(nextCol);
-                                            foundFocusable = canFocusOn(nextItem);
-                                        }
-                                        if (!foundFocusable) {
-                                            // if still no focusable has been found then go to the next row based on if we were going up or down
-                                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_UP) {
-                                                nextRow -= 1;
-                                                if (nextRow >= 0)
-                                                    nextCol = Math.min(Math.max(oldItem.col, 0), rows[nextRow].getCount() - 1);
-                                            }
-                                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
-                                                nextRow += 1;
-                                                if (nextRow < rows.length)
-                                                    nextCol = Math.min(Math.max(oldItem.col, 0), rows[nextRow].getCount() - 1);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            if (directionKeyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-                                // if no focusable was found and we were originally going left then keep searching left
-                                while (!foundFocusable && --nextCol >= 0) {
-                                    if (nextCol < rows[nextRow].getCount())
-                                        nextItem = rows[nextRow].get(nextCol);
-                                    foundFocusable = canFocusOn(nextItem);
-                                }
-                            }
-                            //}
-                        }
-                        // should go right then left then continue down/up if going down/up
-                        // should go up/down after exhausting left/right if going left/right
-                    }
-                } while (withinBounds && !canFocusOn(nextItem));
-                //Log.d("DynamicInputView", "[" + oldItem.row + ", " + oldItem.col + "] => [" + nextRow + ", " + nextCol + "]");
-                if (!canFocusOn(nextItem)) {
-                    nextItem = oldItem;
-                    nextRow = oldItem.row;
-                    nextCol = oldItem.col;
-                }
-
-                DynamicInputItemView nextItemView = nextItem.view;
-                View newDynamicItem = newFocus;
-                while (newDynamicItem != null && !(newDynamicItem instanceof DynamicInputItemView))
-                    newDynamicItem = newDynamicItem.getParent() instanceof View ? (View) newDynamicItem.getParent() : null;
-                if (newFocus != null && newDynamicItem != nextItemView)
-                    newFocus.clearFocus();
-                nextItemView.requestFocus();
-                for (int row = 0; row < rows.length; row++)
-                    for (int col = 0; col < rows[row].getCount(); col++)
-                        rows[row].get(col).setSelected(row == nextRow && col == nextCol);
-                //Log.d("DynamicInputView", "[" + oldItem.row + ", " + oldItem.col + "] => [" + nextItem.getInputItem().row + ", " + nextItem.getInputItem().col + "]");
-            }
-            directionKeyCode = -1;
-        } else {
-            // when an item receives focus through touch, then make sure to unhighlight any other views
-            View newDynamicItem = newFocus;
-            int timeout = 0;
-            while (newDynamicItem != null && !(newDynamicItem instanceof DynamicInputItemView) && timeout++ < 100)
-                newDynamicItem = newDynamicItem.getParent() instanceof View ? (View) newDynamicItem.getParent() : null;
-            if (newDynamicItem instanceof DynamicInputItemView) {
-                DynamicInputRow.DynamicInput newItem = ((DynamicInputItemView)newDynamicItem).getInputItem();
-                for (int row = 0; row < rows.length; row++)
-                    for (int col = 0; col < rows[row].getCount(); col++)
-                        rows[row].get(col).setSelected(row == newItem.row && col == newItem.col);
-            }
-        }
-    };
+//    ViewTreeObserver.OnGlobalFocusChangeListener onFocusChange = (oldFocus, newFocus) -> {
+//        //Log.d("DynamicInputView", "onGlobalFocusChange");
+//
+//    };
 
     public void setTitle(String value) {
         title.setText(value);
@@ -264,7 +160,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         mainList.setAdapter(adapter);
         rows = items;
 
-        gamepadable = new ArrayList<>();
+        //gamepadable = new ArrayList<>();
         for (int i = 0; i < rows.length; i++) {
             DynamicInputRow.DynamicInput[] inputItems = rows[i].getAll();
             for (int j = 0; j < inputItems.length; j++) {
@@ -274,7 +170,7 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
             }
         }
 
-        // TODO: figure out how to request focus here on the first item
+        // TODO: figure out how to request focus on the first item
     }
 
     public boolean isOverlayShown() {
@@ -292,8 +188,15 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
             prevUIState = current.getSystemUIState();
             current.setNavBarHidden(true);
             current.setStatusBarHidden(true);
-            //rowIndex = 0;
-            //colIndex = 0;
+
+            for (DynamicInputRow row : rows) {
+                for (DynamicInputRow.DynamicInput item : row.getAll()) {
+                    if (item instanceof DynamicInputRow.ButtonInput) {
+                        DynamicInputRow.ButtonInput btn = (DynamicInputRow.ButtonInput) item;
+                        inputHandler.addKeyComboActions(Arrays.stream(btn.getKeyCombos()).map(combo -> new KeyComboAction(combo, btn::executeAction)).toArray(KeyComboAction[]::new));
+                    }
+                }
+            }
         } else {
             current.setSystemUIState(prevUIState);
             if (mainList != null) {
@@ -301,26 +204,122 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                 if (adapter != null)
                     ((DynamicInputAdapter)adapter).clear();
             }
+            inputHandler.clearKeyComboActions();
         }
     }
 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("DynamicInputView", key_event.toString());
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN)
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN)
-                directionKeyCode = key_event.getKeyCode();
+        boolean isDpadKey = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN;
+        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (isDpadKey) {
+                //directionKeyCode = key_event.getKeyCode();
+                moveFocus(key_event.getKeyCode());
+                return true;
+            }
+        }
+        return inputHandler.onInputEvent(key_event);
+    }
 
-        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-            for (DynamicInputRow.ButtonInput button : gamepadable) {
-                if (button.hasKeycode(key_event.getKeyCode())) {
-                    button.executeAction();
-                    return true;
+    private void moveFocus(int keycode_direction) {
+        int nextRow = -1;
+        int nextCol = -1;
+        for (int i = 0; i < rows.length; i++) {
+            DynamicInputRow.DynamicInput[] inputItems = rows[i].getAll();
+            boolean foundFocusedItem = false;
+            for (int j = 0; j < inputItems.length; j++) {
+                DynamicInputRow.DynamicInput item = inputItems[j];
+                if (item.view != null && item.view.hasFocus()) {
+                    //Log.d("DynamicInputView", "Found currently focused item on row: " + i + " col: " + j);
+                    nextRow = i;
+                    nextCol = j;
+                    foundFocusedItem = true;
+                    break;
                 }
             }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK)
-                return true; // in case its not mapped to anything, then don't quit OxShell
+            if (foundFocusedItem)
+                break;
         }
-        return false;
+
+        if (keycode_direction == KeyEvent.KEYCODE_DPAD_UP) {
+            nextRow = searchVer(nextRow - 1, nextCol, -1);
+            int potCol = searchHor(nextRow, nextCol, -1);
+            if (!canFocusOn(nextRow, potCol))
+                nextCol = searchHor(nextRow, nextCol, 1);
+            else
+                nextCol = potCol;
+        }
+        if (keycode_direction == KeyEvent.KEYCODE_DPAD_DOWN) {
+            //int startRow = nextRow;
+            nextRow = searchVer(nextRow + 1, nextCol, 1);
+            //Log.d("DynamicInputView", "Moving down to row: " + nextRow + " from: " + startRow);
+            int potCol = searchHor(nextRow, nextCol, -1);
+            if (!canFocusOn(nextRow, potCol))
+                nextCol = searchHor(nextRow, nextCol, 1);
+            else
+                nextCol = potCol;
+        }
+        nextRow = Math.min(Math.max(nextRow, 0), rows.length - 1);
+        if (keycode_direction == KeyEvent.KEYCODE_DPAD_LEFT)
+            nextCol = searchHor(nextRow, nextCol - 1, -1);
+        if (keycode_direction == KeyEvent.KEYCODE_DPAD_RIGHT)
+            nextCol = searchHor(nextRow, nextCol + 1, 1);
+        nextCol = Math.min(Math.max(nextCol, 0), rows[nextRow].getCount() - 1);
+        //Log.d("DynamicInputView", "Attempting to focus on row: " + nextRow + " col: " + nextCol);
+        View view = rows[nextRow].get(nextCol).view;
+        if (view != null) {
+            //Log.d("DynamicInputView", "Requesting focus on [" + nextRow + ", " + nextCol + "]");
+            scrollToItem(nextRow, nextCol);
+            view.requestFocus();
+        } else
+            Log.e("DynamicInputView", "Failed to focus on null view at [" + nextRow + ", " + nextCol + "]");
+    }
+    private void scrollToItem(int row, int col) {
+        if (row >= 0 && row < rows.length)
+            mainList.scrollToPosition(row);
+        if (col >= 0 && col < rows[row].getCount())
+            rows[row].view.getRow().scrollToPosition(col);
+    }
+    private boolean canFocusOn(DynamicInputRow.DynamicInput item) {
+        return item != null && item.getVisibility() == VISIBLE && item.isEnabled() && item.inputType != DynamicInputRow.DynamicInput.InputType.label && item.inputType != DynamicInputRow.DynamicInput.InputType.image;
+    }
+    private boolean canFocusOn(int row, int col) {
+        boolean canFocusOn = false;
+        if (row >= 0 && row < rows.length)
+            if (col >= 0 && col < rows[row].getCount())
+                canFocusOn = canFocusOn(rows[row].get(col));
+        return canFocusOn;
+    }
+    private int searchHor(int row, int startCol, int dir) {
+        if (row >= 0 && row < rows.length) {
+            DynamicInputRow currentRow = rows[row];
+            boolean foundFocusable = false;
+            while (!foundFocusable && startCol >= 0 && startCol < currentRow.getCount()) {
+                DynamicInputRow.DynamicInput nextItem = currentRow.get(startCol);
+                foundFocusable = canFocusOn(nextItem);
+                if (!foundFocusable)
+                    startCol += dir;
+            }
+        }
+        //else
+        //    Log.e("DynamicInputView", "Failed to search horizontally, bad row " + row + " count: " + rows.length);
+        return startCol;
+    }
+    private int searchVer(int startRow, int startCol, int dir) {
+        int rowsCount = rows.length;
+        boolean foundFocusable = false;
+        while (!foundFocusable && startRow >= 0 && startRow < rowsCount) {
+            int preppedCol = Math.min(Math.max(startCol, 0), rows[startRow].getCount() - 1);
+            int potCol = searchHor(startRow, preppedCol, -1);
+            foundFocusable = canFocusOn(startRow, potCol);
+            if (!foundFocusable) {
+                potCol = searchHor(startRow, preppedCol, 1);
+                foundFocusable = canFocusOn(startRow, potCol);
+                if (!foundFocusable)
+                    startRow += dir;
+            }
+        }
+        return startRow;
     }
 }

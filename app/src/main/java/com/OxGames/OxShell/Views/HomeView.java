@@ -33,6 +33,7 @@ import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.ResImage;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.FileChooserActivity;
@@ -186,7 +187,7 @@ public class HomeView extends XMBView implements Refreshable {
                     byLabel.setGravity(Gravity.CENTER);
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Ok", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START);
+                    }, SettingsKeeper.getPrimaryInput());
 
                     List<DynamicInputRow> rows = new ArrayList<>();
                     rows.add(new DynamicInputRow(versionLabel));
@@ -230,10 +231,10 @@ public class HomeView extends XMBView implements Refreshable {
                         adapter.createColumnAt(adapter.getColumnCount() - 1, assocItem);
                         save(getItems());
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE);
+                    }, SettingsKeeper.getCancelInput());
                     dynamicInput.setItems(new DynamicInputRow(titleInput, selectDirBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
@@ -270,10 +271,10 @@ public class HomeView extends XMBView implements Refreshable {
 //                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
 //                            dynamicInput.setShown(false);
 //                        }
-                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE);
+                    }, SettingsKeeper.getCancelInput());
                     dynamicInput.setItems(new DynamicInputRow(selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
@@ -377,7 +378,7 @@ public class HomeView extends XMBView implements Refreshable {
                                     dynamicInput.setShown(false);
                                 }
                             });
-                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         if (AndroidHelpers.fileExists(fragTemp)) {
                             // delete what was being previewed if anything
@@ -388,7 +389,7 @@ public class HomeView extends XMBView implements Refreshable {
                             GLWallpaperService.requestReload();
                         }
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE);
+                    }, SettingsKeeper.getCancelInput());
                     // so that they will only show up when the custom option is selected in the dropdown
                     //titleInput.setVisibility(View.GONE);
                     selectFileBtn.setVisibility(View.GONE);
@@ -869,10 +870,10 @@ public class HomeView extends XMBView implements Refreshable {
 //                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
 //                            dynamicInput.setShown(false);
 //                        }
-        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE);
+        }, SettingsKeeper.getCancelInput());
 
         if (toBeEdited != null) {
             // set values to assoc being edited
@@ -1004,10 +1005,10 @@ public class HomeView extends XMBView implements Refreshable {
             save(getItems());
             refresh();
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE);
+        }, SettingsKeeper.getCancelInput());
 
         titleInput.setText(colItem.getTitle());
         resourcesDropdown.setIndex(origDropdownIndex);
@@ -1074,10 +1075,10 @@ public class HomeView extends XMBView implements Refreshable {
             getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imgRef));
             save(getItems());
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE);
+        }, SettingsKeeper.getCancelInput());
 
         dynamicInput.setItems(new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
 

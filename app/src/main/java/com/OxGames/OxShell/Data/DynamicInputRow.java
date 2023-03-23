@@ -6,6 +6,7 @@ import android.view.View;
 
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Views.DynamicInputItemView;
+import com.OxGames.OxShell.Views.DynamicInputRowView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class DynamicInputRow {
+    public DynamicInputRowView view;
     private DynamicInput[] inputs;
 
     public DynamicInputRow(DynamicInput... inputs) {
@@ -46,10 +48,10 @@ public class DynamicInputRow {
         public int row = -1, col = -1;
         public DynamicInputItemView view;
         private int visibility = View.VISIBLE;
-        public void setSelected(boolean onOff) {
-            if (view != null)
-                view.refreshSelection(onOff);
-        }
+//        public void setSelected(boolean onOff) {
+//            if (view != null)
+//                view.refreshSelection(onOff);
+//        }
         public InputType inputType;
         protected List<DynamicInputListener> listeners = new ArrayList<>();
         public void addListener(DynamicInputListener listener) {
@@ -86,6 +88,9 @@ public class DynamicInputRow {
             valuesChanged();
             //if (view != null)
             //    view.setVisibility(value);
+        }
+        public boolean isFocusable() {
+            return false;
         }
     }
     public static class TextInput extends DynamicInput {
@@ -124,6 +129,11 @@ public class DynamicInputRow {
         public int getValueType() {
             return valueType;
         }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
+        }
     }
     public static class ButtonInput extends DynamicInput {
         private String label;
@@ -131,17 +141,17 @@ public class DynamicInputRow {
 
 //        private boolean isKeycodeSet;
 //        private int keycode;
-        List<Integer> keycodes;
+        private List<KeyCombo> keyCombos;
 
         public ButtonInput(String label, View.OnClickListener onClick) {
             this.inputType = InputType.button;
             this.label = label;
             this.onClick = onClick;
-            keycodes = new ArrayList<>();
+            keyCombos = new ArrayList<>();
         }
-        public ButtonInput(String label, View.OnClickListener onClick, Integer... keycodes) {
+        public ButtonInput(String label, View.OnClickListener onClick, KeyCombo... keyCombos) {
             this(label, onClick);
-            Collections.addAll(this.keycodes, keycodes);
+            Collections.addAll(this.keyCombos, keyCombos);
         }
 
         public View.OnClickListener getOnClick() {
@@ -152,11 +162,14 @@ public class DynamicInputRow {
                 onClick.onClick(null);
         }
 
-        public boolean hasKeycode(int keycode) {
-            return keycodes.contains(keycode);
+//        public boolean hasKeycode(int keycode) {
+//            return keycodes.contains(keycode);
+//        }
+        public KeyCombo[] getKeyCombos() {
+            return keyCombos.toArray(new KeyCombo[0]);
         }
         public boolean isKeycodeSet() {
-            return keycodes.size() > 0;
+            return keyCombos.size() > 0;
         }
 
         public void setLabel(String value) {
@@ -169,6 +182,11 @@ public class DynamicInputRow {
         }
         public String getLabel() {
             return label;
+        }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
         }
     }
     public static class ToggleInput extends DynamicInput {
@@ -210,6 +228,11 @@ public class DynamicInputRow {
         }
         public View.OnClickListener getOnClick() {
             return onClick;
+        }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
         }
     }
     public static class Dropdown extends DynamicInput {
@@ -258,6 +281,11 @@ public class DynamicInputRow {
 //        public Consumer<Integer> getOnItemSelected() {
 //            return onItemSelected;
 //        }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
+        }
     }
     public static class ImageDisplay extends DynamicInput {
         private ImageRef img;

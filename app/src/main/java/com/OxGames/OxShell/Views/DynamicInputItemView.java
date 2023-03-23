@@ -1,5 +1,6 @@
 package com.OxGames.OxShell.Views;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -78,12 +79,12 @@ public class DynamicInputItemView extends FrameLayout {
     public DynamicInputRow.DynamicInput getInputItem() {
         return inputItem;
     }
-    public void refreshSelection(boolean onOff) {
-        if (button != null)
-            button.setBackgroundTintList(ColorStateList.valueOf(onOff ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
-        if (dropdown != null)
-            dropdown.setBackgroundTintList(onOff ? ColorStateList.valueOf(Color.parseColor("#88CEEAF0")) : null);
-    }
+//    public void refreshSelection(boolean onOff) {
+//        if (button != null)
+//            button.setBackgroundTintList(ColorStateList.valueOf(onOff ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
+//        if (dropdown != null)
+//            dropdown.setBackgroundTintList(onOff ? ColorStateList.valueOf(Color.parseColor("#88CEEAF0")) : null);
+//    }
     public int getItemHeight() {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 48));
     }
@@ -93,6 +94,7 @@ public class DynamicInputItemView extends FrameLayout {
     private int getBtnTextSize() {
         return Math.round(AndroidHelpers.getScaledSpToPixels(context, 5));
     }
+    @SuppressLint("ClickableViewAccessibility")
     public void setInputItem(DynamicInputRow.DynamicInput item) {
         item.view = this;
 
@@ -276,7 +278,7 @@ public class DynamicInputItemView extends FrameLayout {
             // highlight button when has focus
             button.setOnFocusChangeListener((view, hasFocus) -> {
                 //Log.d("DynamicInputItemView", "onFocusChange [" + inputItem.row + ", " + inputItem.col + "] hasFocus: " + hasFocus);
-                //button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
+                button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
                 innerItem.onFocusChange(view, hasFocus);
             });
             //button.setImeOptions(EditorInfo.IME_ACTION_NEXT);
@@ -329,6 +331,9 @@ public class DynamicInputItemView extends FrameLayout {
                 // add the Spinner widget to your layout
                 addView(dropdown);
             }
+            dropdown.setOnFocusChangeListener((view, hasFocus) -> {
+                dropdown.setBackgroundTintList((hasFocus || dropdown.isPressed()) ? ColorStateList.valueOf(Color.parseColor("#88CEEAF0")) : null);
+            });
             dropdown.setOnTouchListener((view, event) -> {
                 boolean isDown = event.getAction() == KeyEvent.ACTION_DOWN;
                 dropdown.setBackgroundTintList((isDown || dropdown.hasFocus()) ? ColorStateList.valueOf(Color.parseColor("#88CEEAF0")) : null);
