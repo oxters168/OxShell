@@ -34,8 +34,8 @@ public class AccessService extends AccessibilityService {
         if (inputHandler == null)
             inputHandler = new InputHandler();
         if (!inputHandler.tagHasActions(InputHandler.ALWAYS_ON_TAG)) {
-            inputHandler.addKeyComboActions(InputHandler.ALWAYS_ON_TAG, Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
-            inputHandler.addKeyComboActions(InputHandler.ALWAYS_ON_TAG, Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+            inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
+            inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
         }
     }
 

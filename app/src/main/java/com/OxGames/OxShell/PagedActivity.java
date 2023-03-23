@@ -29,9 +29,7 @@ import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
-import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
-import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
@@ -155,6 +153,8 @@ public class PagedActivity extends AppCompatActivity {
     //private InputHandler inputHandler;
     private boolean isKeyboardShown;
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
+    private KeyComboAction[] accessPopupComboActions;
+
     private static void showAccessibilityPopup() {
         if (!AccessService.isEnabled()) {
             PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
@@ -176,10 +176,6 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //inputHandler = new InputHandler();
-        List<KeyCombo> accessPopupCombos = new ArrayList<>();
-        Collections.addAll(accessPopupCombos, SettingsKeeper.getRecentsCombos());
-        Collections.addAll(accessPopupCombos, SettingsKeeper.getHomeCombos());
-        OxShellApp.getInputHandler().addKeyComboActions(InputHandler.ALWAYS_ON_TAG, accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, PagedActivity::showAccessibilityPopup)).toArray(KeyComboAction[]::new));
 
         trySetStartTime();
         super.onCreate(savedInstanceState);
@@ -249,6 +245,11 @@ public class PagedActivity extends AppCompatActivity {
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
         //resumeBackground();
+        List<KeyCombo> accessPopupCombos = new ArrayList<>();
+        Collections.addAll(accessPopupCombos, SettingsKeeper.getRecentsCombos());
+        Collections.addAll(accessPopupCombos, SettingsKeeper.getHomeCombos());
+        accessPopupComboActions = accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, PagedActivity::showAccessibilityPopup)).toArray(KeyComboAction[]::new);
+        OxShellApp.getInputHandler().addKeyComboActions(accessPopupComboActions);
 
         Log.i("PagedActivity", "OnResume " + this);
     }
@@ -300,6 +301,7 @@ public class PagedActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.i("PagedActivity", "OnDestroy " + this);
         LogcatHelper.getInstance(this).stop();
+        OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions);
         super.onDestroy();
     }
 

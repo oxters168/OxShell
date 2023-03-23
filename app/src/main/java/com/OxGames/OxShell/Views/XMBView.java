@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Data.KeyComboAction;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
@@ -25,8 +27,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
-public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable {
+public class XMBView extends ViewGroup {// implements InputReceiver {//, Refreshable {
     private static final float EPSILON = 0.0001f;
     protected final Context context;
     public static final int CATEGORY_TYPE = 0;
@@ -1100,53 +1103,88 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return yToIndex(catPos.get(colIndex), colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
     }
 
-    @Override
-    public boolean receiveKeyEvent(KeyEvent key_event) {
-        //Log.d("XMBView", key_event.toString());
-        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-                stopMomentum();
-                affirmativeAction();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
-                stopMomentum();
-                secondaryAction();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                stopMomentum();
-                cancelAction();
-                return true;
-            }
-        }
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            // in action down since we want the repeated events
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                stopMomentum();
-                selectLowerItem();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                stopMomentum();
-                selectUpperItem();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
-                stopMomentum();
-                selectLeftItem();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                stopMomentum();
-                selectRightItem();
-                return true;
-            }
-        }
-
-        //Block out default back events
-        return key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B;
+    public KeyComboAction[] getKeyComboActions() {
+        List<KeyComboAction> keyComboActions = Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
+            stopMomentum();
+            affirmativeAction();
+        })).collect(Collectors.toList());
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, () -> {
+            stopMomentum();
+            secondaryAction();
+        })).collect(Collectors.toList()));
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> {
+            stopMomentum();
+            cancelAction();
+        })).collect(Collectors.toList()));
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
+            Log.d("XMBView", "Pressed up");
+            stopMomentum();
+            selectUpperItem();
+        })).collect(Collectors.toList()));
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
+            Log.d("XMBView", "Pressed down");
+            stopMomentum();
+            selectLowerItem();
+        })).collect(Collectors.toList()));
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
+            Log.d("XMBView", "Pressed left");
+            stopMomentum();
+            selectLeftItem();
+        })).collect(Collectors.toList()));
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
+            Log.d("XMBView", "Pressed right");
+            stopMomentum();
+            selectRightItem();
+        })).collect(Collectors.toList()));
+        return keyComboActions.toArray(new KeyComboAction[0]);
     }
+//    @Override
+//    public boolean receiveKeyEvent(KeyEvent key_event) {
+//        //Log.d("XMBView", key_event.toString());
+//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
+//                stopMomentum();
+//                affirmativeAction();
+//                return true;
+//            }
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
+//                stopMomentum();
+//                secondaryAction();
+//                return true;
+//            }
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+//                stopMomentum();
+//                cancelAction();
+//                return true;
+//            }
+//        }
+//        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+//            // in action down since we want the repeated events
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
+//                stopMomentum();
+//                selectLowerItem();
+//                return true;
+//            }
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
+//                stopMomentum();
+//                selectUpperItem();
+//                return true;
+//            }
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
+//                stopMomentum();
+//                selectLeftItem();
+//                return true;
+//            }
+//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
+//                stopMomentum();
+//                selectRightItem();
+//                return true;
+//            }
+//        }
+//
+//        //Block out default back events
+//        return key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B;
+//    }
     public void selectLowerItem() {
         shiftYDisc(1);
     }

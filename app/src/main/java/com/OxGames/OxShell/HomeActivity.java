@@ -13,11 +13,13 @@ import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Views.PromptView;
+import com.OxGames.OxShell.Views.XMBView;
 
 import java.io.File;
 import java.util.function.Consumer;
 
 public class HomeActivity extends PagedActivity {
+    private static final String XMB_INPUT = "XMB_INPUT";
     View homeView;
     private Consumer<Boolean> onDynamicInputShown = (onOff) -> {
         homeView.setVisibility(onOff ? View.GONE : View.VISIBLE);
@@ -55,13 +57,16 @@ public class HomeActivity extends PagedActivity {
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         //setMarginsFor(R.id.packages_list, R.id.settings_view, R.id.customize_home_view, R.id.assoc_list_view, R.id.selectdirs_view, R.id.shortcuts_view);
+        getDynamicInput().addShownListener(onDynamicInputShown);
+        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, ((XMBView)homeView).getKeyComboActions());
+        OxShellApp.getInputHandler().setActiveTag(XMB_INPUT);
         showAnnoyingDialog();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        getDynamicInput().addShownListener(onDynamicInputShown);
+
         //showAnnoyingDialog();
         //Log.d("HomeActivity", "onResume");
     }
@@ -70,6 +75,8 @@ public class HomeActivity extends PagedActivity {
     protected void onDestroy() {
         super.onDestroy();
         getDynamicInput().removeShownListener(onDynamicInputShown);
+        OxShellApp.getInputHandler().removeTagFromHistory(XMB_INPUT);
+        OxShellApp.getInputHandler().clearKeyComboActions(XMB_INPUT);
         //Log.d("HomeActivity", "onDestroy");
     }
 
