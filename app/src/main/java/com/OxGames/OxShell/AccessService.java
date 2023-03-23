@@ -25,24 +25,27 @@ import java.util.Arrays;
 public class AccessService extends AccessibilityService {
     private static AccessService instance;
     private InputHandler inputHandler;
+    //private static final String INPUT_TAG = "ACCESS_SERVICE";
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();
         Log.i("AccessService", "onServiceConnected");
         instance = this;
-        if (inputHandler != null)
-            inputHandler.clearKeyComboActions();
-        inputHandler = new InputHandler();
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+        if (inputHandler == null)
+            inputHandler = new InputHandler();
+        if (!inputHandler.tagHasActions(InputHandler.ALWAYS_ON_TAG)) {
+            inputHandler.addKeyComboActions(InputHandler.ALWAYS_ON_TAG, Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
+            inputHandler.addKeyComboActions(InputHandler.ALWAYS_ON_TAG, Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+        }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.i("AccessService", "onDestroy");
-        inputHandler.clearKeyComboActions();
-    }
+//    @Override
+//    public void onDestroy() {
+//        super.onDestroy();
+//        Log.i("AccessService", "onDestroy");
+//        inputHandler.clearKeyComboActions(INPUT_TAG);
+//        inputHandler = null;
+//    }
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {

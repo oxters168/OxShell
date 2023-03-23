@@ -26,6 +26,7 @@ import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Helpers.InputHandler;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
@@ -37,6 +38,7 @@ import java.util.List;
 
 public class ExplorerView extends SlideTouchListView {//implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
+    private static final String INPUT_TAG = "FILE_EXPLORER_INPUT";
     //private InputHandler inputHandler;
 
     public ExplorerView(Context context) {
@@ -79,24 +81,31 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     }
     private void setupInput() {
         //inputHandler = new InputHandler();
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerHighlightInput()).map(combo -> new KeyComboAction(combo, () -> {
+        // TODO: add mappings to context options (copy/cut/paste/etc)
+        OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerHighlightInput()).map(combo -> new KeyComboAction(combo, () -> {
             DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
             if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
                 setItemSelected(properPosition, !isItemSelected(properPosition));
             selectNextItem();
         })).toArray(KeyComboAction[]::new));
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
             //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
             goUp();
         })).toArray(KeyComboAction[]::new));
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
             //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
             goBack();
         })).toArray(KeyComboAction[]::new));
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser)
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
                 ActivityManager.goTo(ActivityManager.Page.home);
+                OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+                OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+            }
         })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, getKeyComboActions());
+        OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
     }
 
     @Override
@@ -115,54 +124,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         else
             return false;
     }
-
-//    @Override
-//    public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-//        if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
-//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                Log.i("Explorer", "Storage permission granted");
-//                refresh();
-//            }  else {
-//                Log.e("Explorer", "Storage permission denied");
-//            }
-//        }
-//    }
-
-//    @Override
-//    public boolean receiveKeyEvent(KeyEvent key_event) {
-//        if (inputHandler.onInputEvent(key_event))
-//            return true;
-//        return super.receiveKeyEvent(key_event);
-////        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-////        //Log.d("ExplorerView", key_event.toString());
-////        if (!currentActivity.isInAContextMenu()) {
-////            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-////                // within action down since we want the repeat when held
-////                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-////                    DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
-////                    if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
-////                        setItemSelected(properPosition, !isItemSelected(properPosition));
-////                    selectNextItem();
-////                    return true;
-////                }
-////            }
-////            if (key_event.getAction() == KeyEvent.ACTION_UP) {
-////                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-////                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-////                        ActivityManager.goTo(ActivityManager.Page.home);
-////                        return true;
-////                    }
-////                }
-////                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
-////                    goUp();
-////                    return true;
-////                }
-////            }
-////
-////            return super.receiveKeyEvent(key_event);
-////        }
-////        return false;
-//    }
 
     public static int getDigitCount(int value) {
         int count = 1;

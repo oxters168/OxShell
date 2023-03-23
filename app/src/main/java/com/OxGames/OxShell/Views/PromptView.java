@@ -68,6 +68,8 @@ public class PromptView extends FrameLayout implements InputReceiver {
     private int chosenWidth = 0;
     private int chosenHeight = 0;
 
+    private static final String INPUT_TAG = "PROMPT_INPUT";
+
     public PromptView(@NonNull Context context) {
         super(context);
         this.context = context;
@@ -275,9 +277,13 @@ public class PromptView extends FrameLayout implements InputReceiver {
             updatePosition();
             rearrangeViews();
             if (!isAnyBtnSet())
-                inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getCancelInput()).map(keycode -> new KeyComboAction(keycode, () -> setShown(false))).toArray(KeyComboAction[]::new));
-        } else
+                OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(keycode -> new KeyComboAction(keycode, () -> setShown(false))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
+        } else {
             resetValues();
+            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+        }
         setVisibility(onOff ? VISIBLE : GONE);
     }
     public void setPromptImage(int resourceId) {
@@ -289,7 +295,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         isStartBtnSet = true;
         startBtnTxt = text;
         startBtnAction = onClick;
-        inputHandler.addKeyComboActions(Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, startBtnAction)).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, startBtnAction)).toArray(KeyComboAction[]::new));
 //        if (keycodes != null)
 //            Collections.addAll(startBtnKeys, keycodes);
     }
@@ -297,7 +303,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         isMiddleBtnSet = true;
         middleBtnTxt = text;
         middleBtnAction = onClick;
-        inputHandler.addKeyComboActions(Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, middleBtnAction)).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, middleBtnAction)).toArray(KeyComboAction[]::new));
 //        if (keycodes != null)
 //            Collections.addAll(middleBtnKeys, keycodes);
     }
@@ -305,7 +311,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         isEndBtnSet = true;
         endBtnTxt = text;
         endBtnAction = onClick;
-        inputHandler.addKeyComboActions(Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, endBtnAction)).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, endBtnAction)).toArray(KeyComboAction[]::new));
         //if (keycodes != null)
         //    Collections.addAll(endBtnKeys, keycodes);
     }
@@ -340,7 +346,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         endBtnTxt = null;
         endBtnAction = null;
         //endBtnKeys.clear();
-        inputHandler.clearKeyComboActions();
+        //inputHandler.clearKeyComboActions();
     }
     public boolean isPromptShown() {
         return isShown;

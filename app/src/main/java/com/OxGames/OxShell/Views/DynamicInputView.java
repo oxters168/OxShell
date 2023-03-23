@@ -30,6 +30,7 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
@@ -45,6 +46,8 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
     private int prevUIState;
 
     private DynamicInputRow[] rows;
+
+    private static final String INPUT_TAG = "DYNAMIC_INPUT_INPUT";
 
     //private int row;
     //private int col;
@@ -189,14 +192,19 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
             current.setNavBarHidden(true);
             current.setStatusBarHidden(true);
 
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_LEFT))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT))).toArray(KeyComboAction[]::new));
             for (DynamicInputRow row : rows) {
                 for (DynamicInputRow.DynamicInput item : row.getAll()) {
                     if (item instanceof DynamicInputRow.ButtonInput) {
                         DynamicInputRow.ButtonInput btn = (DynamicInputRow.ButtonInput) item;
-                        inputHandler.addKeyComboActions(Arrays.stream(btn.getKeyCombos()).map(combo -> new KeyComboAction(combo, btn::executeAction)).toArray(KeyComboAction[]::new));
+                        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(btn.getKeyCombos()).map(combo -> new KeyComboAction(combo, btn::executeAction)).toArray(KeyComboAction[]::new));
                     }
                 }
             }
+            OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
         } else {
             current.setSystemUIState(prevUIState);
             if (mainList != null) {
@@ -204,21 +212,22 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
                 if (adapter != null)
                     ((DynamicInputAdapter)adapter).clear();
             }
-            inputHandler.clearKeyComboActions();
+            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
         }
     }
 
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
-        //Log.d("DynamicInputView", key_event.toString());
-        boolean isDpadKey = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN;
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (isDpadKey) {
-                //directionKeyCode = key_event.getKeyCode();
-                moveFocus(key_event.getKeyCode());
-                return true;
-            }
-        }
+        Log.d("DynamicInputView", key_event.toString());
+//        boolean isDpadKey = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN;
+//        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+//            if (isDpadKey) {
+//                //directionKeyCode = key_event.getKeyCode();
+//                moveFocus(key_event.getKeyCode());
+//                return true;
+//            }
+//        }
         return inputHandler.onInputEvent(key_event);
     }
 

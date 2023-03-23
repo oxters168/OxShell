@@ -23,7 +23,9 @@ import com.OxGames.OxShell.OxShellApp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SlideTouchListView extends ListView implements InputReceiver, Refreshable {//, SlideTouchListener {
     //private SlideTouchHandler slideTouch = new SlideTouchHandler();
@@ -45,9 +47,18 @@ public class SlideTouchListView extends ListView implements InputReceiver, Refre
     }
     private void init() {
         //slideTouch.addListener(this);
-        inputHandler = new InputHandler();
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, this::primaryAction)).toArray(KeyComboAction[]::new));
-        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, this::secondaryAction)).toArray(KeyComboAction[]::new));
+//        inputHandler = new InputHandler();
+//        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, this::primaryAction)).toArray(KeyComboAction[]::new));
+//        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, this::secondaryAction)).toArray(KeyComboAction[]::new));
+//        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, this::selectPrevItem)).toArray(KeyComboAction[]::new));
+//        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, this::selectNextItem)).toArray(KeyComboAction[]::new));
+    }
+    public KeyComboAction[] getKeyComboActions() {
+        List<KeyComboAction> keyComboActions = Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, this::primaryAction)).collect(Collectors.toList());
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, this::secondaryAction)).collect(Collectors.toList()));
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, this::selectPrevItem)).collect(Collectors.toList()));
+        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, this::selectNextItem)).collect(Collectors.toList()));
+        return keyComboActions.toArray(new KeyComboAction[0]);
     }
 
     @Override
@@ -212,30 +223,7 @@ public class SlideTouchListView extends ListView implements InputReceiver, Refre
     @Override
     public boolean receiveKeyEvent(KeyEvent key_event) {
         //Log.d("SlideTouchListView", "Received key event");
-//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-//                primaryAction();
-//                return true;
-//            }
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
-//                secondaryAction();
-//                return true;
-//            }
-//        }
-        if (inputHandler.onInputEvent(key_event))
-            return true;
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            // action down since the action gets repeated when held
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                selectNextItem();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                selectPrevItem();
-                return true;
-            }
-        }
-        return false;
+        return inputHandler.onInputEvent(key_event);
     }
 
     public void setItemSelected(int index, boolean onOff) {

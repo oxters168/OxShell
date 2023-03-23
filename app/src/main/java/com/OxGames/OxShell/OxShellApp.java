@@ -8,9 +8,12 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Helpers.InputHandler;
+
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
 public class OxShellApp extends Application {
     private static OxShellApp instance;
+    private static InputHandler inputHandler;
 
     public static OxShellApp getInstance() {
         return instance;
@@ -25,6 +28,7 @@ public class OxShellApp extends Application {
     public void onCreate() {
         Log.i("OxShellApp", "onCreate");
         instance = this;
+        inputHandler = new InputHandler();
         super.onCreate();
         getDisplayInfo();
     }
@@ -45,6 +49,10 @@ public class OxShellApp extends Application {
     public void onLowMemory() {
         Log.e("OxShellApp", "Low memory");
         super.onLowMemory();
+    }
+
+    public static InputHandler getInputHandler() {
+        return inputHandler;
     }
 
     public static int getNavBarHeight() {
