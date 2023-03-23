@@ -17,6 +17,10 @@ public class SettingsKeeper {
     public static final String CANCEL_INPUT = "cancel_input";
     public static final String HOME_COMBOS = "home_combos";
     public static final String RECENTS_COMBOS = "recents_combos";
+    public static final String EXPLORER_HIGHLIGHT_INPUT = "explorer_highlight_input";
+    public static final String EXPLORER_GO_UP_INPUT = "explorer_go_up_input";
+    public static final String EXPLORER_GO_BACK_INPUT = "explorer_go_back_input";
+    public static final String EXPLORER_EXIT_INPUT = "explorer_exit_input";
 
     public static final String HOME_ITEM_SCALE = "home_item_scale";
     public static final String HOME_SELECTION_ALPHA = "home_selection_alpha";
@@ -92,6 +96,34 @@ public class SettingsKeeper {
             setValue(SECONDARY_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_Y), KeyCombo.createUpCombo(KeyEvent.KEYCODE_MENU), KeyCombo.createUpCombo(KeyEvent.KEYCODE_SPACE) });
 
         return ((KeyCombo[])getValue(SECONDARY_INPUT));
+    }
+    public static KeyCombo[] getExplorerHighlightInput() {
+        // create default if not existing
+        if (!hasValue(EXPLORER_HIGHLIGHT_INPUT))
+            setValue(EXPLORER_HIGHLIGHT_INPUT, new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_BUTTON_X) });
+
+        return ((KeyCombo[])getValue(EXPLORER_HIGHLIGHT_INPUT));
+    }
+    public static KeyCombo[] getExplorerGoUpInput() {
+        // create default if not existing
+        if (!hasValue(EXPLORER_GO_UP_INPUT))
+            setValue(EXPLORER_GO_UP_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_B) });
+
+        return ((KeyCombo[])getValue(EXPLORER_GO_UP_INPUT));
+    }
+    public static KeyCombo[] getExplorerGoBackInput() {
+        // create default if not existing
+        if (!hasValue(EXPLORER_GO_BACK_INPUT))
+            setValue(EXPLORER_GO_BACK_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_B) });
+
+        return ((KeyCombo[])getValue(EXPLORER_GO_BACK_INPUT));
+    }
+    public static KeyCombo[] getExplorerExitInput() {
+        // create default if not existing
+        if (!hasValue(EXPLORER_EXIT_INPUT))
+            setValue(EXPLORER_EXIT_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK) });
+
+        return ((KeyCombo[])getValue(EXPLORER_EXIT_INPUT));
     }
     public static KeyCombo[] getCancelInput() {
         // create default if not existing

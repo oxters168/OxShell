@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.ExplorerActivity;
 import com.OxGames.OxShell.Helpers.ActivityManager;
@@ -24,16 +25,19 @@ import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ExplorerView extends SlideTouchListView {//implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
+    //private InputHandler inputHandler;
 
     public ExplorerView(Context context) {
         super(context);
@@ -53,8 +57,10 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         //SettingsKeeper.hasValue()
         //setMargins();
         //ActivityManager.getCurrentActivity().addPermissionListener(this);
+
         if (AndroidHelpers.hasReadStoragePermission()) {
             explorerBehaviour = new ExplorerBehaviour();
+            setupInput();
             refresh();
         } else
             AndroidHelpers.requestReadStoragePermission(granted -> {
@@ -66,9 +72,31 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                     currentActivity.finish();
                 } else {
                     explorerBehaviour = new ExplorerBehaviour();
+                    setupInput();
                     refresh();
                 }
             });
+    }
+    private void setupInput() {
+        //inputHandler = new InputHandler();
+        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerHighlightInput()).map(combo -> new KeyComboAction(combo, () -> {
+            DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
+            if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+                setItemSelected(properPosition, !isItemSelected(properPosition));
+            selectNextItem();
+        })).toArray(KeyComboAction[]::new));
+        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
+            //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
+            goUp();
+        })).toArray(KeyComboAction[]::new));
+        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
+            //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
+            goBack();
+        })).toArray(KeyComboAction[]::new));
+        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser)
+                ActivityManager.goTo(ActivityManager.Page.home);
+        })).toArray(KeyComboAction[]::new));
     }
 
     @Override
@@ -100,38 +128,41 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 //        }
 //    }
 
-    @Override
-    public boolean receiveKeyEvent(KeyEvent key_event) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        //Log.d("ExplorerView", key_event.toString());
-        if (!currentActivity.isInAContextMenu()) {
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                // within action down since we want the repeat when held
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                    DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
-                    if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
-                        setItemSelected(properPosition, !isItemSelected(properPosition));
-                    selectNextItem();
-                    return true;
-                }
-            }
-            if (key_event.getAction() == KeyEvent.ACTION_UP) {
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-                        ActivityManager.goTo(ActivityManager.Page.home);
-                        return true;
-                    }
-                }
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
-                    goUp();
-                    return true;
-                }
-            }
-
-            return super.receiveKeyEvent(key_event);
-        }
-        return false;
-    }
+//    @Override
+//    public boolean receiveKeyEvent(KeyEvent key_event) {
+//        if (inputHandler.onInputEvent(key_event))
+//            return true;
+//        return super.receiveKeyEvent(key_event);
+////        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+////        //Log.d("ExplorerView", key_event.toString());
+////        if (!currentActivity.isInAContextMenu()) {
+////            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
+////                // within action down since we want the repeat when held
+////                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
+////                    DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
+////                    if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+////                        setItemSelected(properPosition, !isItemSelected(properPosition));
+////                    selectNextItem();
+////                    return true;
+////                }
+////            }
+////            if (key_event.getAction() == KeyEvent.ACTION_UP) {
+////                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+////                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
+////                        ActivityManager.goTo(ActivityManager.Page.home);
+////                        return true;
+////                    }
+////                }
+////                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
+////                    goUp();
+////                    return true;
+////                }
+////            }
+////
+////            return super.receiveKeyEvent(key_event);
+////        }
+////        return false;
+//    }
 
     public static int getDigitCount(int value) {
         int count = 1;
@@ -263,6 +294,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 
     public void goUp() {
         explorerBehaviour.goUp();
+        refresh();
+//        SetProperPosition(0);
+        tryHighlightPrevDir();
+    }
+    public void goBack() {
+        explorerBehaviour.goBack();
         refresh();
 //        SetProperPosition(0);
         tryHighlightPrevDir();
