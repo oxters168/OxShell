@@ -98,11 +98,14 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             goBack();
         })).toArray(KeyComboAction[]::new));
         OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-                ActivityManager.goTo(ActivityManager.Page.home);
-                OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
-                OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
-            }
+//            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
+//                ActivityManager.goTo(ActivityManager.Page.home);
+//                OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+//                OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+//            }
+            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+            ActivityManager.getCurrentActivity().finish();
         })).toArray(KeyComboAction[]::new));
         OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, getKeyComboActions());
         OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);

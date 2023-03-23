@@ -47,6 +47,8 @@ public class HomeActivity extends PagedActivity {
         ActivityManager.setCurrent(currentPage);
         setContentView(R.layout.activity_home);
         initViewsTable();
+        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, ((XMBView)homeView).getKeyComboActions());
+        OxShellApp.getInputHandler().setActiveTag(XMB_INPUT);
 
         //HomeManager.init();
         goTo(ActivityManager.Page.home);
@@ -57,16 +59,13 @@ public class HomeActivity extends PagedActivity {
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         //setMarginsFor(R.id.packages_list, R.id.settings_view, R.id.customize_home_view, R.id.assoc_list_view, R.id.selectdirs_view, R.id.shortcuts_view);
-        getDynamicInput().addShownListener(onDynamicInputShown);
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, ((XMBView)homeView).getKeyComboActions());
-        OxShellApp.getInputHandler().setActiveTag(XMB_INPUT);
         showAnnoyingDialog();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        getDynamicInput().addShownListener(onDynamicInputShown);
         //showAnnoyingDialog();
         //Log.d("HomeActivity", "onResume");
     }
@@ -77,6 +76,7 @@ public class HomeActivity extends PagedActivity {
         getDynamicInput().removeShownListener(onDynamicInputShown);
         OxShellApp.getInputHandler().removeTagFromHistory(XMB_INPUT);
         OxShellApp.getInputHandler().clearKeyComboActions(XMB_INPUT);
+        homeView = null;
         //Log.d("HomeActivity", "onDestroy");
     }
 

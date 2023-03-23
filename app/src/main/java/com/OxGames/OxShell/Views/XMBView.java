@@ -369,6 +369,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private void shiftXDisc(int amount) {
         if (Math.abs(amount) > 0) {
             int currentColIndex = this.colIndex;
+            //Log.d("XMBView", "Shifting by " + amount + " from " + currentColIndex);
             // get the offset column's local index then convert it to x position
             setShiftX(getShiftX(currentColIndex + amount));
         }
@@ -1117,74 +1118,27 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             cancelAction();
         })).collect(Collectors.toList()));
         keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
-            Log.d("XMBView", "Pressed up");
+            //Log.d("XMBView", "Pressed up");
             stopMomentum();
             selectUpperItem();
         })).collect(Collectors.toList()));
         keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
-            Log.d("XMBView", "Pressed down");
+            //Log.d("XMBView", "Pressed down");
             stopMomentum();
             selectLowerItem();
         })).collect(Collectors.toList()));
         keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
-            Log.d("XMBView", "Pressed left");
+            //Log.d("XMBView", "Pressed left");
             stopMomentum();
             selectLeftItem();
         })).collect(Collectors.toList()));
         keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
-            Log.d("XMBView", "Pressed right");
+            //Log.d("XMBView", "Pressed right");
             stopMomentum();
             selectRightItem();
         })).collect(Collectors.toList()));
         return keyComboActions.toArray(new KeyComboAction[0]);
     }
-//    @Override
-//    public boolean receiveKeyEvent(KeyEvent key_event) {
-//        //Log.d("XMBView", key_event.toString());
-//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-//                stopMomentum();
-//                affirmativeAction();
-//                return true;
-//            }
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
-//                stopMomentum();
-//                secondaryAction();
-//                return true;
-//            }
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-//                stopMomentum();
-//                cancelAction();
-//                return true;
-//            }
-//        }
-//        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-//            // in action down since we want the repeated events
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-//                stopMomentum();
-//                selectLowerItem();
-//                return true;
-//            }
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-//                stopMomentum();
-//                selectUpperItem();
-//                return true;
-//            }
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
-//                stopMomentum();
-//                selectLeftItem();
-//                return true;
-//            }
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
-//                stopMomentum();
-//                selectRightItem();
-//                return true;
-//            }
-//        }
-//
-//        //Block out default back events
-//        return key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B;
-//    }
     public void selectLowerItem() {
         shiftYDisc(1);
     }

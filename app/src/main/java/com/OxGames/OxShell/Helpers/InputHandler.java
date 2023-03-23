@@ -63,7 +63,7 @@ public class InputHandler {
         boolean hasCombo = findComboActions(keysHistory).size() > 0; // this is here since there's a chance that on up will have an action to clear out combos
         if (event.getAction() == KeyEvent.ACTION_UP)
             onUp(event);
-        Log.d("InputHandler", "onInputEvent -> " + getActiveTag() + "\ncurrentlyDown: " + currentlyDownKeys.toString() + "\nhistory: " + keysHistory.toString() + "\nhasCombo: " + hasCombo);
+        //Log.d("InputHandler", "onInputEvent -> " + getActiveTag() + "\ncurrentlyDown: " + currentlyDownKeys.toString() + "\nhistory: " + keysHistory.toString() + "\nhasCombo: " + hasCombo);
         return hasCombo;
     }
     private void onDown(KeyEvent event) {

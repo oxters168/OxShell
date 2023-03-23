@@ -176,6 +176,11 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //inputHandler = new InputHandler();
+        List<KeyCombo> accessPopupCombos = new ArrayList<>();
+        Collections.addAll(accessPopupCombos, SettingsKeeper.getRecentsCombos());
+        Collections.addAll(accessPopupCombos, SettingsKeeper.getHomeCombos());
+        accessPopupComboActions = accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, PagedActivity::showAccessibilityPopup)).toArray(KeyComboAction[]::new);
+        OxShellApp.getInputHandler().addKeyComboActions(accessPopupComboActions);
 
         trySetStartTime();
         super.onCreate(savedInstanceState);
@@ -245,11 +250,6 @@ public class PagedActivity extends AppCompatActivity {
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
         //resumeBackground();
-        List<KeyCombo> accessPopupCombos = new ArrayList<>();
-        Collections.addAll(accessPopupCombos, SettingsKeeper.getRecentsCombos());
-        Collections.addAll(accessPopupCombos, SettingsKeeper.getHomeCombos());
-        accessPopupComboActions = accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, PagedActivity::showAccessibilityPopup)).toArray(KeyComboAction[]::new);
-        OxShellApp.getInputHandler().addKeyComboActions(accessPopupComboActions);
 
         Log.i("PagedActivity", "OnResume " + this);
     }
@@ -354,29 +354,8 @@ public class PagedActivity extends AppCompatActivity {
             } else
                 return true;
         }
-        if (OxShellApp.getInputHandler().onInputEvent(key_event))// || (inputHandler.actionHasRun() && inputHandler.isDown()))
-            return true;
-//        if (prompt.isPromptShown() && prompt.receiveKeyEvent(key_event))
-//            return true;
-//        if (settingsDrawer.isDrawerOpen() && settingsDrawer.receiveKeyEvent(key_event))
-//            return true;
-//        if (dynamicInput.isOverlayShown() && dynamicInput.receiveKeyEvent(key_event))
-//            return true;
-//
-//        if (!isInAContextMenu()) {
-//            boolean childsPlay = false;
-//            View currentView = allPages.get(currentPage);
-//            if (currentView instanceof InputReceiver)
-//                childsPlay = ((InputReceiver)currentView).receiveKeyEvent(key_event);
-//            if (childsPlay)
-//                return true;
-//        }
 
-        // stopping select button from going to system since it comes back as KEYCODE_MENU, which ruins the default home/recents combo
-//        if (!isDpadInput && key_event.getKeyCode() != KeyEvent.KEYCODE_BACK && key_event.getKeyCode() != KeyEvent.KEYCODE_BUTTON_SELECT) {
-//            Log.d("PagedActivity", "Passing to system: " + key_event);
-//            return super.dispatchKeyEvent(key_event);
-//        }
+        OxShellApp.getInputHandler().onInputEvent(key_event);
         return true;
     }
     private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
