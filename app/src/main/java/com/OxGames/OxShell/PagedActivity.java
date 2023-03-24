@@ -5,11 +5,13 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -151,7 +153,7 @@ public class PagedActivity extends AppCompatActivity {
     private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
     //private InputHandler inputHandler;
-    private boolean isKeyboardShown;
+    //private boolean isKeyboardShown;
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
     private KeyComboAction[] accessPopupComboActions;
 
@@ -264,25 +266,32 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         Log.i("PagedActivity", "OnStart " + this);
-        startCheckIfKeyboardOpen();
+        //startCheckIfKeyboardOpen();
 
         super.onStart();
     }
-    private void startCheckIfKeyboardOpen() {
-        View rootView = getWindow().getDecorView();
-        if (keyboardListener != null)
-            rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
-        keyboardListener = () -> {
-            Rect r = new Rect();
-            rootView.getWindowVisibleDisplayFrame(r);
-
-            int heightDiff = rootView.getHeight() - (r.bottom - r.top);
-            isKeyboardShown = heightDiff > 100;
-        };
-        rootView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
-    }
+//    private void startCheckIfKeyboardOpen() {
+//        View rootView = getWindow().getDecorView();
+//        if (keyboardListener != null)
+//            rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
+//        keyboardListener = () -> {
+//            Rect r = new Rect();
+//            rootView.getWindowVisibleDisplayFrame(r);
+//
+//            int heightDiff = rootView.getHeight() - (r.bottom - r.top);
+//            isKeyboardShown = heightDiff > 100;
+//        };
+//        rootView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
+//    }
     public boolean isKeyboardShown() {
-        return isKeyboardShown;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            return getWindow().getDecorView().getRootWindowInsets().isVisible(WindowInsets.Type.ime());
+//        }
+        Rect windowRect = new Rect();
+        getWindow().getDecorView().getWindowVisibleDisplayFrame(windowRect);
+        //Log.d("PagedActivity", "WindowRect: " + windowRect.bottom + " =? " + OxShellApp.getDisplayHeight());
+        return windowRect.bottom < OxShellApp.getDisplayHeight();
+        //return isKeyboardShown;
     }
 
     @Override

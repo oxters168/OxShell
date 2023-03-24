@@ -17,7 +17,10 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
@@ -33,9 +36,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.R;
@@ -93,6 +98,20 @@ public class DynamicInputItemView extends FrameLayout {
     }
     private int getBtnTextSize() {
         return Math.round(AndroidHelpers.getScaledSpToPixels(context, 5));
+    }
+    public void clickItem() {
+        if (button != null && button.getVisibility() == VISIBLE)
+            button.performClick();
+        if (dropdown != null && dropdown.getVisibility() == VISIBLE)
+            dropdown.performClick();
+        if (inputLayout != null && inputLayout.getEditText() != null && inputLayout.getVisibility() == VISIBLE) {
+//            InputMethodManager inputMethodManager = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
+//            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+            InputMethodManager imm = (InputMethodManager)ActivityManager.getCurrentActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(inputLayout.getEditText(), InputMethodManager.SHOW_IMPLICIT);
+        }
+        if (toggle != null &&  toggle.getVisibility() == VISIBLE)
+            toggle.performClick();
     }
     @SuppressLint("ClickableViewAccessibility")
     public void setInputItem(DynamicInputRow.DynamicInput item) {

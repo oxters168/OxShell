@@ -28,7 +28,7 @@ import com.OxGames.OxShell.R;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-public class SettingsDrawer extends FrameLayout implements InputReceiver {
+public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
     private static final float SETTINGS_DRAWER_OPEN_Y = 0;
     private static final float SETTINGS_DRAWER_CLOSED_Y = 0;
     private static final long SETTINGS_DRAWER_ANIM_TIME = 300;
@@ -37,7 +37,7 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
     private final Context context;
 
     private SlideTouchListView listView;
-    private InputHandler inputHandler;
+    //private InputHandler inputHandler;
 
     private static final String INPUT_TAG = "SETTINGS_DRAWER_INPUT";
 
@@ -125,13 +125,13 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
             OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
         }
     }
-    @Override
-    public boolean receiveKeyEvent(KeyEvent keyEvent) {
-        //Log.d("SettingsDrawer", "Received key event");
-        if (inputHandler.onInputEvent(keyEvent))
-            return true;
-        return listView.receiveKeyEvent(keyEvent);
-    }
+//    @Override
+//    public boolean receiveKeyEvent(KeyEvent keyEvent) {
+//        //Log.d("SettingsDrawer", "Received key event");
+//        if (inputHandler.onInputEvent(keyEvent))
+//            return true;
+//        return listView.receiveKeyEvent(keyEvent);
+//    }
 
     public static class ContextBtn {
         String label;

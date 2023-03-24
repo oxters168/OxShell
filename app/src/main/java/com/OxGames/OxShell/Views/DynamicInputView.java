@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -36,9 +37,10 @@ import com.OxGames.OxShell.PagedActivity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class DynamicInputView extends FrameLayout implements InputReceiver {
+public class DynamicInputView extends FrameLayout {// implements InputReceiver {
     private boolean isShown = false;
     private final Context context;
     private BetterTextView title;
@@ -196,6 +198,12 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_LEFT))).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
+                int[] result = new int[2];
+                if (getCurrentlyFocusedItem(result)) {
+                    rows[result[0]].get(result[1]).view.clickItem();
+                }
+            })).toArray(KeyComboAction[]::new));
             for (DynamicInputRow row : rows) {
                 for (DynamicInputRow.DynamicInput item : row.getAll()) {
                     if (item instanceof DynamicInputRow.ButtonInput) {
@@ -217,38 +225,40 @@ public class DynamicInputView extends FrameLayout implements InputReceiver {
         }
     }
 
-    @Override
-    public boolean receiveKeyEvent(KeyEvent key_event) {
-        Log.d("DynamicInputView", key_event.toString());
-//        boolean isDpadKey = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN;
-//        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-//            if (isDpadKey) {
-//                //directionKeyCode = key_event.getKeyCode();
-//                moveFocus(key_event.getKeyCode());
-//                return true;
-//            }
-//        }
-        return inputHandler.onInputEvent(key_event);
-    }
+//    @Override
+//    public boolean receiveKeyEvent(KeyEvent key_event) {
+//        Log.d("DynamicInputView", key_event.toString());
+//        return inputHandler.onInputEvent(key_event);
+//    }
 
-    private void moveFocus(int keycode_direction) {
-        int nextRow = -1;
-        int nextCol = -1;
+    private boolean getCurrentlyFocusedItem(int[] result) {
+        result[0] = -1;
+        result[1] = -1;
+        boolean foundFocusedItem = false;
         for (int i = 0; i < rows.length; i++) {
             DynamicInputRow.DynamicInput[] inputItems = rows[i].getAll();
-            boolean foundFocusedItem = false;
             for (int j = 0; j < inputItems.length; j++) {
                 DynamicInputRow.DynamicInput item = inputItems[j];
                 if (item.view != null && item.view.hasFocus()) {
                     //Log.d("DynamicInputView", "Found currently focused item on row: " + i + " col: " + j);
-                    nextRow = i;
-                    nextCol = j;
+                    result[0] = i;
+                    result[1] = j;
                     foundFocusedItem = true;
                     break;
                 }
             }
             if (foundFocusedItem)
                 break;
+        }
+        return foundFocusedItem;
+    }
+    private void moveFocus(int keycode_direction) {
+        int nextRow = -1;
+        int nextCol = -1;
+        int[] result = new int[2];
+        if (getCurrentlyFocusedItem(result)) {
+            nextRow = result[0];
+            nextCol = result[1];
         }
 
         if (keycode_direction == KeyEvent.KEYCODE_DPAD_UP) {
