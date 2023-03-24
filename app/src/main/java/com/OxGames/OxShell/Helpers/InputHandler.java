@@ -4,7 +4,6 @@ package com.OxGames.OxShell.Helpers;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.KeyEvent;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
@@ -15,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class InputHandler {
@@ -25,11 +25,13 @@ public class InputHandler {
     private final List<KeyEvent> currentlyDownKeys;
     //private final List<KeyEvent> currentlyDownAltKeys; // the keys the android system gives back sometimes interchangeably with actual pressed keys
     private final List<KeyEvent> keysHistory;
+    private final List<Consumer<KeyEvent>> inputListeners;
     //private final List<KeyEvent> altKeysHistory;
     private final Handler handler;
     private long downStartTime;
     private boolean actionHasRun;
     private int repeatCount;
+    private boolean isBlockingInput;
     private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -48,7 +50,8 @@ public class InputHandler {
         if (!actionHasRun || repeatMillis >= 0) {
             int timeRepeatCount = ((int)timePassed - comboAction.keyCombo.getHoldMillis() - comboAction.keyCombo.getRepeatStartDelay()) / (repeatMillis > 0 ? repeatMillis : LISTEN_DELAY);
             if (comboAction.keyCombo.isOnDown() && ((!actionHasRun && timePassed >= comboAction.keyCombo.getHoldMillis()) || (repeatMillis == 0 || timeRepeatCount > repeatCount))) {
-                comboAction.action.run();
+                if (!isBlockingInput)
+                    comboAction.action.run();
                 actionHasRun = true;
                 repeatCount = Math.max(timeRepeatCount, 0);
             }
@@ -64,16 +67,48 @@ public class InputHandler {
         keyComboActions = new HashMap<>();
         keyComboActions.put(ALWAYS_ON_TAG, new ArrayList<>());
         currentTagList = new LinkedList<>();
+        inputListeners = new ArrayList<>();
+    }
+
+    public void addInputListener(Consumer<KeyEvent> onInputEvent) {
+        inputListeners.add(onInputEvent);
+    }
+    public void removeInputListener(Consumer<KeyEvent> onInputEvent) {
+        inputListeners.remove(onInputEvent);
+    }
+    public void clearInputListeners() {
+        inputListeners.clear();
+    }
+    private void fireInputListeners(KeyEvent event) {
+        for (Consumer<KeyEvent> iL : inputListeners)
+            iL.accept(event);
+    }
+    public KeyEvent[] getHistory() {
+        return keysHistory.toArray(new KeyEvent[0]);
+    }
+    public void toggleBlockingInput(boolean onOff) {
+        isBlockingInput = onOff;
+    }
+    public void toggleBlockingInput() {
+        toggleBlockingInput(!isBlockingInput());
+    }
+    public boolean isBlockingInput() {
+        return isBlockingInput;
     }
 
     public boolean onInputEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN)
             onDown(event);
-        boolean hasCombo = findComboActions(keysHistory).size() > 0;// || findComboActions(altKeysHistory).size() > 0; // this is here since there's a chance that on up will have an action to clear out combos
+        List<KeyComboAction> toBeRun = null;
         if (event.getAction() == KeyEvent.ACTION_UP)
-            onUp(event);
+            toBeRun = onUp(event);
+        boolean hasCombo = findComboActions(keysHistory).size() > 0;// || findComboActions(altKeysHistory).size() > 0; // this is here since there's a chance that on up will have an action to clear out combos
+        fireInputListeners(event);
+        if (toBeRun != null)
+            for (KeyComboAction runThis : toBeRun)
+                runThis.action.run();
         //Log.d("InputHandler", "onInputEvent -> " + getActiveTag() + "\n" + event + "\ncurrentlyDown: " + currentlyDownKeys.toString() + "\nhistory: " + keysHistory.toString() + "\nhasCombo: " + hasCombo);
-        return hasCombo;
+        return hasCombo || isBlockingInput;
     }
     private void onDown(KeyEvent event) {
         boolean firstPress = !isDown();
@@ -104,7 +139,7 @@ public class InputHandler {
             handler.post(runnable);
         }
     }
-    private void onUp(KeyEvent event) {
+    private List<KeyComboAction> onUp(KeyEvent event) {
         int index = currentlyDownKeys.stream().map(KeyEvent::getKeyCode).collect(Collectors.toList()).indexOf(event.getKeyCode());
         if (index >= 0)
             currentlyDownKeys.remove(index);
@@ -113,11 +148,15 @@ public class InputHandler {
 //            currentlyDownAltKeys.remove(index);
         //currentlyDownKeys.remove(event);//(Object)event.getKeyCode());
         //if (!isDown())
+        List<KeyComboAction> toBeRun = new ArrayList<>();
         if (!actionHasRun)
             for (KeyComboAction comboAction : findComboActions(keysHistory)) {
-                comboAction.action.run();
+                if (!isBlockingInput)
+                    toBeRun.add(comboAction);
+                //    comboAction.action.run();
                 actionHasRun = true;
             }
+        return toBeRun;
     }
 
     public boolean isDown() {

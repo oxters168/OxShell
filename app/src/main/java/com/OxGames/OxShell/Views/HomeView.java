@@ -1,35 +1,29 @@
 package com.OxGames.OxShell.Views;
 
 import android.app.Activity;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
 import android.os.SystemClock;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 
+import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.ImageRef;
 import com.OxGames.OxShell.Data.IntentPutExtra;
+import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.ResImage;
@@ -42,6 +36,7 @@ import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
@@ -51,7 +46,6 @@ import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -62,6 +56,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import kotlin.jvm.functions.Function0;
 
 public class HomeView extends XMBView implements Refreshable {
     public final static ResImage[] resourceImages = {
@@ -397,6 +393,82 @@ public class HomeView extends XMBView implements Refreshable {
 
                     dynamicInput.setShown(true);
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.setControls) {
+                    Log.d("HomeView", "Modifying " + selectedItem.obj);
+                    DynamicInputView dynamicInput = ActivityManager.getCurrentActivity().getDynamicInput();
+                    List<DynamicInputRow.TextInput> comboInputs = new ArrayList<>();
+                    List<DynamicInputRow.ButtonInput> pollBtns = new ArrayList<>();
+                    List<DynamicInputRow.ButtonInput> clearBtns = new ArrayList<>();
+                    List<DynamicInputRow.ButtonInput> removeBtns = new ArrayList<>();
+                    // TODO: add default button
+                    InputHandler mainInputter = OxShellApp.getInputHandler();
+//                    Consumer<KeyEvent> onInputReceived = (key_event) -> {
+//                        mainInputter.getHistory();
+//                    };
+//                    mainInputter.addInputListener(onInputReceived);
+                    Consumer<KeyCombo[]>[] refreshDynamicInput = new Consumer[1];
+                    Function0<DynamicInputRow.TextInput> addComboRow = () -> {
+                        int selfIndex = comboInputs.size();
+                        DynamicInputRow.TextInput keyComboInput = new DynamicInputRow.TextInput("Key Combo");
+                        comboInputs.add(keyComboInput);
+                        pollBtns.add(new DynamicInputRow.ButtonInput("Poll", (selfBtn) -> {
+                            // start listening for this row
+                            // TODO: add timeout
+                            mainInputter.toggleBlockingInput(true);
+                            AccessService.toggleBlockingInput(true);
+                            mainInputter.addInputListener(key_event -> {
+                                keyComboInput.setText(Arrays.stream(mainInputter.getHistory()).map(ev -> Integer.toString(ev.getKeyCode())).collect(Collectors.joining(" + ")));
+                                if (!mainInputter.isDown()) {
+                                    selfBtn.setLabel("Poll");
+                                    mainInputter.toggleBlockingInput(false);
+                                    AccessService.toggleBlockingInput(false);
+                                    mainInputter.clearInputListeners();
+                                }
+                            });
+                            selfBtn.setLabel("Polling..");
+                        }));
+                        clearBtns.add(new DynamicInputRow.ButtonInput("Clear", (selfBtn) -> {
+                            keyComboInput.setText("");
+                        }));
+                        removeBtns.add(new DynamicInputRow.ButtonInput("Remove", (selfBtn) -> {
+                            comboInputs.remove(selfIndex);
+                            pollBtns.remove(selfIndex);
+                            clearBtns.remove(selfIndex);
+                            removeBtns.remove(selfIndex);
+                            refreshDynamicInput[0].accept(null);
+                        }));
+                        return keyComboInput;
+                    };
+                    DynamicInputRow.ButtonInput addComboBtn = new DynamicInputRow.ButtonInput("Add", v -> {
+                        addComboRow.invoke();
+                        refreshDynamicInput[0].accept(null);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        dynamicInput.setShown(false);
+                        // stop listening to input
+                    }, SettingsKeeper.getCancelInput());
+                    refreshDynamicInput[0] = (placedValues) -> {
+                        if (placedValues != null) {
+                            // TODO: set up buttons and stuff
+                            comboInputs.clear();
+                            pollBtns.clear();
+                            clearBtns.clear();
+                            removeBtns.clear();
+                            for (KeyCombo combo : placedValues)
+                                addComboRow.invoke().setText(Arrays.stream(combo.getKeys()).mapToObj(Integer::toString).collect(Collectors.joining(" + ")));
+                        }
+                        List<DynamicInputRow> rows = new ArrayList<>();
+                        for (int i = 0; i < comboInputs.size(); i++)
+                            rows.add(new DynamicInputRow(comboInputs.get(i), pollBtns.get(i), clearBtns.get(i), removeBtns.get(i)));
+                        rows.add(new DynamicInputRow(addComboBtn, cancelBtn));
+                        dynamicInput.setItems(rows.toArray(new DynamicInputRow[0]));
+                    };
+
+                    KeyCombo[] originalSetting = null;
+                    if (SettingsKeeper.hasValue(selectedItem.obj.toString()))
+                        originalSetting = (KeyCombo[])SettingsKeeper.getValue(selectedItem.obj.toString());
+                    refreshDynamicInput[0].accept(originalSetting);
+                    dynamicInput.setShown(true);
                 }
             }
         }// else
@@ -541,6 +613,30 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings[0] = new HomeItem(HomeItem.Type.setImageBg, "Set picture as background");
         innerSettings[1] = new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background");
         settingsItem = new XMBItem(null, "Background", ImageRef.from(R.drawable.ic_baseline_image_24, DataLocation.resource), innerSettings);
+        settingsColumn.add(settingsItem);
+
+        innerSettings = new XMBItem[3];
+        XMBItem[] innerInnerSettings = new XMBItem[8];
+        innerInnerSettings[0] = new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input");
+        innerInnerSettings[1] = new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input");
+        innerInnerSettings[2] = new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input");
+        innerInnerSettings[3] = new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input");
+        innerInnerSettings[4] = new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input");
+        innerInnerSettings[5] = new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input");
+        innerInnerSettings[6] = new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input");
+        innerInnerSettings[7] = new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input");
+        innerSettings[0] = new XMBItem(null, "General", ImageRef.from(R.drawable.ic_baseline_home_24, DataLocation.resource), innerInnerSettings);
+        innerInnerSettings = new XMBItem[4];
+        innerInnerSettings[0] = new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input");
+        innerInnerSettings[1] = new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input");
+        innerInnerSettings[2] = new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input");
+        innerInnerSettings[3] = new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input");
+        innerSettings[1] = new XMBItem(null, "File Explorer", ImageRef.from(R.drawable.ic_baseline_source_24, DataLocation.resource), innerInnerSettings);
+        innerInnerSettings = new XMBItem[2];
+        innerInnerSettings[0] = new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input");
+        innerInnerSettings[1] = new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input");
+        innerSettings[2] = new XMBItem(null, "Android System", ImageRef.from(R.drawable.baseline_adb_24, DataLocation.resource), innerInnerSettings);
+        settingsItem = new XMBItem(null, "Controls", ImageRef.from(R.drawable.ic_baseline_games_24, DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         //innerSettings = new XMBItem[0];
@@ -1097,161 +1193,4 @@ public class HomeView extends XMBView implements Refreshable {
         });
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
-
-    public static String getRealPathFromURI(Uri uri, Context context) {
-        Cursor returnCursor = context.getContentResolver().query(uri, null, null, null, null);
-        int nameIndex =  returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-//        int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
-        returnCursor.moveToFirst();
-        String name = returnCursor.getString(nameIndex);
-//        String size = Long.toString(returnCursor.getLong(sizeIndex));
-        File file = new File(context.getFilesDir(), name);
-//        try {
-//            InputStream inputStream = context.getContentResolver().openInputStream(uri);
-//            FileOutputStream outputStream = new FileOutputStream(file);
-//            int read = 0;
-//            int maxBufferSize = 1 * 1024 * 1024;
-//            int bytesAvailable = inputStream.available();
-//            //int bufferSize = 1024;
-//            int bufferSize = Math.min(bytesAvailable, maxBufferSize);
-//            byte[] buffers = new byte[bufferSize];
-//            while (inputStream.read(buffers).also {
-//                if (it != null) {
-//                    read = it
-//                }
-//            } != -1) {
-//                outputStream.write(buffers, 0, read)
-//            }
-//            Log.e("File Size", "Size " + file.length())
-//            inputStream?.close()
-//            outputStream.close()
-//            Log.e("File Path", "Path " + file.path)
-//
-//        } catch (Exception e) {
-//            Log.e("Exception", e.getMessage());
-//        }
-        return file.getPath();
-    }
-    public static String getPath(final Context context, final Uri uri) {
-
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-
-        // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-            // ExternalStorageProvider
-            if (isExternalStorageDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
-                }
-
-                // TODO handle non-primary volumes
-            }
-            // DownloadsProvider
-            else if (isDownloadsDocument(uri)) {
-
-                final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-
-                return getDataColumn(context, contentUri, null, null);
-            }
-            // MediaProvider
-            else if (isMediaDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                Uri contentUri = null;
-                if ("image".equals(type)) {
-                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                } else if ("video".equals(type)) {
-                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                } else if ("audio".equals(type)) {
-                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                }
-
-                final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
-                        split[1]
-                };
-
-                return getDataColumn(context, contentUri, selection, selectionArgs);
-            }
-        }
-        // MediaStore (and general)
-        else if ("content".equalsIgnoreCase(uri.getScheme())) {
-
-            // Return the remote address
-            if (isGooglePhotosUri(uri))
-                return uri.getLastPathSegment();
-
-            return getDataColumn(context, uri, null, null);
-        }
-        // File
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
-        }
-
-        return null;
-    }
-
-    public static String getDataColumn(Context context, Uri uri, String selection,
-                                       String[] selectionArgs) {
-
-        Cursor cursor = null;
-        final String column = "_data";
-        final String[] projection = {
-                column
-        };
-
-        try {
-            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
-                    null);
-            if (cursor != null && cursor.moveToFirst()) {
-                final int index = cursor.getColumnIndexOrThrow(column);
-                return cursor.getString(index);
-            }
-        } finally {
-            if (cursor != null)
-                cursor.close();
-        }
-        return null;
-    }
-
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is ExternalStorageProvider.
-     */
-    public static boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is DownloadsProvider.
-     */
-    public static boolean isDownloadsDocument(Uri uri) {
-        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is MediaProvider.
-     */
-    public static boolean isMediaDocument(Uri uri) {
-        return "com.android.providers.media.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is Google Photos.
-     */
-    public static boolean isGooglePhotosUri(Uri uri) {
-        return "com.google.android.apps.photos.content".equals(uri.getAuthority());
-    }
 }

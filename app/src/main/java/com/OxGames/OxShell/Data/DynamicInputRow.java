@@ -137,29 +137,29 @@ public class DynamicInputRow {
     }
     public static class ButtonInput extends DynamicInput {
         private String label;
-        private View.OnClickListener onClick;
+        private Consumer<ButtonInput> onClick;
 
 //        private boolean isKeycodeSet;
 //        private int keycode;
         private List<KeyCombo> keyCombos;
 
-        public ButtonInput(String label, View.OnClickListener onClick) {
+        public ButtonInput(String label, Consumer<ButtonInput> onClick) {
             this.inputType = InputType.button;
             this.label = label;
             this.onClick = onClick;
             keyCombos = new ArrayList<>();
         }
-        public ButtonInput(String label, View.OnClickListener onClick, KeyCombo... keyCombos) {
+        public ButtonInput(String label, Consumer<ButtonInput> onClick, KeyCombo... keyCombos) {
             this(label, onClick);
             Collections.addAll(this.keyCombos, keyCombos);
         }
 
-        public View.OnClickListener getOnClick() {
+        public Consumer<ButtonInput> getOnClick() {
             return onClick;
         }
         public void executeAction() {
             if (onClick != null)
-                onClick.onClick(null);
+                onClick.accept(this);
         }
 
 //        public boolean hasKeycode(int keycode) {

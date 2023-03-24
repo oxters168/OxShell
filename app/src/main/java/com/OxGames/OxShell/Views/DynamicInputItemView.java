@@ -305,7 +305,7 @@ public class DynamicInputItemView extends FrameLayout {
             button.setTypeface(font);
             button.setTextColor(Color.WHITE);
             if (innerItem.getOnClick() != null)
-                button.setOnClickListener(innerItem.getOnClick());
+                button.setOnClickListener(v -> { innerItem.getOnClick().accept(innerItem); });
             button.setVisibility(innerItem.getVisibility());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
             DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;

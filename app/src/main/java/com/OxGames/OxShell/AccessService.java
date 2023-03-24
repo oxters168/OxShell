@@ -1,24 +1,15 @@
 package com.OxGames.OxShell;
 
-import android.accessibilityservice.AccessibilityGestureEvent;
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
-import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
-import androidx.annotation.NonNull;
-
-import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
-import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.InputHandler;
-import com.OxGames.OxShell.Views.PromptView;
 
 import java.util.Arrays;
 
@@ -37,6 +28,11 @@ public class AccessService extends AccessibilityService {
             inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
             inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
         }
+    }
+
+    public static void toggleBlockingInput(boolean onOff) {
+        if (instance != null && instance.inputHandler != null)
+            instance.inputHandler.toggleBlockingInput(onOff);
     }
 
 //    @Override
