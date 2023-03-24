@@ -366,7 +366,12 @@ public class PagedActivity extends AppCompatActivity {
 
         if (OxShellApp.getInputHandler().onInputEvent(key_event))
             return true;
-        return super.dispatchKeyEvent(key_event);
+
+        if (key_event.getKeyCode() != KeyEvent.KEYCODE_BACK) {
+            Log.d("PagedActivity", "Passing to system: " + key_event);
+            return super.dispatchKeyEvent(key_event);
+        }
+        return true;
     }
     private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
         //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
