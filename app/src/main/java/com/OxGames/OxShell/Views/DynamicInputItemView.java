@@ -104,9 +104,7 @@ public class DynamicInputItemView extends FrameLayout {
             button.performClick();
         if (dropdown != null && dropdown.getVisibility() == VISIBLE)
             dropdown.performClick();
-        if (inputLayout != null && inputLayout.getEditText() != null && inputLayout.getVisibility() == VISIBLE) {
-//            InputMethodManager inputMethodManager = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
-//            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        if (inputLayout != null && inputLayout.getVisibility() == VISIBLE) {
             InputMethodManager imm = (InputMethodManager)ActivityManager.getCurrentActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(inputLayout.getEditText(), InputMethodManager.SHOW_IMPLICIT);
         }
