@@ -15,14 +15,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class InputHandler {
     private static final int LISTEN_DELAY = 5;
     public static final String ALWAYS_ON_TAG = "ALWAYS_ON";
     private final LinkedList<String> currentTagList; // the history of tags that have been set as current
     private final HashMap<String, List<KeyComboAction>> keyComboActions;
-    private final List<Integer> currentlyDownKeys;
-    private final List<Integer> keysHistory;
+    private final List<KeyEvent> currentlyDownKeys;
+    //private final List<KeyEvent> currentlyDownAltKeys; // the keys the android system gives back sometimes interchangeably with actual pressed keys
+    private final List<KeyEvent> keysHistory;
+    //private final List<KeyEvent> altKeysHistory;
     private final Handler handler;
     private long downStartTime;
     private boolean actionHasRun;
@@ -31,27 +34,33 @@ public class InputHandler {
         @Override
         public void run() {
             if (isDown()) {
-                for (KeyComboAction comboAction : findComboActions(currentlyDownKeys)) {
-                    long timePassed = SystemClock.uptimeMillis() - downStartTime;
-                    int repeatMillis = comboAction.keyCombo.getRepeatMillis();
-                    if (!actionHasRun || repeatMillis >= 0) {
-                        int timeRepeatCount = ((int)timePassed - comboAction.keyCombo.getHoldMillis() - comboAction.keyCombo.getRepeatStartDelay()) / (repeatMillis > 0 ? repeatMillis : LISTEN_DELAY);
-                        if (comboAction.keyCombo.isOnDown() && ((!actionHasRun && timePassed >= comboAction.keyCombo.getHoldMillis()) || (repeatMillis == 0 || timeRepeatCount > repeatCount))) {
-                            comboAction.action.run();
-                            actionHasRun = true;
-                            repeatCount = Math.max(timeRepeatCount, 0);
-                        }
-                    }
-                }
+                for (KeyComboAction comboAction : findComboActions(currentlyDownKeys))
+                    checkIfDown(comboAction);
+                //for (KeyComboAction comboAction : findComboActions(currentlyDownAltKeys))
+                //    checkIfDown(comboAction);
                 handler.postDelayed(runnable, LISTEN_DELAY);
             }
         }
     };
+    private void checkIfDown(KeyComboAction comboAction) {
+        long timePassed = SystemClock.uptimeMillis() - downStartTime;
+        int repeatMillis = comboAction.keyCombo.getRepeatMillis();
+        if (!actionHasRun || repeatMillis >= 0) {
+            int timeRepeatCount = ((int)timePassed - comboAction.keyCombo.getHoldMillis() - comboAction.keyCombo.getRepeatStartDelay()) / (repeatMillis > 0 ? repeatMillis : LISTEN_DELAY);
+            if (comboAction.keyCombo.isOnDown() && ((!actionHasRun && timePassed >= comboAction.keyCombo.getHoldMillis()) || (repeatMillis == 0 || timeRepeatCount > repeatCount))) {
+                comboAction.action.run();
+                actionHasRun = true;
+                repeatCount = Math.max(timeRepeatCount, 0);
+            }
+        }
+    }
 
     public InputHandler() {
         handler = new Handler(Looper.getMainLooper());
         currentlyDownKeys = new ArrayList<>();
+        //currentlyDownAltKeys = new ArrayList<>();
         keysHistory = new ArrayList<>();
+        //altKeysHistory = new ArrayList<>();
         keyComboActions = new HashMap<>();
         keyComboActions.put(ALWAYS_ON_TAG, new ArrayList<>());
         currentTagList = new LinkedList<>();
@@ -60,24 +69,34 @@ public class InputHandler {
     public boolean onInputEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN)
             onDown(event);
-        boolean hasCombo = findComboActions(keysHistory).size() > 0; // this is here since there's a chance that on up will have an action to clear out combos
+        boolean hasCombo = findComboActions(keysHistory).size() > 0;// || findComboActions(altKeysHistory).size() > 0; // this is here since there's a chance that on up will have an action to clear out combos
         if (event.getAction() == KeyEvent.ACTION_UP)
             onUp(event);
-        //Log.d("InputHandler", "onInputEvent -> " + getActiveTag() + "\ncurrentlyDown: " + currentlyDownKeys.toString() + "\nhistory: " + keysHistory.toString() + "\nhasCombo: " + hasCombo);
+        //Log.d("InputHandler", "onInputEvent -> " + getActiveTag() + "\n" + event + "\ncurrentlyDown: " + currentlyDownKeys.toString() + "\nhistory: " + keysHistory.toString() + "\nhasCombo: " + hasCombo);
         return hasCombo;
     }
     private void onDown(KeyEvent event) {
         boolean firstPress = !isDown();
-        if (!currentlyDownKeys.contains(event.getKeyCode())) {
+        if (!currentlyDownKeys.stream().map(KeyEvent::getKeyCode).collect(Collectors.toList()).contains(event.getKeyCode())) {
+            // check if the key is one given by the android system that it considers interchangeable for the one that what was just pressed
+            if (currentlyDownKeys.size() > 0 && currentlyDownKeys.get(currentlyDownKeys.size() - 1).getEventTime() == event.getEventTime())
+                return;
+//            if (currentlyDownKeys.size() > 0 && currentlyDownKeys.get(currentlyDownKeys.size() - 1).getEventTime() == event.getEventTime()) {
+//                // an alternative key was given by the android system for a key that was just pressed
+//                currentlyDownAltKeys.add(event);
+//                altKeysHistory.clear();
+//                altKeysHistory.addAll(currentlyDownAltKeys);
+//            } else {
             // a new key has been pressed
             actionHasRun = false;
             repeatCount = 0;
             downStartTime = SystemClock.uptimeMillis();
-            currentlyDownKeys.add(event.getKeyCode());
+            currentlyDownKeys.add(event);//.getKeyCode());
             // reset history every time a new key is pressed, this way if they had pressed a key then stopped while other keys are pressed then that key
             // won't muddle the history (can't remove in onUp since there's a chance they won't press anything else after)
             keysHistory.clear();
             keysHistory.addAll(currentlyDownKeys);
+            //}
         }
         if (firstPress) {
             // first time pressing a button
@@ -86,7 +105,13 @@ public class InputHandler {
         }
     }
     private void onUp(KeyEvent event) {
-        currentlyDownKeys.remove((Object)event.getKeyCode());
+        int index = currentlyDownKeys.stream().map(KeyEvent::getKeyCode).collect(Collectors.toList()).indexOf(event.getKeyCode());
+        if (index >= 0)
+            currentlyDownKeys.remove(index);
+//        index = currentlyDownAltKeys.stream().map(KeyEvent::getKeyCode).collect(Collectors.toList()).indexOf(event.getKeyCode());
+//        if (index >= 0)
+//            currentlyDownAltKeys.remove(index);
+        //currentlyDownKeys.remove(event);//(Object)event.getKeyCode());
         //if (!isDown())
         if (!actionHasRun)
             for (KeyComboAction comboAction : findComboActions(keysHistory)) {
@@ -137,7 +162,7 @@ public class InputHandler {
         return keyComboActions.containsKey(tag);
     }
 
-    private List<KeyComboAction> findComboActions(List<Integer> combo) {
+    private List<KeyComboAction> findComboActions(List<KeyEvent> combo) {
         // if we sort then order doesn't matter, but I think it's better if order does matter
         //int[] sortedCombo = combo.stream().sorted().mapToInt(v -> v).toArray();
         //int[] notSortedCombo = combo.stream().mapToInt(v -> v).toArray();
@@ -147,7 +172,7 @@ public class InputHandler {
             searchedActions.addAll(keyComboActions.get(getActiveTag()));
 
         for (KeyComboAction comboAction : searchedActions) {
-            int[] inputCombo = comboAction.keyCombo.isOrdered() ? combo.stream().mapToInt(v -> v).toArray() : combo.stream().sorted().mapToInt(v -> v).toArray();
+            int[] inputCombo = comboAction.keyCombo.isOrdered() ? combo.stream().mapToInt(KeyEvent::getKeyCode).toArray() : combo.stream().mapToInt(KeyEvent::getKeyCode).sorted().toArray();
             int[] selfCombo = comboAction.keyCombo.isOrdered() ? comboAction.keyCombo.getKeys() : Arrays.stream(comboAction.keyCombo.getKeys()).sorted().toArray();
             if (Arrays.equals(selfCombo, inputCombo))
                 fittingActions.add(comboAction);

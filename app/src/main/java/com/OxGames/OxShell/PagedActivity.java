@@ -167,7 +167,7 @@ public class PagedActivity extends AppCompatActivity {
                 AndroidHelpers.requestAccessibilityService(granted -> {
                     Log.d("PagedActivity", "Accessibility permission granted: " + granted);
                 });
-            }, SettingsKeeper.getPrimaryInput());
+            }, SettingsKeeper.getSuperPrimaryInput());
             prompt.setEndBtn("Cancel", () -> {
                 prompt.setShown(false);
             }, SettingsKeeper.getCancelInput());
@@ -364,8 +364,9 @@ public class PagedActivity extends AppCompatActivity {
                 return true;
         }
 
-        OxShellApp.getInputHandler().onInputEvent(key_event);
-        return true;
+        if (OxShellApp.getInputHandler().onInputEvent(key_event))
+            return true;
+        return super.dispatchKeyEvent(key_event);
     }
     private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
         //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)

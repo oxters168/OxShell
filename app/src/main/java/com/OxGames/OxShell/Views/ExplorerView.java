@@ -240,7 +240,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                                 if (granted)
                                     AndroidHelpers.install(absPath);
                             });
-                        }, SettingsKeeper.getPrimaryInput());
+                        }, SettingsKeeper.getSuperPrimaryInput());
                         prompt.setEndBtn("Cancel", () -> {
                             prompt.setShown(false);
                         }, SettingsKeeper.getCancelInput());
