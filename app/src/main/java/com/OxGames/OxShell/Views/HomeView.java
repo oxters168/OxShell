@@ -6,10 +6,13 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -52,6 +55,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -394,38 +398,60 @@ public class HomeView extends XMBView implements Refreshable {
                     dynamicInput.setShown(true);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.setControls) {
-                    Log.d("HomeView", "Modifying " + selectedItem.obj);
+                    //Log.d("HomeView", "Modifying " + selectedItem.obj);
                     DynamicInputView dynamicInput = ActivityManager.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Modifying " + selectedItem.obj);
                     List<DynamicInputRow.TextInput> comboInputs = new ArrayList<>();
                     List<DynamicInputRow.ButtonInput> pollBtns = new ArrayList<>();
                     List<DynamicInputRow.ButtonInput> clearBtns = new ArrayList<>();
                     List<DynamicInputRow.ButtonInput> removeBtns = new ArrayList<>();
-                    // TODO: add default button
                     InputHandler mainInputter = OxShellApp.getInputHandler();
-//                    Consumer<KeyEvent> onInputReceived = (key_event) -> {
-//                        mainInputter.getHistory();
-//                    };
-//                    mainInputter.addInputListener(onInputReceived);
                     Consumer<KeyCombo[]>[] refreshDynamicInput = new Consumer[1];
+                    // TODO: add ondown/onup options
+
                     Function0<DynamicInputRow.TextInput> addComboRow = () -> {
-                        int selfIndex = comboInputs.size();
+                        AtomicBoolean polling = new AtomicBoolean(false);
                         DynamicInputRow.TextInput keyComboInput = new DynamicInputRow.TextInput("Key Combo");
                         DynamicInputRow.ButtonInput pollBtn = new DynamicInputRow.ButtonInput("Poll", (selfBtn) -> {
-                            // start listening for this row
                             // TODO: add timeout
-                            mainInputter.toggleBlockingInput(true);
-                            AccessService.toggleBlockingInput(true);
+                            int pollTtl = 5000;
                             HashMap<Integer, String> keycodes = KeyCombo.getKeyCodesIntMap();
-                            mainInputter.addInputListener(key_event -> {
+                            Consumer<KeyEvent>[] pollListener = new Consumer[1];
+                            Runnable endPoll = () -> {
+                                selfBtn.setLabel("Poll");
+                                polling.set(false);
+                                mainInputter.toggleBlockingInput(false);
+                                AccessService.toggleBlockingInput(false);
+                                mainInputter.removeInputListener(pollListener[0]);
+                            };
+                            pollListener[0] = key_event -> {
                                 keyComboInput.setText(Arrays.stream(mainInputter.getHistory()).map(ev -> keycodes.getOrDefault(ev.getKeyCode(), Integer.toString(ev.getKeyCode()))).collect(Collectors.joining(" + ")));
-                                if (!mainInputter.isDown()) {
-                                    selfBtn.setLabel("Poll");
-                                    mainInputter.toggleBlockingInput(false);
-                                    AccessService.toggleBlockingInput(false);
-                                    mainInputter.clearInputListeners();
-                                }
-                            });
-                            selfBtn.setLabel("Polling..");
+                                if (!mainInputter.isDown())
+                                    endPoll.run();
+                            };
+                            if (!polling.get()) {
+                                // start listening for this row
+                                long startListenTime = SystemClock.uptimeMillis();
+                                polling.set(true);
+                                Handler timeoutHandler = new Handler(Looper.getMainLooper());
+                                timeoutHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //Log.d("HomeView", "Checking if timed out");
+                                        if (polling.get() && !mainInputter.isDown() && SystemClock.uptimeMillis() - startListenTime < pollTtl) {
+                                            timeoutHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+                                            return;
+                                        }
+                                        if (polling.get() && !mainInputter.isDown())
+                                            endPoll.run();
+                                    }
+                                });
+                                mainInputter.toggleBlockingInput(true);
+                                AccessService.toggleBlockingInput(true);
+                                mainInputter.addInputListener(pollListener[0]);
+                                selfBtn.setLabel("Polling..");
+                            } else
+                                endPoll.run();
                         });
                         DynamicInputRow.ButtonInput clearBtn = new DynamicInputRow.ButtonInput("Clear", (selfBtn) -> {
                             keyComboInput.setText("");
