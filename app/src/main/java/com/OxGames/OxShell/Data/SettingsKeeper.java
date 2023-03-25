@@ -86,101 +86,135 @@ public class SettingsKeeper {
             return ((FontRef)getValue(FONT_REF)).getFont();
         return null;
     }
+
+    public static KeyCombo[] getDefaultInputValueFor(String key) {
+        switch (key) {
+            case (SUPER_PRIMARY_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_START), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_NUMPAD_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_NUMPAD_ENTER) };
+            case (PRIMARY_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_A), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_NUMPAD_ENTER) };
+            case (SECONDARY_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_Y), KeyCombo.createUpCombo(KeyEvent.KEYCODE_MENU), KeyCombo.createUpCombo(KeyEvent.KEYCODE_SPACE) };
+            case (EXPLORER_HIGHLIGHT_INPUT):
+                return new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_BUTTON_X) };
+            case (EXPLORER_GO_UP_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_B) };
+            case (EXPLORER_GO_BACK_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_B) };
+            case (EXPLORER_EXIT_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(false, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK) };
+            case (CANCEL_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_B), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ESCAPE) };
+            case (HOME_COMBOS):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_B) };
+            case (RECENTS_COMBOS):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_X) };
+            case (NAVIGATE_UP):
+                return new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_UP) };
+            case (NAVIGATE_DOWN):
+                return new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_DOWN) };
+            case (NAVIGATE_LEFT):
+                return new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_LEFT) };
+            case (NAVIGATE_RIGHT):
+                return new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_RIGHT) };
+        }
+        return new KeyCombo[0];
+    }
     public static KeyCombo[] getSuperPrimaryInput() {
         // create default if not existing
         if (!hasValue(SUPER_PRIMARY_INPUT))
-            setValue(SUPER_PRIMARY_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_START), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_NUMPAD_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_NUMPAD_ENTER) });
+            setValue(SUPER_PRIMARY_INPUT, getDefaultInputValueFor(SUPER_PRIMARY_INPUT));
 
         return ((KeyCombo[])getValue(SUPER_PRIMARY_INPUT));
     }
     public static KeyCombo[] getPrimaryInput() {
         // create default if not existing
         if (!hasValue(PRIMARY_INPUT))
-            setValue(PRIMARY_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_A), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_NUMPAD_ENTER) });
+            setValue(PRIMARY_INPUT, getDefaultInputValueFor(PRIMARY_INPUT));
 
         return ((KeyCombo[])getValue(PRIMARY_INPUT));
     }
     public static KeyCombo[] getSecondaryInput() {
         // create default if not existing
         if (!hasValue(SECONDARY_INPUT))
-            setValue(SECONDARY_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_Y), KeyCombo.createUpCombo(KeyEvent.KEYCODE_MENU), KeyCombo.createUpCombo(KeyEvent.KEYCODE_SPACE) });
+            setValue(SECONDARY_INPUT, getDefaultInputValueFor(SECONDARY_INPUT));
 
         return ((KeyCombo[])getValue(SECONDARY_INPUT));
     }
     public static KeyCombo[] getExplorerHighlightInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_HIGHLIGHT_INPUT))
-            setValue(EXPLORER_HIGHLIGHT_INPUT, new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_BUTTON_X) });
+            setValue(EXPLORER_HIGHLIGHT_INPUT, getDefaultInputValueFor(EXPLORER_HIGHLIGHT_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_HIGHLIGHT_INPUT));
     }
     public static KeyCombo[] getExplorerGoUpInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_GO_UP_INPUT))
-            setValue(EXPLORER_GO_UP_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_B) });
+            setValue(EXPLORER_GO_UP_INPUT, getDefaultInputValueFor(EXPLORER_GO_UP_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_GO_UP_INPUT));
     }
     public static KeyCombo[] getExplorerGoBackInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_GO_BACK_INPUT))
-            setValue(EXPLORER_GO_BACK_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_B) });
+            setValue(EXPLORER_GO_BACK_INPUT, getDefaultInputValueFor(EXPLORER_GO_BACK_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_GO_BACK_INPUT));
     }
     public static KeyCombo[] getExplorerExitInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_EXIT_INPUT))
-            setValue(EXPLORER_EXIT_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(false, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK) });
+            setValue(EXPLORER_EXIT_INPUT, getDefaultInputValueFor(EXPLORER_EXIT_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_EXIT_INPUT));
     }
     public static KeyCombo[] getCancelInput() {
         // create default if not existing
         if (!hasValue(CANCEL_INPUT))
-            setValue(CANCEL_INPUT, new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_B), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ESCAPE) });
+            setValue(CANCEL_INPUT, getDefaultInputValueFor(CANCEL_INPUT));
 
         return ((KeyCombo[])getValue(CANCEL_INPUT));
     }
     public static KeyCombo[] getHomeCombos() {
         // create default if not existing
         if (!hasValue(HOME_COMBOS))
-            setValue(HOME_COMBOS, new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_B) });
+            setValue(HOME_COMBOS, getDefaultInputValueFor(HOME_COMBOS));
 
         return ((KeyCombo[])getValue(HOME_COMBOS));
     }
     public static KeyCombo[] getRecentsCombos() {
         // create default if not existing
         if (!hasValue(RECENTS_COMBOS))
-            setValue(RECENTS_COMBOS, new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_X) });
+            setValue(RECENTS_COMBOS, getDefaultInputValueFor(RECENTS_COMBOS));
 
         return ((KeyCombo[])getValue(RECENTS_COMBOS));
     }
     public static KeyCombo[] getNavigateUp() {
         // create default if not existing
         if (!hasValue(NAVIGATE_UP))
-            setValue(NAVIGATE_UP, new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_UP) });
+            setValue(NAVIGATE_UP, getDefaultInputValueFor(NAVIGATE_UP));
 
         return ((KeyCombo[])getValue(NAVIGATE_UP));
     }
     public static KeyCombo[] getNavigateDown() {
         // create default if not existing
         if (!hasValue(NAVIGATE_DOWN))
-            setValue(NAVIGATE_DOWN, new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_DOWN) });
+            setValue(NAVIGATE_DOWN, getDefaultInputValueFor(NAVIGATE_DOWN));
 
         return ((KeyCombo[])getValue(NAVIGATE_DOWN));
     }
     public static KeyCombo[] getNavigateLeft() {
         // create default if not existing
         if (!hasValue(NAVIGATE_LEFT))
-            setValue(NAVIGATE_LEFT, new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_LEFT) });
+            setValue(NAVIGATE_LEFT, getDefaultInputValueFor(NAVIGATE_LEFT));
 
         return ((KeyCombo[])getValue(NAVIGATE_LEFT));
     }
     public static KeyCombo[] getNavigateRight() {
         // create default if not existing
         if (!hasValue(NAVIGATE_RIGHT))
-            setValue(NAVIGATE_RIGHT, new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_RIGHT) });
+            setValue(NAVIGATE_RIGHT, getDefaultInputValueFor(NAVIGATE_RIGHT));
 
         return ((KeyCombo[])getValue(NAVIGATE_RIGHT));
     }

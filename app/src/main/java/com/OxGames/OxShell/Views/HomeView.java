@@ -410,14 +410,14 @@ public class HomeView extends XMBView implements Refreshable {
                     Function0<DynamicInputRow.TextInput> addComboRow = () -> {
                         int selfIndex = comboInputs.size();
                         DynamicInputRow.TextInput keyComboInput = new DynamicInputRow.TextInput("Key Combo");
-                        comboInputs.add(keyComboInput);
-                        pollBtns.add(new DynamicInputRow.ButtonInput("Poll", (selfBtn) -> {
+                        DynamicInputRow.ButtonInput pollBtn = new DynamicInputRow.ButtonInput("Poll", (selfBtn) -> {
                             // start listening for this row
                             // TODO: add timeout
                             mainInputter.toggleBlockingInput(true);
                             AccessService.toggleBlockingInput(true);
+                            HashMap<Integer, String> keycodes = KeyCombo.getKeyCodesIntMap();
                             mainInputter.addInputListener(key_event -> {
-                                keyComboInput.setText(Arrays.stream(mainInputter.getHistory()).map(ev -> Integer.toString(ev.getKeyCode())).collect(Collectors.joining(" + ")));
+                                keyComboInput.setText(Arrays.stream(mainInputter.getHistory()).map(ev -> keycodes.getOrDefault(ev.getKeyCode(), Integer.toString(ev.getKeyCode()))).collect(Collectors.joining(" + ")));
                                 if (!mainInputter.isDown()) {
                                     selfBtn.setLabel("Poll");
                                     mainInputter.toggleBlockingInput(false);
@@ -426,17 +426,21 @@ public class HomeView extends XMBView implements Refreshable {
                                 }
                             });
                             selfBtn.setLabel("Polling..");
-                        }));
-                        clearBtns.add(new DynamicInputRow.ButtonInput("Clear", (selfBtn) -> {
+                        });
+                        DynamicInputRow.ButtonInput clearBtn = new DynamicInputRow.ButtonInput("Clear", (selfBtn) -> {
                             keyComboInput.setText("");
-                        }));
-                        removeBtns.add(new DynamicInputRow.ButtonInput("Remove", (selfBtn) -> {
-                            comboInputs.remove(selfIndex);
-                            pollBtns.remove(selfIndex);
-                            clearBtns.remove(selfIndex);
-                            removeBtns.remove(selfIndex);
+                        });
+                        DynamicInputRow.ButtonInput removeBtn = new DynamicInputRow.ButtonInput("Remove", (selfBtn) -> {
+                            comboInputs.remove(keyComboInput);
+                            pollBtns.remove(pollBtn);
+                            clearBtns.remove(clearBtn);
+                            removeBtns.remove(selfBtn);
                             refreshDynamicInput[0].accept(null);
-                        }));
+                        });
+                        comboInputs.add(keyComboInput);
+                        pollBtns.add(pollBtn);
+                        clearBtns.add(clearBtn);
+                        removeBtns.add(removeBtn);
                         return keyComboInput;
                     };
                     DynamicInputRow.ButtonInput addComboBtn = new DynamicInputRow.ButtonInput("Add", v -> {
@@ -447,20 +451,33 @@ public class HomeView extends XMBView implements Refreshable {
                         dynamicInput.setShown(false);
                         // stop listening to input
                     }, SettingsKeeper.getCancelInput());
+                    DynamicInputRow.ButtonInput resetToDefaultsBtn = new DynamicInputRow.ButtonInput("Reset to Default", selfBtn -> {
+                        refreshDynamicInput[0].accept(SettingsKeeper.getDefaultInputValueFor(selectedItem.obj.toString()));
+                    });
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", selfBtn -> {
+                        // make the key combo array from inputs then save them to the settings
+                        KeyCombo[] createdCombos = new KeyCombo[comboInputs.size()];
+                        HashMap<String, Integer> keycodes = KeyCombo.getKeyCodesStringMap();
+                        for (int i = 0; i < comboInputs.size(); i++)
+                            createdCombos[i] = KeyCombo.createUpCombo(false, Arrays.stream(comboInputs.get(i).getText().split("[+]")).mapToInt(value -> { value = value.trim(); try { return Integer.parseInt(value); } catch (Exception e) { return keycodes.getOrDefault(value, -1); } }).toArray());
+                        SettingsKeeper.setValueAndSave(selectedItem.obj.toString(), createdCombos);
+                        dynamicInput.setShown(false);
+                    });
                     refreshDynamicInput[0] = (placedValues) -> {
                         if (placedValues != null) {
-                            // TODO: set up buttons and stuff
                             comboInputs.clear();
                             pollBtns.clear();
                             clearBtns.clear();
                             removeBtns.clear();
+                            HashMap<Integer, String> keycodes = KeyCombo.getKeyCodesIntMap();
                             for (KeyCombo combo : placedValues)
-                                addComboRow.invoke().setText(Arrays.stream(combo.getKeys()).mapToObj(Integer::toString).collect(Collectors.joining(" + ")));
+                                addComboRow.invoke().setText(Arrays.stream(combo.getKeys()).mapToObj(keycode -> keycodes.getOrDefault(keycode, Integer.toString(keycode))).collect(Collectors.joining(" + ")));
                         }
                         List<DynamicInputRow> rows = new ArrayList<>();
                         for (int i = 0; i < comboInputs.size(); i++)
                             rows.add(new DynamicInputRow(comboInputs.get(i), pollBtns.get(i), clearBtns.get(i), removeBtns.get(i)));
-                        rows.add(new DynamicInputRow(addComboBtn, cancelBtn));
+                        rows.add(new DynamicInputRow(addComboBtn, resetToDefaultsBtn));
+                        rows.add(new DynamicInputRow(applyBtn, cancelBtn));
                         dynamicInput.setItems(rows.toArray(new DynamicInputRow[0]));
                     };
 
