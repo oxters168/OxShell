@@ -80,7 +80,7 @@ public class InputHandler {
         inputListeners.clear();
     }
     private void fireInputListeners(KeyEvent event) {
-        for (Consumer<KeyEvent> iL : inputListeners)
+        for (Consumer<KeyEvent> iL : new ArrayList<>(inputListeners))
             iL.accept(event);
     }
     public KeyEvent[] getHistory() {

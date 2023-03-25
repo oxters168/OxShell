@@ -407,6 +407,7 @@ public class HomeView extends XMBView implements Refreshable {
                     List<DynamicInputRow.ButtonInput> removeBtns = new ArrayList<>();
                     InputHandler mainInputter = OxShellApp.getInputHandler();
                     Consumer<KeyCombo[]>[] refreshDynamicInput = new Consumer[1];
+                    AtomicBoolean customizing = new AtomicBoolean(true);
                     // TODO: add ondown/onup options
 
                     Function0<DynamicInputRow.TextInput> addComboRow = () -> {
@@ -438,11 +439,11 @@ public class HomeView extends XMBView implements Refreshable {
                                     @Override
                                     public void run() {
                                         //Log.d("HomeView", "Checking if timed out");
-                                        if (polling.get() && !mainInputter.isDown() && SystemClock.uptimeMillis() - startListenTime < pollTtl) {
+                                        if (customizing.get() && polling.get() && !mainInputter.isDown() && SystemClock.uptimeMillis() - startListenTime < pollTtl) {
                                             timeoutHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
                                             return;
                                         }
-                                        if (polling.get() && !mainInputter.isDown())
+                                        if (polling.get() && (!customizing.get() || !mainInputter.isDown()))
                                             endPoll.run();
                                     }
                                 });
@@ -476,6 +477,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
                         // stop listening to input
+                        customizing.set(false);
                     }, SettingsKeeper.getCancelInput());
                     DynamicInputRow.ButtonInput resetToDefaultsBtn = new DynamicInputRow.ButtonInput("Reset to Default", selfBtn -> {
                         refreshDynamicInput[0].accept(SettingsKeeper.getDefaultInputValueFor(selectedItem.obj.toString()));
@@ -488,6 +490,7 @@ public class HomeView extends XMBView implements Refreshable {
                             createdCombos[i] = KeyCombo.createUpCombo(false, Arrays.stream(comboInputs.get(i).getText().split("[+]")).mapToInt(value -> { value = value.trim(); try { return Integer.parseInt(value); } catch (Exception e) { return keycodes.getOrDefault(value, -1); } }).toArray());
                         SettingsKeeper.setValueAndSave(selectedItem.obj.toString(), createdCombos);
                         dynamicInput.setShown(false);
+                        customizing.set(false);
                     });
                     refreshDynamicInput[0] = (placedValues) -> {
                         if (placedValues != null) {
