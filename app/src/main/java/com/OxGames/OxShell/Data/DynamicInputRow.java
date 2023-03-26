@@ -11,6 +11,7 @@ import com.OxGames.OxShell.Views.DynamicInputRowView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DynamicInputRow {
@@ -48,37 +49,61 @@ public class DynamicInputRow {
         public int row = -1, col = -1;
         public DynamicInputItemView view;
         private int visibility = View.VISIBLE;
+        private boolean enabled = true;
 //        public void setSelected(boolean onOff) {
 //            if (view != null)
 //                view.refreshSelection(onOff);
 //        }
         public InputType inputType;
-        protected List<DynamicInputListener> listeners = new ArrayList<>();
-        public void addListener(DynamicInputListener listener) {
-            listeners.add(listener);
+        //protected List<DynamicInputListener> listeners = new ArrayList<>();
+        protected List<BiConsumer<DynamicInput, Boolean>> focusChangeListeners = new ArrayList<>();
+        protected List<Consumer<DynamicInput>> valuesChangedListeners = new ArrayList<>();
+//        public void addListener(DynamicInputListener listener) {
+//            listeners.add(listener);
+//        }
+//        public void removeListener(DynamicInputListener listener) {
+//            listeners.remove(listener);
+//        }
+//        public void clearListeners() {
+//            listeners.clear();
+//        }
+        public void addValuesChangedListener(Consumer<DynamicInput> listener) {
+            valuesChangedListeners.add(listener);
         }
-        public void removeListener(DynamicInputListener listener) {
-            listeners.remove(listener);
+        public void removeValuesChangedListener(Consumer<DynamicInput> listener) {
+            valuesChangedListeners.remove(listener);
         }
-        public void clearListeners() {
-            listeners.clear();
+        public void clearValuesChangedListeners() {
+            valuesChangedListeners.clear();
         }
-        public void onFocusChange(View view, boolean hasFocus) {
-            for (DynamicInputListener listener : listeners)
+        public void addFocusChangeListener(BiConsumer<DynamicInput, Boolean> listener) {
+            focusChangeListeners.add(listener);
+        }
+        public void removeFocusChangeListener(BiConsumer<DynamicInput, Boolean> listener) {
+            focusChangeListeners.remove(listener);
+        }
+        public void clearFocusChangeListeners() {
+            focusChangeListeners.clear();
+        }
+        public void onFocusChange(boolean hasFocus) {
+            for (BiConsumer<DynamicInput, Boolean> listener : focusChangeListeners)
                 if (listener != null)
-                    listener.onFocusChanged(view, hasFocus);
+                    listener.accept(this, hasFocus);
         }
         protected void valuesChanged() {
-            for (DynamicInputListener listener : listeners)
+            for (Consumer<DynamicInput> listener : valuesChangedListeners)
                 if (listener != null)
-                    listener.onValuesChanged();
+                    listener.accept(this);
         }
         public boolean isEnabled() {
-            return view != null && view.isEnabled();
+            return enabled;
+            //return view != null && view.isEnabled();
         }
         public void setEnabled(boolean onOff) {
-            if (view != null)
-                view.setEnabled(onOff);
+            enabled = onOff;
+            valuesChanged();
+            //if (view != null)
+            //    view.setEnabled(onOff);
         }
         public int getVisibility() {
             return visibility;
@@ -193,13 +218,16 @@ public class DynamicInputRow {
         private String onLabel;
         private String offLabel;
         private boolean onOff;
-        private View.OnClickListener onClick;
+        private Consumer<ToggleInput> onClick;
 
-        public ToggleInput(String onLabel, String offLabel, View.OnClickListener onClick) {
+        public ToggleInput(String onLabel, String offLabel, Consumer<ToggleInput> onClick) {
             this.inputType = InputType.toggle;
             this.onLabel = onLabel;
             this.offLabel = offLabel;
             this.onClick = onClick;
+        }
+        public ToggleInput(String onLabel, String offLabel) {
+            this(onLabel, offLabel, null);
         }
 
         public void setOnLabel(String onLabel, boolean fireEvent) {
@@ -226,7 +254,7 @@ public class DynamicInputRow {
             if (fireEvent)
                 valuesChanged();
         }
-        public View.OnClickListener getOnClick() {
+        public Consumer<ToggleInput> getOnClick() {
             return onClick;
         }
 

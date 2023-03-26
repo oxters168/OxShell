@@ -405,12 +405,17 @@ public class HomeView extends XMBView implements Refreshable {
                     List<DynamicInputRow.ButtonInput> pollBtns = new ArrayList<>();
                     List<DynamicInputRow.ButtonInput> clearBtns = new ArrayList<>();
                     List<DynamicInputRow.ButtonInput> removeBtns = new ArrayList<>();
+                    List<DynamicInputRow.ToggleInput> onDownToggles = new ArrayList<>();
+                    List<DynamicInputRow.TextInput> holdTimeInputs = new ArrayList<>();
+                    List<DynamicInputRow.TextInput> repeatStartDelayInputs = new ArrayList<>();
+                    List<DynamicInputRow.TextInput> repeatDelayInputs = new ArrayList<>();
+                    List<DynamicInputRow.ToggleInput> orderedToggles = new ArrayList<>();
                     InputHandler mainInputter = OxShellApp.getInputHandler();
                     Consumer<KeyCombo[]>[] refreshDynamicInput = new Consumer[1];
                     AtomicBoolean customizing = new AtomicBoolean(true);
                     // TODO: add ondown/onup options
 
-                    Function0<DynamicInputRow.TextInput> addComboRow = () -> {
+                    Consumer<KeyCombo> addComboRow = (combo) -> {
                         AtomicBoolean polling = new AtomicBoolean(false);
                         DynamicInputRow.TextInput keyComboInput = new DynamicInputRow.TextInput("Key Combo");
                         DynamicInputRow.ButtonInput pollBtn = new DynamicInputRow.ButtonInput("Poll", (selfBtn) -> {
@@ -454,6 +459,19 @@ public class HomeView extends XMBView implements Refreshable {
                             } else
                                 endPoll.run();
                         });
+                        DynamicInputRow.TextInput holdTimeInput = new DynamicInputRow.TextInput("Hold Time (ms)");
+                        holdTimeInput.setVisibility(GONE);
+                        DynamicInputRow.TextInput repeatStartDelayInput = new DynamicInputRow.TextInput("Repeat Start Delay (ms)");
+                        repeatStartDelayInput.setVisibility(GONE);
+                        DynamicInputRow.TextInput repeatDelayInput = new DynamicInputRow.TextInput("Repeat Delay (ms)");
+                        repeatDelayInput.setVisibility(GONE);
+                        DynamicInputRow.ToggleInput orderedToggle = new DynamicInputRow.ToggleInput("Ordered", "Not Ordered", null);
+                        DynamicInputRow.ToggleInput onDownToggle = new DynamicInputRow.ToggleInput("On Press", "On Release");
+                        onDownToggle.addValuesChangedListener(selfToggle -> {
+                            holdTimeInput.setVisibility(((DynamicInputRow.ToggleInput)selfToggle).getOnOff() ? VISIBLE : GONE);
+                            repeatStartDelayInput.setVisibility(((DynamicInputRow.ToggleInput)selfToggle).getOnOff() ? VISIBLE : GONE);
+                            repeatDelayInput.setVisibility(((DynamicInputRow.ToggleInput)selfToggle).getOnOff() ? VISIBLE : GONE);
+                        });
                         DynamicInputRow.ButtonInput clearBtn = new DynamicInputRow.ButtonInput("Clear", (selfBtn) -> {
                             keyComboInput.setText("");
                         });
@@ -464,14 +482,28 @@ public class HomeView extends XMBView implements Refreshable {
                             removeBtns.remove(selfBtn);
                             refreshDynamicInput[0].accept(null);
                         });
+                        if (combo != null) {
+                            HashMap<Integer, String> keycodes = KeyCombo.getKeyCodesIntMap();
+                            keyComboInput.setText(Arrays.stream(combo.getKeys()).mapToObj(keycode -> keycodes.getOrDefault(keycode, Integer.toString(keycode))).collect(Collectors.joining(" + ")));
+                            onDownToggle.setOnOff(combo.isOnDown(), true);
+                            holdTimeInput.setText(Integer.toString(combo.getHoldMillis()));
+                            repeatStartDelayInput.setText(Integer.toString(combo.getRepeatStartDelay()));
+                            repeatDelayInput.setText(Integer.toString(combo.getRepeatMillis()));
+                            orderedToggle.setOnOff(combo.isOrdered(), true);
+                        }
                         comboInputs.add(keyComboInput);
                         pollBtns.add(pollBtn);
                         clearBtns.add(clearBtn);
                         removeBtns.add(removeBtn);
-                        return keyComboInput;
+                        onDownToggles.add(onDownToggle);
+                        holdTimeInputs.add(holdTimeInput);
+                        repeatStartDelayInputs.add(repeatStartDelayInput);
+                        repeatDelayInputs.add(repeatDelayInput);
+                        orderedToggles.add(orderedToggle);
+                        //return keyComboInput;
                     };
-                    DynamicInputRow.ButtonInput addComboBtn = new DynamicInputRow.ButtonInput("Add", v -> {
-                        addComboRow.invoke();
+                    DynamicInputRow.ButtonInput addComboBtn = new DynamicInputRow.ButtonInput("Add Combo", v -> {
+                        addComboRow.accept(null);
                         refreshDynamicInput[0].accept(null);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
@@ -498,15 +530,21 @@ public class HomeView extends XMBView implements Refreshable {
                             pollBtns.clear();
                             clearBtns.clear();
                             removeBtns.clear();
-                            HashMap<Integer, String> keycodes = KeyCombo.getKeyCodesIntMap();
+                            onDownToggles.clear();
+                            holdTimeInputs.clear();
+                            repeatStartDelayInputs.clear();
+                            repeatDelayInputs.clear();
+                            orderedToggles.clear();
                             for (KeyCombo combo : placedValues)
-                                addComboRow.invoke().setText(Arrays.stream(combo.getKeys()).mapToObj(keycode -> keycodes.getOrDefault(keycode, Integer.toString(keycode))).collect(Collectors.joining(" + ")));
+                                addComboRow.accept(combo);
                         }
                         List<DynamicInputRow> rows = new ArrayList<>();
-                        for (int i = 0; i < comboInputs.size(); i++)
+                        for (int i = 0; i < comboInputs.size(); i++) {
                             rows.add(new DynamicInputRow(comboInputs.get(i), pollBtns.get(i), clearBtns.get(i), removeBtns.get(i)));
-                        rows.add(new DynamicInputRow(addComboBtn, resetToDefaultsBtn));
-                        rows.add(new DynamicInputRow(applyBtn, cancelBtn));
+                            rows.add(new DynamicInputRow(onDownToggles.get(i), orderedToggles.get(i)));
+                            rows.add(new DynamicInputRow(holdTimeInputs.get(i), repeatStartDelayInputs.get(i), repeatDelayInputs.get(i)));
+                        }
+                        rows.add(new DynamicInputRow(applyBtn, addComboBtn, resetToDefaultsBtn, cancelBtn));
                         dynamicInput.setItems(rows.toArray(new DynamicInputRow[0]));
                     };
 
@@ -871,64 +909,48 @@ public class HomeView extends XMBView implements Refreshable {
             }
         });
         classesDropdown.setVisibility(GONE);
-        classNameInput.addListener(new DynamicInputListener() {
-            @Override
-            public void onFocusChanged(View view, boolean hasFocus) {
-
-            }
-
-            @Override
-            public void onValuesChanged() {
-                //Log.d("HomeView", "Looking for package in list");
-                // populate next list with class names
-                String[] currentClassNames = classesDropdown.getOptions();
-                if (currentClassNames != null) {
-                    int index = 0;
-                    for (int i = 0; i < currentClassNames.length; i++)
-                        if (currentClassNames[i].equals(classNameInput.getText())) {
-                            index = i;
-                            break;
-                        }
-                    // if the user is typing and they type a valid class name, then select it in the drop down
-                    classesDropdown.setIndex(index);
-                }
-            }
-        });
-        pkgNameInput.addListener(new DynamicInputListener() {
-            @Override
-            public void onFocusChanged(View view, boolean hasFocus) {
-
-            }
-
-            @Override
-            public void onValuesChanged() {
-                //Log.d("HomeView", "Looking for package in list");
-                // populate next list with class names
+        classNameInput.addValuesChangedListener(self -> {
+            //Log.d("HomeView", "Looking for package in list");
+            // populate next list with class names
+            String[] currentClassNames = classesDropdown.getOptions();
+            if (currentClassNames != null) {
                 int index = 0;
-                for (int i = 0; i < pkgs.size(); i++)
-                    if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
-                        index = i + 1;
+                for (int i = 0; i < currentClassNames.length; i++)
+                    if (currentClassNames[i].equals(classNameInput.getText())) {
+                        index = i;
                         break;
                     }
-                //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
-                // if the user is typing and they type a valid package name, then select it in the drop down
-                String[] classes = new String[0];
-                pkgsDropdown.setIndex(index);
-                if (index >= 1) { // 0 is unlisted, so skip
-                    //Log.d("HomeView", "Package exists");
-
-                    String[] tmp = PackagesCache.getClassesOfPkg(pkgNameInput.getText());
-                    if (tmp.length > 0) {
-                        classes = new String[tmp.length + 1];
-                        System.arraycopy(tmp, 0, classes, 1, tmp.length);
-                        classes[0] = "Unlisted";
-                    }
-                }
-                classNames[0] = classes;
-                classesDropdown.setOptions(classes);
-                classesDropdown.setVisibility(classes.length > 0 ? VISIBLE : GONE);
-                //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
+                // if the user is typing and they type a valid class name, then select it in the drop down
+                classesDropdown.setIndex(index);
             }
+        });
+        pkgNameInput.addValuesChangedListener(self -> {
+            //Log.d("HomeView", "Looking for package in list");
+            // populate next list with class names
+            int index = 0;
+            for (int i = 0; i < pkgs.size(); i++)
+                if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
+                    index = i + 1;
+                    break;
+                }
+            //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
+            // if the user is typing and they type a valid package name, then select it in the drop down
+            String[] classes = new String[0];
+            pkgsDropdown.setIndex(index);
+            if (index >= 1) { // 0 is unlisted, so skip
+                //Log.d("HomeView", "Package exists");
+
+                String[] tmp = PackagesCache.getClassesOfPkg(pkgNameInput.getText());
+                if (tmp.length > 0) {
+                    classes = new String[tmp.length + 1];
+                    System.arraycopy(tmp, 0, classes, 1, tmp.length);
+                    classes[0] = "Unlisted";
+                }
+            }
+            classNames[0] = classes;
+            classesDropdown.setOptions(classes);
+            classesDropdown.setVisibility(classes.length > 0 ? VISIBLE : GONE);
+            //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
         });
         pkgsDropdown.setOptions(pkgNames.toArray(new String[0]));
         String[] intentActions = PackagesCache.getAllIntentActions();
@@ -943,22 +965,14 @@ public class HomeView extends XMBView implements Refreshable {
                 actionInput.setText(actionName);
             }
         }, intentActionNames);
-        actionInput.addListener(new DynamicInputListener() {
-            @Override
-            public void onFocusChanged(View view, boolean hasFocus) {
-
-            }
-
-            @Override
-            public void onValuesChanged() {
-                int index = 0;
-                for (int i = 0; i < intentActions.length; i++)
-                    if (actionInput.getText().equals(intentActions[i])) {
-                        index = i + 1;
-                        break;
-                    }
-                actionsDropdown.setIndex(index);
-            }
+        actionInput.addValuesChangedListener(self -> {
+            int index = 0;
+            for (int i = 0; i < intentActions.length; i++)
+                if (actionInput.getText().equals(intentActions[i])) {
+                    index = i + 1;
+                    break;
+                }
+            actionsDropdown.setIndex(index);
         });
         DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
         String[] dataTypes = { IntentLaunchData.DataType.None.toString(), IntentLaunchData.DataType.AbsolutePath.toString(), IntentLaunchData.DataType.FileNameWithExt.toString(), IntentLaunchData.DataType.FileNameWithoutExt.toString() };

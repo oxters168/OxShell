@@ -1,21 +1,14 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,21 +17,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
-import com.OxGames.OxShell.Data.FontRef;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.InputHandler;
-import com.OxGames.OxShell.Interfaces.DynamicInputListener;
-import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DynamicInputView extends FrameLayout {// implements InputReceiver {
@@ -265,6 +254,8 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             nextRow = result[0];
             nextCol = result[1];
         }
+        int startRow = nextRow;
+        int startCol = nextCol;
 
         if (keycode_direction == KeyEvent.KEYCODE_DPAD_UP) {
             nextRow = searchVer(nextRow - 1, nextCol, -1);
@@ -291,19 +282,51 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             nextCol = searchHor(nextRow, nextCol + 1, 1);
         nextCol = Math.min(Math.max(nextCol, 0), rows[nextRow].getCount() - 1);
         //Log.d("DynamicInputView", "Attempting to focus on row: " + nextRow + " col: " + nextCol);
-        View view = rows[nextRow].get(nextCol).view;
-        if (view != null) {
-            //Log.d("DynamicInputView", "Requesting focus on [" + nextRow + ", " + nextCol + "]");
-            scrollToItem(nextRow, nextCol);
-            view.requestFocus();
-        } else
-            Log.e("DynamicInputView", "Failed to focus on null view at [" + nextRow + ", " + nextCol + "]");
+        //View view = rows[nextRow].get(nextCol).view;
+        //if (view != null) {
+            //Log.d("DynamicInputView", "Shifting focus [" + startRow + ", " + startCol + "] => [" + nextRow + ", " + nextCol + "]");
+            int finalNextRow = nextRow;
+            int finalNextCol = nextCol;
+            scrollToPositionIfNeeded(mainList, nextRow, () -> {
+                scrollToPositionIfNeeded(rows[finalNextRow].view.getRow(), finalNextCol, () -> {
+                    rows[finalNextRow].get(finalNextCol).view.requestFocus();
+                });
+            });
+            //scrollToItem(nextRow, nextCol);
+            //((DynamicInputItemView)((DynamicInputRowView)mainList.findViewHolderForAdapterPosition(nextRow).itemView).getRow().findViewHolderForAdapterPosition(nextCol).itemView).requestFocus();
+            //view.requestFocus();
+        //} else
+        //    Log.e("DynamicInputView", "Failed to shift focus [" + startRow + ", " + startCol + "] => [" + nextRow + ", " + nextCol + "]");
     }
-    private void scrollToItem(int row, int col) {
-        if (row >= 0 && row < rows.length)
-            mainList.scrollToPosition(row);
-        if (col >= 0 && col < rows[row].getCount())
-            rows[row].view.getRow().scrollToPosition(col);
+
+    private static boolean shouldScrollToPosition(RecyclerView rv, int position) {
+        if (rv.getLayoutManager() != null) {
+            int firstVisibleItem = ((LinearLayoutManager)rv.getLayoutManager()).findFirstVisibleItemPosition();
+            int lastVisibleItem = ((LinearLayoutManager)rv.getLayoutManager()).findLastVisibleItemPosition();
+            return position < firstVisibleItem || position > lastVisibleItem;
+        }
+        return false;
+    }
+    private static void scrollToPositionIfNeeded(RecyclerView rv, int position, Runnable onScrolled) {
+        if (shouldScrollToPosition(rv, position)) {
+            rv.scrollToPosition(position);
+            rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    //Log.d("DynamicInputView", "onScrolled " + recyclerView.getScrollState());
+                    if(recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_IDLE) {
+                        //Log.d("DynamicInputView", "onScrolled to idle");
+                        // Action to be performed after RecyclerView has finished scrolling to the desired position
+                        // For example, you can update the UI, make a network call, etc.
+                        //performAction();
+                        onScrolled.run();
+                        recyclerView.removeOnScrollListener(this); // Remove the listener after performing the action
+                    }
+                }
+            });
+        } else
+            onScrolled.run();
     }
     private boolean canFocusOn(DynamicInputRow.DynamicInput item) {
         return item != null && item.getVisibility() == VISIBLE && item.isEnabled() && item.inputType != DynamicInputRow.DynamicInput.InputType.label && item.inputType != DynamicInputRow.DynamicInput.InputType.image;

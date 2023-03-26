@@ -55,10 +55,10 @@ public class KeyCombo implements Serializable {
         return new KeyCombo(false, 0, 0, 0, ordered, keycodes);
     }
     public static KeyCombo createDownCombo(int holdMillis, int repeatStartDelay, int repeatMillis, int keycode) {
-        return new KeyCombo(true, holdMillis, repeatStartDelay, repeatMillis, true, new int[] { keycode });
+        return new KeyCombo(true, holdMillis, repeatStartDelay, repeatMillis, false, new int[] { keycode });
     }
     public static KeyCombo createUpCombo(int keycode) {
-        return new KeyCombo(false, 0, 0, 0, true, new int[] { keycode });
+        return new KeyCombo(false, 0, 0, 0, false, new int[] { keycode });
     }
 
     public static HashMap<String, Integer> getKeyCodesStringMap() {

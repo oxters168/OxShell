@@ -6,23 +6,16 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
-import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -36,7 +29,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.SettingsKeeper;
@@ -47,10 +39,12 @@ import com.OxGames.OxShell.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.util.function.Consumer;
+
 public class DynamicInputItemView extends FrameLayout {
     private Context context;
     private DynamicInputRow.DynamicInput inputItem;
-    private DynamicInputListener itemListener;
+    private Consumer<DynamicInputRow.DynamicInput> valuesChangedListener;
 
     private TextWatcher inputWatcher;
     private TextInputLayout inputLayout;
@@ -144,17 +138,10 @@ public class DynamicInputItemView extends FrameLayout {
             image.setVisibility(GONE);
 
         // remove the previous item's listener
-        if (inputItem != null && itemListener != null)
-            inputItem.removeListener(itemListener);
+        if (inputItem != null && valuesChangedListener != null)
+            inputItem.removeValuesChangedListener(valuesChangedListener);
         // set up the current item's listener to change the view when its values are changed
-        itemListener = new DynamicInputListener() {
-            @Override
-            public void onFocusChanged(View view, boolean hasFocus) {
-
-            }
-
-            @Override
-            public void onValuesChanged() {
+        valuesChangedListener = self -> {
                 if (inputLayout != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.text) {
                         EditText textEdit = inputLayout.getEditText();
@@ -166,12 +153,14 @@ public class DynamicInputItemView extends FrameLayout {
                             }
                         }
                         inputLayout.setVisibility(item.getVisibility());
+                        inputLayout.setEnabled(item.isEnabled());
                     }
                 }
                 if (button != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.button) {
                         button.setText(((DynamicInputRow.ButtonInput)item).getLabel());
                         button.setVisibility(item.getVisibility());
+                        button.setEnabled(item.isEnabled());
                     }
                 }
                 if (toggle != null) {
@@ -179,6 +168,7 @@ public class DynamicInputItemView extends FrameLayout {
                         DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;
                         toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
                         toggle.setVisibility(item.getVisibility());
+                        toggle.setEnabled(item.isEnabled());
                     }
                 }
                 if (dropdown != null) {
@@ -192,12 +182,14 @@ public class DynamicInputItemView extends FrameLayout {
                             dropdown.setSelection(innerItem.getIndex());
                         //}
                         dropdown.setVisibility(item.getVisibility());
+                        dropdown.setEnabled(item.isEnabled());
                     }
                 }
                 if (image != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.image) {
                         image.setImageDrawable(((DynamicInputRow.ImageDisplay)item).getImage());
                         image.setVisibility(item.getVisibility());
+                        image.setEnabled(item.isEnabled());
                     }
                 }
                 if (label != null) {
@@ -206,11 +198,11 @@ public class DynamicInputItemView extends FrameLayout {
                         label.setText(innerItem.getLabel());
                         label.setGravity(innerItem.getGravity());
                         label.setVisibility(item.getVisibility());
+                        label.setEnabled(item.isEnabled());
                     }
                 }
-            }
         };
-        item.addListener(itemListener);
+        item.addValuesChangedListener(valuesChangedListener);
 
         int itemHeight = getItemHeight();
         Typeface font = SettingsKeeper.getFont();
@@ -240,7 +232,7 @@ public class DynamicInputItemView extends FrameLayout {
             // set the edit text to fire onFocusChange on the current item
             textEdit.setOnFocusChangeListener((view, hasFocus) -> {
                 //Log.d("DynamicInputItemView", "onFocusChange [" + inputItem.row + ", " + inputItem.col + "] hasFocus: " + hasFocus);
-                innerItem.onFocusChange(view, hasFocus);
+                innerItem.onFocusChange(hasFocus);
             });
             //textEdit.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             // set the starting value of the view to what the item already had
@@ -296,7 +288,7 @@ public class DynamicInputItemView extends FrameLayout {
             button.setOnFocusChangeListener((view, hasFocus) -> {
                 //Log.d("DynamicInputItemView", "onFocusChange [" + inputItem.row + ", " + inputItem.col + "] hasFocus: " + hasFocus);
                 button.setBackgroundTintList(ColorStateList.valueOf((hasFocus || button.isPressed()) ? Color.parseColor("#88CEEAF0") : Color.parseColor("#88323232")));
-                innerItem.onFocusChange(view, hasFocus);
+                innerItem.onFocusChange(hasFocus);
             });
             //button.setImeOptions(EditorInfo.IME_ACTION_NEXT);
             button.setText(innerItem.getLabel());
@@ -307,6 +299,7 @@ public class DynamicInputItemView extends FrameLayout {
             if (innerItem.getOnClick() != null)
                 button.setOnClickListener(v -> { innerItem.getOnClick().accept(innerItem); });
             button.setVisibility(innerItem.getVisibility());
+            button.setEnabled(innerItem.isEnabled());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
             DynamicInputRow.ToggleInput innerItem = (DynamicInputRow.ToggleInput)item;
             if (toggle == null) {
@@ -326,12 +319,13 @@ public class DynamicInputItemView extends FrameLayout {
             toggle.setTypeface(font);
             toggle.setChecked(innerItem.getOnOff());
             toggle.setOnClickListener((view) -> {
-                innerItem.setOnOff(toggle.isChecked(), false);
+                innerItem.setOnOff(toggle.isChecked(), true);
                 toggle.setText(innerItem.getOnOff() ? innerItem.getOnLabel() : innerItem.getOffLabel());
                 if (innerItem.getOnClick() != null)
-                    innerItem.getOnClick().onClick(view);
+                    innerItem.getOnClick().accept(innerItem);
             });
             toggle.setVisibility(innerItem.getVisibility());
+            toggle.setEnabled(innerItem.isEnabled());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.dropdown) {
             DynamicInputRow.Dropdown innerItem = (DynamicInputRow.Dropdown)item;
             if (dropdown == null) {
@@ -372,6 +366,7 @@ public class DynamicInputItemView extends FrameLayout {
             if (innerItem.getCount() >= 0)
                 dropdown.setSelection(innerItem.getIndex());
             dropdown.setVisibility(innerItem.getVisibility());
+            dropdown.setEnabled(innerItem.isEnabled());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.image) {
             DynamicInputRow.ImageDisplay innerItem = (DynamicInputRow.ImageDisplay)item;
             if (image == null) {
@@ -385,6 +380,7 @@ public class DynamicInputItemView extends FrameLayout {
             }
             image.setImageDrawable(innerItem.getImage());
             image.setVisibility(innerItem.getVisibility());
+            image.setEnabled(innerItem.isEnabled());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {
             DynamicInputRow.Label innerItem = (DynamicInputRow.Label)item;
             if (label == null) {
@@ -406,6 +402,7 @@ public class DynamicInputItemView extends FrameLayout {
             label.setTypeface(font);
             //label.setVisibility(VISIBLE);
             label.setVisibility(innerItem.getVisibility());
+            label.setEnabled(innerItem.isEnabled());
         }
 
         inputItem = item;
