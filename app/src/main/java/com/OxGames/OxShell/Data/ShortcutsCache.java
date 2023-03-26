@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Data;
 
 import android.content.Intent;
+import android.util.Log;
 
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
@@ -21,8 +22,12 @@ public class ShortcutsCache {
             intents = new HashMap<>();
             File[] files = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
             for (File file : files) {
-                IntentLaunchData intent = (IntentLaunchData)Serialaver.loadFromFSTJSON(file.getAbsolutePath());
-                intents.put(intent.getId(), intent);
+                try {
+                    IntentLaunchData intent = (IntentLaunchData) Serialaver.loadFromFSTJSON(file.getAbsolutePath());
+                    intents.put(intent.getId(), intent);
+                } catch (Exception e) {
+                    Log.e("ShortcutsCache", "Failed to read intent from file: " + e);
+                }
             }
         }
         //return intents;

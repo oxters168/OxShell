@@ -1166,7 +1166,7 @@ public class HomeView extends XMBView implements Refreshable {
             String title = titleInput.getText();
             ImageRef imgRef = imageDisplay.getImageRef();
             // delete old icon
-            if (imgRef != colItem.getImgRef())
+            if (imgRef != colItem.getImgRef() && colItem.getImgRef().getRefType() == DataLocation.file)
                 ExplorerBehaviour.delete((String)colItem.getImgRef().getImageObj());
             if (imgRef.getRefType() == DataLocation.resolverUri) {
                 String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());

@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Data;
 
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
@@ -53,8 +54,13 @@ public class SettingsKeeper {
         }
     }
     public static void load() {
-        if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))
-            settingsCache = (HashMap<String, Object>)Serialaver.loadFromFSTJSON(Paths.SETTINGS_INTERNAL_PATH);
+        if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH)) {
+            try {
+                settingsCache = (HashMap<String, Object>)Serialaver.loadFromFSTJSON(Paths.SETTINGS_INTERNAL_PATH);
+            } catch (Exception e) {
+                Log.e("SettingsKeeper", "Failed to read settings: " + e);
+            }
+        }
     }
     public static void save() {
         if (!AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH))

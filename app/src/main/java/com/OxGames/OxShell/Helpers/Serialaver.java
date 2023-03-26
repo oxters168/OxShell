@@ -49,7 +49,7 @@ public class Serialaver {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-        Object deser = conf.asObject(bytes);
+        //Object deser = conf.asObject(bytes);
     }
     public static Object loadFromFSTJSON(String absPath) {
         FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
