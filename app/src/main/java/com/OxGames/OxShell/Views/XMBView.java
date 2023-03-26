@@ -1104,54 +1104,24 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         return yToIndex(catPos.get(colIndex), colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
     }
 
-    public KeyComboAction[] getKeyComboActions() {
-        List<KeyComboAction> keyComboActions = Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
-            stopMomentum();
-            affirmativeAction();
-        })).collect(Collectors.toList());
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, () -> {
-            stopMomentum();
-            secondaryAction();
-        })).collect(Collectors.toList()));
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> {
-            stopMomentum();
-            cancelAction();
-        })).collect(Collectors.toList()));
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
-            //Log.d("XMBView", "Pressed up");
-            stopMomentum();
-            selectUpperItem();
-        })).collect(Collectors.toList()));
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
-            //Log.d("XMBView", "Pressed down");
-            stopMomentum();
-            selectLowerItem();
-        })).collect(Collectors.toList()));
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
-            //Log.d("XMBView", "Pressed left");
-            stopMomentum();
-            selectLeftItem();
-        })).collect(Collectors.toList()));
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
-            //Log.d("XMBView", "Pressed right");
-            stopMomentum();
-            selectRightItem();
-        })).collect(Collectors.toList()));
-        return keyComboActions.toArray(new KeyComboAction[0]);
-    }
     public void selectLowerItem() {
+        stopMomentum();
         shiftYDisc(1);
     }
     public void selectUpperItem() {
+        stopMomentum();
         shiftYDisc(-1);
     }
     public void selectRightItem() {
+        stopMomentum();
         shiftXDisc(1);
     }
     public void selectLeftItem() {
+        stopMomentum();
         shiftXDisc(-1);
     }
     public boolean affirmativeAction() {
+        stopMomentum();
         if (moveMode) {
             applyMove();
             return true;
@@ -1172,9 +1142,11 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         return false;
     }
     public boolean secondaryAction() {
+        stopMomentum();
         return false;
     }
     public boolean cancelAction() {
+        stopMomentum();
         if (moveMode) {
             // TODO: add way to revert changes
             toggleMoveMode(false, false);

@@ -42,6 +42,7 @@ import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
+import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.OxShellApp;
@@ -523,6 +524,8 @@ public class HomeView extends XMBView implements Refreshable {
                         SettingsKeeper.setValueAndSave(selectedItem.obj.toString(), createdCombos);
                         dynamicInput.setShown(false);
                         customizing.set(false);
+                        if (ActivityManager.getCurrentActivity() instanceof HomeActivity)
+                            ((HomeActivity)ActivityManager.getCurrentActivity()).refreshXMBInput();
                     });
                     refreshDynamicInput[0] = (placedValues) -> {
                         if (placedValues != null) {
