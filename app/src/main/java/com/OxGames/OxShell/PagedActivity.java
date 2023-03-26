@@ -3,11 +3,15 @@ package com.OxGames.OxShell;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -21,12 +25,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.KeyCombo;
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
-import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
@@ -36,6 +41,7 @@ import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -101,7 +107,7 @@ public class PagedActivity extends AppCompatActivity {
         mCreateRequest.launch(type);
     }
 
-    private HashMap<Integer, List<Consumer<Boolean>>> permissionListeners = new HashMap<>();
+    private final HashMap<Integer, List<Consumer<Boolean>>> permissionListeners = new HashMap<>();
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         Log.i("PagedActivity", "Received result for " + requestCode + " permissions: " + Arrays.toString(permissions) + " grantResults: " + Arrays.toString(grantResults));
@@ -125,6 +131,7 @@ public class PagedActivity extends AppCompatActivity {
     private static final int SETTINGS_DRAWER_ID = View.generateViewId();
     private static final int DYNAMIC_INPUT_ID = View.generateViewId();
     private static final int PROMPT_ID = View.generateViewId();
+    //private static final String PAGED_ACTIVITY_INPUT = "PAGED_ACTIVITY_INPUT";
 
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
     //    private static PagedActivity instance;
@@ -145,8 +152,47 @@ public class PagedActivity extends AppCompatActivity {
 
     private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
+    //private InputHandler inputHandler;
+    //private boolean isKeyboardShown;
+    private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
+    private List<KeyComboAction> accessPopupComboActions;
+
+    private static final String homeAccessMsg = "Ox Shell needs accessibility permission in order to go home when pressing this key combo";
+    private static final String recentsAccessMsg = "Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
+
+    private void showAccessibilityPopup(String msg) {
+        if (!AccessService.isEnabled() && !prompt.isPromptShown()) {
+            PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+            prompt.setCenterOfScreen();
+            prompt.setMessage(msg);
+            prompt.setStartBtn("Continue", () -> {
+                prompt.setShown(false);
+                AndroidHelpers.requestAccessibilityService(granted -> {
+                    Log.d("PagedActivity", "Accessibility permission granted: " + granted);
+                });
+            }, SettingsKeeper.getSuperPrimaryInput());
+            prompt.setEndBtn("Cancel", () -> {
+                prompt.setShown(false);
+            }, SettingsKeeper.getCancelInput());
+            prompt.setShown(true);
+        }
+    }
+    public void refreshAccessibilityInput() {
+        if (accessPopupComboActions != null)
+            OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
+        KeyComboAction[] recentsComboAction = Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(recentsAccessMsg))).toArray(KeyComboAction[]::new);
+        KeyComboAction[] homeComboAction = Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(homeAccessMsg))).toArray(KeyComboAction[]::new);
+        accessPopupComboActions = new ArrayList<>();
+        Collections.addAll(accessPopupComboActions, recentsComboAction);
+        Collections.addAll(accessPopupComboActions, homeComboAction);
+        OxShellApp.getInputHandler().addKeyComboActions(recentsComboAction);
+        OxShellApp.getInputHandler().addKeyComboActions(homeComboAction);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        refreshAccessibilityInput();
+
         trySetStartTime();
         super.onCreate(savedInstanceState);
 //        instance = this;
@@ -225,6 +271,38 @@ public class PagedActivity extends AppCompatActivity {
         // use outState.putFloat, putInt, putString...
         super.onSaveInstanceState(outState);
     }
+
+    @Override
+    protected void onStart() {
+        Log.i("PagedActivity", "OnStart " + this);
+        //startCheckIfKeyboardOpen();
+
+        super.onStart();
+    }
+//    private void startCheckIfKeyboardOpen() {
+//        View rootView = getWindow().getDecorView();
+//        if (keyboardListener != null)
+//            rootView.getViewTreeObserver().removeOnGlobalLayoutListener(keyboardListener);
+//        keyboardListener = () -> {
+//            Rect r = new Rect();
+//            rootView.getWindowVisibleDisplayFrame(r);
+//
+//            int heightDiff = rootView.getHeight() - (r.bottom - r.top);
+//            isKeyboardShown = heightDiff > 100;
+//        };
+//        rootView.getViewTreeObserver().addOnGlobalLayoutListener(keyboardListener);
+//    }
+    public boolean isKeyboardShown() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            return getWindow().getDecorView().getRootWindowInsets().isVisible(WindowInsets.Type.ime());
+//        }
+        Rect windowRect = new Rect();
+        getWindow().getDecorView().getWindowVisibleDisplayFrame(windowRect);
+        //Log.d("PagedActivity", "WindowRect: " + windowRect.bottom + " =? " + OxShellApp.getDisplayHeight());
+        return windowRect.bottom < OxShellApp.getDisplayHeight();
+        //return isKeyboardShown;
+    }
+
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
@@ -234,12 +312,14 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         Log.i("PagedActivity", "OnStop " + this);
+        //inputHandler.clearKeyComboActions();
         super.onStop();
     }
     @Override
     protected void onDestroy() {
         Log.i("PagedActivity", "OnDestroy " + this);
         LogcatHelper.getInstance(this).stop();
+        OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
         super.onDestroy();
     }
 
@@ -248,12 +328,7 @@ public class PagedActivity extends AppCompatActivity {
         Log.d("PagedActivity", "onConfigurationChanged");
         super.onConfigurationChanged(newConfig);
         //fixDrawerLayout();
-        initPromptView();
-        prompt.setShown(prompt.isPromptShown());
-        initSettingsDrawer();
-        settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
-        initDynamicInputView();
-        dynamicInput.setShown(dynamicInput.isOverlayShown());
+        prepareOtherViews();
         //getStatusBarHeight();
         //settingsDrawer.setShown(isContextDrawerOpen());
     }
@@ -274,43 +349,57 @@ public class PagedActivity extends AppCompatActivity {
 //        Log.d("PagedActivity", "x: " + ev.getAxisValue(MotionEvent.AXIS_X) + " y: " + ev.getAxisValue(MotionEvent.AXIS_Y) + " z: " + ev.getAxisValue(MotionEvent.AXIS_Z) + " rz: " + ev.getAxisValue(MotionEvent.AXIS_RZ));
 //        return super.dispatchGenericMotionEvent(ev);
 //    }
+
+//    @Override
+//    public boolean dispatchGenericMotionEvent(MotionEvent ev) {
+//        Log.d("PagedActivity", ev.toString());
+//        return super.dispatchGenericMotionEvent(ev);
+//    }
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
-
-        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT) {
-                //Log.d("PagedActivity", "Attempting to convert button keycode to app switch");
-                AccessService.showRecentApps();
-                return true;
-            }
-        }
-//        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-//            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
-//                Log.d("PagedActivity", "Attempting to bring up app switcher");
-//                //sendKeyEvent(this, KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP, 0);
-//                sendKeyEvent(KeyEvent.KEYCODE_APP_SWITCH, KeyEvent.ACTION_UP);
-//                return true;
-//            }
-//        }
-
-        if (prompt.isPromptShown() && prompt.receiveKeyEvent(key_event))
-            return true;
-        if (settingsDrawer.isDrawerOpen() && settingsDrawer.receiveKeyEvent(key_event))
-            return true;
-        if (dynamicInput.isOverlayShown() && dynamicInput.receiveKeyEvent(key_event))
-            return true;
-
-        if (!isInAContextMenu()) {
-            boolean childsPlay = false;
-            View currentView = allPages.get(currentPage);
-            if (currentView instanceof InputReceiver)
-                childsPlay = ((InputReceiver)currentView).receiveKeyEvent(key_event);
-            if (childsPlay)
+        boolean isDpadInput = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
+        if (isKeyboardShown()) {// && (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B))
+            if (!isDpadInput) {
+                Log.d("PagedActivity", "Passing to keyboard: " + key_event);
+                return super.dispatchKeyEvent(key_event);
+            } else
                 return true;
         }
 
-        return super.dispatchKeyEvent(key_event);
+        if (OxShellApp.getInputHandler().onInputEvent(key_event))
+            return true;
+
+        if (!isNonPermissable(key_event)) {
+            Log.d("PagedActivity", "Passing to system: " + key_event);
+            return super.dispatchKeyEvent(key_event);
+        }
+        return true;
+    }
+    private boolean isNonPermissable(KeyEvent key_event) {
+        return key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_C ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Z ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_L1 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_L2 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R1 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_THUMBL ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_THUMBR ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_START ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN_LEFT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN_RIGHT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP_LEFT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP_RIGHT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER;
     }
     private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
         //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
@@ -333,9 +422,12 @@ public class PagedActivity extends AppCompatActivity {
     }
     private void prepareOtherViews() {
         parentView = findViewById(R.id.parent_layout);
-        initPromptView();
         initSettingsDrawer();
+        settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
         initDynamicInputView();
+        dynamicInput.setShown(dynamicInput.isOverlayShown());
+        initPromptView();
+        prompt.setShown(prompt.isPromptShown());
     }
     private void initDynamicInputView() {
         dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);

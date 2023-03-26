@@ -6,13 +6,16 @@ import android.view.View;
 
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Views.DynamicInputItemView;
+import com.OxGames.OxShell.Views.DynamicInputRowView;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DynamicInputRow {
+    public DynamicInputRowView view;
     private DynamicInput[] inputs;
 
     public DynamicInputRow(DynamicInput... inputs) {
@@ -46,37 +49,61 @@ public class DynamicInputRow {
         public int row = -1, col = -1;
         public DynamicInputItemView view;
         private int visibility = View.VISIBLE;
-        public void setSelected(boolean onOff) {
-            if (view != null)
-                view.refreshSelection(onOff);
-        }
+        private boolean enabled = true;
+//        public void setSelected(boolean onOff) {
+//            if (view != null)
+//                view.refreshSelection(onOff);
+//        }
         public InputType inputType;
-        protected List<DynamicInputListener> listeners = new ArrayList<>();
-        public void addListener(DynamicInputListener listener) {
-            listeners.add(listener);
+        //protected List<DynamicInputListener> listeners = new ArrayList<>();
+        protected List<BiConsumer<DynamicInput, Boolean>> focusChangeListeners = new ArrayList<>();
+        protected List<Consumer<DynamicInput>> valuesChangedListeners = new ArrayList<>();
+//        public void addListener(DynamicInputListener listener) {
+//            listeners.add(listener);
+//        }
+//        public void removeListener(DynamicInputListener listener) {
+//            listeners.remove(listener);
+//        }
+//        public void clearListeners() {
+//            listeners.clear();
+//        }
+        public void addValuesChangedListener(Consumer<DynamicInput> listener) {
+            valuesChangedListeners.add(listener);
         }
-        public void removeListener(DynamicInputListener listener) {
-            listeners.remove(listener);
+        public void removeValuesChangedListener(Consumer<DynamicInput> listener) {
+            valuesChangedListeners.remove(listener);
         }
-        public void clearListeners() {
-            listeners.clear();
+        public void clearValuesChangedListeners() {
+            valuesChangedListeners.clear();
         }
-        public void onFocusChange(View view, boolean hasFocus) {
-            for (DynamicInputListener listener : listeners)
+        public void addFocusChangeListener(BiConsumer<DynamicInput, Boolean> listener) {
+            focusChangeListeners.add(listener);
+        }
+        public void removeFocusChangeListener(BiConsumer<DynamicInput, Boolean> listener) {
+            focusChangeListeners.remove(listener);
+        }
+        public void clearFocusChangeListeners() {
+            focusChangeListeners.clear();
+        }
+        public void onFocusChange(boolean hasFocus) {
+            for (BiConsumer<DynamicInput, Boolean> listener : focusChangeListeners)
                 if (listener != null)
-                    listener.onFocusChanged(view, hasFocus);
+                    listener.accept(this, hasFocus);
         }
         protected void valuesChanged() {
-            for (DynamicInputListener listener : listeners)
+            for (Consumer<DynamicInput> listener : valuesChangedListeners)
                 if (listener != null)
-                    listener.onValuesChanged();
+                    listener.accept(this);
         }
         public boolean isEnabled() {
-            return view != null && view.isEnabled();
+            return enabled;
+            //return view != null && view.isEnabled();
         }
         public void setEnabled(boolean onOff) {
-            if (view != null)
-                view.setEnabled(onOff);
+            enabled = onOff;
+            valuesChanged();
+            //if (view != null)
+            //    view.setEnabled(onOff);
         }
         public int getVisibility() {
             return visibility;
@@ -86,6 +113,9 @@ public class DynamicInputRow {
             valuesChanged();
             //if (view != null)
             //    view.setVisibility(value);
+        }
+        public boolean isFocusable() {
+            return false;
         }
     }
     public static class TextInput extends DynamicInput {
@@ -124,39 +154,47 @@ public class DynamicInputRow {
         public int getValueType() {
             return valueType;
         }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
+        }
     }
     public static class ButtonInput extends DynamicInput {
         private String label;
-        private View.OnClickListener onClick;
+        private Consumer<ButtonInput> onClick;
 
 //        private boolean isKeycodeSet;
 //        private int keycode;
-        List<Integer> keycodes;
+        private List<KeyCombo> keyCombos;
 
-        public ButtonInput(String label, View.OnClickListener onClick) {
+        public ButtonInput(String label, Consumer<ButtonInput> onClick) {
             this.inputType = InputType.button;
             this.label = label;
             this.onClick = onClick;
-            keycodes = new ArrayList<>();
+            keyCombos = new ArrayList<>();
         }
-        public ButtonInput(String label, View.OnClickListener onClick, Integer... keycodes) {
+        public ButtonInput(String label, Consumer<ButtonInput> onClick, KeyCombo... keyCombos) {
             this(label, onClick);
-            Collections.addAll(this.keycodes, keycodes);
+            Collections.addAll(this.keyCombos, keyCombos);
         }
 
-        public View.OnClickListener getOnClick() {
+        public Consumer<ButtonInput> getOnClick() {
             return onClick;
         }
         public void executeAction() {
             if (onClick != null)
-                onClick.onClick(null);
+                onClick.accept(this);
         }
 
-        public boolean hasKeycode(int keycode) {
-            return keycodes.contains(keycode);
+//        public boolean hasKeycode(int keycode) {
+//            return keycodes.contains(keycode);
+//        }
+        public KeyCombo[] getKeyCombos() {
+            return keyCombos.toArray(new KeyCombo[0]);
         }
         public boolean isKeycodeSet() {
-            return keycodes.size() > 0;
+            return keyCombos.size() > 0;
         }
 
         public void setLabel(String value) {
@@ -170,18 +208,26 @@ public class DynamicInputRow {
         public String getLabel() {
             return label;
         }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
+        }
     }
     public static class ToggleInput extends DynamicInput {
         private String onLabel;
         private String offLabel;
         private boolean onOff;
-        private View.OnClickListener onClick;
+        private Consumer<ToggleInput> onClick;
 
-        public ToggleInput(String onLabel, String offLabel, View.OnClickListener onClick) {
+        public ToggleInput(String onLabel, String offLabel, Consumer<ToggleInput> onClick) {
             this.inputType = InputType.toggle;
             this.onLabel = onLabel;
             this.offLabel = offLabel;
             this.onClick = onClick;
+        }
+        public ToggleInput(String onLabel, String offLabel) {
+            this(onLabel, offLabel, null);
         }
 
         public void setOnLabel(String onLabel, boolean fireEvent) {
@@ -208,8 +254,13 @@ public class DynamicInputRow {
             if (fireEvent)
                 valuesChanged();
         }
-        public View.OnClickListener getOnClick() {
+        public Consumer<ToggleInput> getOnClick() {
             return onClick;
+        }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
         }
     }
     public static class Dropdown extends DynamicInput {
@@ -258,6 +309,11 @@ public class DynamicInputRow {
 //        public Consumer<Integer> getOnItemSelected() {
 //            return onItemSelected;
 //        }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
+        }
     }
     public static class ImageDisplay extends DynamicInput {
         private ImageRef img;

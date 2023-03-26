@@ -15,6 +15,8 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
+import com.OxGames.OxShell.Data.KeyComboAction;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.ExplorerActivity;
 import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
@@ -23,16 +25,21 @@ import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.Helpers.InputHandler;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ExplorerView extends SlideTouchListView {//implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
+    private static final String INPUT_TAG = "FILE_EXPLORER_INPUT";
+    //private InputHandler inputHandler;
 
     public ExplorerView(Context context) {
         super(context);
@@ -52,8 +59,10 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         //SettingsKeeper.hasValue()
         //setMargins();
         //ActivityManager.getCurrentActivity().addPermissionListener(this);
+
         if (AndroidHelpers.hasReadStoragePermission()) {
             explorerBehaviour = new ExplorerBehaviour();
+            setupInput();
             refresh();
         } else
             AndroidHelpers.requestReadStoragePermission(granted -> {
@@ -65,9 +74,41 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                     currentActivity.finish();
                 } else {
                     explorerBehaviour = new ExplorerBehaviour();
+                    setupInput();
                     refresh();
                 }
             });
+    }
+    private void setupInput() {
+        //inputHandler = new InputHandler();
+        // TODO: add mappings to context options (copy/cut/paste/etc)
+        OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerHighlightInput()).map(combo -> new KeyComboAction(combo, () -> {
+            DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
+            if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
+                setItemSelected(properPosition, !isItemSelected(properPosition));
+            selectNextItem();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
+            //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
+            goUp();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
+            //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
+            goBack();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
+//            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
+//                ActivityManager.goTo(ActivityManager.Page.home);
+//                OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+//                OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+//            }
+            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+            ActivityManager.getCurrentActivity().finish();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, getKeyComboActions());
+        OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
     }
 
     @Override
@@ -85,54 +126,6 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             return super.onTouchEvent(ev);
         else
             return false;
-    }
-
-//    @Override
-//    public void onPermissionResponse(int requestCode, String[] permissions, int[] grantResults) {
-//        if (requestCode == AndroidHelpers.READ_EXTERNAL_STORAGE) {
-//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                Log.i("Explorer", "Storage permission granted");
-//                refresh();
-//            }  else {
-//                Log.e("Explorer", "Storage permission denied");
-//            }
-//        }
-//    }
-
-    @Override
-    public boolean receiveKeyEvent(KeyEvent key_event) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
-        //Log.d("ExplorerView", key_event.toString());
-        // TODO: add option for creating launch intent for file type
-        // TODO: add option for select all
-        // TODO: add launch with option that lets you pick from a list of assocs that have the proper extension
-        if (!currentActivity.isInAContextMenu()) {
-            if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-                // within action down since we want the repeat when held
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X) {
-                    DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
-                    if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
-                        setItemSelected(properPosition, !isItemSelected(properPosition));
-                    selectNextItem();
-                    return true;
-                }
-            }
-            if (key_event.getAction() == KeyEvent.ACTION_UP) {
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                    if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
-                        ActivityManager.goTo(ActivityManager.Page.home);
-                        return true;
-                    }
-                }
-                if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B) {
-                    goUp();
-                    return true;
-                }
-            }
-
-            return super.receiveKeyEvent(key_event);
-        }
-        return false;
     }
 
     public static int getDigitCount(int value) {
@@ -184,6 +177,9 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     }
 
     private void setupBtns() {
+        // TODO: add option for creating launch intent for file type
+        // TODO: add launch with option that lets you pick from a list of assocs that have the proper extension
+
         DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
         boolean isCurrentValid = currentItem.obj != null && !currentItem.leftAlignedText.equals("..");
         List<DetailItem> selection = getSelectedItems();
@@ -244,10 +240,10 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                                 if (granted)
                                     AndroidHelpers.install(absPath);
                             });
-                        }, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_BUTTON_START);
+                        }, SettingsKeeper.getSuperPrimaryInput());
                         prompt.setEndBtn("Cancel", () -> {
                             prompt.setShown(false);
-                        }, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_ESCAPE);
+                        }, SettingsKeeper.getCancelInput());
                         prompt.setCenterOfScreen();
                         prompt.setShown(true);
                     } else
@@ -262,6 +258,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 
     public void goUp() {
         explorerBehaviour.goUp();
+        refresh();
+//        SetProperPosition(0);
+        tryHighlightPrevDir();
+    }
+    public void goBack() {
+        explorerBehaviour.goBack();
         refresh();
 //        SetProperPosition(0);
         tryHighlightPrevDir();
@@ -412,12 +414,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                                                 currentActivity.getDynamicInput().setShown(false);
                                             } else
                                                 errorLabel.setLabel("Folder name is invalid");
-                                        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
+                                        }, SettingsKeeper.getSuperPrimaryInput()),
                                         new DynamicInputRow.ButtonInput("Cancel", v ->
                                         {
                                             //Log.d("ExplorerDynamicView", "Clicked cancel");
                                             currentActivity.getDynamicInput().setShown(false);
-                                        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
+                                        }, SettingsKeeper.getCancelInput())
                                 )
                 );
         currentActivity.getSettingsDrawer().setShown(false);
@@ -454,12 +456,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                                                     errorLabel.setLabel("File already exists");
                                             } else
                                                 errorLabel.setLabel("File name is invalid");
-                                        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START),
+                                        }, SettingsKeeper.getSuperPrimaryInput()),
                                         new DynamicInputRow.ButtonInput("Cancel", v ->
                                         {
                                             //Log.d("ExplorerDynamicView", "Clicked cancel");
                                             currentActivity.getDynamicInput().setShown(false);
-                                        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B)
+                                        }, SettingsKeeper.getCancelInput())
                                 )
                 );
         currentActivity.getSettingsDrawer().setShown(false);
@@ -516,12 +518,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 } else
                     errorLabel.setLabel("Name is invalid");
             }
-        }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v ->
         {
             //Log.d("ExplorerDynamicView", "Clicked cancel");
             currentActivity.getDynamicInput().setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_BUTTON_B);
+        }, SettingsKeeper.getCancelInput());
         currentActivity.getDynamicInput().setTitle("Rename" + (isMulti ? " Items" : (isDir ? " Folder" : " File")));
         if (isMulti)
             currentActivity.getDynamicInput().setItems(new DynamicInputRow(errorLabel), new DynamicInputRow(renamedTxtInput, suffixTxtInput), new DynamicInputRow(startTxtInput), new DynamicInputRow(fillZerosToggle), new DynamicInputRow(okBtn, cancelBtn));

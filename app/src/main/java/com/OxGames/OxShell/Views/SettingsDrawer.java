@@ -17,14 +17,18 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
+import com.OxGames.OxShell.Data.KeyComboAction;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
-public class SettingsDrawer extends FrameLayout implements InputReceiver {
+public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
     private static final float SETTINGS_DRAWER_OPEN_Y = 0;
     private static final float SETTINGS_DRAWER_CLOSED_Y = 0;
     private static final long SETTINGS_DRAWER_ANIM_TIME = 300;
@@ -33,6 +37,9 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
     private final Context context;
 
     private SlideTouchListView listView;
+    //private InputHandler inputHandler;
+
+    private static final String INPUT_TAG = "SETTINGS_DRAWER_INPUT";
 
     public SettingsDrawer(@NonNull Context context) {
         super(context);
@@ -67,6 +74,9 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 200));
     }
     private void init() {
+        //inputHandler = new InputHandler();
+        //inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> setShown(false))).toArray(KeyComboAction[]::new));
+
         FrameLayout.LayoutParams layoutParams;
 
         layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -104,23 +114,24 @@ public class SettingsDrawer extends FrameLayout implements InputReceiver {
         animate().xBy(xDist);
         animate().yBy(yDist);
         animate().alphaBy(alphaDist);
-        if (onOff)
+        if (onOff) {
             listView.setProperPosition(0);
-    }
-    @Override
-    public boolean receiveKeyEvent(KeyEvent keyEvent) {
-        //Log.d("SettingsDrawer", "Received key event");
-        if (listView.receiveKeyEvent(keyEvent))
-            return true;
-        // TODO: add mappings to context buttons
-        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
-            if ((keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK)) {
-                setShown(false);
-                return true;
-            }
+
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> setShown(false))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, listView.getKeyComboActions());
+            OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
+        } else {
+            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
         }
-        return false;
     }
+//    @Override
+//    public boolean receiveKeyEvent(KeyEvent keyEvent) {
+//        //Log.d("SettingsDrawer", "Received key event");
+//        if (inputHandler.onInputEvent(keyEvent))
+//            return true;
+//        return listView.receiveKeyEvent(keyEvent);
+//    }
 
     public static class ContextBtn {
         String label;

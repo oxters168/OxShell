@@ -1,19 +1,14 @@
 package com.OxGames.OxShell.Views;
 
 import android.app.Activity;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,15 +19,18 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 
+import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.ImageRef;
 import com.OxGames.OxShell.Data.IntentPutExtra;
+import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.ResImage;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Data.XMBItem;
 import com.OxGames.OxShell.FileChooserActivity;
@@ -41,8 +39,10 @@ import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
+import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.OxShellApp;
@@ -50,17 +50,19 @@ import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import kotlin.jvm.functions.Function0;
 
 public class HomeView extends XMBView implements Refreshable {
     public final static ResImage[] resourceImages = {
@@ -186,7 +188,7 @@ public class HomeView extends XMBView implements Refreshable {
                     byLabel.setGravity(Gravity.CENTER);
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Ok", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_BUTTON_START);
+                    }, SettingsKeeper.getPrimaryInput());
 
                     List<DynamicInputRow> rows = new ArrayList<>();
                     rows.add(new DynamicInputRow(versionLabel));
@@ -230,10 +232,10 @@ public class HomeView extends XMBView implements Refreshable {
                         adapter.createColumnAt(adapter.getColumnCount() - 1, assocItem);
                         save(getItems());
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE);
+                    }, SettingsKeeper.getCancelInput());
                     dynamicInput.setItems(new DynamicInputRow(titleInput, selectDirBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
@@ -270,10 +272,10 @@ public class HomeView extends XMBView implements Refreshable {
 //                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
 //                            dynamicInput.setShown(false);
 //                        }
-                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE);
+                    }, SettingsKeeper.getCancelInput());
                     dynamicInput.setItems(new DynamicInputRow(selectFileBtn), new DynamicInputRow(okBtn, cancelBtn));
 
                     dynamicInput.setShown(true);
@@ -377,7 +379,7 @@ public class HomeView extends XMBView implements Refreshable {
                                     dynamicInput.setShown(false);
                                 }
                             });
-                    }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+                    }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         if (AndroidHelpers.fileExists(fragTemp)) {
                             // delete what was being previewed if anything
@@ -388,7 +390,7 @@ public class HomeView extends XMBView implements Refreshable {
                             GLWallpaperService.requestReload();
                         }
                         dynamicInput.setShown(false);
-                    }, KeyEvent.KEYCODE_ESCAPE);
+                    }, SettingsKeeper.getCancelInput());
                     // so that they will only show up when the custom option is selected in the dropdown
                     //titleInput.setVisibility(View.GONE);
                     selectFileBtn.setVisibility(View.GONE);
@@ -396,6 +398,178 @@ public class HomeView extends XMBView implements Refreshable {
 
                     dynamicInput.setShown(true);
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.setControls) {
+                    //Log.d("HomeView", "Modifying " + selectedItem.obj);
+                    DynamicInputView dynamicInput = ActivityManager.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Modifying " + selectedItem.obj);
+                    List<DynamicInputRow.TextInput> comboInputs = new ArrayList<>();
+                    List<DynamicInputRow.ButtonInput> pollBtns = new ArrayList<>();
+                    List<DynamicInputRow.ButtonInput> clearBtns = new ArrayList<>();
+                    List<DynamicInputRow.ButtonInput> removeBtns = new ArrayList<>();
+                    List<DynamicInputRow.ToggleInput> onDownToggles = new ArrayList<>();
+                    List<DynamicInputRow.TextInput> holdTimeInputs = new ArrayList<>();
+                    List<DynamicInputRow.TextInput> repeatStartDelayInputs = new ArrayList<>();
+                    List<DynamicInputRow.TextInput> repeatDelayInputs = new ArrayList<>();
+                    List<DynamicInputRow.ToggleInput> orderedToggles = new ArrayList<>();
+                    InputHandler mainInputter = OxShellApp.getInputHandler();
+                    Consumer<KeyCombo[]>[] refreshDynamicInput = new Consumer[1];
+                    AtomicBoolean customizing = new AtomicBoolean(true);
+                    // TODO: add ondown/onup options
+
+                    Consumer<KeyCombo> addComboRow = (combo) -> {
+                        AtomicBoolean polling = new AtomicBoolean(false);
+                        DynamicInputRow.TextInput keyComboInput = new DynamicInputRow.TextInput("Key Combo");
+                        DynamicInputRow.ButtonInput pollBtn = new DynamicInputRow.ButtonInput("Poll", (selfBtn) -> {
+                            // TODO: add timeout
+                            int pollTtl = 5000;
+                            HashMap<Integer, String> keycodes = KeyCombo.getKeyCodesIntMap();
+                            Consumer<KeyEvent>[] pollListener = new Consumer[1];
+                            Runnable endPoll = () -> {
+                                selfBtn.setLabel("Poll");
+                                polling.set(false);
+                                mainInputter.toggleBlockingInput(false);
+                                AccessService.toggleBlockingInput(false);
+                                mainInputter.removeInputListener(pollListener[0]);
+                            };
+                            pollListener[0] = key_event -> {
+                                keyComboInput.setText(Arrays.stream(mainInputter.getHistory()).map(ev -> keycodes.getOrDefault(ev.getKeyCode(), Integer.toString(ev.getKeyCode()))).collect(Collectors.joining(" + ")));
+                                if (!mainInputter.isDown())
+                                    endPoll.run();
+                            };
+                            if (!polling.get()) {
+                                // start listening for this row
+                                long startListenTime = SystemClock.uptimeMillis();
+                                polling.set(true);
+                                Handler timeoutHandler = new Handler(Looper.getMainLooper());
+                                timeoutHandler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //Log.d("HomeView", "Checking if timed out");
+                                        if (customizing.get() && polling.get() && !mainInputter.isDown() && SystemClock.uptimeMillis() - startListenTime < pollTtl) {
+                                            timeoutHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+                                            return;
+                                        }
+                                        if (polling.get() && (!customizing.get() || !mainInputter.isDown()))
+                                            endPoll.run();
+                                    }
+                                });
+                                mainInputter.toggleBlockingInput(true);
+                                AccessService.toggleBlockingInput(true);
+                                mainInputter.addInputListener(pollListener[0]);
+                                selfBtn.setLabel("Polling..");
+                            } else
+                                endPoll.run();
+                        });
+                        DynamicInputRow.TextInput holdTimeInput = new DynamicInputRow.TextInput("Hold Time (ms)");
+                        holdTimeInput.setVisibility(GONE);
+                        DynamicInputRow.TextInput repeatStartDelayInput = new DynamicInputRow.TextInput("Repeat Start Delay (ms)");
+                        repeatStartDelayInput.setVisibility(GONE);
+                        DynamicInputRow.TextInput repeatDelayInput = new DynamicInputRow.TextInput("Repeat Delay (ms)");
+                        repeatDelayInput.setVisibility(GONE);
+                        DynamicInputRow.ToggleInput orderedToggle = new DynamicInputRow.ToggleInput("Ordered", "Not Ordered", null);
+                        DynamicInputRow.ToggleInput onDownToggle = new DynamicInputRow.ToggleInput("On Press", "On Release");
+                        onDownToggle.addValuesChangedListener(selfToggle -> {
+                            holdTimeInput.setVisibility(((DynamicInputRow.ToggleInput)selfToggle).getOnOff() ? VISIBLE : GONE);
+                            repeatStartDelayInput.setVisibility(((DynamicInputRow.ToggleInput)selfToggle).getOnOff() ? VISIBLE : GONE);
+                            repeatDelayInput.setVisibility(((DynamicInputRow.ToggleInput)selfToggle).getOnOff() ? VISIBLE : GONE);
+                        });
+                        DynamicInputRow.ButtonInput clearBtn = new DynamicInputRow.ButtonInput("Clear", (selfBtn) -> {
+                            keyComboInput.setText("");
+                        });
+                        DynamicInputRow.ButtonInput removeBtn = new DynamicInputRow.ButtonInput("Remove", (selfBtn) -> {
+                            comboInputs.remove(keyComboInput);
+                            pollBtns.remove(pollBtn);
+                            clearBtns.remove(clearBtn);
+                            removeBtns.remove(selfBtn);
+                            refreshDynamicInput[0].accept(null);
+                        });
+                        if (combo != null) {
+                            HashMap<Integer, String> keycodes = KeyCombo.getKeyCodesIntMap();
+                            keyComboInput.setText(Arrays.stream(combo.getKeys()).mapToObj(keycode -> keycodes.getOrDefault(keycode, Integer.toString(keycode))).collect(Collectors.joining(" + ")));
+                            onDownToggle.setOnOff(combo.isOnDown(), true);
+                            holdTimeInput.setText(Integer.toString(combo.getHoldMillis()));
+                            repeatStartDelayInput.setText(Integer.toString(combo.getRepeatStartDelay()));
+                            repeatDelayInput.setText(Integer.toString(combo.getRepeatMillis()));
+                            orderedToggle.setOnOff(combo.isOrdered(), true);
+                        }
+                        comboInputs.add(keyComboInput);
+                        pollBtns.add(pollBtn);
+                        clearBtns.add(clearBtn);
+                        removeBtns.add(removeBtn);
+                        onDownToggles.add(onDownToggle);
+                        holdTimeInputs.add(holdTimeInput);
+                        repeatStartDelayInputs.add(repeatStartDelayInput);
+                        repeatDelayInputs.add(repeatDelayInput);
+                        orderedToggles.add(orderedToggle);
+                        //return keyComboInput;
+                    };
+                    DynamicInputRow.ButtonInput addComboBtn = new DynamicInputRow.ButtonInput("Add Combo", v -> {
+                        addComboRow.accept(null);
+                        refreshDynamicInput[0].accept(null);
+                    });
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        dynamicInput.setShown(false);
+                        // stop listening to input
+                        customizing.set(false);
+                    }, SettingsKeeper.getCancelInput());
+                    DynamicInputRow.ButtonInput resetToDefaultsBtn = new DynamicInputRow.ButtonInput("Reset to Default", selfBtn -> {
+                        refreshDynamicInput[0].accept(SettingsKeeper.getDefaultInputValueFor(selectedItem.obj.toString()));
+                    });
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", selfBtn -> {
+                        // make the key combo array from inputs then save them to the settings
+                        KeyCombo[] createdCombos = new KeyCombo[comboInputs.size()];
+                        HashMap<String, Integer> keycodes = KeyCombo.getKeyCodesStringMap();
+                        for (int i = 0; i < comboInputs.size(); i++) {
+                            int[] keys = Arrays.stream(comboInputs.get(i).getText().split("[+]")).mapToInt(value -> { value = value.trim(); try { return Integer.parseInt(value); } catch (Exception e) { return keycodes.getOrDefault(value, -1); } }).toArray();
+                            if (onDownToggles.get(i).getOnOff()) {
+                                int holdMillis;
+                                try { holdMillis = Integer.parseInt(holdTimeInputs.get(i).getText()); } catch(Exception e) { holdMillis = -1; }
+                                int repeatStartDelay;
+                                try { repeatStartDelay = Integer.parseInt(repeatStartDelayInputs.get(i).getText()); } catch(Exception e) { repeatStartDelay = -1; }
+                                int repeatDelay;
+                                try { repeatDelay = Integer.parseInt(repeatDelayInputs.get(i).getText()); } catch(Exception e) { repeatDelay = -1; }
+                                createdCombos[i] = KeyCombo.createDownCombo(holdMillis, repeatStartDelay, repeatDelay, orderedToggles.get(i).getOnOff(), keys);
+                            } else
+                                createdCombos[i] = KeyCombo.createUpCombo(orderedToggles.get(i).getOnOff(), keys);
+                        }
+                        SettingsKeeper.setValueAndSave(selectedItem.obj.toString(), createdCombos);
+                        dynamicInput.setShown(false);
+                        customizing.set(false);
+
+                        if (ActivityManager.getCurrentActivity() instanceof HomeActivity)
+                            ((HomeActivity)ActivityManager.getCurrentActivity()).refreshXMBInput();
+                        ActivityManager.getCurrentActivity().refreshAccessibilityInput();
+                        AccessService.refreshInputCombos();
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    refreshDynamicInput[0] = (placedValues) -> {
+                        if (placedValues != null) {
+                            comboInputs.clear();
+                            pollBtns.clear();
+                            clearBtns.clear();
+                            removeBtns.clear();
+                            onDownToggles.clear();
+                            holdTimeInputs.clear();
+                            repeatStartDelayInputs.clear();
+                            repeatDelayInputs.clear();
+                            orderedToggles.clear();
+                            for (KeyCombo combo : placedValues)
+                                addComboRow.accept(combo);
+                        }
+                        List<DynamicInputRow> rows = new ArrayList<>();
+                        for (int i = 0; i < comboInputs.size(); i++) {
+                            rows.add(new DynamicInputRow(comboInputs.get(i), pollBtns.get(i), clearBtns.get(i), removeBtns.get(i)));
+                            rows.add(new DynamicInputRow(onDownToggles.get(i), orderedToggles.get(i)));
+                            rows.add(new DynamicInputRow(holdTimeInputs.get(i), repeatStartDelayInputs.get(i), repeatDelayInputs.get(i)));
+                        }
+                        rows.add(new DynamicInputRow(applyBtn, addComboBtn, resetToDefaultsBtn, cancelBtn));
+                        dynamicInput.setItems(rows.toArray(new DynamicInputRow[0]));
+                    };
+
+                    KeyCombo[] originalSetting = null;
+                    if (SettingsKeeper.hasValue(selectedItem.obj.toString()))
+                        originalSetting = (KeyCombo[])SettingsKeeper.getValue(selectedItem.obj.toString());
+                    refreshDynamicInput[0].accept(originalSetting);
+                    dynamicInput.setShown(true);
                 }
             }
         }// else
@@ -540,6 +714,30 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings[0] = new HomeItem(HomeItem.Type.setImageBg, "Set picture as background");
         innerSettings[1] = new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background");
         settingsItem = new XMBItem(null, "Background", ImageRef.from(R.drawable.ic_baseline_image_24, DataLocation.resource), innerSettings);
+        settingsColumn.add(settingsItem);
+
+        innerSettings = new XMBItem[3];
+        XMBItem[] innerInnerSettings = new XMBItem[8];
+        innerInnerSettings[0] = new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input");
+        innerInnerSettings[1] = new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input");
+        innerInnerSettings[2] = new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input");
+        innerInnerSettings[3] = new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input");
+        innerInnerSettings[4] = new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input");
+        innerInnerSettings[5] = new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input");
+        innerInnerSettings[6] = new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input");
+        innerInnerSettings[7] = new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input");
+        innerSettings[0] = new XMBItem(null, "General", ImageRef.from(R.drawable.ic_baseline_home_24, DataLocation.resource), innerInnerSettings);
+        innerInnerSettings = new XMBItem[4];
+        innerInnerSettings[0] = new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input");
+        innerInnerSettings[1] = new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input");
+        innerInnerSettings[2] = new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input");
+        innerInnerSettings[3] = new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input");
+        innerSettings[1] = new XMBItem(null, "File Explorer", ImageRef.from(R.drawable.ic_baseline_source_24, DataLocation.resource), innerInnerSettings);
+        innerInnerSettings = new XMBItem[2];
+        innerInnerSettings[0] = new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input");
+        innerInnerSettings[1] = new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input");
+        innerSettings[2] = new XMBItem(null, "Android System", ImageRef.from(R.drawable.baseline_adb_24, DataLocation.resource), innerInnerSettings);
+        settingsItem = new XMBItem(null, "Controls", ImageRef.from(R.drawable.ic_baseline_games_24, DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         //innerSettings = new XMBItem[0];
@@ -728,64 +926,48 @@ public class HomeView extends XMBView implements Refreshable {
             }
         });
         classesDropdown.setVisibility(GONE);
-        classNameInput.addListener(new DynamicInputListener() {
-            @Override
-            public void onFocusChanged(View view, boolean hasFocus) {
-
-            }
-
-            @Override
-            public void onValuesChanged() {
-                //Log.d("HomeView", "Looking for package in list");
-                // populate next list with class names
-                String[] currentClassNames = classesDropdown.getOptions();
-                if (currentClassNames != null) {
-                    int index = 0;
-                    for (int i = 0; i < currentClassNames.length; i++)
-                        if (currentClassNames[i].equals(classNameInput.getText())) {
-                            index = i;
-                            break;
-                        }
-                    // if the user is typing and they type a valid class name, then select it in the drop down
-                    classesDropdown.setIndex(index);
-                }
-            }
-        });
-        pkgNameInput.addListener(new DynamicInputListener() {
-            @Override
-            public void onFocusChanged(View view, boolean hasFocus) {
-
-            }
-
-            @Override
-            public void onValuesChanged() {
-                //Log.d("HomeView", "Looking for package in list");
-                // populate next list with class names
+        classNameInput.addValuesChangedListener(self -> {
+            //Log.d("HomeView", "Looking for package in list");
+            // populate next list with class names
+            String[] currentClassNames = classesDropdown.getOptions();
+            if (currentClassNames != null) {
                 int index = 0;
-                for (int i = 0; i < pkgs.size(); i++)
-                    if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
-                        index = i + 1;
+                for (int i = 0; i < currentClassNames.length; i++)
+                    if (currentClassNames[i].equals(classNameInput.getText())) {
+                        index = i;
                         break;
                     }
-                //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
-                // if the user is typing and they type a valid package name, then select it in the drop down
-                String[] classes = new String[0];
-                pkgsDropdown.setIndex(index);
-                if (index >= 1) { // 0 is unlisted, so skip
-                    //Log.d("HomeView", "Package exists");
-
-                    String[] tmp = PackagesCache.getClassesOfPkg(pkgNameInput.getText());
-                    if (tmp.length > 0) {
-                        classes = new String[tmp.length + 1];
-                        System.arraycopy(tmp, 0, classes, 1, tmp.length);
-                        classes[0] = "Unlisted";
-                    }
-                }
-                classNames[0] = classes;
-                classesDropdown.setOptions(classes);
-                classesDropdown.setVisibility(classes.length > 0 ? VISIBLE : GONE);
-                //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
+                // if the user is typing and they type a valid class name, then select it in the drop down
+                classesDropdown.setIndex(index);
             }
+        });
+        pkgNameInput.addValuesChangedListener(self -> {
+            //Log.d("HomeView", "Looking for package in list");
+            // populate next list with class names
+            int index = 0;
+            for (int i = 0; i < pkgs.size(); i++)
+                if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
+                    index = i + 1;
+                    break;
+                }
+            //Log.d("HomeView", "Index of " + pkgNameInput.getText() + " is " + index);
+            // if the user is typing and they type a valid package name, then select it in the drop down
+            String[] classes = new String[0];
+            pkgsDropdown.setIndex(index);
+            if (index >= 1) { // 0 is unlisted, so skip
+                //Log.d("HomeView", "Package exists");
+
+                String[] tmp = PackagesCache.getClassesOfPkg(pkgNameInput.getText());
+                if (tmp.length > 0) {
+                    classes = new String[tmp.length + 1];
+                    System.arraycopy(tmp, 0, classes, 1, tmp.length);
+                    classes[0] = "Unlisted";
+                }
+            }
+            classNames[0] = classes;
+            classesDropdown.setOptions(classes);
+            classesDropdown.setVisibility(classes.length > 0 ? VISIBLE : GONE);
+            //Log.d("HomeView", "pkgNameInput value changed to " + pkgNameInput.getText());
         });
         pkgsDropdown.setOptions(pkgNames.toArray(new String[0]));
         String[] intentActions = PackagesCache.getAllIntentActions();
@@ -800,22 +982,14 @@ public class HomeView extends XMBView implements Refreshable {
                 actionInput.setText(actionName);
             }
         }, intentActionNames);
-        actionInput.addListener(new DynamicInputListener() {
-            @Override
-            public void onFocusChanged(View view, boolean hasFocus) {
-
-            }
-
-            @Override
-            public void onValuesChanged() {
-                int index = 0;
-                for (int i = 0; i < intentActions.length; i++)
-                    if (actionInput.getText().equals(intentActions[i])) {
-                        index = i + 1;
-                        break;
-                    }
-                actionsDropdown.setIndex(index);
-            }
+        actionInput.addValuesChangedListener(self -> {
+            int index = 0;
+            for (int i = 0; i < intentActions.length; i++)
+                if (actionInput.getText().equals(intentActions[i])) {
+                    index = i + 1;
+                    break;
+                }
+            actionsDropdown.setIndex(index);
         });
         DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
         String[] dataTypes = { IntentLaunchData.DataType.None.toString(), IntentLaunchData.DataType.AbsolutePath.toString(), IntentLaunchData.DataType.FileNameWithExt.toString(), IntentLaunchData.DataType.FileNameWithoutExt.toString() };
@@ -869,10 +1043,10 @@ public class HomeView extends XMBView implements Refreshable {
 //                            AndroidHelpers.setWallpaper(context, AndroidHelpers.bitmapFromFile(path));
 //                            dynamicInput.setShown(false);
 //                        }
-        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE);
+        }, SettingsKeeper.getCancelInput());
 
         if (toBeEdited != null) {
             // set values to assoc being edited
@@ -1004,10 +1178,10 @@ public class HomeView extends XMBView implements Refreshable {
             save(getItems());
             refresh();
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE);
+        }, SettingsKeeper.getCancelInput());
 
         titleInput.setText(colItem.getTitle());
         resourcesDropdown.setIndex(origDropdownIndex);
@@ -1074,10 +1248,10 @@ public class HomeView extends XMBView implements Refreshable {
             getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imgRef));
             save(getItems());
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_BUTTON_START, KeyEvent.KEYCODE_ENTER);
+        }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
-        }, KeyEvent.KEYCODE_ESCAPE);
+        }, SettingsKeeper.getCancelInput());
 
         dynamicInput.setItems(new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
 
@@ -1096,161 +1270,4 @@ public class HomeView extends XMBView implements Refreshable {
         });
         ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
-
-    public static String getRealPathFromURI(Uri uri, Context context) {
-        Cursor returnCursor = context.getContentResolver().query(uri, null, null, null, null);
-        int nameIndex =  returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-//        int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
-        returnCursor.moveToFirst();
-        String name = returnCursor.getString(nameIndex);
-//        String size = Long.toString(returnCursor.getLong(sizeIndex));
-        File file = new File(context.getFilesDir(), name);
-//        try {
-//            InputStream inputStream = context.getContentResolver().openInputStream(uri);
-//            FileOutputStream outputStream = new FileOutputStream(file);
-//            int read = 0;
-//            int maxBufferSize = 1 * 1024 * 1024;
-//            int bytesAvailable = inputStream.available();
-//            //int bufferSize = 1024;
-//            int bufferSize = Math.min(bytesAvailable, maxBufferSize);
-//            byte[] buffers = new byte[bufferSize];
-//            while (inputStream.read(buffers).also {
-//                if (it != null) {
-//                    read = it
-//                }
-//            } != -1) {
-//                outputStream.write(buffers, 0, read)
-//            }
-//            Log.e("File Size", "Size " + file.length())
-//            inputStream?.close()
-//            outputStream.close()
-//            Log.e("File Path", "Path " + file.path)
-//
-//        } catch (Exception e) {
-//            Log.e("Exception", e.getMessage());
-//        }
-        return file.getPath();
-    }
-    public static String getPath(final Context context, final Uri uri) {
-
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-
-        // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-            // ExternalStorageProvider
-            if (isExternalStorageDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
-                }
-
-                // TODO handle non-primary volumes
-            }
-            // DownloadsProvider
-            else if (isDownloadsDocument(uri)) {
-
-                final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-
-                return getDataColumn(context, contentUri, null, null);
-            }
-            // MediaProvider
-            else if (isMediaDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                Uri contentUri = null;
-                if ("image".equals(type)) {
-                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                } else if ("video".equals(type)) {
-                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                } else if ("audio".equals(type)) {
-                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                }
-
-                final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
-                        split[1]
-                };
-
-                return getDataColumn(context, contentUri, selection, selectionArgs);
-            }
-        }
-        // MediaStore (and general)
-        else if ("content".equalsIgnoreCase(uri.getScheme())) {
-
-            // Return the remote address
-            if (isGooglePhotosUri(uri))
-                return uri.getLastPathSegment();
-
-            return getDataColumn(context, uri, null, null);
-        }
-        // File
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
-        }
-
-        return null;
-    }
-
-    public static String getDataColumn(Context context, Uri uri, String selection,
-                                       String[] selectionArgs) {
-
-        Cursor cursor = null;
-        final String column = "_data";
-        final String[] projection = {
-                column
-        };
-
-        try {
-            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
-                    null);
-            if (cursor != null && cursor.moveToFirst()) {
-                final int index = cursor.getColumnIndexOrThrow(column);
-                return cursor.getString(index);
-            }
-        } finally {
-            if (cursor != null)
-                cursor.close();
-        }
-        return null;
-    }
-
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is ExternalStorageProvider.
-     */
-    public static boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is DownloadsProvider.
-     */
-    public static boolean isDownloadsDocument(Uri uri) {
-        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is MediaProvider.
-     */
-    public static boolean isMediaDocument(Uri uri) {
-        return "com.android.providers.media.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is Google Photos.
-     */
-    public static boolean isGooglePhotosUri(Uri uri) {
-        return "com.google.android.apps.photos.content".equals(uri.getAuthority());
-    }
 }

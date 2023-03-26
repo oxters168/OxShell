@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, settings, appInfo, saveLogs, }
+    public enum Type { explorer, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, settings, setControls, appInfo, saveLogs, }
     public Type type;
     public ArrayList<String> extraData;
 
@@ -51,7 +51,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             PackagesCache.requestPackageIcon((String) obj, drawable -> {
                 onIconLoaded.accept(icon = drawable);
             });
-        else if (type == Type.appInfo || type == Type.saveLogs || type == Type.settings || type == Type.addExplorer || type == Type.addAppOuter || type == Type.setImageBg || type == Type.setShaderBg || type == Type.addAssocOuter || type == Type.createAssoc)
+        else if (isInnerSettingType(type))
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
         else if (type == Type.assocExe)
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24));
@@ -82,6 +82,18 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
 //            }
 //        }
 //        return icon;
+    }
+    public boolean isInnerSettingType(Type type) {
+        return type == Type.appInfo ||
+                type == Type.saveLogs ||
+                type == Type.settings ||
+                type == Type.addExplorer ||
+                type == Type.addAppOuter ||
+                type == Type.setImageBg ||
+                type == Type.setShaderBg ||
+                type == Type.setControls ||
+                type == Type.addAssocOuter ||
+                type == Type.createAssoc;
     }
 
     @Override

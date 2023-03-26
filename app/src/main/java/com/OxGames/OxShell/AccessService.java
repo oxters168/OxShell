@@ -1,92 +1,81 @@
 package com.OxGames.OxShell;
 
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.Context;
-import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
-import com.OxGames.OxShell.Data.IntentLaunchData;
-import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
-import com.OxGames.OxShell.Views.PromptView;
+import com.OxGames.OxShell.Data.KeyComboAction;
+import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Helpers.InputHandler;
+
+import java.util.Arrays;
 
 public class AccessService extends AccessibilityService {
     private static AccessService instance;
+    private InputHandler inputHandler;
+    //private static final String INPUT_TAG = "ACCESS_SERVICE";
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();
+        Log.i("AccessService", "onServiceConnected");
         instance = this;
-        AccessibilityServiceInfo info = getServiceInfo();
-
-        // Set the type of events that this service wants to listen to. Others
-        // won't be passed to this service.
-        info.eventTypes = ~0;
-
-        // If you only want this service to work with specific applications, set their
-        // package names here. Otherwise, when the service is activated, it will listen
-        // to events from all applications.
-        //info.packageNames = new String[] {"com.example.android.myFirstApp", "com.example.android.mySecondApp"};
-
-        // Set the type of feedback your service will provide.
-        info.feedbackType = ~0;
-
-        // Comma separated package names from which this service would like to receive events (leave out for all packages).
-        //info.packageNames = new String[] { "com.OxGames.OxShell" };
-
-        // Default services are invoked only if no package-specific ones are present
-        // for the type of AccessibilityEvent generated. This service *is*
-        // application-specific, so the flag isn't necessary. If this was a
-        // general-purpose service, it would be worth considering setting the
-        // DEFAULT flag.
-
-        info.notificationTimeout = 100;
-
-        this.setServiceInfo(info);
+        refreshInputCombos();
     }
+    public static void refreshInputCombos() {
+        if (instance != null) {
+            if (instance.inputHandler == null)
+                instance.inputHandler = new InputHandler();
+            //if (!instance.inputHandler.tagHasActions(InputHandler.ALWAYS_ON_TAG)) {
+            instance.inputHandler.clearKeyComboActions();
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+            //}
+        }
+    }
+
+    public static void toggleBlockingInput(boolean onOff) {
+        if (instance != null && instance.inputHandler != null)
+            instance.inputHandler.toggleBlockingInput(onOff);
+    }
+
+//    @Override
+//    public void onDestroy() {
+//        super.onDestroy();
+//        Log.i("AccessService", "onDestroy");
+//        inputHandler.clearKeyComboActions(INPUT_TAG);
+//        inputHandler = null;
+//    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         //Log.d("AccessService", event.toString());
-        // get the source node of the event
-        //AccessibilityNodeInfo nodeInfo = event.getSource();
-
-        // Use the event and node information to determine
-        // what action to take
-
-        // take action on behalf of the user
-        //nodeInfo.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
-
-        // recycle the nodeInfo object
-        //nodeInfo.recycle();
     }
     @Override
     public void onInterrupt() {
 
     }
-    public static boolean isEnabled()
-    {
+
+    @Override
+    protected boolean onKeyEvent(KeyEvent event) {
+        //Log.d("AccessService", event.toString());
+        if (inputHandler.onInputEvent(event) && !inputHandler.isBlockingInput())
+            return true;
+        return super.onKeyEvent(event);
+    }
+
+    public static boolean isEnabled() {
         Context context = OxShellApp.getContext();
         String prefString = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
         return prefString!= null && prefString.contains(context.getPackageName() + "/" + AccessService.class.getName());
     }
 
     public static void showRecentApps() {
-        if (!isEnabled()) {
-            PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
-            prompt.setCenterOfScreen();
-            prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
-            prompt.setStartBtn("Continue", () -> {
-                prompt.setShown(false);
-                IntentLaunchData.createFromAction(Settings.ACTION_ACCESSIBILITY_SETTINGS, Intent.FLAG_ACTIVITY_NEW_TASK).launch();
-            }, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_BUTTON_START);
-            prompt.setEndBtn("Cancel", () -> {
-                prompt.setShown(false);
-            }, KeyEvent.KEYCODE_ESCAPE, KeyEvent.KEYCODE_BUTTON_B, KeyEvent.KEYCODE_BACK);
-            prompt.setShown(true);
-        } else
-            instance.performGlobalAction(GLOBAL_ACTION_RECENTS);
+        instance.performGlobalAction(GLOBAL_ACTION_RECENTS);
+    }
+    public static void goHome() {
+        instance.performGlobalAction(GLOBAL_ACTION_HOME);
     }
 }

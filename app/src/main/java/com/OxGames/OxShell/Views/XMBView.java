@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Data.KeyComboAction;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
@@ -25,8 +27,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
-public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable {
+public class XMBView extends ViewGroup {// implements InputReceiver {//, Refreshable {
     private static final float EPSILON = 0.0001f;
     protected final Context context;
     public static final int CATEGORY_TYPE = 0;
@@ -366,6 +369,7 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
     private void shiftXDisc(int amount) {
         if (Math.abs(amount) > 0) {
             int currentColIndex = this.colIndex;
+            //Log.d("XMBView", "Shifting by " + amount + " from " + currentColIndex);
             // get the offset column's local index then convert it to x position
             setShiftX(getShiftX(currentColIndex + amount));
         }
@@ -1100,66 +1104,24 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return yToIndex(catPos.get(colIndex), colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
     }
 
-    @Override
-    public boolean receiveKeyEvent(KeyEvent key_event) {
-        //Log.d("XMBView", key_event.toString());
-        if (key_event.getAction() == KeyEvent.ACTION_UP) {
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A) {
-                stopMomentum();
-                affirmativeAction();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y) {
-                stopMomentum();
-                secondaryAction();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || key_event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                stopMomentum();
-                cancelAction();
-                return true;
-            }
-        }
-        if (key_event.getAction() == KeyEvent.ACTION_DOWN) {
-            // in action down since we want the repeated events
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN) {
-                stopMomentum();
-                selectLowerItem();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP) {
-                stopMomentum();
-                selectUpperItem();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT) {
-                stopMomentum();
-                selectLeftItem();
-                return true;
-            }
-            if (key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                stopMomentum();
-                selectRightItem();
-                return true;
-            }
-        }
-
-        //Block out default back events
-        return key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B;
-    }
     public void selectLowerItem() {
+        stopMomentum();
         shiftYDisc(1);
     }
     public void selectUpperItem() {
+        stopMomentum();
         shiftYDisc(-1);
     }
     public void selectRightItem() {
+        stopMomentum();
         shiftXDisc(1);
     }
     public void selectLeftItem() {
+        stopMomentum();
         shiftXDisc(-1);
     }
     public boolean affirmativeAction() {
+        stopMomentum();
         if (moveMode) {
             applyMove();
             return true;
@@ -1180,9 +1142,11 @@ public class XMBView extends ViewGroup implements InputReceiver {//, Refreshable
         return false;
     }
     public boolean secondaryAction() {
+        stopMomentum();
         return false;
     }
     public boolean cancelAction() {
+        stopMomentum();
         if (moveMode) {
             // TODO: add way to revert changes
             toggleMoveMode(false, false);
