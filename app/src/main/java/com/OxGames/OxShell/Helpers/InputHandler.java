@@ -4,6 +4,7 @@ package com.OxGames.OxShell.Helpers;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
@@ -185,12 +186,15 @@ public class InputHandler {
         if (keyComboActions.containsKey(tag))
             keyComboActions.get(tag).clear();
     }
+    public void clearKeyComboActions() {
+        clearKeyComboActions(ALWAYS_ON_TAG);
+    }
     public void setActiveTag(String tag) {
         removeTagFromHistory(tag);
         currentTagList.addLast(tag);
     }
     public String getActiveTag() {
-        return currentTagList.getLast();
+        return !currentTagList.isEmpty() ? currentTagList.getLast() : null;
     }
     public void removeTagFromHistory(String tag) {
         int indexOf = currentTagList.indexOf(tag);

@@ -157,8 +157,8 @@ public class PagedActivity extends AppCompatActivity {
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
     private KeyComboAction[] accessPopupComboActions;
 
-    private static void showAccessibilityPopup() {
-        if (!AccessService.isEnabled()) {
+    private void showAccessibilityPopup() {
+        if (!AccessService.isEnabled() && !prompt.isPromptShown()) {
             PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
             prompt.setCenterOfScreen();
             prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
@@ -174,15 +174,19 @@ public class PagedActivity extends AppCompatActivity {
             prompt.setShown(true);
         }
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        //inputHandler = new InputHandler();
+    public void refreshAccessibilityInput() {
+        if (accessPopupComboActions != null)
+            OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions);
         List<KeyCombo> accessPopupCombos = new ArrayList<>();
         Collections.addAll(accessPopupCombos, SettingsKeeper.getRecentsCombos());
         Collections.addAll(accessPopupCombos, SettingsKeeper.getHomeCombos());
-        accessPopupComboActions = accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, PagedActivity::showAccessibilityPopup)).toArray(KeyComboAction[]::new);
+        accessPopupComboActions = accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, this::showAccessibilityPopup)).toArray(KeyComboAction[]::new);
         OxShellApp.getInputHandler().addKeyComboActions(accessPopupComboActions);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        refreshAccessibilityInput();
 
         trySetStartTime();
         super.onCreate(savedInstanceState);
@@ -367,11 +371,36 @@ public class PagedActivity extends AppCompatActivity {
         if (OxShellApp.getInputHandler().onInputEvent(key_event))
             return true;
 
-        if (key_event.getKeyCode() != KeyEvent.KEYCODE_BACK) {
+        if (!isNonPermissable(key_event)) {
             Log.d("PagedActivity", "Passing to system: " + key_event);
             return super.dispatchKeyEvent(key_event);
         }
         return true;
+    }
+    private boolean isNonPermissable(KeyEvent key_event) {
+        return key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_C ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_X ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Y ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_Z ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_L1 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_L2 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R1 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R2 ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_THUMBL ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_THUMBR ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_SELECT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_START ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN_LEFT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN_RIGHT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP_LEFT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP_RIGHT ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER;
     }
     private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
         //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)

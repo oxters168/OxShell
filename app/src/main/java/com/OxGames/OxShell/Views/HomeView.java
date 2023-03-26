@@ -506,7 +506,7 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput addComboBtn = new DynamicInputRow.ButtonInput("Add Combo", v -> {
                         addComboRow.accept(null);
                         refreshDynamicInput[0].accept(null);
-                    }, SettingsKeeper.getSuperPrimaryInput());
+                    });
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
                         // stop listening to input
@@ -524,9 +524,12 @@ public class HomeView extends XMBView implements Refreshable {
                         SettingsKeeper.setValueAndSave(selectedItem.obj.toString(), createdCombos);
                         dynamicInput.setShown(false);
                         customizing.set(false);
+
                         if (ActivityManager.getCurrentActivity() instanceof HomeActivity)
                             ((HomeActivity)ActivityManager.getCurrentActivity()).refreshXMBInput();
-                    });
+                        ActivityManager.getCurrentActivity().refreshAccessibilityInput();
+                        AccessService.refreshInputCombos();
+                    }, SettingsKeeper.getSuperPrimaryInput());
                     refreshDynamicInput[0] = (placedValues) -> {
                         if (placedValues != null) {
                             comboInputs.clear();

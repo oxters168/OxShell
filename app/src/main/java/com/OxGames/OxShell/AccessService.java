@@ -22,11 +22,17 @@ public class AccessService extends AccessibilityService {
         super.onServiceConnected();
         Log.i("AccessService", "onServiceConnected");
         instance = this;
-        if (inputHandler == null)
-            inputHandler = new InputHandler();
-        if (!inputHandler.tagHasActions(InputHandler.ALWAYS_ON_TAG)) {
-            inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
-            inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+        refreshInputCombos();
+    }
+    public static void refreshInputCombos() {
+        if (instance != null) {
+            if (instance.inputHandler == null)
+                instance.inputHandler = new InputHandler();
+            //if (!instance.inputHandler.tagHasActions(InputHandler.ALWAYS_ON_TAG)) {
+            instance.inputHandler.clearKeyComboActions();
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+            //}
         }
     }
 
@@ -55,7 +61,7 @@ public class AccessService extends AccessibilityService {
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
         //Log.d("AccessService", event.toString());
-        if (inputHandler.onInputEvent(event))
+        if (inputHandler.onInputEvent(event) && !inputHandler.isBlockingInput())
             return true;
         return super.onKeyEvent(event);
     }
