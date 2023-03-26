@@ -21,7 +21,7 @@ public class IntentLaunchData implements Serializable {
     //Might be best to implement a guid that other data structures can identify by so they don't store copies
     private UUID id;
 
-    public enum DataType { None, AbsolutePath, FileNameWithExt, FileNameWithoutExt, Integer, Boolean, Float, String }
+    public enum DataType { None, Uri, AbsolutePath, FileNameWithExt, FileNameWithoutExt, Integer, Boolean, Float, String }
     private String displayName;
     private ArrayList<String> associatedExtensions;
     private String action;
@@ -147,7 +147,7 @@ public class IntentLaunchData implements Serializable {
         for (IntentPutExtra extra : extras) {
             DataType extraType = extra.getExtraType();
             if (extraType != DataType.None) {
-                if (extraType == DataType.AbsolutePath || extraType == DataType.FileNameWithExt || extraType == DataType.FileNameWithoutExt)
+                if (extraType == DataType.Uri || extraType == DataType.AbsolutePath || extraType == DataType.FileNameWithExt || extraType == DataType.FileNameWithoutExt)
                     intent.putExtra(extra.getName(), formatData(path, extra.getExtraType()));
                 else
                     extra.putExtraInto(intent);
@@ -221,8 +221,8 @@ public class IntentLaunchData implements Serializable {
 //    }
 
     public static Uri formatData(String data, DataType dataType) {
-        //if (dataType == DataType.AbsPathAsProvider)
-        //    return AndroidHelpers.uriFromPath(data);
+        if (dataType == DataType.Uri)
+            return AndroidHelpers.uriFromPath(data);
         if (dataType == DataType.AbsolutePath)
             return Uri.parse(data);
         if (dataType == DataType.FileNameWithoutExt)

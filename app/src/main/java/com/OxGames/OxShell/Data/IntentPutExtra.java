@@ -68,7 +68,9 @@ public class IntentPutExtra implements Serializable {
 //        } catch (Exception e) {}
 
         IntentPutExtra extra;
-        if (toBeParsed.equals(IntentLaunchData.DataType.AbsolutePath.toString()))
+        if (toBeParsed.equals(IntentLaunchData.DataType.Uri.toString()))
+            extra = new IntentPutExtra(name, null, IntentLaunchData.DataType.Uri);
+        else if (toBeParsed.equals(IntentLaunchData.DataType.AbsolutePath.toString()))
             extra = new IntentPutExtra(name, null, IntentLaunchData.DataType.AbsolutePath);
         else if (toBeParsed.equals(IntentLaunchData.DataType.FileNameWithExt.toString()))
             extra = new IntentPutExtra(name, null, IntentLaunchData.DataType.FileNameWithExt);

@@ -992,7 +992,7 @@ public class HomeView extends XMBView implements Refreshable {
             actionsDropdown.setIndex(index);
         });
         DynamicInputRow.TextInput extensionsInput = new DynamicInputRow.TextInput("Associated Extensions (comma separated)");
-        String[] dataTypes = { IntentLaunchData.DataType.None.toString(), IntentLaunchData.DataType.AbsolutePath.toString(), IntentLaunchData.DataType.FileNameWithExt.toString(), IntentLaunchData.DataType.FileNameWithoutExt.toString() };
+        String[] dataTypes = { IntentLaunchData.DataType.None.toString(), IntentLaunchData.DataType.Uri.toString(), IntentLaunchData.DataType.AbsolutePath.toString(), IntentLaunchData.DataType.FileNameWithExt.toString(), IntentLaunchData.DataType.FileNameWithoutExt.toString() };
         DynamicInputRow.Label dataLabel = new DynamicInputRow.Label("Data");
         dataLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
         DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
