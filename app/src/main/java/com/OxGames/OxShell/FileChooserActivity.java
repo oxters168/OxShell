@@ -42,17 +42,4 @@ public class FileChooserActivity extends PagedActivity {
         allPages = new Hashtable<>();
         allPages.put(ActivityManager.Page.chooser, findViewById(R.id.explorer_list));
     }
-
-    public void sendResult(String path) {
-        //final Uri uri = AndroidHelpers.uriFromPath(path);
-        //Uri uri = FileProvider.getUriForFile(this, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
-        Uri uri = Uri.parse(path);
-        //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        Intent returnIntent = new Intent();
-        returnIntent.setData(uri);
-        returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        setResult(Activity.RESULT_OK, returnIntent);
-        Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + uri);
-        finish();
-    }
 }

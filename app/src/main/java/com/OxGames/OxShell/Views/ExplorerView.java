@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -146,7 +147,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
         if (clickedItem.obj == null) {
             if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
-                ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(explorerBehaviour.getDirectory());
+                sendResult(explorerBehaviour.getDirectory());
             else
                 Log.e("ExplorerView", "Chosen item is null");
         } else {
@@ -159,11 +160,25 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 tryHighlightPrevDir();
             } else {
                 if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
-                    ((FileChooserActivity)ActivityManager.getInstance(FileChooserActivity.class)).sendResult(file.getAbsolutePath());
+                    sendResult(file.getAbsolutePath());
                 else
                     tryRun(((File)clickedItem.obj));
             }
         }
+    }
+    public void sendResult(String path) {
+        //final Uri uri = AndroidHelpers.uriFromPath(path);
+        //Uri uri = FileProvider.getUriForFile(this, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
+        Uri uri = Uri.parse(path);
+        //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        Intent returnIntent = new Intent();
+        returnIntent.setData(uri);
+        returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        ActivityManager.getCurrentActivity().setResult(Activity.RESULT_OK, returnIntent);
+        //Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + uri);
+        OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+        OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+        ActivityManager.getCurrentActivity().finish();
     }
 
     @Override
