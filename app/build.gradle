@@ -29,8 +29,8 @@ android {
         applicationId "com.OxGames.OxShell"
         minSdkVersion 26
         targetSdkVersion 33
-        versionCode 3
-        versionName "1.1.1"
+        versionCode 4
+        versionName "1.1.2"
 
         //def documentsAuthorityValue = applicationId + ".Explorer"
         //manifestPlaceholders = [documentsAuthority: documentsAuthorityValue]
