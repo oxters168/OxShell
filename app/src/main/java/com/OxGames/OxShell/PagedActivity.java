@@ -155,13 +155,16 @@ public class PagedActivity extends AppCompatActivity {
     //private InputHandler inputHandler;
     //private boolean isKeyboardShown;
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
-    private KeyComboAction[] accessPopupComboActions;
+    private List<KeyComboAction> accessPopupComboActions;
 
-    private void showAccessibilityPopup() {
+    private static final String homeAccessMsg = "Ox Shell needs accessibility permission in order to go home when pressing this key combo";
+    private static final String recentsAccessMsg = "Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
+
+    private void showAccessibilityPopup(String msg) {
         if (!AccessService.isEnabled() && !prompt.isPromptShown()) {
             PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
             prompt.setCenterOfScreen();
-            prompt.setMessage("Ox Shell needs accessibility permission in order to show recent apps when pressing select");
+            prompt.setMessage(msg);
             prompt.setStartBtn("Continue", () -> {
                 prompt.setShown(false);
                 AndroidHelpers.requestAccessibilityService(granted -> {
@@ -176,12 +179,14 @@ public class PagedActivity extends AppCompatActivity {
     }
     public void refreshAccessibilityInput() {
         if (accessPopupComboActions != null)
-            OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions);
-        List<KeyCombo> accessPopupCombos = new ArrayList<>();
-        Collections.addAll(accessPopupCombos, SettingsKeeper.getRecentsCombos());
-        Collections.addAll(accessPopupCombos, SettingsKeeper.getHomeCombos());
-        accessPopupComboActions = accessPopupCombos.stream().map(combo -> new KeyComboAction(combo, this::showAccessibilityPopup)).toArray(KeyComboAction[]::new);
-        OxShellApp.getInputHandler().addKeyComboActions(accessPopupComboActions);
+            OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
+        KeyComboAction[] recentsComboAction = Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(recentsAccessMsg))).toArray(KeyComboAction[]::new);
+        KeyComboAction[] homeComboAction = Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(homeAccessMsg))).toArray(KeyComboAction[]::new);
+        accessPopupComboActions = new ArrayList<>();
+        Collections.addAll(accessPopupComboActions, recentsComboAction);
+        Collections.addAll(accessPopupComboActions, homeComboAction);
+        OxShellApp.getInputHandler().addKeyComboActions(recentsComboAction);
+        OxShellApp.getInputHandler().addKeyComboActions(homeComboAction);
     }
 
     @Override
@@ -314,7 +319,7 @@ public class PagedActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.i("PagedActivity", "OnDestroy " + this);
         LogcatHelper.getInstance(this).stop();
-        OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions);
+        OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
         super.onDestroy();
     }
 
@@ -324,12 +329,6 @@ public class PagedActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
         //fixDrawerLayout();
         prepareOtherViews();
-//        initSettingsDrawer();
-//        settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
-//        initDynamicInputView();
-//        dynamicInput.setShown(dynamicInput.isOverlayShown());
-//        initPromptView();
-//        prompt.setShown(prompt.isPromptShown());
         //getStatusBarHeight();
         //settingsDrawer.setShown(isContextDrawerOpen());
     }
