@@ -34,24 +34,34 @@ public class SettingsKeeper {
     public static final String FONT_REF = "font_ref";
     public static final String VERSION_CODE = "version_code";
 
-    private static boolean fileDidExist;
+    //private static boolean fileDidExist;
     private static HashMap<String, Object> settingsCache;
 
-    public static boolean fileDidNotExist() {
-        return !fileDidExist;
-    }
+//    public static boolean fileDidNotExist() {
+//        return !fileDidExist;
+//    }
     public static void loadOrCreateSettings() {
         load();
         if (settingsCache == null) {
             settingsCache = new HashMap<>();
-            SettingsKeeper.setValueAndSave(TIMES_LOADED, 1);
-        } else {
-            fileDidExist = true;
-            if (SettingsKeeper.hasValue(TIMES_LOADED)) {
-                int timesLoaded = (Integer)SettingsKeeper.getValue(TIMES_LOADED); // even if saved as Integer for some reason it comes back as Double
-                SettingsKeeper.setValueAndSave(TIMES_LOADED, timesLoaded + 1);
-            }
+            //SettingsKeeper.setValueAndSave(TIMES_LOADED, 1);
         }
+//        else {
+//            fileDidExist = true;
+//            if (SettingsKeeper.hasValue(TIMES_LOADED)) {
+//                int timesLoaded = (Integer)SettingsKeeper.getValue(TIMES_LOADED); // even if saved as Integer for some reason it comes back as Double
+//                SettingsKeeper.setValueAndSave(TIMES_LOADED, timesLoaded + 1);
+//            }
+//        }
+    }
+    public static void incrementTimesLoaded() {
+        setValueAndSave(TIMES_LOADED, getTimesLoaded() + 1);
+    }
+    public static int getTimesLoaded() {
+        int timesLoaded = 0;
+        if (hasValue(TIMES_LOADED))
+            timesLoaded = (Integer)getValue(TIMES_LOADED);
+        return timesLoaded;
     }
     public static void load() {
         if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH)) {
@@ -129,98 +139,98 @@ public class SettingsKeeper {
     public static KeyCombo[] getSuperPrimaryInput() {
         // create default if not existing
         if (!hasValue(SUPER_PRIMARY_INPUT))
-            setValue(SUPER_PRIMARY_INPUT, getDefaultInputValueFor(SUPER_PRIMARY_INPUT));
+            setValueAndSave(SUPER_PRIMARY_INPUT, getDefaultInputValueFor(SUPER_PRIMARY_INPUT));
 
         return ((KeyCombo[])getValue(SUPER_PRIMARY_INPUT));
     }
     public static KeyCombo[] getPrimaryInput() {
         // create default if not existing
         if (!hasValue(PRIMARY_INPUT))
-            setValue(PRIMARY_INPUT, getDefaultInputValueFor(PRIMARY_INPUT));
+            setValueAndSave(PRIMARY_INPUT, getDefaultInputValueFor(PRIMARY_INPUT));
 
         return ((KeyCombo[])getValue(PRIMARY_INPUT));
     }
     public static KeyCombo[] getSecondaryInput() {
         // create default if not existing
         if (!hasValue(SECONDARY_INPUT))
-            setValue(SECONDARY_INPUT, getDefaultInputValueFor(SECONDARY_INPUT));
+            setValueAndSave(SECONDARY_INPUT, getDefaultInputValueFor(SECONDARY_INPUT));
 
         return ((KeyCombo[])getValue(SECONDARY_INPUT));
     }
     public static KeyCombo[] getExplorerHighlightInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_HIGHLIGHT_INPUT))
-            setValue(EXPLORER_HIGHLIGHT_INPUT, getDefaultInputValueFor(EXPLORER_HIGHLIGHT_INPUT));
+            setValueAndSave(EXPLORER_HIGHLIGHT_INPUT, getDefaultInputValueFor(EXPLORER_HIGHLIGHT_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_HIGHLIGHT_INPUT));
     }
     public static KeyCombo[] getExplorerGoUpInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_GO_UP_INPUT))
-            setValue(EXPLORER_GO_UP_INPUT, getDefaultInputValueFor(EXPLORER_GO_UP_INPUT));
+            setValueAndSave(EXPLORER_GO_UP_INPUT, getDefaultInputValueFor(EXPLORER_GO_UP_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_GO_UP_INPUT));
     }
     public static KeyCombo[] getExplorerGoBackInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_GO_BACK_INPUT))
-            setValue(EXPLORER_GO_BACK_INPUT, getDefaultInputValueFor(EXPLORER_GO_BACK_INPUT));
+            setValueAndSave(EXPLORER_GO_BACK_INPUT, getDefaultInputValueFor(EXPLORER_GO_BACK_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_GO_BACK_INPUT));
     }
     public static KeyCombo[] getExplorerExitInput() {
         // create default if not existing
         if (!hasValue(EXPLORER_EXIT_INPUT))
-            setValue(EXPLORER_EXIT_INPUT, getDefaultInputValueFor(EXPLORER_EXIT_INPUT));
+            setValueAndSave(EXPLORER_EXIT_INPUT, getDefaultInputValueFor(EXPLORER_EXIT_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_EXIT_INPUT));
     }
     public static KeyCombo[] getCancelInput() {
         // create default if not existing
         if (!hasValue(CANCEL_INPUT))
-            setValue(CANCEL_INPUT, getDefaultInputValueFor(CANCEL_INPUT));
+            setValueAndSave(CANCEL_INPUT, getDefaultInputValueFor(CANCEL_INPUT));
 
         return ((KeyCombo[])getValue(CANCEL_INPUT));
     }
     public static KeyCombo[] getHomeCombos() {
         // create default if not existing
         if (!hasValue(HOME_COMBOS))
-            setValue(HOME_COMBOS, getDefaultInputValueFor(HOME_COMBOS));
+            setValueAndSave(HOME_COMBOS, getDefaultInputValueFor(HOME_COMBOS));
 
         return ((KeyCombo[])getValue(HOME_COMBOS));
     }
     public static KeyCombo[] getRecentsCombos() {
         // create default if not existing
         if (!hasValue(RECENTS_COMBOS))
-            setValue(RECENTS_COMBOS, getDefaultInputValueFor(RECENTS_COMBOS));
+            setValueAndSave(RECENTS_COMBOS, getDefaultInputValueFor(RECENTS_COMBOS));
 
         return ((KeyCombo[])getValue(RECENTS_COMBOS));
     }
     public static KeyCombo[] getNavigateUp() {
         // create default if not existing
         if (!hasValue(NAVIGATE_UP))
-            setValue(NAVIGATE_UP, getDefaultInputValueFor(NAVIGATE_UP));
+            setValueAndSave(NAVIGATE_UP, getDefaultInputValueFor(NAVIGATE_UP));
 
         return ((KeyCombo[])getValue(NAVIGATE_UP));
     }
     public static KeyCombo[] getNavigateDown() {
         // create default if not existing
         if (!hasValue(NAVIGATE_DOWN))
-            setValue(NAVIGATE_DOWN, getDefaultInputValueFor(NAVIGATE_DOWN));
+            setValueAndSave(NAVIGATE_DOWN, getDefaultInputValueFor(NAVIGATE_DOWN));
 
         return ((KeyCombo[])getValue(NAVIGATE_DOWN));
     }
     public static KeyCombo[] getNavigateLeft() {
         // create default if not existing
         if (!hasValue(NAVIGATE_LEFT))
-            setValue(NAVIGATE_LEFT, getDefaultInputValueFor(NAVIGATE_LEFT));
+            setValueAndSave(NAVIGATE_LEFT, getDefaultInputValueFor(NAVIGATE_LEFT));
 
         return ((KeyCombo[])getValue(NAVIGATE_LEFT));
     }
     public static KeyCombo[] getNavigateRight() {
         // create default if not existing
         if (!hasValue(NAVIGATE_RIGHT))
-            setValue(NAVIGATE_RIGHT, getDefaultInputValueFor(NAVIGATE_RIGHT));
+            setValueAndSave(NAVIGATE_RIGHT, getDefaultInputValueFor(NAVIGATE_RIGHT));
 
         return ((KeyCombo[])getValue(NAVIGATE_RIGHT));
     }

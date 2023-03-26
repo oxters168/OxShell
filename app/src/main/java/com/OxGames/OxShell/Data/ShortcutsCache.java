@@ -55,6 +55,7 @@ public class ShortcutsCache {
         //Cheat sheet: http://p.cweiske.de/221
         String myBoyPkg = "com.fastemulator.gba";
         if (PackagesCache.isPackageInstalled(myBoyPkg)) {
+            Log.d("ShortcutsCache", "User has " + myBoyPkg);
             IntentLaunchData gbaLaunchIntent = new IntentLaunchData("GBA", Intent.ACTION_VIEW, myBoyPkg, "com.fastemulator.gba.EmulatorActivity", new String[]{"gba"}, Intent.FLAG_ACTIVITY_NEW_TASK);
             gbaLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
             defaults.add(gbaLaunchIntent);
@@ -71,6 +72,7 @@ public class ShortcutsCache {
 
         String ppssppPkg = "org.ppsspp.ppsspp";
         if (PackagesCache.isPackageInstalled(ppssppPkg)) {
+            Log.d("ShortcutsCache", "User has " + ppssppPkg);
             IntentLaunchData pspLaunchIntent = new IntentLaunchData("PSP", Intent.ACTION_VIEW, ppssppPkg, "org.ppsspp.ppsspp.PpssppActivity", new String[]{"iso", "cso"}, Intent.FLAG_ACTIVITY_NEW_TASK);
             pspLaunchIntent.setDataType(IntentLaunchData.DataType.AbsolutePath);
             //pspLaunchIntent.addExtra(new IntentPutExtra("org.ppsspp.ppsspp.Shortcuts", IntentLaunchData.DataType.AbsolutePath));
@@ -79,6 +81,7 @@ public class ShortcutsCache {
 
         String aetherSx2Pkg = "xyz.aethersx2.android";
         if (PackagesCache.isPackageInstalled(aetherSx2Pkg)) {
+            Log.d("ShortcutsCache", "User has " + aetherSx2Pkg);
             IntentLaunchData ps2LaunchIntent = new IntentLaunchData("PS2", Intent.ACTION_VIEW, aetherSx2Pkg, "xyz.aethersx2.android.EmulationActivity", new String[]{"iso", "bin", "chd"}, Intent.FLAG_ACTIVITY_NEW_TASK);
             ps2LaunchIntent.addExtra(new IntentPutExtra("bootPath", IntentLaunchData.DataType.AbsolutePath));
             defaults.add(ps2LaunchIntent);
@@ -86,11 +89,13 @@ public class ShortcutsCache {
 
         String citraPkg = "org.citra.emu";
         if (PackagesCache.isPackageInstalled(citraPkg)) {
+            Log.d("ShortcutsCache", "User has " + citraPkg);
             IntentLaunchData threedsLaunchIntent = new IntentLaunchData("3DS", Intent.ACTION_VIEW, citraPkg, "org.citra.emu.ui.EmulationActivity", new String[]{"3ds", "cxi"}, Intent.FLAG_ACTIVITY_NEW_TASK);
             threedsLaunchIntent.addExtra(new IntentPutExtra("GamePath", IntentLaunchData.DataType.AbsolutePath));
             defaults.add(threedsLaunchIntent);
         }
 
+        Log.d("ShortcutsCache", "Found " + defaults.size() + " total");
         return defaults.toArray(new IntentLaunchData[0]);
     }
     private static void saveIntentData(IntentLaunchData intentData) {

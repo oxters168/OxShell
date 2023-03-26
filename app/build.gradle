@@ -32,9 +32,9 @@ android {
         versionCode 3
         versionName "1.1.1"
 
-        def documentsAuthorityValue = applicationId + ".Explorer"
-        manifestPlaceholders = [documentsAuthority: documentsAuthorityValue]
-        buildConfigField "String", "DOCUMENTS_AUTHORITY", "\"${documentsAuthorityValue}\""
+        //def documentsAuthorityValue = applicationId + ".Explorer"
+        //manifestPlaceholders = [documentsAuthority: documentsAuthorityValue]
+        //buildConfigField "String", "DOCUMENTS_AUTHORITY", "\"${documentsAuthorityValue}\""
 
         buildConfigField "boolean", "GOLD", "false"
 

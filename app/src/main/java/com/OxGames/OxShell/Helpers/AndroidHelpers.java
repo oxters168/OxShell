@@ -495,7 +495,8 @@ public class AndroidHelpers {
 
     public static Uri uriFromFile(File file) {
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //Unnecessary since version code is always over 24
-        return Uri.parse(Uri.decode(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.APPLICATION_ID, file).toString()));
+        return FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.APPLICATION_ID, file);
+        //return Uri.parse(Uri.decode(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.APPLICATION_ID, file).toString()));
         //} else {
         //    return Uri.fromFile(file);
         //}
@@ -507,7 +508,7 @@ public class AndroidHelpers {
     public static void install(String path) {
         Context context = OxShellApp.getContext();
         //final Uri contentUri = Uri.parse(path);
-        final Uri contentUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID, new File(path));
+        final Uri contentUri = uriFromPath(path);
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

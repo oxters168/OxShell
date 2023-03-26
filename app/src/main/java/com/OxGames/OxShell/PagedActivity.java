@@ -203,16 +203,14 @@ public class PagedActivity extends AppCompatActivity {
         SettingsKeeper.loadOrCreateSettings();
         // in the future we would use this value to upgrade the serialization
         SettingsKeeper.setValueAndSave(SettingsKeeper.VERSION_CODE, BuildConfig.VERSION_CODE);
-        if (SettingsKeeper.fileDidNotExist()) {
+        Log.i("PagedActivity", "Time(s) loaded: " + SettingsKeeper.getTimesLoaded());
+        if (SettingsKeeper.getTimesLoaded() <= 1) {
             ShortcutsCache.createAndStoreDefaults();
             SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, FontRef.from("Fonts/exo.regular.otf", DataLocation.asset));
-            Log.i("PagedActivity", "Settings did not exist, first time launch");
+            Log.i("PagedActivity", "First time launch");
         } else {
             ShortcutsCache.readIntentsFromDisk();
-            int timesLoaded = 0;
-            if (SettingsKeeper.hasValue(SettingsKeeper.TIMES_LOADED))
-                timesLoaded = (int) SettingsKeeper.getValue(SettingsKeeper.TIMES_LOADED);
-            Log.i("PagedActivity", "Settings existed, activity launched " + timesLoaded + " time(s)");
+            Log.i("PagedActivity", "Not first time launch");
         }
 
         LogcatHelper.getInstance(this).start();

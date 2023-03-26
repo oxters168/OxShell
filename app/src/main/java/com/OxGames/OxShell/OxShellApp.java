@@ -8,6 +8,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.InputHandler;
 
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
@@ -30,6 +31,7 @@ public class OxShellApp extends Application {
         instance = this;
         inputHandler = new InputHandler();
         super.onCreate();
+        SettingsKeeper.incrementTimesLoaded();
         getDisplayInfo();
     }
     @Override
