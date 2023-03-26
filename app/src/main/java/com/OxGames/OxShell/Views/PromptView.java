@@ -278,6 +278,9 @@ public class PromptView extends FrameLayout implements InputReceiver {
             rearrangeViews();
             if (!isAnyBtnSet())
                 OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(keycode -> new KeyComboAction(keycode, () -> setShown(false))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(keycode -> new KeyComboAction(keycode, this::selectLeft)).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(keycode -> new KeyComboAction(keycode, this::selectRight)).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(keycode -> new KeyComboAction(keycode, this::pressItem)).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
         } else {
             resetValues();
@@ -286,6 +289,37 @@ public class PromptView extends FrameLayout implements InputReceiver {
         }
         setVisibility(onOff ? VISIBLE : GONE);
     }
+    private void selectLeft() {
+        if (isMiddleBtnSet && middleBtn.hasFocus())
+            startBtn.requestFocus();
+        else if (isEndBtnSet && endBtn.hasFocus())
+            if (isMiddleBtnSet)
+                middleBtn.requestFocus();
+            else
+                startBtn.requestFocus();
+        else if (!(isStartBtnSet && startBtn.hasFocus()))
+            endBtn.requestFocus();
+    }
+    private void selectRight() {
+        if (isMiddleBtnSet && middleBtn.hasFocus())
+            endBtn.requestFocus();
+        else if (isStartBtnSet && startBtn.hasFocus())
+            if (isMiddleBtnSet)
+                middleBtn.requestFocus();
+            else
+                endBtn.requestFocus();
+        else if (!(isEndBtnSet && endBtn.hasFocus()))
+            startBtn.requestFocus();
+    }
+    private void pressItem() {
+        if (startBtn.hasFocus())
+            startBtn.performClick();
+        else if (middleBtn.hasFocus())
+            middleBtn.performClick();
+        else if (endBtn.hasFocus())
+            endBtn.performClick();
+    }
+
     public void setPromptImage(int resourceId) {
         isImageSet = true;
         imageLoc = DataLocation.resource;

@@ -104,7 +104,7 @@ public class HomeActivity extends PagedActivity {
             PromptView prompt = getPrompt();
             prompt.setCenterOfScreen();
             prompt.setMessage("Thank you for using Ox Shell, please consider supporting us by purchasing the app from the store");
-            prompt.setMiddleBtn("Got it", () -> { prompt.setShown(false); }, SettingsKeeper.getPrimaryInput());
+            prompt.setMiddleBtn("Got it", () -> { prompt.setShown(false); }, SettingsKeeper.getSuperPrimaryInput());
             prompt.setShown(true);
         } else {
             Log.i("HomeActivity", "Running in gold");
