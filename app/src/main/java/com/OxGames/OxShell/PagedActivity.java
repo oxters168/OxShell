@@ -199,20 +199,6 @@ public class PagedActivity extends AppCompatActivity {
 
         ActivityManager.init();
         ActivityManager.instanceCreated(this);
-
-        SettingsKeeper.loadOrCreateSettings();
-        // in the future we would use this value to upgrade the serialization
-        SettingsKeeper.setValueAndSave(SettingsKeeper.VERSION_CODE, BuildConfig.VERSION_CODE);
-        Log.i("PagedActivity", "Time(s) loaded: " + SettingsKeeper.getTimesLoaded());
-        if (SettingsKeeper.getTimesLoaded() <= 1) {
-            ShortcutsCache.createAndStoreDefaults();
-            SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, FontRef.from("Fonts/exo.regular.otf", DataLocation.asset));
-            Log.i("PagedActivity", "First time launch");
-        } else {
-            ShortcutsCache.readIntentsFromDisk();
-            Log.i("PagedActivity", "Not first time launch");
-        }
-
         LogcatHelper.getInstance(this).start();
         //int mPId = android.os.Process.myPid();
         //Log.d("PagedActivity", "pid: " + mPId);

@@ -8,7 +8,10 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.OxGames.OxShell.Data.DataLocation;
+import com.OxGames.OxShell.Data.FontRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.InputHandler;
 
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
@@ -31,7 +34,21 @@ public class OxShellApp extends Application {
         instance = this;
         inputHandler = new InputHandler();
         super.onCreate();
+
+        SettingsKeeper.loadOrCreateSettings();
+        // in the future we would use this value to upgrade the serialization
+        SettingsKeeper.setValueAndSave(SettingsKeeper.VERSION_CODE, BuildConfig.VERSION_CODE);
+        Log.i("PagedActivity", "Time(s) loaded: " + SettingsKeeper.getTimesLoaded());
+        if (SettingsKeeper.getTimesLoaded() < 1) {
+            ShortcutsCache.createAndStoreDefaults();
+            SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, FontRef.from("Fonts/exo.regular.otf", DataLocation.asset));
+            Log.i("PagedActivity", "First time launch");
+        } else {
+            ShortcutsCache.readIntentsFromDisk();
+            Log.i("PagedActivity", "Not first time launch");
+        }
         SettingsKeeper.incrementTimesLoaded();
+
         getDisplayInfo();
     }
     @Override
