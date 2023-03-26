@@ -519,8 +519,19 @@ public class HomeView extends XMBView implements Refreshable {
                         // make the key combo array from inputs then save them to the settings
                         KeyCombo[] createdCombos = new KeyCombo[comboInputs.size()];
                         HashMap<String, Integer> keycodes = KeyCombo.getKeyCodesStringMap();
-                        for (int i = 0; i < comboInputs.size(); i++)
-                            createdCombos[i] = KeyCombo.createUpCombo(false, Arrays.stream(comboInputs.get(i).getText().split("[+]")).mapToInt(value -> { value = value.trim(); try { return Integer.parseInt(value); } catch (Exception e) { return keycodes.getOrDefault(value, -1); } }).toArray());
+                        for (int i = 0; i < comboInputs.size(); i++) {
+                            int[] keys = Arrays.stream(comboInputs.get(i).getText().split("[+]")).mapToInt(value -> { value = value.trim(); try { return Integer.parseInt(value); } catch (Exception e) { return keycodes.getOrDefault(value, -1); } }).toArray();
+                            if (onDownToggles.get(i).getOnOff()) {
+                                int holdMillis;
+                                try { holdMillis = Integer.parseInt(holdTimeInputs.get(i).getText()); } catch(Exception e) { holdMillis = -1; };
+                                int repeatStartDelay;
+                                try { repeatStartDelay = Integer.parseInt(repeatStartDelayInputs.get(i).getText()); } catch(Exception e) { repeatStartDelay = -1; };
+                                int repeatDelay;
+                                try { repeatDelay = Integer.parseInt(repeatDelayInputs.get(i).getText()); } catch(Exception e) { repeatDelay = -1; };
+                                createdCombos[i] = KeyCombo.createDownCombo(holdMillis, repeatStartDelay, repeatDelay, orderedToggles.get(i).getOnOff(), keys);
+                            } else
+                                createdCombos[i] = KeyCombo.createUpCombo(orderedToggles.get(i).getOnOff(), keys);
+                        }
                         SettingsKeeper.setValueAndSave(selectedItem.obj.toString(), createdCombos);
                         dynamicInput.setShown(false);
                         customizing.set(false);
