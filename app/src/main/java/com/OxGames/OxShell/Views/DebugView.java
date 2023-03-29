@@ -101,9 +101,9 @@ public class DebugView extends FrameLayout {
         if (isShown) {
             final long[] prevTime = { SystemClock.uptimeMillis() };
             final int[] framesPassed = { 0 };
-            final int[] fps = {-1};
-            final Handler[] smh = {new Handler(Looper.getMainLooper())};
-            smh[0].post(new Runnable() {
+            final int[] fps = { -1 };
+            final Handler smh = new Handler(Looper.getMainLooper());
+            smh.post(new Runnable() {
                 @SuppressLint("SetTextI18n")
                 @Override
                 public void run() {
@@ -136,7 +136,7 @@ public class DebugView extends FrameLayout {
                     );
 
                     if (isShown)
-                        smh[0].post(this);
+                        smh.post(this);
                 }
             });
         }
