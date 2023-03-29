@@ -38,7 +38,7 @@ import java.util.List;
 
 public class PromptView extends FrameLayout implements InputReceiver {
     private InputHandler inputHandler;
-    private Context context;
+    private final Context context;
     private ImageView img;
     private BetterTextView msg;
     private Button startBtn;
@@ -412,26 +412,5 @@ public class PromptView extends FrameLayout implements InputReceiver {
     @Override
     public boolean receiveKeyEvent(KeyEvent keyEvent) {
         return inputHandler.onInputEvent(keyEvent);
-//        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
-//            if (isStartBtnSet && startBtnAction != null && startBtnKeys.contains(keyEvent.getKeyCode())) {
-//                startBtnAction.run();
-//                return true;
-//            }
-//            if (isMiddleBtnSet && middleBtnAction != null && middleBtnKeys.contains(keyEvent.getKeyCode())) {
-//                middleBtnAction.run();
-//                return true;
-//            }
-//            if (isEndBtnSet && endBtnAction != null && endBtnKeys.contains(keyEvent.getKeyCode())) {
-//                endBtnAction.run();
-//                return true;
-//            }
-//            if (!isAnyBtnSet() && (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_A || keyEvent.getKeyCode() == KeyEvent.KEYCODE_BUTTON_START)) {
-//                setShown(false);
-//                return true;
-//            }
-//        }
-//        if (keyEvent.getKeyCode() == KeyEvent.KEYCODE_BACK)
-//            return true; // in case its not mapped to anything, then don't quit OxShell
-//        return false;
     }
 }

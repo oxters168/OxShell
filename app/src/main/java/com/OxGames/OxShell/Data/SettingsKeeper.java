@@ -26,6 +26,7 @@ public class SettingsKeeper {
     public static final String NAVIGATE_DOWN = "navigate_down";
     public static final String NAVIGATE_LEFT = "navigate_left";
     public static final String NAVIGATE_RIGHT = "navigate_right";
+    public static final String SHOW_DEBUG_INPUT = "show_debug_input";
 
     public static final String HOME_ITEM_SCALE = "home_item_scale";
     public static final String HOME_SELECTION_ALPHA = "home_selection_alpha";
@@ -133,6 +134,8 @@ public class SettingsKeeper {
                 return new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_LEFT) };
             case (NAVIGATE_RIGHT):
                 return new KeyCombo[] { KeyCombo.createDownCombo(0, KeyCombo.defaultRepeatStartDelay, KeyCombo.defaultRepeatTime, KeyEvent.KEYCODE_DPAD_RIGHT) };
+            case (SHOW_DEBUG_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_GRAVE), KeyCombo.createUpCombo(false, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_SELECT, KeyEvent.KEYCODE_BUTTON_START) };
         }
         return new KeyCombo[0];
     }
@@ -233,5 +236,12 @@ public class SettingsKeeper {
             setValueAndSave(NAVIGATE_RIGHT, getDefaultInputValueFor(NAVIGATE_RIGHT));
 
         return ((KeyCombo[])getValue(NAVIGATE_RIGHT));
+    }
+    public static KeyCombo[] getShowDebugInput() {
+        // create default if not existing
+        if (!hasValue(SHOW_DEBUG_INPUT))
+            setValueAndSave(SHOW_DEBUG_INPUT, getDefaultInputValueFor(SHOW_DEBUG_INPUT));
+
+        return ((KeyCombo[])getValue(SHOW_DEBUG_INPUT));
     }
 }

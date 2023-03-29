@@ -539,6 +539,7 @@ public class HomeView extends XMBView implements Refreshable {
                         if (ActivityManager.getCurrentActivity() instanceof HomeActivity)
                             ((HomeActivity)ActivityManager.getCurrentActivity()).refreshXMBInput();
                         ActivityManager.getCurrentActivity().refreshAccessibilityInput();
+                        ActivityManager.getCurrentActivity().refreshShowDebugInput();
                         AccessService.refreshInputCombos();
                     }, SettingsKeeper.getSuperPrimaryInput());
                     refreshDynamicInput[0] = (placedValues) -> {
@@ -717,7 +718,7 @@ public class HomeView extends XMBView implements Refreshable {
         settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[3];
-        XMBItem[] innerInnerSettings = new XMBItem[8];
+        XMBItem[] innerInnerSettings = new XMBItem[9];
         innerInnerSettings[0] = new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input");
         innerInnerSettings[1] = new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input");
         innerInnerSettings[2] = new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input");
@@ -726,6 +727,7 @@ public class HomeView extends XMBView implements Refreshable {
         innerInnerSettings[5] = new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input");
         innerInnerSettings[6] = new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input");
         innerInnerSettings[7] = new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input");
+        innerInnerSettings[8] = new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input");
         innerSettings[0] = new XMBItem(null, "General", ImageRef.from(R.drawable.ic_baseline_home_24, DataLocation.resource), innerInnerSettings);
         innerInnerSettings = new XMBItem[4];
         innerInnerSettings[0] = new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input");

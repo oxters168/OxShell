@@ -33,6 +33,7 @@ import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Interfaces.Refreshable;
+import com.OxGames.OxShell.Views.DebugView;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
 import com.OxGames.OxShell.Views.SettingsDrawer;
@@ -131,6 +132,7 @@ public class PagedActivity extends AppCompatActivity {
     private static final int SETTINGS_DRAWER_ID = View.generateViewId();
     private static final int DYNAMIC_INPUT_ID = View.generateViewId();
     private static final int PROMPT_ID = View.generateViewId();
+    private static final int DEBUG_VIEW_ID = View.generateViewId();
     //private static final String PAGED_ACTIVITY_INPUT = "PAGED_ACTIVITY_INPUT";
 
     protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
@@ -149,6 +151,7 @@ public class PagedActivity extends AppCompatActivity {
     private DynamicInputView dynamicInput;
     private SettingsDrawer settingsDrawer;
     private PromptView prompt;
+    private DebugView debugView;
 
     private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
@@ -156,6 +159,7 @@ public class PagedActivity extends AppCompatActivity {
     //private boolean isKeyboardShown;
     private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
     private List<KeyComboAction> accessPopupComboActions;
+    KeyComboAction[] showDebugAction;
 
     private static final String homeAccessMsg = "Ox Shell needs accessibility permission in order to go home when pressing this key combo";
     private static final String recentsAccessMsg = "Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
@@ -188,10 +192,17 @@ public class PagedActivity extends AppCompatActivity {
         OxShellApp.getInputHandler().addKeyComboActions(recentsComboAction);
         OxShellApp.getInputHandler().addKeyComboActions(homeComboAction);
     }
+    public void refreshShowDebugInput() {
+        if (showDebugAction != null)
+            OxShellApp.getInputHandler().removeKeyComboActions(showDebugAction);
+        showDebugAction = Arrays.stream(SettingsKeeper.getShowDebugInput()).map(combo -> new KeyComboAction(combo, () -> getDebugView().setShown(!getDebugView().isDebugShown()))).toArray(KeyComboAction[]::new);
+        OxShellApp.getInputHandler().addKeyComboActions(showDebugAction);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         refreshAccessibilityInput();
+        refreshShowDebugInput();
 
         trySetStartTime();
         super.onCreate(savedInstanceState);
@@ -412,6 +423,8 @@ public class PagedActivity extends AppCompatActivity {
         dynamicInput.setShown(dynamicInput.isOverlayShown());
         initPromptView();
         prompt.setShown(prompt.isPromptShown());
+        initDebugView();
+        debugView.setShown(debugView.isDebugShown());
     }
     private void initDynamicInputView() {
         dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);
@@ -440,6 +453,15 @@ public class PagedActivity extends AppCompatActivity {
             parentView.addView(prompt);
         }
     }
+    private void initDebugView() {
+        debugView = parentView.findViewById(DEBUG_VIEW_ID);
+        if (debugView == null) {
+            Log.d("PagedActivity", "Debug view not found, creating...");
+            debugView = new DebugView(this);
+            debugView.setId(DEBUG_VIEW_ID);
+            parentView.addView(debugView);
+        }
+    }
     public DynamicInputView getDynamicInput() {
         return dynamicInput;
     }
@@ -448,6 +470,9 @@ public class PagedActivity extends AppCompatActivity {
     }
     public PromptView getPrompt() {
         return prompt;
+    }
+    public DebugView getDebugView() {
+        return debugView;
     }
 
     private void trySetStartTime() {
