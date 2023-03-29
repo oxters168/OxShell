@@ -40,6 +40,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private static final int TITLE_ID = View.generateViewId();
     private static final int ICON_HIGHLIGHT_ID = View.generateViewId();
     private static final int ICON_ID = View.generateViewId();
+    private static Drawable QUESTION_MARK_DRAWABLE;
 
 //    public XMBAdapter(Context context, XMBItem... items) {
 //        this.context = context;
@@ -57,6 +58,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         for (ArrayList<XMBItem> column : items)
             casted.add(new ArrayList<>(column));
         setItems(casted);
+        QUESTION_MARK_DRAWABLE = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
         //if (SettingsKeeper.hasValue(SettingsKeeper.FONT_REF))
         //    font = ((FontRef)SettingsKeeper.getValue(SettingsKeeper.FONT_REF)).getFont();
         //font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
@@ -176,28 +178,22 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             ImageView img = itemView.findViewById(ICON_ID);
             ImageView highlight = itemView.findViewById(ICON_HIGHLIGHT_ID);
             Drawable icon = null;
-            //Drawable icon = item != null ? item.getIcon() : ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24);
             if (item != null) {
-                item.getIcon(new Consumer<Drawable>() {
-                    @Override
-                    public void accept(Drawable drawable) {
-                        if (drawable != null) {
-                            img.setImageDrawable(drawable);
-                            highlight.setBackground(drawable.getConstantState().newDrawable());
-                        } else {
-                            img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
-                            highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
-                        }
+//                img.setImageDrawable(QUESTION_MARK_DRAWABLE);
+//                highlight.setImageDrawable(QUESTION_MARK_DRAWABLE);
+                item.getIcon((Consumer<Drawable>) drawable -> {
+                    if (drawable != null) {
+                        img.setImageDrawable(drawable);
+                        highlight.setBackground(drawable.getConstantState().newDrawable());
+                    } else {
+                        img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
+                        highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                     }
                 });
             } else {
                 img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
                 highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
             }
-            //if (icon == null)
-            //    icon = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
-            //img.setBackground(icon);
-            //highlight.setBackground(icon.getConstantState().newDrawable());
             highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
         }
     }

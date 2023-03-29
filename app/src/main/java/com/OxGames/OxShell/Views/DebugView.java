@@ -24,11 +24,43 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.R;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class DebugView extends FrameLayout {
     private final Context context;
     private boolean isShown;
     private BetterTextView debugLabel;
     private int framesPerFpsCalculation = 16;
+
+    private static class OutputData {
+        String output;
+        long timeSet; // in milliseconds
+        float ttl; // in seconds
+
+        private OutputData(String output, float ttl) {
+            updateOutput(output, ttl);
+            //this.output = output;
+            //timeSet = SystemClock.uptimeMillis();
+            //this.ttl = ttl;
+
+        }
+        private OutputData(String output) {
+            this(output, -1);
+        }
+        private void updateOutput(String output) {
+            this.output = output;
+            timeSet = SystemClock.uptimeMillis();
+        }
+        private void updateOutput(String output, float ttl) {
+            this.output = output;
+            timeSet = SystemClock.uptimeMillis();
+            this.ttl = ttl;
+        }
+    }
+    private static final HashMap<String, OutputData> outputs = new HashMap<>();
 
     public DebugView(@NonNull Context context) {
         super(context);
@@ -96,6 +128,33 @@ public class DebugView extends FrameLayout {
         return Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
     }
 
+    public static void print(String key, String output, float ttl) {
+        if (outputs.containsKey(key))
+            outputs.get(key).updateOutput(output, ttl);
+        else
+            outputs.put(key, new OutputData(output, ttl));
+    }
+    public static void print(String key, String output) {
+        if (outputs.containsKey(key))
+            outputs.get(key).updateOutput(output);
+        else
+            outputs.put(key, new OutputData(output));
+    }
+    public static void clear(String key) {
+        if (key != null)
+            outputs.remove(key);
+    }
+    public static void clear() {
+        outputs.clear();
+    }
+    private static void cleanOutputData() {
+        List<String> removeKeys = new ArrayList<>();
+        for (Map.Entry<String, OutputData> entry : outputs.entrySet())
+            if (entry.getValue().ttl >= 0 && (SystemClock.uptimeMillis() - entry.getValue().timeSet) / 1000f > entry.getValue().ttl)
+                removeKeys.add(entry.getKey());
+        for (String key : removeKeys)
+            outputs.remove(key);
+    }
     public void setShown(boolean onOff) {
         isShown = onOff;
         if (isShown) {
@@ -129,11 +188,18 @@ public class DebugView extends FrameLayout {
                     final long usedMem = (runtime.totalMemory() - runtime.freeMemory());
                     final long maxHeapSize = runtime.maxMemory();
                     float usedHeapInPercentage = (float)MathHelpers.roundTo(usedMem / ((double)maxHeapSize), 2);
-                    debugLabel.setText(
-                            "FPS: " + (fps[0] >= 0 ? fps[0] : "?")
-                            + "\nHeap: " + Math.round(usedMem / (double)bytesInMb) + " mb / " + Math.round(maxHeapSize / (double)bytesInMb) + " mb | " + usedHeapInPercentage + "% used"
-                            + "\nRAM: " + Math.round(usedMemInBytes / (double)bytesInMb) + " mb / " + Math.round(nativeHeapSize / (double)bytesInMb) + " mb | " + usedMemInPercentage + "% used"
-                    );
+//                    debugLabel.setText(
+//                            "FPS: " + (fps[0] >= 0 ? fps[0] : "?")
+//                            + "\nHeap: " + Math.round(usedMem / (double)bytesInMb) + " mb / " + Math.round(maxHeapSize / (double)bytesInMb) + " mb | " + usedHeapInPercentage + "% used"
+//                            + "\nRAM: " + Math.round(usedMemInBytes / (double)bytesInMb) + " mb / " + Math.round(nativeHeapSize / (double)bytesInMb) + " mb | " + usedMemInPercentage + "% used"
+//                    );
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("FPS: ").append(fps[0] >= 0 ? fps[0] : "?").append("\nHeap: ").append(Math.round(usedMem / (double) bytesInMb)).append(" mb / ").append(Math.round(maxHeapSize / (double) bytesInMb)).append(" mb | ").append(usedHeapInPercentage).append("% used").append("\nRAM: ").append(Math.round(usedMemInBytes / (double) bytesInMb)).append(" mb / ").append(Math.round(nativeHeapSize / (double) bytesInMb)).append(" mb | ").append(usedMemInPercentage).append("% used");
+                    cleanOutputData();
+                    for (OutputData outputData : outputs.values())
+                        sb.append("\n").append(outputData.output);
+                    debugLabel.setText(sb);
 
                     if (isShown)
                         smh.post(this);

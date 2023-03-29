@@ -481,10 +481,12 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private float pseudoStartX = 0;
     private float momentumX = 0;
     private float prevX = 0;
+    //private float minDiffX = 10f;
     private float startTouchY = 0;
     private float pseudoStartY = 0;
     private float momentumY = 0;
     private float prevY = 0;
+    //private float minDiffY = 10f;
     private int startTouchColIndex = 0;
     private int startTouchRowIndex = 0;
     private boolean longPressed = false;
@@ -562,29 +564,35 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     touchMoveStartTime = SystemClock.uptimeMillis();
                 }
                 float diffX = prevX - currentX;
-                shiftX(diffX);// * 0.2f);
-                if (this.colIndex != startTouchColIndex) {
-                    // if the index changed then set our drag start value to be where we are right now
-                    pseudoStartX = currentX;
-                    startTouchColIndex = this.colIndex;
-                }
-            }
+                //if (Math.abs(diffX) >= minDiffX) {
+                    shiftX(diffX);// * 0.2f);
+                    if (this.colIndex != startTouchColIndex) {
+                        // if the index changed then set our drag start value to be where we are right now
+                        pseudoStartX = currentX;
+                        startTouchColIndex = this.colIndex;
+                    }
+                    //prevX = currentX;
+                //}
+            }// else
+                prevX = currentX;
             if (touchVer) {
-                float diffY = prevY - currentY;
                 if (touchMoveDir != Math.signum(pseudoStartY - currentY)) {
                     // if the movement direction changed, then update the start time to reflect when the change happened
                     touchMoveDir = Math.signum(pseudoStartY - currentY);
                     touchMoveStartTime = SystemClock.uptimeMillis();
                 }
-                shiftY(diffY, startTouchColIndex);
-                if (this.rowIndex != startTouchRowIndex) {
-                    // if the index changed then set our drag start value to be where we are right now
-                    pseudoStartY = currentY;
-                    startTouchRowIndex = this.rowIndex;
-                }
-            }
-            prevX = currentX;
-            prevY = currentY;
+                float diffY = prevY - currentY;
+                //if (Math.abs(diffY) >= minDiffY) {
+                    shiftY(diffY, startTouchColIndex);
+                    if (this.rowIndex != startTouchRowIndex) {
+                        // if the index changed then set our drag start value to be where we are right now
+                        pseudoStartY = currentY;
+                        startTouchRowIndex = this.rowIndex;
+                    }
+                    //prevY = currentY;
+                //}
+            }// else
+                prevY = currentY;
         } else if (ev.getAction() == MotionEvent.ACTION_UP && touchInsideBorders) {
             isPressing = false;
             stopMomentum();
@@ -712,9 +720,16 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             int verShiftOffset = Math.round(getVerShiftOffset());
             //if (moveMode && indexChanged)
             //    returnAllViews();
+            long startTime = SystemClock.uptimeMillis();
             drawCategories(indexChanged, startX, startY, horShiftOffset, instant || moveMode);
+            long catTime = SystemClock.uptimeMillis() - startTime;
+            startTime = SystemClock.uptimeMillis();
             drawItems(indexChanged, instant || moveMode, startX, startY, horShiftOffset, verShiftOffset);
+            long itemTime = SystemClock.uptimeMillis() - startTime;
+            startTime = SystemClock.uptimeMillis();
             drawInnerItems(instant || moveMode);
+            long innerTime = SystemClock.uptimeMillis() - startTime;
+            DebugView.print("SET_VIEWS", "xmb_time: cats(" + catTime + " ms) | items(" + itemTime + " ms) | inner(" + innerTime + " ms)", 2);
         }
     }
     private void drawCategories(boolean indexChanged, int startXInt, int startYInt, int horShiftOffsetInt, boolean instant) {
@@ -845,6 +860,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             viewHolder.itemView.animate().setDuration(300);
             viewHolder.itemView.animate().xBy(viewHolder.getX() - viewHolder.getPrevX());
             viewHolder.itemView.animate().yBy(viewHolder.getY() - viewHolder.getPrevY());
+            //viewHolder.itemView.setX(viewHolder.getX());
+            //viewHolder.itemView.setY(viewHolder.getY());
         }
         switch (fadeTransition) {
             case FADE_VISIBLE:
