@@ -3,6 +3,9 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -21,6 +24,7 @@ public class DebugView extends FrameLayout {
     private final Context context;
     private boolean isShown;
     private BetterTextView debugLabel;
+    private int framesPerFpsCalculation = 16;
 
     public DebugView(@NonNull Context context) {
         super(context);
@@ -73,8 +77,9 @@ public class DebugView extends FrameLayout {
         debugLabel.setOutlineColor(Color.parseColor("#000000"));
         int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3));
         debugLabel.setOutlineSize(textOutlineSize);
-        debugLabel.setText("Quos voluptas commodi maxime dolore eveniet enim commodi et. Et qui nobis est earum eum. Excepturi quis nostrum consectetur ipsum debitis nihil autem. Vitae maiores ducimus et aut voluptas. Est ipsa aliquam quibusdam id atque. Veritatis nisi non minus quo aut. Qui voluptate eos nihil dolores aut. Atque debitis quidem similique molestias perferendis eum numquam qui. Necessitatibus hic quia nulla minus occaecati occaecati est. Unde qui culpa distinctio ea repellat omnis cumque voluptatibus. Vel ut non iste. Numquam ut est temporibus eveniet et exercitationem maxime. Adipisci rerum magnam ipsa laudantium dolores. Vitae ea rem dicta molestiae ut rerum placeat. Repellat fugiat et quo corporis culpa facilis quia. Vel et rerum doloribus porro reiciendis est aut. Illum nihil non et molestiae nostrum. Molestiae dolor cupiditate a numquam adipisci nobis. Rerum saepe libero doloribus incidunt sunt molestias explicabo. Error inventore libero quam nostrum voluptates minima corporis voluptatem. Culpa illum vel ut qui aut in. Eligendi perferendis pariatur dolorum reiciendis sit. Ut et labore magnam quas debitis. Autem et enim enim quia nam voluptatibus illo.");
+        //debugLabel.setText("Quos voluptas commodi maxime dolore eveniet enim commodi et. Et qui nobis est earum eum. Excepturi quis nostrum consectetur ipsum debitis nihil autem. Vitae maiores ducimus et aut voluptas. Est ipsa aliquam quibusdam id atque. Veritatis nisi non minus quo aut. Qui voluptate eos nihil dolores aut. Atque debitis quidem similique molestias perferendis eum numquam qui. Necessitatibus hic quia nulla minus occaecati occaecati est. Unde qui culpa distinctio ea repellat omnis cumque voluptatibus. Vel ut non iste. Numquam ut est temporibus eveniet et exercitationem maxime. Adipisci rerum magnam ipsa laudantium dolores. Vitae ea rem dicta molestiae ut rerum placeat. Repellat fugiat et quo corporis culpa facilis quia. Vel et rerum doloribus porro reiciendis est aut. Illum nihil non et molestiae nostrum. Molestiae dolor cupiditate a numquam adipisci nobis. Rerum saepe libero doloribus incidunt sunt molestias explicabo. Error inventore libero quam nostrum voluptates minima corporis voluptatem. Culpa illum vel ut qui aut in. Eligendi perferendis pariatur dolorum reiciendis sit. Ut et labore magnam quas debitis. Autem et enim enim quia nam voluptatibus illo.");
         debugLabel.setFocusable(false);
+        debugLabel.setBlockTouchInput(false);
         Typeface font = SettingsKeeper.getFont();
         debugLabel.setTypeface(font);
         addView(debugLabel);
@@ -89,11 +94,28 @@ public class DebugView extends FrameLayout {
 
     public void setShown(boolean onOff) {
         isShown = onOff;
-//        if (isShown) {
-//
-//        } else {
-//
-//        }
+        if (isShown) {
+            final long[] prevTime = { SystemClock.uptimeMillis() };
+            final int[] framesPassed = { 0 };
+            Handler smh = new Handler(Looper.getMainLooper());
+            debugLabel.setText("FPS: ?");
+            smh.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (framesPassed[0] >= framesPerFpsCalculation) {
+                        long currentTime = SystemClock.uptimeMillis();
+                        int fps = Math.round((1000f * framesPerFpsCalculation) / (currentTime - prevTime[0]));
+                        debugLabel.setText("FPS: " + fps);
+                        framesPassed[0] = 0;
+                        prevTime[0] = currentTime;
+                    } else {
+                        framesPassed[0]++;
+                    }
+                    if (isShown)
+                        smh.post(this);
+                }
+            });
+        }
         setVisibility(onOff ? VISIBLE : GONE);
     }
     public boolean isDebugShown() {

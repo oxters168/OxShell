@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 
 import androidx.appcompat.widget.AppCompatTextView;
 
@@ -13,7 +14,6 @@ import com.OxGames.OxShell.R;
 
 // src: https://stackoverflow.com/a/55156928/5430992
 public class BetterTextView extends AppCompatTextView {
-
     // constants
     private static final int DEFAULT_OUTLINE_SIZE = 0;
     private static final int DEFAULT_OUTLINE_COLOR = Color.TRANSPARENT;
@@ -26,6 +26,9 @@ public class BetterTextView extends AppCompatTextView {
     private float mShadowDx;
     private float mShadowDy;
     private int mShadowColor;
+
+    private boolean passTouchEvents; // should pass on touch events to views behind us?
+    private boolean ignoreTouchEvents; // should ignore touch events on self?
 
     public BetterTextView(Context context) {
         this(context, null);
@@ -104,6 +107,12 @@ public class BetterTextView extends AppCompatTextView {
     public void setOutlineColor(int color) {
         mOutlineColor = color;
     }
+    public void setBlockTouchInput(boolean onOff) {
+        passTouchEvents = !onOff;
+    }
+    public void setIgnoreTouchInput(boolean onOff) {
+        ignoreTouchEvents = onOff;
+    }
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -114,4 +123,17 @@ public class BetterTextView extends AppCompatTextView {
         super.onDraw(canvas);
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        boolean usedTouchEvent = false;
+        if (!ignoreTouchEvents)
+            usedTouchEvent = super.onTouchEvent(event);
+        return !passTouchEvents && usedTouchEvent;
+    }
+
+//    @Override
+//    public boolean onFilterTouchEventForSecurity(MotionEvent event) {
+//        return false;
+//        //return super.onFilterTouchEventForSecurity(event);
+//    }
 }
