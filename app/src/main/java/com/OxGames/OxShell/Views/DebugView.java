@@ -1,8 +1,11 @@
 package com.OxGames.OxShell.Views;
 
+import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
+//import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -18,6 +21,7 @@ import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.R;
 
 public class DebugView extends FrameLayout {
@@ -62,7 +66,7 @@ public class DebugView extends FrameLayout {
 
         debugLabel = new BetterTextView(context);
         layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.gravity = Gravity.TOP | Gravity.END;
+        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         int borderMargin = getBorderMargin();
         layoutParams.setMargins(borderMargin, borderMargin, borderMargin, borderMargin);
         debugLabel.setLayoutParams(layoutParams);
@@ -97,22 +101,42 @@ public class DebugView extends FrameLayout {
         if (isShown) {
             final long[] prevTime = { SystemClock.uptimeMillis() };
             final int[] framesPassed = { 0 };
-            Handler smh = new Handler(Looper.getMainLooper());
-            debugLabel.setText("FPS: ?");
-            smh.post(new Runnable() {
+            final int[] fps = {-1};
+            final Handler[] smh = {new Handler(Looper.getMainLooper())};
+            smh[0].post(new Runnable() {
+                @SuppressLint("SetTextI18n")
                 @Override
                 public void run() {
                     if (framesPassed[0] >= framesPerFpsCalculation) {
                         long currentTime = SystemClock.uptimeMillis();
-                        int fps = Math.round((1000f * framesPerFpsCalculation) / (currentTime - prevTime[0]));
-                        debugLabel.setText("FPS: " + fps);
+                        fps[0] = Math.round((1000f * framesPerFpsCalculation) / (currentTime - prevTime[0]));
                         framesPassed[0] = 0;
                         prevTime[0] = currentTime;
-                    } else {
+                    } else
                         framesPassed[0]++;
-                    }
+
+                    // source: https://stackoverflow.com/a/19267315/5430992
+                    long bytesInMb = 1048576;
+                    // device ram info
+                    ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+                    ((ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE)).getMemoryInfo(memoryInfo);
+                    long nativeHeapSize = memoryInfo.totalMem;
+                    long nativeHeapFreeSize = memoryInfo.availMem;
+                    long usedMemInBytes = nativeHeapSize - nativeHeapFreeSize;
+                    float usedMemInPercentage = (float)MathHelpers.roundTo(usedMemInBytes * (100.0 / nativeHeapSize), 2);
+                    // app heap info
+                    final Runtime runtime = Runtime.getRuntime();
+                    final long usedMem = (runtime.totalMemory() - runtime.freeMemory());
+                    final long maxHeapSize = runtime.maxMemory();
+                    float usedHeapInPercentage = (float)MathHelpers.roundTo(usedMem / ((double)maxHeapSize), 2);
+                    debugLabel.setText(
+                            "FPS: " + (fps[0] >= 0 ? fps[0] : "?")
+                            + "\nHeap: " + Math.round(usedMem / (double)bytesInMb) + " mb / " + Math.round(maxHeapSize / (double)bytesInMb) + " mb | " + usedHeapInPercentage + "% used"
+                            + "\nRAM: " + Math.round(usedMemInBytes / (double)bytesInMb) + " mb / " + Math.round(nativeHeapSize / (double)bytesInMb) + " mb | " + usedMemInPercentage + "% used"
+                    );
+
                     if (isShown)
-                        smh.post(this);
+                        smh[0].post(this);
                 }
             });
         }
