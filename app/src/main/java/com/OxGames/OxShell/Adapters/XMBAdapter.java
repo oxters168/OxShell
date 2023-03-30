@@ -40,9 +40,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private static final int TITLE_ID = View.generateViewId();
     private static final int ICON_HIGHLIGHT_ID = View.generateViewId();
     private static final int ICON_ID = View.generateViewId();
-    private static Drawable QUESTION_MARK_DRAWABLE;
+    //private static Drawable QUESTION_MARK_DRAWABLE;
+    private Typeface font;
 
-//    public XMBAdapter(Context context, XMBItem... items) {
+    //    public XMBAdapter(Context context, XMBItem... items) {
 //        this.context = context;
 //        this.items = items.clone();
 //        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
@@ -58,7 +59,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         for (ArrayList<XMBItem> column : items)
             casted.add(new ArrayList<>(column));
         setItems(casted);
-        QUESTION_MARK_DRAWABLE = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
+        //QUESTION_MARK_DRAWABLE = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
+        //font = SettingsKeeper.getFont();
         //if (SettingsKeeper.hasValue(SettingsKeeper.FONT_REF))
         //    font = ((FontRef)SettingsKeeper.getValue(SettingsKeeper.FONT_REF)).getFont();
         //font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
@@ -168,7 +170,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             TextView title = itemView.findViewById(TITLE_ID);
             title.setText(item != null ? item.getTitle() : "Empty");
             title.setSelected(true);
-            title.setTypeface(SettingsKeeper.getFont());
+            title.setTypeface(font);
             title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
 
             //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
@@ -201,6 +203,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     protected int getTextSize() {
         return Math.round(AndroidHelpers.getScaledSpToPixels(context, 6));
+    }
+
+    @Override
+    public void setFont(Typeface font) {
+        this.font = font;
     }
 
     @Override

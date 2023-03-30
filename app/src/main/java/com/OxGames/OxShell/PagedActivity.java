@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
@@ -350,6 +351,14 @@ public class PagedActivity extends AppCompatActivity {
 //        Log.d("PagedActivity", ev.toString());
 //        return super.dispatchGenericMotionEvent(ev);
 //    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        //Log.d("PagedActivity", ev.getPointerCount() + ", " + ev.getActionMasked() + " ?= " + MotionEvent.ACTION_UP + " || " + MotionEvent.ACTION_POINTER_UP + ", " + ev);
+        if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_UP && ev.getPointerCount() == 5)
+            getDebugView().setShown(!getDebugView().isDebugShown());
+        return super.dispatchTouchEvent(ev);
+    }
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());

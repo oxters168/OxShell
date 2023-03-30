@@ -680,6 +680,7 @@ public class HomeView extends XMBView implements Refreshable {
         int cachedColIndex = colIndex;
         int cachedRowIndex = rowIndex;
         setAdapter(new XMBAdapter(getContext(), items));
+        setFont(SettingsKeeper.getFont());
         setIndex(cachedColIndex, cachedRowIndex, true);
         Log.i("HomeView", "Time to load home items: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s");
     }

@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -173,6 +174,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             a.recycle();
         }
     }
+    public void setFont(Typeface font) {
+        if (adapter != null)
+            adapter.setFont(font);
+    }
     public abstract static class Adapter<T extends ViewHolder> {
         protected List<XMBAdapterListener> listeners = new ArrayList<>();
         public void addListener(XMBAdapterListener listener) {
@@ -199,6 +204,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         public abstract int getInnerItemCount(Integer... position);
         public abstract boolean isColumnHead(Integer... position);
 
+        public abstract void setFont(Typeface font);
         protected abstract int getTextSize();
         protected abstract void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn);
         protected abstract void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex);
@@ -574,7 +580,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     //prevX = currentX;
                 //}
             }// else
-                prevX = currentX;
+            prevX = currentX;
             if (touchVer) {
                 if (touchMoveDir != Math.signum(pseudoStartY - currentY)) {
                     // if the movement direction changed, then update the start time to reflect when the change happened
@@ -592,7 +598,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     //prevY = currentY;
                 //}
             }// else
-                prevY = currentY;
+            prevY = currentY;
         } else if (ev.getAction() == MotionEvent.ACTION_UP && touchInsideBorders) {
             isPressing = false;
             stopMomentum();
@@ -1082,9 +1088,11 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             position[0] = this.colIndex;
             position[1] = this.rowIndex;
             if (innerItemEntryPos.size() > 0) {
-                Stack<Integer> entryClone = (Stack<Integer>)innerItemEntryPos.clone();
-                for (int i = position.length - 2; i > 1; i--)
-                    position[i] = entryClone.pop();
+                //Stack<Integer> entryClone = (Stack<Integer>)innerItemEntryPos.clone();
+                //for (int i = position.length - 2; i > 1; i--)
+                //    position[i] = entryClone.pop();
+                for (int i = 0; i < innerItemEntryPos.size(); i++)
+                    position[i + 2] = innerItemEntryPos.get(i);
             }
             int nextEntry = innerYToIndex();//Arrays.copyOf(innerItemEntryPos.toArray(), innerItemEntryPos.size(), Integer[].class));
             position[position.length - 1] = nextEntry;
