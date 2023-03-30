@@ -835,7 +835,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private void drawItem(Rect itemBounds, int fadeTransition, boolean instant, Integer... itemPosition) {
         boolean isCat = itemPosition.length == 2 && itemPosition[1] == 0;
         boolean isInnerItem = itemPosition.length > 2;
-        ViewHolder viewHolder = getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, itemPosition);
+        ViewHolder viewHolder = getViewHolder(itemPosition);
         viewHolder.setX(itemBounds.left);
         viewHolder.setY(itemBounds.top);
         Integer[] currentPosition = getPosition();
@@ -854,7 +854,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
         viewHolder.itemView.animate().cancel();
 
-        adapter.onBindViewHolder(viewHolder, itemPosition);
+        //adapter.onBindViewHolder(viewHolder, itemPosition);
         if (viewHolder.isNew || instant) {
             // if the view just popped into existence then set its position to the final position rather than transitioning
             viewHolder.itemView.setX(viewHolder.getX());
@@ -980,6 +980,11 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
         usedViews.clear();
     }
+    private ViewHolder getViewHolder(Integer... position) {
+        boolean isCat = position.length == 2 && position[1] == 0;
+        boolean isInnerItem = position.length > 2;
+        return getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, position);
+    }
     private ViewHolder getViewHolder(int viewType, Integer... position) {
         ViewHolder viewHolder = null;
         int indexHash = MathHelpers.hash(position);
@@ -1012,6 +1017,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 viewHolder.itemView.setVisibility(VISIBLE);
                 usedViews.put(indexHash, viewHolder);
             }
+            adapter.onBindViewHolder(viewHolder, position);
         }
         return viewHolder;
     }
@@ -1161,6 +1167,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     innerItemEntryPos.push(nextEntry);
                 innerItemVerPos.push(0f);
                 setViews(false, false);
+                adapter.onBindViewHolder(getViewHolder(position), position);
                 return true;
             }
         }
@@ -1182,6 +1189,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 innerItemEntryPos.pop();
             innerItemVerPos.pop();
             setViews(false, false);
+            Integer[] position = getPosition();
+            adapter.onBindViewHolder(getViewHolder(position), position);
             return true;
         }
         return false;

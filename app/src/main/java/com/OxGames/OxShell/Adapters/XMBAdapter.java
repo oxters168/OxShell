@@ -168,10 +168,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         }
         public void bindItem(XMBItem item) {
             TextView title = itemView.findViewById(TITLE_ID);
-            title.setText(item != null ? item.getTitle() : "Empty");
+            title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
             title.setSelected(true);
             title.setTypeface(font);
-            title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
+            //AndroidHelpers.setTextAsync(title, item != null ? item.getTitle() : "Empty");
+            title.setText(item != null ? item.getTitle() : "Empty");
 
             //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
             //superIcon.setVisibility(View.GONE);
@@ -179,20 +180,23 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
             ImageView img = itemView.findViewById(ICON_ID);
             ImageView highlight = itemView.findViewById(ICON_HIGHLIGHT_ID);
-            Drawable icon = null;
+            //Drawable icon = null;
             if (item != null) {
 //                img.setImageDrawable(QUESTION_MARK_DRAWABLE);
 //                highlight.setImageDrawable(QUESTION_MARK_DRAWABLE);
                 item.getIcon((Consumer<Drawable>) drawable -> {
                     if (drawable != null) {
+                        //img.setBackground(drawable);
                         img.setImageDrawable(drawable);
                         highlight.setBackground(drawable.getConstantState().newDrawable());
                     } else {
+                        //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                         img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                         highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                     }
                 });
             } else {
+                //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
                 img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
                 highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
             }

@@ -23,16 +23,21 @@ import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResult;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.text.PrecomputedTextCompat;
+import androidx.core.widget.TextViewCompat;
 
 import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
@@ -772,5 +777,21 @@ public class AndroidHelpers {
         // return 2.952551f / AndroidHelpers.dpToInches(context, OxShellApp.getSmallestScreenWidthDp()); // the smallest width when converted to inches was almost always the same size
         float percent = OxShellApp.getSmallestScreenWidthDp() / 462f;
         return (float)Math.pow(percent, 1.2f); // fine tuned to my liking, not scientific
+    }
+
+    public static void setTextAsync(TextView textView, String text) {
+//        PrecomputedTextCompat.Params params = TextViewCompat.getTextMetricsParams(textView);
+//        PrecomputedTextCompat precomputedText = PrecomputedTextCompat.create(text, params);
+//        TextViewCompat.setPrecomputedText(textView, precomputedText);
+        new Thread(() -> {
+            PrecomputedTextCompat.Params params = TextViewCompat.getTextMetricsParams(textView);
+            PrecomputedTextCompat precomputedText = PrecomputedTextCompat.create(text, params);
+            textView.post(() -> {
+                    TextViewCompat.setPrecomputedText(textView, precomputedText);
+            });
+//            ((Activity)textView.getContext()).runOnUiThread(() -> {
+//                TextViewCompat.setPrecomputedText(textView, precomputedText);
+//            });
+        }).start();
     }
 }

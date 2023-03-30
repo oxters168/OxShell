@@ -390,6 +390,19 @@ public class PackagesCache {
         List<ResolveInfo> pkgs = OxShellApp.getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
 
         iconRequests.addAll(pkgs.stream().map(pkg -> pkg.activityInfo.packageName).collect(Collectors.toList()));
+//        int millis = MathHelpers.calculateMillisForFps(120);
+//        new Thread(() -> {
+//            while (!iconRequests.isEmpty()) {
+//                String pkgName = iconRequests.pop();
+//                //Log.d("PackagesCache", "Caching icon for " + pkgName);
+//                getPackageIcon(pkgName);
+//                try {
+//                    Thread.sleep(millis);
+//                } catch (InterruptedException e) {
+//                    Log.e("PackagesCache", "Icon requests interrupted: " + e);
+//                }
+//            }
+//        }).start();
         int millis = MathHelpers.calculateMillisForFps(120);
         Handler loadIconsHandler = new Handler();
         Runnable loadIcons = new Runnable() {
