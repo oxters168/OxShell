@@ -5,9 +5,6 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
-
-import java.util.Hashtable;
 import java.util.function.Consumer;
 
 public class ExplorerActivity extends PagedActivity {
@@ -20,16 +17,8 @@ public class ExplorerActivity extends PagedActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //Log.d("ExplorerActivity", "onCreate");
-        currentPage = ActivityManager.Page.explorer;
-        ActivityManager.setCurrent(currentPage);
         setContentView(R.layout.activity_explorer);
-        initViewsTable();
-    }
-
-    @Override
-    protected void initViewsTable() {
-        allPages = new Hashtable<>();
-        allPages.put(ActivityManager.Page.explorer, explorerView = findViewById(R.id.explorer_list));
+        explorerView = findViewById(R.id.explorer_list);
     }
 
     @Override

@@ -19,14 +19,12 @@ import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.ExplorerActivity;
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.PackagesCache;
-import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
@@ -59,7 +57,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         //Log.d("ExplorerView", "Creating");
         //SettingsKeeper.hasValue()
         //setMargins();
-        //ActivityManager.getCurrentActivity().addPermissionListener(this);
+        //OxShellApp.getCurrentActivity().addPermissionListener(this);
 
         if (AndroidHelpers.hasReadStoragePermission()) {
             explorerBehaviour = new ExplorerBehaviour();
@@ -69,7 +67,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             AndroidHelpers.requestReadStoragePermission(granted -> {
                 if (!granted) {
                     Log.e("ExplorerView", "Failed to get permissions, exiting...");
-                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     Intent returnIntent = new Intent();
                     currentActivity.setResult(Activity.RESULT_CANCELED, returnIntent);
                     currentActivity.finish();
@@ -91,11 +89,11 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             selectNextItem();
         })).toArray(KeyComboAction[]::new));
         OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
-            //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
+            //if (!OxShellApp.getCurrentActivity().isInAContextMenu())
             goUp();
         })).toArray(KeyComboAction[]::new));
         OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
-            //if (!ActivityManager.getCurrentActivity().isInAContextMenu())
+            //if (!OxShellApp.getCurrentActivity().isInAContextMenu())
             goBack();
         })).toArray(KeyComboAction[]::new));
         OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
@@ -106,7 +104,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 //            }
             OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
             OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
-            ActivityManager.getCurrentActivity().finish();
+            OxShellApp.getCurrentActivity().finish();
         })).toArray(KeyComboAction[]::new));
         OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, getKeyComboActions());
         OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
@@ -114,7 +112,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         if (!currentActivity.isInAContextMenu())
             return super.onInterceptTouchEvent(ev);
         else
@@ -122,7 +120,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     }
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         if (!currentActivity.isInAContextMenu())
             return super.onTouchEvent(ev);
         else
@@ -140,13 +138,13 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
 
     @Override
     public void primaryAction() {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         if (!(currentActivity instanceof ExplorerActivity || currentActivity instanceof FileChooserActivity))
             return;
 
         DetailItem clickedItem = (DetailItem)getItemAtPosition(properPosition);
         if (clickedItem.obj == null) {
-            if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
+            if (OxShellApp.getCurrentActivity() instanceof FileChooserActivity)
                 sendResult(explorerBehaviour.getDirectory());
             else
                 Log.e("ExplorerView", "Chosen item is null");
@@ -159,7 +157,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 refresh();
                 tryHighlightPrevDir();
             } else {
-                if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
+                if (OxShellApp.getCurrentActivity() instanceof FileChooserActivity)
                     sendResult(file.getAbsolutePath());
                 else
                     tryRun(((File)clickedItem.obj));
@@ -174,16 +172,16 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         Intent returnIntent = new Intent();
         returnIntent.setData(uri);
         returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        ActivityManager.getCurrentActivity().setResult(Activity.RESULT_OK, returnIntent);
+        OxShellApp.getCurrentActivity().setResult(Activity.RESULT_OK, returnIntent);
         //Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + uri);
         OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
         OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
-        ActivityManager.getCurrentActivity().finish();
+        OxShellApp.getCurrentActivity().finish();
     }
 
     @Override
     public void secondaryAction() {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         if (!(currentActivity instanceof ExplorerActivity || currentActivity instanceof FileChooserActivity))
             return;
 
@@ -225,11 +223,11 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             btns.add(deleteBtn);
         btns.add(cancelBtn);
 
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setButtons(btns.toArray(new SettingsDrawer.ContextBtn[0]));
     }
     private void showSettingsDrawer() {
         setupBtns();
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(true);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(true);
     }
 
     public static void tryRun(File file) {
@@ -247,7 +245,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                         Log.e("Explorer", "Failed to launch, " + fileLaunchIntent.getPackageName() + " is not installed on the device");
                 } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
                     if (!AndroidHelpers.hasInstallPermission()) {
-                        PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+                        PromptView prompt = OxShellApp.getCurrentActivity().getPrompt();
                         prompt.setMessage("Ox Shell requires permission to install unknown packages in order to continue");
                         prompt.setStartBtn("Continue", () -> {
                             prompt.setShown(false);
@@ -309,7 +307,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         if (!isEmpty || hasParent) {
             if (hasParent)
                 arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "..", "<dir>", new File(explorerBehaviour.getParent())));
-            if (ActivityManager.getCurrent() == ActivityManager.Page.chooser)
+            if (OxShellApp.getCurrentActivity() instanceof FileChooserActivity)
                 arrayList.add(new DetailItem(null, "Choose current directory", null, null));
             if (explorerBehaviour.getDirectory().equalsIgnoreCase("/storage/emulated"))
                 arrayList.add(new DetailItem(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24), "0", "<dir>", new File("/storage/emulated/0")));
@@ -371,7 +369,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     }
 
     SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () -> {
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn selectAllBtn = new SettingsDrawer.ContextBtn("Select All", () -> {
         for (int i = 0; i < getCount(); i++) {
@@ -379,7 +377,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
                 setItemSelected(i, true);
         }
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn deselectBtn = new SettingsDrawer.ContextBtn("Deselect All", () -> {
         for (int i = 0; i < getCount(); i++) {
@@ -387,7 +385,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
                 setItemSelected(i, false);
         }
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn invertSelectionBtn = new SettingsDrawer.ContextBtn("Invert Selection", () -> {
         for (int i = 0; i < getCount(); i++) {
@@ -395,18 +393,18 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
                 setItemSelected(i, !isItemSelected(i));
         }
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn toggleSelection = new SettingsDrawer.ContextBtn("Toggle Selection", () -> {
         DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
         if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
             setItemSelected(properPosition, !isItemSelected(properPosition));
         selectNextItem();
-        //ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        //OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
         setupBtns();
     });
     SettingsDrawer.ContextBtn newFolderBtn = new SettingsDrawer.ContextBtn("New Folder", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputRow.TextInput folderNameTxtInput = new DynamicInputRow.TextInput("Folder Name");
         DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
         errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
@@ -441,7 +439,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         currentActivity.getDynamicInput().setShown(true);
     });
     SettingsDrawer.ContextBtn newFileBtn = new SettingsDrawer.ContextBtn("New File", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputRow.TextInput fileNameTxtInput = new DynamicInputRow.TextInput("File Name");
         DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
         errorLabel.setGravity(Gravity.BOTTOM | Gravity.LEFT);
@@ -484,7 +482,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     });
     SettingsDrawer.ContextBtn renameBtn = new SettingsDrawer.ContextBtn("Rename", () -> {
         // TODO: add option to only add on and not outright change (ex. abc.txt, def.txt, ghi.txt addon prefix of demo_ => demo_abc.txt, demo_def.txt, demo_ghi.txt)
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         List<DetailItem> selection = getSelectedItems();
         // there will always be at least one item in the selection
         File firstFile = (File)selection.get(0).obj;
@@ -548,7 +546,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         currentActivity.getDynamicInput().setShown(true);
     });
     SettingsDrawer.ContextBtn copyBtn = new SettingsDrawer.ContextBtn("Copy", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         List<DetailItem> selection = getSelectedItems();
         currentActivity.getDynamicInput().setTitle("Copy");
         String[] filePaths = new String[selection.size()];
@@ -559,7 +557,7 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         //currentActivity.getDynamicInput().setShown(true);
     });
     SettingsDrawer.ContextBtn cutBtn = new SettingsDrawer.ContextBtn("Cut", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         List<DetailItem> selection = getSelectedItems();
         String[] filePaths = new String[selection.size()];
         for (int i = 0; i < selection.size(); i++)
@@ -568,13 +566,13 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         currentActivity.getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn pasteBtn = new SettingsDrawer.ContextBtn("Paste", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         explorerBehaviour.paste();
         refresh();
         currentActivity.getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         List<DetailItem> selection = getSelectedItems();
         String[] filePaths = new String[selection.size()];
         for (int i = 0; i < selection.size(); i++)

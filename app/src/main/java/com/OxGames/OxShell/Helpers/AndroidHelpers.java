@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
@@ -400,7 +401,7 @@ public class AndroidHelpers {
             return hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
     public static void requestReadStoragePermission(Consumer<Boolean> onResult) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         //From here https://stackoverflow.com/questions/47292505/exception-writing-exception-to-parcel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Log.i("AndroidHelpers", "Requesting read permission with result code " + MANAGE_EXTERNAL_STORAGE);
@@ -425,16 +426,16 @@ public class AndroidHelpers {
                 });
                 //currentActivity.startActivity(intent, MANAGE_EXTERNAL_STORAGE);
             }
-//            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
+//            ActivityCompat.requestPermissions(OxShellApp.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
         } else {
             Log.i("AndroidHelpers", "Requesting read permission with result code " + READ_EXTERNAL_STORAGE);
             currentActivity.addOneTimePermissionListener(READ_EXTERNAL_STORAGE, onResult);
             ActivityCompat.requestPermissions(currentActivity, new String[]{ android.Manifest.permission.READ_EXTERNAL_STORAGE }, READ_EXTERNAL_STORAGE);
-            //ActivityCompat.shouldShowRequestPermissionRationale(ActivityManager.GetCurrentActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
+            //ActivityCompat.shouldShowRequestPermissionRationale(OxShellApp.getCurrentActivity(), Manifest.permission.READ_EXTERNAL_STORAGE);
         }
     }
     public static void requestWriteStoragePermission(Consumer<Boolean> onResult) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Log.i("AndroidHelpers", "Requesting write permission with result code " + MANAGE_EXTERNAL_STORAGE);
             //currentActivity.addOneTimePermissionListener(MANAGE_EXTERNAL_STORAGE, onResult);
@@ -456,7 +457,7 @@ public class AndroidHelpers {
                 });
                 //currentActivity.startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE);
             }
-//            ActivityCompat.requestPermissions(ActivityManager.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
+//            ActivityCompat.requestPermissions(OxShellApp.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
         } else {
             Log.i("AndroidHelpers", "Requesting write permission with result code " + WRITE_EXTERNAL_STORAGE);
             currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);
@@ -472,11 +473,11 @@ public class AndroidHelpers {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
         //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
+        OxShellApp.getCurrentActivity().requestResult(intent, activityResult -> {
             if (onResult != null)
                 onResult.accept(hasInstallPermission());
         });
-//        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+//        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
 //        currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);
 //        ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.INSTALL_PACKAGES }, WRITE_EXTERNAL_STORAGE);
     }
@@ -484,13 +485,18 @@ public class AndroidHelpers {
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        ActivityManager.getCurrentActivity().requestResult(intent, activityResult -> {
+        OxShellApp.getCurrentActivity().requestResult(intent, activityResult -> {
             if (onResult != null)
                 onResult.accept(AccessService.isEnabled());
         });
-//        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+//        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
 //        currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);
 //        ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.INSTALL_PACKAGES }, WRITE_EXTERNAL_STORAGE);
+    }
+
+    public static void startActivity(Class<? extends Activity> nextActivity) {
+        Intent intent = new Intent(OxShellApp.getCurrentActivity(), nextActivity);
+        OxShellApp.getCurrentActivity().startActivity(intent);
     }
 
     public static Uri uriFromFile(File file) {

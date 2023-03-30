@@ -277,7 +277,7 @@ public class SlideTouchListView extends ListView implements InputReceiver, Refre
 //        Log.d("Explorer", "Setting position to " + pos);
         properPosition = pos; //Probably should clamp properPosition here
         highlightSelection();
-        //DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
+        //DisplayMetrics displayMetrics = OxShellApp.getCurrentActivity().getDisplayMetrics();
         setSelectionFromTop(pos, (int)(OxShellApp.getDisplayHeight() * 0.5));
 
     }

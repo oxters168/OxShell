@@ -2,14 +2,13 @@ package com.OxGames.OxShell.Data;
 
 import android.os.Environment;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.OxShellApp;
 
 public class Paths {
     public static final String STORAGE_DIR_EXTERNAL = AndroidHelpers.combinePaths(Environment.getExternalStorageDirectory().toString(), "/OxShell");
     public static final String STORAGE_DIR_INTERNAL = OxShellApp.getContext().getExternalFilesDir(null).toString();
-    //public static final String STORAGE_DIR_INTERNAL = ActivityManager.getCurrentActivity().getFilesDir().toString();
+    //public static final String STORAGE_DIR_INTERNAL = OxShellApp.getCurrentActivity().getFilesDir().toString();
 
     public static final String SHADER_ITEMS_DIR_EXTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_EXTERNAL, "Shader");
     public static final String SHADER_ITEMS_DIR_INTERNAL = AndroidHelpers.combinePaths(STORAGE_DIR_INTERNAL, "Shader");

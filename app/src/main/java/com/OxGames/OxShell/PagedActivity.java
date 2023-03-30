@@ -5,14 +5,12 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.WindowInsets;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -24,13 +22,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.OxGames.OxShell.Data.DataLocation;
-import com.OxGames.OxShell.Data.FontRef;
-import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
-import com.OxGames.OxShell.Data.ShortcutsCache;
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Interfaces.Refreshable;
@@ -48,7 +41,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class PagedActivity extends AppCompatActivity {
@@ -134,13 +126,6 @@ public class PagedActivity extends AppCompatActivity {
     private static final int DYNAMIC_INPUT_ID = View.generateViewId();
     private static final int PROMPT_ID = View.generateViewId();
     private static final int DEBUG_VIEW_ID = View.generateViewId();
-    //private static final String PAGED_ACTIVITY_INPUT = "PAGED_ACTIVITY_INPUT";
-
-    protected Hashtable<ActivityManager.Page, View> allPages = new Hashtable<>();
-    //    private static PagedActivity instance;
-//    public static DisplayMetrics displayMetrics;
-    //private List<PermissionsListener> permissionListeners = new ArrayList<>();
-    protected ActivityManager.Page currentPage;
 
     private static boolean startTimeSet;
     private static long startTime;
@@ -148,7 +133,6 @@ public class PagedActivity extends AppCompatActivity {
 
     //private ShaderView shaderView;
     private FrameLayout parentView;
-    //private View dynamicInputView;
     private DynamicInputView dynamicInput;
     private SettingsDrawer settingsDrawer;
     private PromptView prompt;
@@ -167,7 +151,7 @@ public class PagedActivity extends AppCompatActivity {
 
     private void showAccessibilityPopup(String msg) {
         if (!AccessService.isEnabled() && !prompt.isPromptShown()) {
-            PromptView prompt = ActivityManager.getCurrentActivity().getPrompt();
+            PromptView prompt = getPrompt();
             prompt.setCenterOfScreen();
             prompt.setMessage(msg);
             prompt.setStartBtn("Continue", () -> {
@@ -202,26 +186,15 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        OxShellApp.setCurrentActivity(this);
         refreshAccessibilityInput();
         refreshShowDebugInput();
 
         trySetStartTime();
         super.onCreate(savedInstanceState);
-//        instance = this;
 
-        ActivityManager.init();
-        ActivityManager.instanceCreated(this);
         LogcatHelper.getInstance(this).start();
-        //int mPId = android.os.Process.myPid();
-        //Log.d("PagedActivity", "pid: " + mPId);
 
-        //HideActionBar();
-
-//        InitViewsTable();
-
-//        RefreshDisplayMetrics();
-
-//        HomeManager.Init();
         Log.i("PagedActivity", "OnCreate " + this);
     }
 
@@ -244,8 +217,9 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        ActivityManager.setCurrent(currentPage);
-        goTo(currentPage);
+        OxShellApp.setCurrentActivity(this);
+        //ActivityManager.setCurrent(currentPage);
+        //goTo(currentPage);
         super.onResume();
 
         prepareOtherViews();
@@ -302,6 +276,7 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
+        //OxShellApp.setCurrentActivity(null);
         //pauseBackground();
         super.onPause();
     }
@@ -514,7 +489,7 @@ public class PagedActivity extends AppCompatActivity {
             shaderView.setVertexShader(AndroidHelpers.readAssetAsString(this, "Shader/vert.vsh"));
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
-            //DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
+            //DisplayMetrics displayMetrics = OxShellApp.getCurrentActivity().getDisplayMetrics();
             paramsBuilder.addVec2i("iResolution", new int[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight() });
             shaderView.setShaderParams(paramsBuilder.build());
             shaderView.setOnDrawFrameListener(shaderParams -> {
@@ -577,29 +552,5 @@ public class PagedActivity extends AppCompatActivity {
     public void setSystemUIState(int uiState) {
         systemUIVisibility = uiState;
         getWindow().getDecorView().setSystemUiVisibility(uiState);
-    }
-
-    protected void initViewsTable() {
-    }
-    public View getView(ActivityManager.Page page) {
-        return allPages.get(page);
-    }
-    public void goTo(ActivityManager.Page page) {
-        if (currentPage != page) {
-            Set<Map.Entry<ActivityManager.Page, View>> entrySet = allPages.entrySet();
-            for (Map.Entry<ActivityManager.Page, View> entry : entrySet) {
-                entry.getValue().setVisibility(page == entry.getKey() ? View.VISIBLE : View.GONE);
-                if (page == entry.getKey()) {
-                    View nextPage = entry.getValue();
-                    if (nextPage instanceof Refreshable)
-                        ((Refreshable)nextPage).refresh();
-                    nextPage.requestFocusFromTouch();
-
-                    if (nextPage instanceof Refreshable)
-                        ((Refreshable)nextPage).refresh();
-                    currentPage = page;
-                }
-            }
-        }
     }
 }

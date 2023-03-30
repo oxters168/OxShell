@@ -7,6 +7,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.FontRef;
@@ -22,6 +23,7 @@ public class OxShellApp extends Application {
     public static OxShellApp getInstance() {
         return instance;
     }
+    private static PagedActivity currentActivity;
 
     public static Context getContext(){
         return instance;
@@ -72,6 +74,13 @@ public class OxShellApp extends Application {
 
     public static InputHandler getInputHandler() {
         return inputHandler;
+    }
+
+    protected static void setCurrentActivity(PagedActivity activity) {
+        currentActivity = activity;
+    }
+    public static PagedActivity getCurrentActivity() {
+        return currentActivity;
     }
 
     public static int getNavBarHeight() {

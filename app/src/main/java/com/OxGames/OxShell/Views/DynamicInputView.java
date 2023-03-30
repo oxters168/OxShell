@@ -19,7 +19,6 @@ import com.OxGames.OxShell.Adapters.DynamicInputAdapter;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.OxShellApp;
@@ -178,7 +177,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
 
         isShown = onOff;
         setVisibility(onOff ? VISIBLE : GONE);
-        PagedActivity current = ActivityManager.getCurrentActivity();
+        PagedActivity current = OxShellApp.getCurrentActivity();
         if (onOff) {
             prevUIState = current.getSystemUIState();
             current.setNavBarHidden(true);
