@@ -1,19 +1,14 @@
 package com.OxGames.OxShell.Data;
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
-import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.OxShellApp;
 

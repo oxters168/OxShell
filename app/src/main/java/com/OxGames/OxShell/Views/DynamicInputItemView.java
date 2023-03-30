@@ -32,9 +32,8 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.SettingsKeeper;
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
-import com.OxGames.OxShell.Interfaces.DynamicInputListener;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -99,7 +98,7 @@ public class DynamicInputItemView extends FrameLayout {
         if (dropdown != null && dropdown.getVisibility() == VISIBLE)
             dropdown.performClick();
         if (inputLayout != null && inputLayout.getVisibility() == VISIBLE) {
-            InputMethodManager imm = (InputMethodManager)ActivityManager.getCurrentActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager)OxShellApp.getCurrentActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.showSoftInput(inputLayout.getEditText(), InputMethodManager.SHOW_IMPLICIT);
         }
         if (toggle != null &&  toggle.getVisibility() == VISIBLE)

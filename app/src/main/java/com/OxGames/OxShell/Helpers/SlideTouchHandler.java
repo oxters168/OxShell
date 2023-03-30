@@ -189,7 +189,7 @@ public class SlideTouchHandler {
     }
 
     private float getMaxPixels() {
-        //DisplayMetrics displayMetrics = ActivityManager.getCurrentActivity().getDisplayMetrics();
+        //DisplayMetrics displayMetrics = OxShellApp.getCurrentActivity().getDisplayMetrics();
         return Math.min(OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight()) / data.slideSpreadDiv;
     }
 

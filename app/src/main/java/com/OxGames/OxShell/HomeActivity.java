@@ -1,18 +1,14 @@
 package com.OxGames.OxShell;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
-import com.OxGames.OxShell.Helpers.ActivityManager;
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Views.PromptView;
 import com.OxGames.OxShell.Views.XMBView;
 
@@ -45,15 +41,12 @@ public class HomeActivity extends PagedActivity {
 //        for (File subPath : beh.listContents())
 //            Log.d("HomeActivity", "DataContents: " + subPath);
 
-        currentPage = ActivityManager.Page.home;
-        ActivityManager.setCurrent(currentPage);
         setContentView(R.layout.activity_home);
-        initViewsTable();
+        homeView = findViewById(R.id.home_view);
         refreshXMBInput();
         OxShellApp.getInputHandler().setActiveTag(XMB_INPUT);
 
         //HomeManager.init();
-        goTo(ActivityManager.Page.home);
         //Log.d("HomeActivity", "onCreate");
     }
 
@@ -91,11 +84,6 @@ public class HomeActivity extends PagedActivity {
         OxShellApp.getInputHandler().clearKeyComboActions(XMB_INPUT);
         homeView = null;
         //Log.d("HomeActivity", "onDestroy");
-    }
-
-    @Override
-    protected void initViewsTable() {
-        allPages.put(ActivityManager.Page.home, homeView = findViewById(R.id.home_view));
     }
 
     private void showAnnoyingDialog() {

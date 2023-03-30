@@ -169,7 +169,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
 //    public Drawable getSuperIcon() {
 //        Drawable icon = null;
 //        if (type == Type.assoc)
-//            icon = ContextCompat.getDrawable(ActivityManager.getCurrentActivity(), R.drawable.ic_baseline_view_list_24);
+//            icon = ContextCompat.getDrawable(OxShellApp.getCurrentActivity(), R.drawable.ic_baseline_view_list_24);
 //        return icon;
 //    }
 

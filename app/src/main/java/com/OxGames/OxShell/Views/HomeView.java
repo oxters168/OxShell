@@ -33,8 +33,8 @@ import com.OxGames.OxShell.Data.ResImage;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Data.XMBItem;
+import com.OxGames.OxShell.ExplorerActivity;
 import com.OxGames.OxShell.FileChooserActivity;
-import com.OxGames.OxShell.Helpers.ActivityManager;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
@@ -43,7 +43,6 @@ import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.HomeActivity;
-import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
@@ -61,8 +60,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import kotlin.jvm.functions.Function0;
 
 public class HomeView extends XMBView implements Refreshable {
     public final static ResImage[] resourceImages = {
@@ -115,7 +112,7 @@ public class HomeView extends XMBView implements Refreshable {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         if (!currentActivity.isInAContextMenu())
             return super.onInterceptTouchEvent(ev);
         else
@@ -123,7 +120,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         if (!currentActivity.isInAContextMenu())
             return super.onTouchEvent(ev);
         else
@@ -142,7 +139,8 @@ public class HomeView extends XMBView implements Refreshable {
                 //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
                 if (selectedItem.type == HomeItem.Type.explorer) {
                     // TODO: show pop up explaining permissions?
-                    ActivityManager.goTo(ActivityManager.Page.explorer);
+                    //ActivityManager.goTo(ActivityManager.Page.explorer);
+                    AndroidHelpers.startActivity(ExplorerActivity.class);
                     return true;
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
                 } else if (selectedItem.type == HomeItem.Type.app) {
@@ -156,13 +154,13 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.addApp) {
                     Adapter adapter = getAdapter();
                     adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle()));
-                    Toast.makeText(ActivityManager.getCurrentActivity(), selectedItem.getTitle() + " added to home", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(OxShellApp.getCurrentActivity(), selectedItem.getTitle() + " added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addExplorer) {
                     Adapter adapter = getAdapter();
                     adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer"));
-                    Toast.makeText(ActivityManager.getCurrentActivity(), "Explorer added to home", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(OxShellApp.getCurrentActivity(), "Explorer added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addAssocOuter) {
@@ -178,7 +176,7 @@ public class HomeView extends XMBView implements Refreshable {
                     }
                     selectedItem.setInnerItems(intentItems);
                 } else if (selectedItem.type == HomeItem.Type.appInfo) {
-                    DynamicInputView dynamicInput = ActivityManager.getCurrentActivity().getDynamicInput();
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
                     dynamicInput.setTitle("Ox Shell Info");
                     DynamicInputRow.Label versionLabel = new DynamicInputRow.Label("Version: " + BuildConfig.VERSION_NAME);
                     versionLabel.setGravity(Gravity.CENTER);
@@ -199,7 +197,7 @@ public class HomeView extends XMBView implements Refreshable {
                     dynamicInput.setItems(rows.toArray(new DynamicInputRow[0]));
                     dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.saveLogs) {
-                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     String[] logs = Arrays.stream(AndroidHelpers.listContents(Paths.LOGCAT_DIR_INTERNAL)).map(file -> file.getName().endsWith(".log") ? file.getAbsolutePath() : null).toArray(String[]::new);
                     if (logs.length > 0) {
                         currentActivity.requestCreateZipFile(uri -> {
@@ -209,7 +207,7 @@ public class HomeView extends XMBView implements Refreshable {
                     } else
                         Toast.makeText(currentActivity, "No logs to save", Toast.LENGTH_LONG).show();
                 } else if (selectedItem.type == HomeItem.Type.addAssoc) {
-                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Add " + ShortcutsCache.getIntent(((UUID)selectedItem.obj)).getDisplayName() + " Association to Home");
                     DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
@@ -252,7 +250,7 @@ public class HomeView extends XMBView implements Refreshable {
                     showAssocEditor("Create Association", null);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.setImageBg) {
-                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Set Image as Background");
                     //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Image File Path");
@@ -281,7 +279,7 @@ public class HomeView extends XMBView implements Refreshable {
                     dynamicInput.setShown(true);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.setShaderBg) {
-                    PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+                    PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Set Shader as Background");
                     String[] options = { "Blue Dune", "The Other Dune", "Planet", "Custom" };
@@ -400,7 +398,7 @@ public class HomeView extends XMBView implements Refreshable {
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.setControls) {
                     //Log.d("HomeView", "Modifying " + selectedItem.obj);
-                    DynamicInputView dynamicInput = ActivityManager.getCurrentActivity().getDynamicInput();
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
                     dynamicInput.setTitle("Modifying " + selectedItem.obj);
                     List<DynamicInputRow.TextInput> comboInputs = new ArrayList<>();
                     List<DynamicInputRow.ButtonInput> pollBtns = new ArrayList<>();
@@ -536,10 +534,10 @@ public class HomeView extends XMBView implements Refreshable {
                         dynamicInput.setShown(false);
                         customizing.set(false);
 
-                        if (ActivityManager.getCurrentActivity() instanceof HomeActivity)
-                            ((HomeActivity)ActivityManager.getCurrentActivity()).refreshXMBInput();
-                        ActivityManager.getCurrentActivity().refreshAccessibilityInput();
-                        ActivityManager.getCurrentActivity().refreshShowDebugInput();
+                        if (OxShellApp.getCurrentActivity() instanceof HomeActivity)
+                            ((HomeActivity)OxShellApp.getCurrentActivity()).refreshXMBInput();
+                        OxShellApp.getCurrentActivity().refreshAccessibilityInput();
+                        OxShellApp.getCurrentActivity().refreshShowDebugInput();
                         AccessService.refreshInputCombos();
                     }, SettingsKeeper.getSuperPrimaryInput());
                     refreshDynamicInput[0] = (placedValues) -> {
@@ -584,7 +582,7 @@ public class HomeView extends XMBView implements Refreshable {
             return true;
 
         if (!isInMoveMode()) {
-            PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+            PagedActivity currentActivity = OxShellApp.getCurrentActivity();
             if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
                 Integer[] position = getPosition();
                 boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
@@ -631,7 +629,7 @@ public class HomeView extends XMBView implements Refreshable {
             return true;
 
         if (!isInMoveMode()) {
-            PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+            PagedActivity currentActivity = OxShellApp.getCurrentActivity();
             if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
                 currentActivity.getSettingsDrawer().setShown(false);
                 return true;
@@ -649,7 +647,7 @@ public class HomeView extends XMBView implements Refreshable {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
         String packageName = selectedItem.type == HomeItem.Type.app ? (String)selectedItem.obj : selectedItem.type == HomeItem.Type.assoc ? ShortcutsCache.getIntent((UUID)selectedItem.obj).getPackageName() : null;
         if (packageName != null)
-            AndroidHelpers.uninstallApp(ActivityManager.getCurrentActivity(), packageName, onResult);
+            AndroidHelpers.uninstallApp(OxShellApp.getCurrentActivity(), packageName, onResult);
     }
     @Override
     public void refresh() {
@@ -904,7 +902,7 @@ public class HomeView extends XMBView implements Refreshable {
 //        showAssocEditor("Create Association", null);
 //    }
     private void showAssocEditor(String title, IntentLaunchData toBeEdited) {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle(title);
         DynamicInputRow.TextInput displayNameInput = new DynamicInputRow.TextInput("Display Name");
@@ -1073,17 +1071,17 @@ public class HomeView extends XMBView implements Refreshable {
     SettingsDrawer.ContextBtn moveColumnBtn = new SettingsDrawer.ContextBtn("Move Column", () ->
     {
         toggleMoveMode(true, true);
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn moveItemBtn = new SettingsDrawer.ContextBtn("Move Item", () ->
     {
         toggleMoveMode(true, false);
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Remove Item", () ->
     {
         deleteSelection();
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
     {
@@ -1092,24 +1090,24 @@ public class HomeView extends XMBView implements Refreshable {
             ExplorerBehaviour.delete((String)colImgRef.getImageObj());
         getAdapter().removeColumnAt(getPosition()[0]);
         save(getItems());
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn deleteAssocBtn = new SettingsDrawer.ContextBtn("Delete Association", () ->
     {
         HomeItem assocItem = (HomeItem)getSelectedItem();
         ShortcutsCache.deleteIntent((UUID)assocItem.obj);
         refresh();
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn editAssocBtn = new SettingsDrawer.ContextBtn("Edit Association", () ->
     {
         HomeItem assocItem = (HomeItem)getSelectedItem();
         showAssocEditor("Edit Association", ShortcutsCache.getIntent((UUID)assocItem.obj));
         //refresh();
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn editColumnBtn = new SettingsDrawer.ContextBtn("Edit Column", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle("Edit Column");
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
@@ -1195,7 +1193,7 @@ public class HomeView extends XMBView implements Refreshable {
         dynamicInput.setShown(true);
     });
     SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () -> {
-        PagedActivity currentActivity = ActivityManager.getCurrentActivity();
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle("Create Column");
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
@@ -1263,7 +1261,7 @@ public class HomeView extends XMBView implements Refreshable {
     });
     SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
     {
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall App", () ->
     {
@@ -1271,6 +1269,6 @@ public class HomeView extends XMBView implements Refreshable {
             if (result.getResultCode() == Activity.RESULT_OK)
                 deleteSelection();
         });
-        ActivityManager.getCurrentActivity().getSettingsDrawer().setShown(false);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
 }
