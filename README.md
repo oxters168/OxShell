@@ -32,7 +32,7 @@ Ox Shell is a launcher for android. It is an attempt to recreate the feel of a c
 - [ ] Add setting to change home menu icon size
 - [ ] Add setting to change home menu font size
 - [ ] Add setting to choose typeface
-- [ ] Optimize home menu performance
+- [x] Optimize home menu performance
 - [ ] Remember where user was in the home menu when coming back
 - [ ] Make it possible to choose a default association for an extension if more than one exists
 - [ ] Make it possible to pick which association to launch a file with when multiple exist for it
