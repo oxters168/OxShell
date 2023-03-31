@@ -700,7 +700,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         removeViews();
         createItemViews();
         createCatViews(); // to get catSize
-        createItemViews();
+        //createItemViews();
         createInnerItemViews();
         int screenColCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
         catHorShift = horSpacing + (catSize + horSpacing) * (screenColCount / 6);
@@ -1188,7 +1188,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 if (isInsideItem())
                     innerItemEntryPos.push(nextEntry);
                 innerItemVerPos.push(0f);
-                getViewHolder(position).setDirty();
+                //getViewHolder(position).setDirty();
                 setViews(false, false);
                 //adapter.onBindViewHolder(getViewHolder(position), position);
                 return true;
@@ -1211,7 +1211,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             if (innerItemEntryPos.size() > 0) // need this check since first entry is colIndex and rowIndex
                 innerItemEntryPos.pop();
             innerItemVerPos.pop();
-            getViewHolder(getPosition()).setDirty();
+            //getViewHolder(getPosition()).setDirty();
             setViews(false, false);
             //Integer[] position = getPosition();
             //adapter.onBindViewHolder(getViewHolder(position), position);
