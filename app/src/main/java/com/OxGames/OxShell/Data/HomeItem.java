@@ -58,7 +58,10 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         else if (type == Type.assoc || type == Type.addAssoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent != null)
-                onIconLoaded.accept(icon = PackagesCache.getPackageIcon(intent.getPackageName()));
+                PackagesCache.requestPackageIcon(intent.getPackageName(), drawable -> {
+                    onIconLoaded.accept(icon = drawable);
+                });
+                //onIconLoaded.accept(icon = PackagesCache.getPackageIcon(intent.getPackageName()));
             else
                 onIconLoaded.accept(null);
         } else {

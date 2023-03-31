@@ -385,53 +385,73 @@ public class PackagesCache {
         List<ResolveInfo> pkgs = OxShellApp.getContext().getPackageManager().queryIntentActivities(mainIntent, 0);
 
         iconRequests.addAll(pkgs.stream().map(pkg -> pkg.activityInfo.packageName).collect(Collectors.toList()));
-//        int millis = MathHelpers.calculateMillisForFps(120);
-//        new Thread(() -> {
-//            while (!iconRequests.isEmpty()) {
-//                String pkgName = iconRequests.pop();
-//                //Log.d("PackagesCache", "Caching icon for " + pkgName);
-//                getPackageIcon(pkgName);
-//                try {
-//                    Thread.sleep(millis);
-//                } catch (InterruptedException e) {
-//                    Log.e("PackagesCache", "Icon requests interrupted: " + e);
-//                }
-//            }
-//        }).start();
         int millis = MathHelpers.calculateMillisForFps(120);
-        Handler loadIconsHandler = new Handler();
-        Runnable loadIcons = new Runnable() {
-            @Override
-            public void run() {
-                while (!iconRequests.isEmpty()) {
-                    String pkgName = iconRequests.pop();
-                    //Log.d("PackagesCache", "Caching icon for " + pkgName);
-                    getPackageIcon(pkgName);
-                    loadIconsHandler.postDelayed(this, millis);
+        new Thread(() -> {
+            while (!iconRequests.isEmpty()) {
+                String pkgName = iconRequests.pop();
+                //Log.d("PackagesCache", "Caching icon for " + pkgName);
+                getPackageIcon(pkgName);
+                try {
+                    Thread.sleep(millis);
+                } catch (InterruptedException e) {
+                    Log.e("PackagesCache", "Loading pkg icons interrupted: " + e);
                 }
             }
-        };
-        loadIconsHandler.postDelayed(loadIcons, millis);
+        }).start();
+//        Handler loadIconsHandler = new Handler();
+//        Runnable loadIcons = new Runnable() {
+//            @Override
+//            public void run() {
+//                if (!iconRequests.isEmpty()) {
+//                    String pkgName = iconRequests.pop();
+//                    //Log.d("PackagesCache", "Caching icon for " + pkgName);
+//                    getPackageIcon(pkgName);
+//                    loadIconsHandler.postDelayed(this, millis);
+//                }
+//            }
+//        };
+//        loadIconsHandler.postDelayed(loadIcons, millis);
         return pkgs;
     }
     public static void requestPackageIcon(String packageName, Consumer<Drawable> pkgIconListener) {
         //Log.d("PackagesCache", "Requesting icon for " + packageName);
         if (!packageIcons.containsKey(packageName)) {
             int millis = MathHelpers.calculateMillisForFps(120);
-            Handler waitForIconHandler = new Handler();
-            Runnable waitForIcon = new Runnable() {
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     if (pkgIconListener != null) {
+                        //if (!iconRequests.contains(packageName))
+                        //    getPackageIcon(packageName);
                         while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName)) {
-                            //Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
-                            waitForIconHandler.postDelayed(this, millis);
+                            Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
+                            try {
+                                Thread.sleep(millis);
+                            } catch (InterruptedException e) {
+                                Log.e("PackagesCache", "Waiting for icon interrupted: " + e);
+                            }
                         }
-                        pkgIconListener.accept(getPackageIcon(packageName));
+                        Log.d("PackagesCache", "Icon for " + packageName + " cached or not being requested, sending back");
+                        Drawable icon = getPackageIcon(packageName);
+                        OxShellApp.getCurrentActivity().runOnUiThread(() -> pkgIconListener.accept(icon));
                     }
                 }
-            };
-            waitForIconHandler.post(waitForIcon);
+            }).start();
+//            Handler waitForIconHandler = new Handler();
+//            Runnable waitForIcon = new Runnable() {
+//                @Override
+//                public void run() {
+//                    if (pkgIconListener != null) {
+//                        if (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName)) {
+//                            //Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
+//                            waitForIconHandler.postDelayed(this, millis);
+//                            return;
+//                        }
+//                        pkgIconListener.accept(getPackageIcon(packageName));
+//                    }
+//                }
+//            };
+//            waitForIconHandler.post(waitForIcon);
         } else
             pkgIconListener.accept(getPackageIcon(packageName));
     }

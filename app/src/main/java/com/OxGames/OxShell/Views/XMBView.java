@@ -698,14 +698,53 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         removeViews();
-        createItemViews();
-        createCatViews(); // to get catSize
-        //createItemViews();
-        createInnerItemViews();
+        //createExpectedAmountOfViews();
+        createItemViews(1);
+        createCatViews(1);
+        createInnerItemViews(1);
         int screenColCount = (int)Math.ceil(getWidth() / getHorShiftOffset()) + 4; //+4 for off screen animating into on screen
         catHorShift = horSpacing + (catSize + horSpacing) * (screenColCount / 6);
         Log.d("XMBView", "Size changed, setting cat shift to " + catHorShift);
         setViews(false, true);
+    }
+    private void createExpectedAmountOfViews() {
+        // to get their size
+        createItemViews(1);
+        createCatViews(1);
+        createInnerItemViews(1);
+        int catViewsAtOnce = (int)Math.ceil(OxShellApp.getDisplayWidth() / (float)catSize);
+        int itemViewsAtOnce = (int)Math.ceil(OxShellApp.getDisplayHeight() / (float)itemSize) * 3;
+        int innerItemViewsAtOnce = (int)Math.ceil(OxShellApp.getDisplayHeight() / (float)innerItemSize);
+        Log.d("XMBView", "Creating " + catViewsAtOnce + " cat(s) " + itemViewsAtOnce + " item(s) " + innerItemViewsAtOnce + " innerItem(s)");
+        final int[] indices = new int[3];
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                int millis = MathHelpers.calculateMillisForFps(60);
+                int createPerFrame = 1;
+                if (indices[0] < catViewsAtOnce) {
+                    Log.d("XMBView", "Creating cat " + indices[0] + "/" + catViewsAtOnce);
+                    createCatViews(createPerFrame);
+                    getHandler().postDelayed(this, millis);
+                    indices[0] += createPerFrame;
+                    return;
+                }
+                if (indices[1] < itemViewsAtOnce) {
+                    Log.d("XMBView", "Creating item " + indices[1] + "/" + itemViewsAtOnce);
+                    createItemViews(createPerFrame);
+                    getHandler().postDelayed(this, millis);
+                    indices[1] += createPerFrame;
+                    return;
+                }
+                if (indices[2] < innerItemViewsAtOnce) {
+                    Log.d("XMBView", "Creating innerItem " + indices[2] + "/" + innerItemViewsAtOnce);
+                    createInnerItemViews(createPerFrame);
+                    getHandler().postDelayed(this, millis);
+                    indices[2] += createPerFrame;
+                    //return;
+                }
+            }
+        });
     }
 
     private int getStartX() {
@@ -851,9 +890,9 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private static final int FADE_OUT = 2;
     private static final int FADE_IN = 3;
     private void drawItem(Rect itemBounds, int fadeTransition, boolean instant, Integer... itemPosition) {
+        ViewHolder viewHolder = getViewHolder(itemPosition);
         boolean isCat = itemPosition.length == 2 && itemPosition[1] == 0;
         boolean isInnerItem = itemPosition.length > 2;
-        ViewHolder viewHolder = getViewHolder(itemPosition);
         viewHolder.setX(itemBounds.left);
         viewHolder.setY(itemBounds.top);
         Integer[] currentPosition = getPosition();
@@ -932,10 +971,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         while (!goneItemViews.isEmpty())
             removeView(goneItemViews.pop().itemView);
     }
-    private void createItemViews() {
+    private void createItemViews(int amount) {
         if (adapter == null)
             return;
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < amount; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, ITEM_TYPE);
             newHolder.itemViewType = ITEM_TYPE;
             newHolder.itemView.setVisibility(GONE);
@@ -946,10 +985,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             goneItemViews.push(newHolder);
         }
     }
-    private void createCatViews() {
+    private void createCatViews(int amount) {
         if (adapter == null)
             return;
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < amount; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, CATEGORY_TYPE);
             newHolder.itemViewType = CATEGORY_TYPE;
             newHolder.itemView.setVisibility(GONE);
@@ -960,10 +999,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             goneCatViews.push(newHolder);
         }
     }
-    private void createInnerItemViews() {
+    private void createInnerItemViews(int amount) {
         if (adapter == null)
             return;
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < amount; i++) {
             ViewHolder newHolder = adapter.onCreateViewHolder(this, INNER_TYPE);
             newHolder.itemViewType = INNER_TYPE;
             newHolder.itemView.setVisibility(GONE);
@@ -1012,7 +1051,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         } else {
             if (viewType == CATEGORY_TYPE) {
                 if (goneCatViews.isEmpty())
-                    createCatViews();
+                    createCatViews(1);
 
                 viewHolder = goneCatViews.pop();
                 viewHolder.isNew = true;
@@ -1020,7 +1059,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 usedViews.put(indexHash, viewHolder);
             } else if (viewType == ITEM_TYPE) {
                 if (goneItemViews.isEmpty())
-                    createItemViews();
+                    createItemViews(1);
 
                 viewHolder = goneItemViews.pop();
                 viewHolder.isNew = true;
@@ -1028,7 +1067,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 usedViews.put(indexHash, viewHolder);
             } else if (viewType == INNER_TYPE) {
                 if (goneInnerItemViews.isEmpty())
-                    createInnerItemViews();
+                    createInnerItemViews(1);
 
                 viewHolder = goneInnerItemViews.pop();
                 viewHolder.isNew = true;
