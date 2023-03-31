@@ -164,12 +164,15 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     public class XMBViewHolder extends XMBView.ViewHolder {
+        XMBItem prevItem;
         public XMBViewHolder(@NonNull View itemView) {
             super(itemView);
         }
         public void bindItem(XMBItem item) {
-            if (isDirty) {
+            if (isDirty || item != prevItem) {
                 isDirty = false;
+                prevItem = item;
+
                 TextView title = itemView.findViewById(TITLE_ID);
                 title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
                 title.setSelected(true);
