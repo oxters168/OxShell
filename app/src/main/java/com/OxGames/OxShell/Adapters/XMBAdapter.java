@@ -7,6 +7,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -167,40 +168,45 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             super(itemView);
         }
         public void bindItem(XMBItem item) {
-            TextView title = itemView.findViewById(TITLE_ID);
-            title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
-            title.setSelected(true);
-            title.setTypeface(font);
-            //AndroidHelpers.setTextAsync(title, item != null ? item.getTitle() : "Empty");
-            title.setText(item != null ? item.getTitle() : "Empty");
+            if (isDirty) {
+                isDirty = false;
+                TextView title = itemView.findViewById(TITLE_ID);
+                title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
+                title.setSelected(true);
+                title.setTypeface(font);
+                //AndroidHelpers.setTextAsync(title, item != null ? item.getTitle() : "Empty");
+                title.setText(item != null ? item.getTitle() : "Empty");
 
-            //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
-            //superIcon.setVisibility(View.GONE);
-            //superIcon.setVisibility(((HomeItem)item).type == HomeItem.Type.assoc ? View.VISIBLE : View.GONE);
+                //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
+                //superIcon.setVisibility(View.GONE);
+                //superIcon.setVisibility(((HomeItem)item).type == HomeItem.Type.assoc ? View.VISIBLE : View.GONE);
 
-            ImageView img = itemView.findViewById(ICON_ID);
-            ImageView highlight = itemView.findViewById(ICON_HIGHLIGHT_ID);
-            //Drawable icon = null;
-            if (item != null) {
+                ImageView img = itemView.findViewById(ICON_ID);
+                ImageView highlight = itemView.findViewById(ICON_HIGHLIGHT_ID);
+                //Drawable icon = null;
+                if (item != null) {
 //                img.setImageDrawable(QUESTION_MARK_DRAWABLE);
 //                highlight.setImageDrawable(QUESTION_MARK_DRAWABLE);
-                item.getIcon((Consumer<Drawable>) drawable -> {
-                    if (drawable != null) {
-                        //img.setBackground(drawable);
-                        img.setImageDrawable(drawable);
-                        highlight.setBackground(drawable.getConstantState().newDrawable());
-                    } else {
-                        //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
-                        img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
-                        highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
-                    }
-                });
-            } else {
-                //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
-                img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
-                highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                    item.getIcon((Consumer<Drawable>) drawable -> {
+                        if (drawable != null) {
+                            //img.setBackground(drawable);
+                            img.setImageDrawable(drawable);
+                            highlight.setBackground(drawable.getConstantState().newDrawable());
+                        } else {
+                            //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
+                            img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
+                            highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
+                        }
+                    });
+                } else {
+                    //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                    img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                    highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                }
+                if (isHighlighted())
+                    Log.d("XMBAdapter", "Highlighting " + item.getTitle());
+                highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
             }
-            highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
         }
     }
 

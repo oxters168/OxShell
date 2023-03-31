@@ -642,6 +642,7 @@ public class HomeView extends XMBView implements Refreshable {
         Integer[] position = getPosition();
         getAdapter().removeSubItem(position[0], position[1]);
         save(getItems());
+        refresh();
     }
     public void uninstallSelection(Consumer<ActivityResult> onResult) {
         HomeItem selectedItem = (HomeItem)getSelectedItem();

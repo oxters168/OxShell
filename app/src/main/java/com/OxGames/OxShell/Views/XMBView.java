@@ -122,17 +122,21 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
         @Override
         public void onSubItemAdded(int columnIndex, int localIndex) {
+            //Log.d("XMBView", "Sub-item added [" + columnIndex + ", " + localIndex + "]");
             if (columnIndex == colIndex)
                 rowIndex = getCachedIndexOfCat(colIndex);
-            returnAllViews();
-            setViews(false, true);
+            //returnAllViews();
+            //getViewHolder(columnIndex, localIndex).setDirty();
+            setViews(false, false);
         }
         @Override
         public void onSubItemRemoved(int columnIndex, int localIndex) {
             if (columnIndex == colIndex)
                 rowIndex = getCachedIndexOfCat(colIndex);
-            returnAllViews();
-            setViews(false, true);
+            //returnAllViews();
+            if (localIndex > 0 && localIndex < adapter.getColumnSize(columnIndex))
+                getViewHolder(columnIndex, localIndex).setDirty();
+            setViews(false, false);
         }
     };
 
@@ -216,6 +220,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     }
     public abstract static class ViewHolder {
         protected View itemView;
+        protected boolean isDirty;
         private int itemViewType;
 
         private boolean isHighlighted;
@@ -236,6 +241,9 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         public boolean isHideTitleRequested() { return requestHideTitle; }
         public int getItemViewType() {
             return itemViewType;
+        }
+        public void setDirty() {
+            isDirty = true;
         }
 
         private float getX() {
@@ -852,9 +860,11 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         viewHolder.isHighlighted = moveMode && ((!columnMode && isSelection) || (columnMode && isOurCat));
         viewHolder.requestHideTitle = isInsideItem() && isPartOfPosition && !isSelection;
         float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
-        viewHolder.itemView.animate().cancel();
+        if (isSelection)
+            viewHolder.setDirty();
+        adapter.onBindViewHolder(viewHolder, itemPosition);
 
-        //adapter.onBindViewHolder(viewHolder, itemPosition);
+        viewHolder.itemView.animate().cancel();
         if (viewHolder.isNew || instant) {
             // if the view just popped into existence then set its position to the final position rather than transitioning
             viewHolder.itemView.setX(viewHolder.getX());
@@ -983,9 +993,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private ViewHolder getViewHolder(Integer... position) {
         boolean isCat = position.length == 2 && position[1] == 0;
         boolean isInnerItem = position.length > 2;
-        return getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, position);
-    }
-    private ViewHolder getViewHolder(int viewType, Integer... position) {
+        int viewType = isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE;
         ViewHolder viewHolder = null;
         int indexHash = MathHelpers.hash(position);
         if (usedViews.containsKey(indexHash)) {
@@ -1017,10 +1025,14 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 viewHolder.itemView.setVisibility(VISIBLE);
                 usedViews.put(indexHash, viewHolder);
             }
-            adapter.onBindViewHolder(viewHolder, position);
+            //adapter.onBindViewHolder(viewHolder, position);
+            viewHolder.setDirty();
         }
         return viewHolder;
+        //return getViewHolder(isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE, position);
     }
+    //private ViewHolder getViewHolder(int viewType, Integer... position) {
+    //}
 
     private boolean inView(Rect rect, int viewWidth, int viewHeight) {
         int horShiftOffset = Math.round(getHorShiftOffset());
@@ -1166,8 +1178,9 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 if (isInsideItem())
                     innerItemEntryPos.push(nextEntry);
                 innerItemVerPos.push(0f);
+                getViewHolder(position).setDirty();
                 setViews(false, false);
-                adapter.onBindViewHolder(getViewHolder(position), position);
+                //adapter.onBindViewHolder(getViewHolder(position), position);
                 return true;
             }
         }
@@ -1188,9 +1201,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             if (innerItemEntryPos.size() > 0) // need this check since first entry is colIndex and rowIndex
                 innerItemEntryPos.pop();
             innerItemVerPos.pop();
+            getViewHolder(getPosition()).setDirty();
             setViews(false, false);
-            Integer[] position = getPosition();
-            adapter.onBindViewHolder(getViewHolder(position), position);
+            //Integer[] position = getPosition();
+            //adapter.onBindViewHolder(getViewHolder(position), position);
             return true;
         }
         return false;
@@ -1203,6 +1217,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             throw new RuntimeException("Cannot enter column move mode from move mode");
 
         moveMode = onOff;
+        Integer[] position = getPosition();
+        if (this.columnMode || columnMode)
+            position = new Integer[] { position[0], 0 };
+        getViewHolder(position).setDirty();
         this.columnMode = columnMode;
         if (moveMode) {
             //moveColIndex = getColIndex();
@@ -1255,6 +1273,9 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     }
                     if (nextIsColumn && adapter.getColumnSize(nextColIndex) == 1)
                         nextLocalIndex = 1;
+
+                    //getViewHolder(fromColIndex, fromRowIndex).setDirty();
+                    //getViewHolder(nextColIndex, nextLocalIndex).setDirty();
                     adapter.shiftItemHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
 
                     this.colIndex = setColIndex;
@@ -1267,7 +1288,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
-        if (moveMode)
+        if (moveMode) {
+            //getViewHolder(fromColIndex, fromLocalIndex).setDirty();
+            //getViewHolder(fromColIndex, toLocalIndex).setDirty();
             adapter.shiftItemVertically(fromColIndex, fromLocalIndex, toLocalIndex);
+        }
     }
 }
