@@ -152,7 +152,7 @@ public class InputHandler {
         List<KeyComboAction> toBeRun = new ArrayList<>();
         if (!actionHasRun)
             for (KeyComboAction comboAction : findComboActions(keysHistory)) {
-                if (!isBlockingInput)
+                if (!isBlockingInput && !comboAction.keyCombo.isOnDown())
                     toBeRun.add(comboAction);
                 //    comboAction.action.run();
                 actionHasRun = true;
