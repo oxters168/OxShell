@@ -196,6 +196,7 @@ public class PagedActivity extends AppCompatActivity {
         LogcatHelper.getInstance(this).start();
 
         Log.i("PagedActivity", "OnCreate " + this);
+        Log.i("PagedActivity", "Running on a tv: " + AndroidHelpers.isRunningOnTV());
     }
 
     @Override

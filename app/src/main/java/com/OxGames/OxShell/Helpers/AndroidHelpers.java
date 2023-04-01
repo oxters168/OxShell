@@ -785,6 +785,10 @@ public class AndroidHelpers {
         return (float)Math.pow(percent, 1.2f); // fine tuned to my liking, not scientific
     }
 
+    public static boolean isRunningOnTV() {
+        return OxShellApp.getCurrentActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TELEVISION) || OxShellApp.getCurrentActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+    }
+
     public static void setTextAsync(TextView textView, String text) {
 //        PrecomputedTextCompat.Params params = TextViewCompat.getTextMetricsParams(textView);
 //        PrecomputedTextCompat precomputedText = PrecomputedTextCompat.create(text, params);
