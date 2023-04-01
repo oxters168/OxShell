@@ -109,7 +109,7 @@ public class SettingsKeeper {
             case (SUPER_PRIMARY_INPUT):
                 return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_START), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_LEFT, KeyEvent.KEYCODE_NUMPAD_ENTER), KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_CTRL_RIGHT, KeyEvent.KEYCODE_NUMPAD_ENTER) };
             case (PRIMARY_INPUT):
-                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_A), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_NUMPAD_ENTER) };
+                return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_A), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_NUMPAD_ENTER), KeyCombo.createUpCombo(KeyEvent.KEYCODE_DPAD_CENTER) };
             case (SECONDARY_INPUT):
                 return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_Y), KeyCombo.createUpCombo(KeyEvent.KEYCODE_MENU), KeyCombo.createUpCombo(KeyEvent.KEYCODE_SPACE) };
             case (EXPLORER_HIGHLIGHT_INPUT):
