@@ -6,10 +6,12 @@ import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
@@ -127,11 +129,11 @@ public class PagedActivity extends AppCompatActivity {
     private static final int PROMPT_ID = View.generateViewId();
     private static final int DEBUG_VIEW_ID = View.generateViewId();
 
+    private ShaderView tvBg;
     private static boolean startTimeSet;
     private static long startTime;
     //private static long prevFrameTime;
 
-    //private ShaderView shaderView;
     private FrameLayout parentView;
     private DynamicInputView dynamicInput;
     private SettingsDrawer settingsDrawer;
@@ -231,7 +233,7 @@ public class PagedActivity extends AppCompatActivity {
         setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
-        //resumeBackground();
+        resumeBackground();
 
         Log.i("PagedActivity", "OnResume " + this);
     }
@@ -278,7 +280,7 @@ public class PagedActivity extends AppCompatActivity {
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
         //OxShellApp.setCurrentActivity(null);
-        //pauseBackground();
+        pauseBackground();
         super.onPause();
     }
     @Override
@@ -402,6 +404,7 @@ public class PagedActivity extends AppCompatActivity {
     }
     private void prepareOtherViews() {
         parentView = findViewById(R.id.parent_layout);
+        initBackground();
         initSettingsDrawer();
         settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
         initDynamicInputView();
@@ -463,42 +466,49 @@ public class PagedActivity extends AppCompatActivity {
     private void trySetStartTime() {
         if (!startTimeSet) {
             startTimeSet = true;
-            startTime = System.currentTimeMillis();
+            startTime = SystemClock.uptimeMillis();
             //prevFrameTime = startTime;
         }
     }
 
-    public ShaderView getBackground() {
-        return null;
-        //return findViewById(R.id.bgShader);
-    }
     private void pauseBackground() {
-        ShaderView shaderView = getBackground();
-        shaderView.setUpdateContinuously(false);
+        if (tvBg != null)
+            tvBg.setUpdateContinuously(false);
     }
     private void resumeBackground() {
         //Later will have more logic based on options set by user
-        ShaderView shaderView = getBackground();
-        shaderView.setUpdateContinuously(true);
-        shaderView.setFramerate(30);
+        if (tvBg != null) {
+            tvBg.setUpdateContinuously(true);
+            tvBg.setFramerate(60);
+        }
     }
     private void initBackground() {
-        ShaderView shaderView = getBackground();
-        Log.d("Paged Activity", "Shader view null: " + (shaderView == null));
-        if (shaderView != null) {
-            shaderView.setFragmentShader(AndroidHelpers.readAssetAsString(this, "Shader/blue_dune.fsh"));
-            shaderView.setVertexShader(AndroidHelpers.readAssetAsString(this, "Shader/vert.vsh"));
+        if (AndroidHelpers.isRunningOnTV() && tvBg == null) {
+            tvBg = new ShaderView(this);
+            tvBg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            tvBg.setZ(-1000);
+            parentView.addView(tvBg);
+        }
+        Log.d("Paged Activity", "Shader view null: " + (tvBg == null));
+        if (tvBg != null) {
+            tvBg.setFragmentShader(AndroidHelpers.readAssetAsString(this, "Shaders/blue_dune.fsh"));
+            tvBg.setVertexShader(AndroidHelpers.readAssetAsString(this, "Shaders/vert.vsh"));
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
             //DisplayMetrics displayMetrics = OxShellApp.getCurrentActivity().getDisplayMetrics();
             paramsBuilder.addVec2i("iResolution", new int[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight() });
-            shaderView.setShaderParams(paramsBuilder.build());
-            shaderView.setOnDrawFrameListener(shaderParams -> {
+            tvBg.setShaderParams(paramsBuilder.build());
+            tvBg.setOnDrawFrameListener(shaderParams -> {
                 //float deltaTime = (System.currentTimeMillis() - prevFrameTime) / 1000f;
                 //float fps = 1f / deltaTime;
                 //Log.d("FPS", String.valueOf(fps));
                 //prevFrameTime = System.currentTimeMillis();
-                float secondsElapsed = (System.currentTimeMillis() - startTime) / 1000f;
+                float secondsElapsed = (SystemClock.uptimeMillis() - startTime) / 1000f;
+                if (secondsElapsed > 60 * 60 * 24) {
+                    // if more than 24 hours have passed, then reset the timer
+                    secondsElapsed = 0;
+                    startTime = SystemClock.uptimeMillis();
+                }
                 shaderParams.updateValue("iTime", secondsElapsed);
                 return null;
             });
