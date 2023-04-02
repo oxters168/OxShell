@@ -25,6 +25,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
+import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
@@ -44,6 +45,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+
+import kotlin.Unit;
 
 public class PagedActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -233,6 +236,7 @@ public class PagedActivity extends AppCompatActivity {
         setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
+        refreshShaderViewBg();
         resumeBackground();
 
         Log.i("PagedActivity", "OnResume " + this);
@@ -404,7 +408,7 @@ public class PagedActivity extends AppCompatActivity {
     }
     private void prepareOtherViews() {
         parentView = findViewById(R.id.parent_layout);
-        initBackground();
+        //refreshShaderViewBg();
         initSettingsDrawer();
         settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
         initDynamicInputView();
@@ -489,14 +493,55 @@ public class PagedActivity extends AppCompatActivity {
             tvBg.setZ(-1000);
             parentView.addView(tvBg);
         }
+    }
+    public void refreshShaderViewBg() {
+        boolean updateContinuously = false;
+        int framerate = 0;
+
+        if (tvBg != null) {
+            updateContinuously = tvBg.getUpdateContinuously();
+            framerate = tvBg.getFramerate();
+            tvBg.setUpdateContinuously(false);
+            parentView.removeView(tvBg);
+            tvBg = null;
+        }
+        initBackground();
         Log.d("Paged Activity", "Shader view null: " + (tvBg == null));
         if (tvBg != null) {
-            tvBg.setFragmentShader(AndroidHelpers.readAssetAsString(this, "Shaders/blue_dune.fsh"));
-            tvBg.setVertexShader(AndroidHelpers.readAssetAsString(this, "Shaders/vert.vsh"));
+            String fragPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
+            String vertPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh");
+//            String channel0Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png");
+//            String channel1Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel1.png");
+//            String channel2Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel2.png");
+//            String channel3Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel3.png");
+
+            String fragShader;
+            String vertShader;
+            if (AndroidHelpers.fileExists(fragPath))
+                fragShader = AndroidHelpers.readFile(fragPath);
+            else
+                fragShader = AndroidHelpers.readAssetAsString(this, "Shaders/blue_dune.fsh");
+            if (AndroidHelpers.fileExists(vertPath))
+                vertShader = AndroidHelpers.readFile(vertPath);
+            else
+                vertShader = AndroidHelpers.readAssetAsString(this, "Shaders/vert.vsh");
+
+            tvBg.setFragmentShader(fragShader);
+            tvBg.setVertexShader(vertShader);
+            tvBg.setUpdateContinuously(updateContinuously);
+            tvBg.setFramerate(framerate);
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
             //DisplayMetrics displayMetrics = OxShellApp.getCurrentActivity().getDisplayMetrics();
             paramsBuilder.addVec2i("iResolution", new int[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight() });
+//            if (AndroidHelpers.fileExists(channel0Path))
+//                paramsBuilder.addTexture2D("iChannel0", AndroidHelpers.bitmapFromFile(channel0Path), 0);
+//            if (AndroidHelpers.fileExists(channel1Path))
+//                paramsBuilder.addTexture2D("iChannel1", AndroidHelpers.bitmapFromFile(channel1Path), 1);
+//            if (AndroidHelpers.fileExists(channel2Path))
+//                paramsBuilder.addTexture2D("iChannel2", AndroidHelpers.bitmapFromFile(channel2Path), 2);
+//            if (AndroidHelpers.fileExists(channel3Path))
+//                paramsBuilder.addTexture2D("iChannel3", AndroidHelpers.bitmapFromFile(channel3Path), 3);
             tvBg.setShaderParams(paramsBuilder.build());
             tvBg.setOnDrawFrameListener(shaderParams -> {
                 //float deltaTime = (System.currentTimeMillis() - prevFrameTime) / 1000f;
