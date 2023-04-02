@@ -391,7 +391,7 @@ public class AndroidHelpers {
     }
     public static boolean hasReadStoragePermission() {
         //Log.d("FileHelpers", "Checking has read permission");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        if (!isRunningOnTV() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             return Environment.isExternalStorageManager();
             //return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
         else
@@ -399,7 +399,7 @@ public class AndroidHelpers {
     }
     public static boolean hasWriteStoragePermission() {
         //Log.d("FileHelpers", "Checking has write permission");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+        if (!isRunningOnTV() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
             return Environment.isExternalStorageManager();
             //return hasPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE);
         else
@@ -408,7 +408,7 @@ public class AndroidHelpers {
     public static void requestReadStoragePermission(Consumer<Boolean> onResult) {
         PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         //From here https://stackoverflow.com/questions/47292505/exception-writing-exception-to-parcel
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (!isRunningOnTV() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Log.i("AndroidHelpers", "Requesting read permission with result code " + MANAGE_EXTERNAL_STORAGE);
             //currentActivity.addOneTimePermissionListener(MANAGE_EXTERNAL_STORAGE, onResult);
             try {
@@ -423,12 +423,19 @@ public class AndroidHelpers {
                 //currentActivity.startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE);
 
             } catch (Exception e) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                currentActivity.requestResult(intent, activityResult -> {
+                Log.e("AndroidHelpers", "Failed to request storage permission: " + e + "\nTrying alternative...");
+                try {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    currentActivity.requestResult(intent, activityResult -> {
+                        if (onResult != null)
+                            onResult.accept(hasReadStoragePermission());
+                    });
+                } catch (Exception e2) {
+                    Log.e("AndroidHelpers", "Failed to request storage permission through alternative: " + e);
                     if (onResult != null)
                         onResult.accept(hasReadStoragePermission());
-                });
+                }
                 //currentActivity.startActivity(intent, MANAGE_EXTERNAL_STORAGE);
             }
 //            ActivityCompat.requestPermissions(OxShellApp.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
@@ -441,7 +448,7 @@ public class AndroidHelpers {
     }
     public static void requestWriteStoragePermission(Consumer<Boolean> onResult) {
         PagedActivity currentActivity = OxShellApp.getCurrentActivity();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (!isRunningOnTV() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Log.i("AndroidHelpers", "Requesting write permission with result code " + MANAGE_EXTERNAL_STORAGE);
             //currentActivity.addOneTimePermissionListener(MANAGE_EXTERNAL_STORAGE, onResult);
             try {
@@ -454,12 +461,20 @@ public class AndroidHelpers {
                 });
                 //currentActivity.startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE);
             } catch (Exception e) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                currentActivity.requestResult(intent, activityResult -> {
+                Log.e("AndroidHelpers", "Failed to request storage permission: " + e + "\nTrying alternative...");
+                try {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    currentActivity.requestResult(intent, activityResult -> {
+                        if (onResult != null)
+                            onResult.accept(hasWriteStoragePermission());
+                    });
+                } catch (Exception e2) {
+                    Log.e("AndroidHelpers", "Failed to request storage permission through alternative: " + e);
                     if (onResult != null)
-                        onResult.accept(hasWriteStoragePermission());
-                });
+                        onResult.accept(hasReadStoragePermission());
+                }
+
                 //currentActivity.startActivityForResult(intent, MANAGE_EXTERNAL_STORAGE);
             }
 //            ActivityCompat.requestPermissions(OxShellApp.getCurrentActivity(), new String[]{ android.Manifest.permission.MANAGE_EXTERNAL_STORAGE }, MANAGE_EXTERNAL_STORAGE);
