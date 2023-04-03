@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.opengl.GLES32;
 import android.os.Bundle;
@@ -30,7 +31,6 @@ import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
-import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Views.DebugView;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
@@ -42,12 +42,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-
-import kotlin.Unit;
 
 public class PagedActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -133,7 +129,8 @@ public class PagedActivity extends AppCompatActivity {
     private static final int PROMPT_ID = View.generateViewId();
     private static final int DEBUG_VIEW_ID = View.generateViewId();
 
-    private ShaderView tvBg;
+    private ShaderView tvShaderBg;
+    private FrameLayout tvImageBg;
     private static boolean startTimeSet;
     private static long startTime;
     //private static long prevFrameTime;
@@ -196,7 +193,7 @@ public class PagedActivity extends AppCompatActivity {
         refreshAccessibilityInput();
         refreshShowDebugInput();
 
-        trySetStartTime();
+        //trySetStartTime();
         super.onCreate(savedInstanceState);
 
         LogcatHelper.getInstance(this).start();
@@ -237,7 +234,8 @@ public class PagedActivity extends AppCompatActivity {
         setFullscreen(true);
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
-        refreshShaderViewBg();
+        //resetShaderViewBg();
+        applyTvBg();
         resumeBackground();
 
         Log.i("PagedActivity", "OnResume " + this);
@@ -476,39 +474,79 @@ public class PagedActivity extends AppCompatActivity {
         }
     }
 
+    public void applyTvBg() {
+        int bgType = SettingsKeeper.getTvBgType();
+        if (bgType == SettingsKeeper.BG_TYPE_SHADER) {
+            destroyImageBg();
+            resetShaderViewBg();
+        } else if (bgType == SettingsKeeper.BG_TYPE_IMAGE) {
+            destroyShaderBg();
+            initImageBg();
+            refreshImageBg();
+        }
+    }
+    private void initImageBg() {
+        if (AndroidHelpers.isRunningOnTV() && tvImageBg == null) {
+            tvImageBg = new FrameLayout(this);
+            tvImageBg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            tvImageBg.setZ(-1000);
+            parentView.addView(tvImageBg);
+        }
+    }
+    private void destroyImageBg() {
+        if (tvImageBg != null) {
+            parentView.removeView(tvImageBg);
+            tvImageBg = null;
+        }
+    }
+    private void refreshImageBg() {
+        if (tvImageBg != null) {
+            String bgPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "bg.png");
+            tvImageBg.setBackground(AndroidHelpers.bitmapToDrawable(this, AndroidHelpers.bitmapFromFile(bgPath)));
+        }
+    }
+    private void initShaderBg() {
+        if (AndroidHelpers.isRunningOnTV() && tvShaderBg == null) {
+            tvShaderBg = new ShaderView(this);
+            tvShaderBg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            tvShaderBg.setZ(-1000);
+            parentView.addView(tvShaderBg);
+        }
+    }
+    private void destroyShaderBg() {
+        if (tvShaderBg != null) {
+            tvShaderBg.setUpdateContinuously(false);
+            parentView.removeView(tvShaderBg);
+            tvShaderBg = null;
+        }
+    }
     private void pauseBackground() {
-        if (tvBg != null)
-            tvBg.setUpdateContinuously(false);
+        if (tvShaderBg != null)
+            tvShaderBg.setUpdateContinuously(false);
     }
     private void resumeBackground() {
         //Later will have more logic based on options set by user
-        if (tvBg != null) {
-            tvBg.setUpdateContinuously(true);
-            tvBg.setFramerate(60);
+        if (tvShaderBg != null) {
+            tvShaderBg.setUpdateContinuously(true);
+            tvShaderBg.setFramerate(60);
         }
     }
-    private void initBackground() {
-        if (AndroidHelpers.isRunningOnTV() && tvBg == null) {
-            tvBg = new ShaderView(this);
-            tvBg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            tvBg.setZ(-1000);
-            parentView.addView(tvBg);
-        }
-    }
-    public void refreshShaderViewBg() {
+    private void resetShaderViewBg() {
         boolean updateContinuously = false;
         int framerate = 0;
-
-        if (tvBg != null) {
-            updateContinuously = tvBg.getUpdateContinuously();
-            framerate = tvBg.getFramerate();
-            tvBg.setUpdateContinuously(false);
-            parentView.removeView(tvBg);
-            tvBg = null;
+        if (tvShaderBg != null) {
+            updateContinuously = tvShaderBg.getUpdateContinuously();
+            framerate = tvShaderBg.getFramerate();
         }
-        initBackground();
-        Log.d("Paged Activity", "Shader view null: " + (tvBg == null));
-        if (tvBg != null) {
+
+        destroyShaderBg();
+        initShaderBg();
+        trySetStartTime();
+        refreshShaderViewBg(updateContinuously, framerate);
+    }
+    private void refreshShaderViewBg(boolean updateContinuously, int framerate) {
+        Log.d("Paged Activity", "Shader view null: " + (tvShaderBg == null));
+        if (tvShaderBg != null) {
             String fragPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
             String vertPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh");
             String channel0Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png");
@@ -527,10 +565,10 @@ public class PagedActivity extends AppCompatActivity {
             else
                 vertShader = AndroidHelpers.readAssetAsString(this, "Shaders/vert.vsh");
 
-            tvBg.setFragmentShader(fragShader);
-            tvBg.setVertexShader(vertShader);
-            tvBg.setUpdateContinuously(updateContinuously);
-            tvBg.setFramerate(framerate);
+            tvShaderBg.setFragmentShader(fragShader);
+            tvShaderBg.setVertexShader(vertShader);
+            tvShaderBg.setUpdateContinuously(updateContinuously);
+            tvShaderBg.setFramerate(framerate);
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
             paramsBuilder.addVec4f("iMouse", new float[] { 0, 0, 0, 0 });
@@ -544,8 +582,8 @@ public class PagedActivity extends AppCompatActivity {
                 paramsBuilder.addTexture2D("iChannel2", AndroidHelpers.bitmapFromFile(channel2Path), GLES32.GL_TEXTURE2);
             if (AndroidHelpers.fileExists(channel3Path))
                 paramsBuilder.addTexture2D("iChannel3", AndroidHelpers.bitmapFromFile(channel3Path), GLES32.GL_TEXTURE3);
-            tvBg.setShaderParams(paramsBuilder.build());
-            tvBg.setOnDrawFrameListener(shaderParams -> {
+            tvShaderBg.setShaderParams(paramsBuilder.build());
+            tvShaderBg.setOnDrawFrameListener(shaderParams -> {
                 //float deltaTime = (System.currentTimeMillis() - prevFrameTime) / 1000f;
                 //float fps = 1f / deltaTime;
                 //Log.d("FPS", String.valueOf(fps));

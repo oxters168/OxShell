@@ -262,14 +262,17 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
                         if (permittedUri.get() != null) {
-                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()));
+                            if (AndroidHelpers.isRunningOnTV()) {
+                                String bgDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "bg.png");
+                                if (AndroidHelpers.fileExists(bgDest))
+                                    ExplorerBehaviour.delete(bgDest);
+                                AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), bgDest);
+                                SettingsKeeper.setValueAndSave(SettingsKeeper.TV_BG_TYPE, SettingsKeeper.BG_TYPE_IMAGE);
+                                currentActivity.applyTvBg();
+                            } else
+                                AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()));
                             dynamicInput.setShown(false);
                         }
-//                        String path = titleInput.getText();
-//                        if (path != null && AndroidHelpers.uriExists(Uri.parse(path))) {
-//                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
-//                            dynamicInput.setShown(false);
-//                        }
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
@@ -378,7 +381,9 @@ public class HomeView extends XMBView implements Refreshable {
                                 if (AndroidHelpers.fileExists(fragTemp))
                                     ExplorerBehaviour.delete(fragTemp);
                                 dynamicInput.setShown(false);
-                                currentActivity.refreshShaderViewBg();
+                                //currentActivity.resetShaderViewBg();
+                                SettingsKeeper.setValueAndSave(SettingsKeeper.TV_BG_TYPE, SettingsKeeper.BG_TYPE_SHADER);
+                                currentActivity.applyTvBg();
                             } else {
                                 AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
                                     if (result.getResultCode() == Activity.RESULT_OK) {
