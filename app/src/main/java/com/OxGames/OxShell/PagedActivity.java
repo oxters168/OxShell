@@ -5,6 +5,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.opengl.GLES32;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
@@ -510,10 +511,10 @@ public class PagedActivity extends AppCompatActivity {
         if (tvBg != null) {
             String fragPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
             String vertPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh");
-//            String channel0Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png");
-//            String channel1Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel1.png");
-//            String channel2Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel2.png");
-//            String channel3Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel3.png");
+            String channel0Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png");
+            String channel1Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel1.png");
+            String channel2Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel2.png");
+            String channel3Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel3.png");
 
             String fragShader;
             String vertShader;
@@ -532,16 +533,17 @@ public class PagedActivity extends AppCompatActivity {
             tvBg.setFramerate(framerate);
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
+            paramsBuilder.addVec4f("iMouse", new float[] { 0, 0, 0, 0 });
             //DisplayMetrics displayMetrics = OxShellApp.getCurrentActivity().getDisplayMetrics();
-            paramsBuilder.addVec2i("iResolution", new int[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight() });
-//            if (AndroidHelpers.fileExists(channel0Path))
-//                paramsBuilder.addTexture2D("iChannel0", AndroidHelpers.bitmapFromFile(channel0Path), 0);
-//            if (AndroidHelpers.fileExists(channel1Path))
-//                paramsBuilder.addTexture2D("iChannel1", AndroidHelpers.bitmapFromFile(channel1Path), 1);
-//            if (AndroidHelpers.fileExists(channel2Path))
-//                paramsBuilder.addTexture2D("iChannel2", AndroidHelpers.bitmapFromFile(channel2Path), 2);
-//            if (AndroidHelpers.fileExists(channel3Path))
-//                paramsBuilder.addTexture2D("iChannel3", AndroidHelpers.bitmapFromFile(channel3Path), 3);
+            paramsBuilder.addVec3f("iResolution", new float[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight(), 1f });
+            if (AndroidHelpers.fileExists(channel0Path))
+                paramsBuilder.addTexture2D("iChannel0", AndroidHelpers.bitmapFromFile(channel0Path), GLES32.GL_TEXTURE0);
+            if (AndroidHelpers.fileExists(channel1Path))
+                paramsBuilder.addTexture2D("iChannel1", AndroidHelpers.bitmapFromFile(channel1Path), GLES32.GL_TEXTURE1);
+            if (AndroidHelpers.fileExists(channel2Path))
+                paramsBuilder.addTexture2D("iChannel2", AndroidHelpers.bitmapFromFile(channel2Path), GLES32.GL_TEXTURE2);
+            if (AndroidHelpers.fileExists(channel3Path))
+                paramsBuilder.addTexture2D("iChannel3", AndroidHelpers.bitmapFromFile(channel3Path), GLES32.GL_TEXTURE3);
             tvBg.setShaderParams(paramsBuilder.build());
             tvBg.setOnDrawFrameListener(shaderParams -> {
                 //float deltaTime = (System.currentTimeMillis() - prevFrameTime) / 1000f;
@@ -555,6 +557,7 @@ public class PagedActivity extends AppCompatActivity {
                     startTime = SystemClock.uptimeMillis();
                 }
                 shaderParams.updateValue("iTime", secondsElapsed);
+                shaderParams.updateValue("iMouse", new float[] { 0, 0, 0, 0 });
                 return null;
             });
         }

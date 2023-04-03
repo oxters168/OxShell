@@ -286,7 +286,8 @@ public class HomeView extends XMBView implements Refreshable {
                     List<String> options = new ArrayList<>();
                     options.add("Blue Dune");
                     options.add("The Other Dune");
-                    if (!AndroidHelpers.isRunningOnTV()) options.add("Planet");
+                    //if (!AndroidHelpers.isRunningOnTV())
+                        options.add("Planet");
                     options.add("Custom");
                     //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     AtomicReference<Uri> permittedUri = new AtomicReference<>();
