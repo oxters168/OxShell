@@ -4,6 +4,7 @@ import android.graphics.Typeface;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 
@@ -40,6 +41,7 @@ public class SettingsKeeper {
     public static final String HOME_BEHIND_INNER_ALPHA = "home_behind_inner_alpha";
     public static final String FONT_REF = "font_ref";
     public static final String VERSION_CODE = "version_code";
+    public static final String PREV_VERSION_CODE = "prev_version_code";
 
     //private static boolean fileDidExist;
     private static HashMap<String, Object> settingsCache;
@@ -102,6 +104,20 @@ public class SettingsKeeper {
         if (settingsCache == null)
             loadOrCreateSettings();
         return settingsCache.containsKey(key);
+    }
+
+    public static void updateVersion() {
+        int prevVersion = BuildConfig.VERSION_CODE;
+        if (hasValue(VERSION_CODE))
+            prevVersion = (int)getValue(VERSION_CODE);
+        setValueAndSave(VERSION_CODE, BuildConfig.VERSION_CODE);
+        setValueAndSave(PREV_VERSION_CODE, prevVersion);
+    }
+    public static int getPrevVersionCode() {
+        int prevVersion = BuildConfig.VERSION_CODE;
+        if (hasValue(PREV_VERSION_CODE))
+            prevVersion = (int)getValue(PREV_VERSION_CODE);
+        return prevVersion;
     }
 
     public static Typeface getFont() {

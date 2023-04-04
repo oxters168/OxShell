@@ -41,9 +41,9 @@ public class OxShellApp extends Application {
         super.onCreate();
 
         SettingsKeeper.loadOrCreateSettings();
-        // in the future we would use this value to upgrade the serialization
-        SettingsKeeper.setValueAndSave(SettingsKeeper.VERSION_CODE, BuildConfig.VERSION_CODE);
-        Log.i("PagedActivity", "Time(s) loaded: " + SettingsKeeper.getTimesLoaded());
+        // this value is important since it helps us shape how certain changes need to be made
+        SettingsKeeper.updateVersion();
+        Log.i("PagedActivity", "Time(s) loaded: " + SettingsKeeper.getTimesLoaded() + "\nVersion: " + SettingsKeeper.getPrevVersionCode() + " => " + BuildConfig.VERSION_CODE);
         if (SettingsKeeper.getTimesLoaded() < 1) {
             ShortcutsCache.createAndStoreDefaults();
             SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, FontRef.from("Fonts/exo.regular.otf", DataLocation.asset));
