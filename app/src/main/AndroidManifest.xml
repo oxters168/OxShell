@@ -43,11 +43,11 @@
     <application
         android:allowBackup="true"
         android:name="com.OxGames.OxShell.OxShellApp"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
         android:resizeableActivity="false"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.OxShell" >
         <provider
