@@ -175,11 +175,12 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             if (onShownListener != null)
                 onShownListener.accept(onOff);
 
-        isShown = onOff;
         setVisibility(onOff ? VISIBLE : GONE);
         PagedActivity current = OxShellApp.getCurrentActivity();
         if (onOff) {
-            prevUIState = current.getSystemUIState();
+            if (!isShown)
+                prevUIState = current.getSystemUIState();
+            isShown = true;
             current.setNavBarHidden(true);
             current.setStatusBarHidden(true);
 
@@ -203,6 +204,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             }
             OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
         } else {
+            isShown = false;
             current.setSystemUIState(prevUIState);
             if (mainList != null) {
                 RecyclerView.Adapter adapter = mainList.getAdapter();
