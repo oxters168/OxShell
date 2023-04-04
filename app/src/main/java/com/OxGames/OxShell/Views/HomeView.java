@@ -856,11 +856,13 @@ public class HomeView extends XMBView implements Refreshable {
             ResolveInfo currentPkg = apps.get(i);
             if (currentPkg.activityInfo.packageName.equals(OxShellApp.getContext().getPackageName()))
                 continue;
-            int category = -1;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
-                category = currentPkg.activityInfo.applicationInfo.category;
-            if (category < 0)
-                category = otherIndex;
+            int category = currentPkg.activityInfo.applicationInfo.category;
+            if (category < 0) {
+                if ((currentPkg.activityInfo.applicationInfo.flags & ApplicationInfo.FLAG_IS_GAME) != 0)
+                    category = 0;
+                else
+                    category = otherIndex;
+            }
             if (!sortedApps.containsKey(category))
                 sortedApps.put(category, new ArrayList<>());
             ArrayList<XMBItem> currentList = sortedApps.get(category);
