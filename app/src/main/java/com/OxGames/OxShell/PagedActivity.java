@@ -511,6 +511,7 @@ public class PagedActivity extends AppCompatActivity {
             tvShaderBg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             tvShaderBg.setZ(-1000);
             parentView.addView(tvShaderBg);
+            startTimeSet = false;
         }
     }
     private void destroyShaderBg() {
