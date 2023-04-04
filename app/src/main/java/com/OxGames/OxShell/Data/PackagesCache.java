@@ -424,7 +424,7 @@ public class PackagesCache {
                         //if (!iconRequests.contains(packageName))
                         //    getPackageIcon(packageName);
                         while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName)) {
-                            Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
+                            //Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
                             try {
                                 Thread.sleep(millis);
                             } catch (InterruptedException e) {
