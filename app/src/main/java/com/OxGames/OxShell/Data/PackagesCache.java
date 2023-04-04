@@ -417,24 +417,21 @@ public class PackagesCache {
         //Log.d("PackagesCache", "Requesting icon for " + packageName);
         if (!packageIcons.containsKey(packageName)) {
             int millis = MathHelpers.calculateMillisForFps(120);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (pkgIconListener != null) {
-                        //if (!iconRequests.contains(packageName))
-                        //    getPackageIcon(packageName);
-                        while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName)) {
-                            //Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
-                            try {
-                                Thread.sleep(millis);
-                            } catch (InterruptedException e) {
-                                Log.e("PackagesCache", "Waiting for icon interrupted: " + e);
-                            }
+            new Thread(() -> {
+                if (pkgIconListener != null) {
+                    //if (!iconRequests.contains(packageName))
+                    //    getPackageIcon(packageName);
+                    while (!packageIcons.containsKey(packageName) && iconRequests.contains(packageName)) {
+                        //Log.d("PackagesCache", "Icon for " + packageName + " not cached, waiting...");
+                        try {
+                            Thread.sleep(millis);
+                        } catch (InterruptedException e) {
+                            Log.e("PackagesCache", "Waiting for icon interrupted: " + e);
                         }
-                        Log.d("PackagesCache", "Icon for " + packageName + " cached or not being requested, sending back");
-                        Drawable icon = getPackageIcon(packageName);
-                        OxShellApp.getCurrentActivity().runOnUiThread(() -> pkgIconListener.accept(icon));
                     }
+                    //Log.d("PackagesCache", "Icon for " + packageName + " cached or not being requested, sending back");
+                    Drawable icon = getPackageIcon(packageName);
+                    OxShellApp.getCurrentActivity().runOnUiThread(() -> pkgIconListener.accept(icon));
                 }
             }).start();
 //            Handler waitForIconHandler = new Handler();
