@@ -63,33 +63,33 @@ import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
     public final static ResImage[] resourceImages = {
-        new ResImage(R.drawable.ic_baseline_accessibility_24, "Accessibility"),
-        new ResImage(R.drawable.ic_baseline_add_circle_outline_24, "Plus Circle"),
-        new ResImage(R.drawable.ic_baseline_cancel_24, "Cross Circle"),
-        new ResImage(R.drawable.ic_baseline_auto_awesome_24, "Stars"),
-        new ResImage(R.drawable.ic_baseline_block_24, "Block"),
-        new ResImage(R.drawable.ic_baseline_check_24, "Checkmark"),
-        new ResImage(R.drawable.ic_baseline_construction_24, "Construction"),
-        new ResImage(R.drawable.ic_baseline_folder_24, "Folder"),
-        new ResImage(R.drawable.ic_baseline_forum_24, "Message Bubbles"),
-        new ResImage(R.drawable.ic_baseline_games_24, "Directional Pad"),
-        new ResImage(R.drawable.ic_baseline_headphones_24, "Headphones"),
-        new ResImage(R.drawable.ic_baseline_hide_image_24, "Crossed Image"),
-        new ResImage(R.drawable.ic_baseline_home_24, "Home"),
-        new ResImage(R.drawable.ic_baseline_image_24, "Image"),
-        new ResImage(R.drawable.ic_baseline_map_24, "Map"),
-        new ResImage(R.drawable.ic_baseline_movie_24, "Film"),
-        new ResImage(R.drawable.ic_baseline_newspaper_24, "Newspaper"),
-        new ResImage(R.drawable.ic_baseline_photo_camera_24, "Camera"),
-        new ResImage(R.drawable.ic_baseline_question_mark_24, "Question Mark"),
-        new ResImage(R.drawable.ic_baseline_send_time_extension_24, "Send Puzzle Piece"),
-        new ResImage(R.drawable.ic_baseline_settings_24, "Cog"),
-        new ResImage(R.drawable.ic_baseline_source_24, "Source Folder"),
-        new ResImage(R.drawable.ic_baseline_audio_file_24, "Audio File"),
-        new ResImage(R.drawable.ic_baseline_video_file_24, "Video File"),
-        new ResImage(R.drawable.ic_baseline_view_list_24, "List"),
-        new ResImage(R.drawable.ic_baseline_work_24, "Suitcase"),
-        new ResImage(R.drawable.baseline_info_24, "Info")
+        new ResImage("ic_baseline_accessibility_24", "Accessibility"),
+        new ResImage("ic_baseline_add_circle_outline_24", "Plus Circle"),
+        new ResImage("ic_baseline_cancel_24", "Cross Circle"),
+        new ResImage("ic_baseline_auto_awesome_24", "Stars"),
+        new ResImage("ic_baseline_block_24", "Block"),
+        new ResImage("ic_baseline_check_24", "Checkmark"),
+        new ResImage("ic_baseline_construction_24", "Construction"),
+        new ResImage("ic_baseline_folder_24", "Folder"),
+        new ResImage("ic_baseline_forum_24", "Message Bubbles"),
+        new ResImage("ic_baseline_games_24", "Directional Pad"),
+        new ResImage("ic_baseline_headphones_24", "Headphones"),
+        new ResImage("ic_baseline_hide_image_24", "Crossed Image"),
+        new ResImage("ic_baseline_home_24", "Home"),
+        new ResImage("ic_baseline_image_24", "Image"),
+        new ResImage("ic_baseline_map_24", "Map"),
+        new ResImage("ic_baseline_movie_24", "Film"),
+        new ResImage("ic_baseline_newspaper_24", "Newspaper"),
+        new ResImage("ic_baseline_photo_camera_24", "Camera"),
+        new ResImage("ic_baseline_question_mark_24", "Question Mark"),
+        new ResImage("ic_baseline_send_time_extension_24", "Send Puzzle Piece"),
+        new ResImage("ic_baseline_settings_24", "Cog"),
+        new ResImage("ic_baseline_source_24", "Source Folder"),
+        new ResImage("ic_baseline_audio_file_24", "Audio File"),
+        new ResImage("ic_baseline_video_file_24", "Video File"),
+        new ResImage("ic_baseline_view_list_24", "List"),
+        new ResImage("ic_baseline_work_24", "Suitcase"),
+        new ResImage("baseline_info_24", "Info")
     };
 
     public HomeView(Context context) {
@@ -172,7 +172,7 @@ public class HomeView extends XMBView implements Refreshable {
                             intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
                     } else {
                         intentItems = new XMBItem[1];
-                        intentItems[0] = new XMBItem(null, "None created", ImageRef.from(R.drawable.ic_baseline_block_24, DataLocation.resource));
+                        intentItems[0] = new XMBItem(null, "None created", ImageRef.from("ic_baseline_block_24", DataLocation.resource));
                     }
                     selectedItem.setInnerItems(intentItems);
                 } else if (selectedItem.type == HomeItem.Type.appInfo) {
@@ -706,7 +706,7 @@ public class HomeView extends XMBView implements Refreshable {
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();
         XMBItem[] innerSettings;
 
-        XMBItem settingsItem = new XMBItem(null, "Settings", ImageRef.from(R.drawable.ic_baseline_settings_24, DataLocation.resource));//, colIndex, localIndex++);
+        XMBItem settingsItem = new XMBItem(null, "Settings", ImageRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
 
         // TODO: add option to change icon alpha
@@ -727,13 +727,13 @@ public class HomeView extends XMBView implements Refreshable {
 //        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
         innerSettings[1] = new HomeItem(HomeItem.Type.addAppOuter, "Add application to home");
         //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
-        settingsItem = new XMBItem(null, "Home", ImageRef.from(R.drawable.ic_baseline_home_24, DataLocation.resource), innerSettings);
+        settingsItem = new XMBItem(null, "Home", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.setImageBg, "Set picture as background");
         innerSettings[1] = new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background");
-        settingsItem = new XMBItem(null, "Background", ImageRef.from(R.drawable.ic_baseline_image_24, DataLocation.resource), innerSettings);
+        settingsItem = new XMBItem(null, "Background", ImageRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[3];
@@ -747,18 +747,18 @@ public class HomeView extends XMBView implements Refreshable {
         innerInnerSettings[6] = new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input");
         innerInnerSettings[7] = new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input");
         innerInnerSettings[8] = new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input");
-        innerSettings[0] = new XMBItem(null, "General", ImageRef.from(R.drawable.ic_baseline_home_24, DataLocation.resource), innerInnerSettings);
+        innerSettings[0] = new XMBItem(null, "General", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings);
         innerInnerSettings = new XMBItem[4];
         innerInnerSettings[0] = new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input");
         innerInnerSettings[1] = new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input");
         innerInnerSettings[2] = new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input");
         innerInnerSettings[3] = new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input");
-        innerSettings[1] = new XMBItem(null, "File Explorer", ImageRef.from(R.drawable.ic_baseline_source_24, DataLocation.resource), innerInnerSettings);
+        innerSettings[1] = new XMBItem(null, "File Explorer", ImageRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings);
         innerInnerSettings = new XMBItem[2];
         innerInnerSettings[0] = new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input");
         innerInnerSettings[1] = new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input");
-        innerSettings[2] = new XMBItem(null, "Android System", ImageRef.from(R.drawable.baseline_adb_24, DataLocation.resource), innerInnerSettings);
-        settingsItem = new XMBItem(null, "Controls", ImageRef.from(R.drawable.ic_baseline_games_24, DataLocation.resource), innerSettings);
+        innerSettings[2] = new XMBItem(null, "Android System", ImageRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings);
+        settingsItem = new XMBItem(null, "Controls", ImageRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         //innerSettings = new XMBItem[0];
@@ -772,13 +772,13 @@ public class HomeView extends XMBView implements Refreshable {
 //            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
         innerSettings[0] = new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home");
         innerSettings[1] = new HomeItem(HomeItem.Type.createAssoc, "Create new association");
-        settingsItem = new XMBItem(null, "Associations", ImageRef.from(R.drawable.ic_baseline_send_time_extension_24, DataLocation.resource), innerSettings);
+        settingsItem = new XMBItem(null, "Associations", ImageRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[2];
         innerSettings[0] = new HomeItem(HomeItem.Type.appInfo, "App info");
         innerSettings[1] = new HomeItem(HomeItem.Type.saveLogs, "Save logs to file");
-        settingsItem = new XMBItem(null, "About", ImageRef.from(R.drawable.baseline_info_24, DataLocation.resource), innerSettings);
+        settingsItem = new XMBItem(null, "About", ImageRef.from("baseline_info_24", DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         return settingsColumn;
@@ -912,29 +912,29 @@ public class HomeView extends XMBView implements Refreshable {
         Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         return defaultItems;
     }
-    public static int getDefaultIconForCategory(int category) {
+    public static String getDefaultIconForCategory(int category) {
         if (category == ApplicationInfo.CATEGORY_GAME)
-            return R.drawable.ic_baseline_games_24;
+            return "ic_baseline_games_24";
         else if (category == ApplicationInfo.CATEGORY_AUDIO)
-            return R.drawable.ic_baseline_headphones_24;
+            return "ic_baseline_headphones_24";
         else if (category == ApplicationInfo.CATEGORY_VIDEO)
-            return R.drawable.ic_baseline_movie_24;
+            return "ic_baseline_movie_24";
         else if (category == ApplicationInfo.CATEGORY_IMAGE)
-            return R.drawable.ic_baseline_photo_camera_24;
+            return "ic_baseline_photo_camera_24";
         else if (category == ApplicationInfo.CATEGORY_SOCIAL)
-            return R.drawable.ic_baseline_forum_24;
+            return "ic_baseline_forum_24";
         else if (category == ApplicationInfo.CATEGORY_NEWS)
-            return R.drawable.ic_baseline_newspaper_24;
+            return "ic_baseline_newspaper_24";
         else if (category == ApplicationInfo.CATEGORY_MAPS)
-            return R.drawable.ic_baseline_map_24;
+            return "ic_baseline_map_24";
         else if (category == ApplicationInfo.CATEGORY_PRODUCTIVITY)
-            return R.drawable.ic_baseline_work_24;
+            return "ic_baseline_work_24";
         else if (category == ApplicationInfo.CATEGORY_ACCESSIBILITY)
-            return R.drawable.ic_baseline_accessibility_24;
+            return "ic_baseline_accessibility_24";
         else if (category == getOtherCategoryIndex())
-            return R.drawable.ic_baseline_auto_awesome_24;
+            return "ic_baseline_auto_awesome_24";
         else
-            return R.drawable.ic_baseline_view_list_24;
+            return "ic_baseline_view_list_24";
     }
     private static int getOtherCategoryIndex() {
         return MathHelpers.max(ApplicationInfo.CATEGORY_GAME, ApplicationInfo.CATEGORY_AUDIO, ApplicationInfo.CATEGORY_IMAGE, ApplicationInfo.CATEGORY_SOCIAL, ApplicationInfo.CATEGORY_NEWS, ApplicationInfo.CATEGORY_MAPS, ApplicationInfo.CATEGORY_PRODUCTIVITY, ApplicationInfo.CATEGORY_ACCESSIBILITY) + 1;
@@ -1162,7 +1162,7 @@ public class HomeView extends XMBView implements Refreshable {
         int origDropdownIndex = resourceImages.length;
         if (origColIcon.getRefType() == DataLocation.resource)
             for (int i = 0; i < resourceImages.length; i++) {
-                if (resourceImages[i].getId() == (int)origColIcon.getImageObj()) {
+                if (resourceImages[i].getId().equals(origColIcon.getImageObj())) {
                     origDropdownIndex = i;
                     break;
                 }
@@ -1174,7 +1174,7 @@ public class HomeView extends XMBView implements Refreshable {
             if (permittedUri.get() != null)
                 imageDisplay.setImage(ImageRef.from(permittedUri.get(), DataLocation.resolverUri));
             else
-                imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
+                imageDisplay.setImage(ImageRef.from("ic_baseline_question_mark_24", DataLocation.resource));
         };
 //        filePathInput.addListener(new DynamicInputListener() {
 //            @Override
@@ -1250,7 +1250,7 @@ public class HomeView extends XMBView implements Refreshable {
             if (permittedUri.get() != null)
                 imageDisplay.setImage(ImageRef.from(permittedUri.get(), DataLocation.resolverUri));
             else
-                imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
+                imageDisplay.setImage(ImageRef.from("ic_baseline_question_mark_24", DataLocation.resource));
         };
 //        filePathInput.addListener(new DynamicInputListener() {
 //            @Override
