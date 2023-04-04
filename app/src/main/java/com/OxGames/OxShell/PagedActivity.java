@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.opengl.GLES32;
 import android.os.Bundle;
@@ -238,6 +237,12 @@ public class PagedActivity extends AppCompatActivity {
         applyTvBg();
         resumeBackground();
 
+        // TODO: find less hacky solution to active tag sometimes being null when coming back to Ox Shell
+        if (tagFromPause != null) {
+            if (OxShellApp.getInputHandler().getActiveTag() == null)
+                OxShellApp.getInputHandler().setActiveTag(tagFromPause);
+            tagFromPause = null;
+        }
         Log.i("PagedActivity", "OnResume " + this);
     }
 
@@ -279,11 +284,13 @@ public class PagedActivity extends AppCompatActivity {
         //return isKeyboardShown;
     }
 
+    private String tagFromPause = null;
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
         //OxShellApp.setCurrentActivity(null);
         pauseBackground();
+        tagFromPause = OxShellApp.getInputHandler().getActiveTag();
         super.onPause();
     }
     @Override
@@ -343,6 +350,8 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
+        String activeTag = OxShellApp.getInputHandler().getActiveTag();
+        DebugView.print("INPUT_DEBUG", "InputTag: " + (activeTag != null ? activeTag : "null"));
         boolean isDpadInput = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
         if (isKeyboardShown()) {// && (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B))
             if (!isDpadInput) {
