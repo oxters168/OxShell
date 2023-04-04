@@ -35,6 +35,9 @@ android {
         //def documentsAuthorityValue = applicationId + ".Explorer"
         //manifestPlaceholders = [documentsAuthority: documentsAuthorityValue]
         //buildConfigField "String", "DOCUMENTS_AUTHORITY", "\"${documentsAuthorityValue}\""
+        def appLabelValue = "Ox Shell"
+        manifestPlaceholders = [appLabel: appLabelValue]
+        //buildConfigField "String", "APP_LABEL", "\"${appLabelValue}\""
 
         buildConfigField "boolean", "GOLD", "false"
 
@@ -46,15 +49,21 @@ android {
 
     buildTypes {
         gold {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true
             buildConfigField "boolean", "GOLD", "true"
-            //debuggable true //TODO: Remove when publishing
         }
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            //debuggable true //TODO: Remove when publishing
+            minifyEnabled true
+        }
+        release_free {
+            minifyEnabled true
+            applicationIdSuffix ".free"
+            def appLabelValue = "Ox Shell Free"
+            manifestPlaceholders = [appLabel: appLabelValue]
+        }
+        debug {
+            minifyEnabled true
+            debuggable true
         }
     }
     compileOptions {
