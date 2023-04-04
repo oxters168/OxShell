@@ -832,8 +832,9 @@ public class HomeView extends XMBView implements Refreshable {
                     if (imgRef != null && imgRef.getRefType() == DataLocation.resource) {
                         int oldIndex = (int)imgRef.getImageObj();
                         int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
-                        Log.d("HomeView", "Switching out " + oldIndex + " => " + newIndex);
-                        item.setImgRef(ImageRef.from(newIndex, imgRef.getRefType()));
+                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                        item.setImgRef(ImageRef.from(resName, imgRef.getRefType()));
                     }
                 }
             }
