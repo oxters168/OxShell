@@ -10,6 +10,10 @@ import com.OxGames.OxShell.Helpers.Serialaver;
 import java.util.HashMap;
 
 public class SettingsKeeper {
+    public static final int BG_TYPE_SHADER = 0;
+    public static final int BG_TYPE_IMAGE = 1;
+    public static final int BG_TYPE_VIDEO = 2;
+
     public static final String TIMES_LOADED = "times_loaded";
 
     public static final String SUPER_PRIMARY_INPUT = "super_primary_input";
@@ -27,6 +31,8 @@ public class SettingsKeeper {
     public static final String NAVIGATE_LEFT = "navigate_left";
     public static final String NAVIGATE_RIGHT = "navigate_right";
     public static final String SHOW_DEBUG_INPUT = "show_debug_input";
+
+    public static final String TV_BG_TYPE = "tv_bg_type";
 
     public static final String HOME_ITEM_SCALE = "home_item_scale";
     public static final String HOME_SELECTION_ALPHA = "home_selection_alpha";
@@ -102,6 +108,12 @@ public class SettingsKeeper {
         if (hasValue(FONT_REF))
             return ((FontRef)getValue(FONT_REF)).getFont();
         return null;
+    }
+
+    public static int getTvBgType() {
+        if (hasValue(TV_BG_TYPE))
+            return (int)getValue(TV_BG_TYPE);
+        return BG_TYPE_SHADER;
     }
 
     public static KeyCombo[] getDefaultInputValueFor(String key) {

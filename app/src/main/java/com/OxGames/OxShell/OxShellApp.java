@@ -14,6 +14,7 @@ import com.OxGames.OxShell.Data.FontRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.InputHandler;
+import com.appspell.shaderview.log.LibLog;
 
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
 public class OxShellApp extends Application {
@@ -32,6 +33,8 @@ public class OxShellApp extends Application {
 
     @Override
     public void onCreate() {
+        LibLog.INSTANCE.setEnabled(true);
+
         Log.i("OxShellApp", "onCreate");
         instance = this;
         inputHandler = new InputHandler();

@@ -262,14 +262,17 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
                         if (permittedUri.get() != null) {
-                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()));
+                            if (AndroidHelpers.isRunningOnTV()) {
+                                String bgDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "bg.png");
+                                if (AndroidHelpers.fileExists(bgDest))
+                                    ExplorerBehaviour.delete(bgDest);
+                                AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), bgDest);
+                                SettingsKeeper.setValueAndSave(SettingsKeeper.TV_BG_TYPE, SettingsKeeper.BG_TYPE_IMAGE);
+                                currentActivity.applyTvBg();
+                            } else
+                                AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()));
                             dynamicInput.setShown(false);
                         }
-//                        String path = titleInput.getText();
-//                        if (path != null && AndroidHelpers.uriExists(Uri.parse(path))) {
-//                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
-//                            dynamicInput.setShown(false);
-//                        }
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
@@ -282,7 +285,13 @@ public class HomeView extends XMBView implements Refreshable {
                     PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Set Shader as Background");
-                    String[] options = { "Blue Dune", "The Other Dune", "Planet", "Custom" };
+                    //String[] options = { "Blue Dune", "The Other Dune", "Planet", "Custom" };
+                    List<String> options = new ArrayList<>();
+                    options.add("Blue Dune");
+                    options.add("The Other Dune");
+                    //if (!AndroidHelpers.isRunningOnTV())
+                        options.add("Planet");
+                    options.add("Custom");
                     //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     AtomicReference<Uri> permittedUri = new AtomicReference<>();
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
@@ -319,34 +328,14 @@ public class HomeView extends XMBView implements Refreshable {
                     });
                     DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
                         //titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
-                        selectFileBtn.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
-                    }, options);
-                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Preview", v -> {
+                        selectFileBtn.setVisibility(index == options.size() - 1 ? View.VISIBLE : View.GONE);
+                    }, options.toArray(new String[0]));
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput(AndroidHelpers.isRunningOnTV() ? "Apply" : "Preview", v -> {
                         // TODO: show some kind of error when input is invalid
                         // TODO: add scoped storage alternative for when no storage access is granted
                         AndroidHelpers.writeToFile(vertDest, AndroidHelpers.readAssetAsString(context, "Shaders/vert.vsh"));
                         boolean readyForPreview = false;
-                        if (dropdown.getIndex() == 0) {
-                            backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/blue_dune.fsh"));
-                            readyForPreview = true;
-                        }
-                        if (dropdown.getIndex() == 1) {
-                            backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/other_dune.fsh"));
-                            readyForPreview = true;
-                        }
-                        if (dropdown.getIndex() == 2) {
-                            backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
-                            //Log.d("HomeView", "Saving channel0 to " + channel0Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel0.png"), channel0Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel1.png"), channel1Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel2.png"), channel2Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel3.png"), channel3Dest);
-                            readyForPreview = true;
-                        }
-                        if (dropdown.getIndex() == options.length - 1) {
+                        if (dropdown.getIndex() == options.size() - 1) {
                             //dropdown.getIndex();
                             if (permittedUri.get() != null) {
                                 backupExistingShader.run();
@@ -367,16 +356,46 @@ public class HomeView extends XMBView implements Refreshable {
 //                                //}
 //                            }
                         }
-                        if (readyForPreview)
-                            AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
-                                if (result.getResultCode() == Activity.RESULT_OK) {
-                                    // delete the old background shader
-                                    if (AndroidHelpers.fileExists(fragTemp))
-                                        ExplorerBehaviour.delete(fragTemp);
-                                    GLWallpaperService.requestReload();
-                                    dynamicInput.setShown(false);
-                                }
-                            });
+                        else if (dropdown.getIndex() == 0) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/blue_dune.fsh"));
+                            readyForPreview = true;
+                        }
+                        else if (dropdown.getIndex() == 1) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/other_dune.fsh"));
+                            readyForPreview = true;
+                        }
+                        else if (dropdown.getIndex() == 2) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
+                            //Log.d("HomeView", "Saving channel0 to " + channel0Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel0.png"), channel0Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel1.png"), channel1Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel2.png"), channel2Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel3.png"), channel3Dest);
+                            readyForPreview = true;
+                        }
+                        if (readyForPreview) {
+                            if (AndroidHelpers.isRunningOnTV()) {
+                                if (AndroidHelpers.fileExists(fragTemp))
+                                    ExplorerBehaviour.delete(fragTemp);
+                                dynamicInput.setShown(false);
+                                //currentActivity.resetShaderViewBg();
+                                SettingsKeeper.setValueAndSave(SettingsKeeper.TV_BG_TYPE, SettingsKeeper.BG_TYPE_SHADER);
+                                currentActivity.applyTvBg();
+                            } else {
+                                AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
+                                    if (result.getResultCode() == Activity.RESULT_OK) {
+                                        // delete the old background shader
+                                        if (AndroidHelpers.fileExists(fragTemp))
+                                            ExplorerBehaviour.delete(fragTemp);
+                                        GLWallpaperService.requestReload();
+                                        dynamicInput.setShown(false);
+                                    }
+                                });
+                            }
+                        }
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         if (AndroidHelpers.fileExists(fragTemp)) {

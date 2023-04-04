@@ -1,2 +1,6 @@
 rootProject.name = "OxShell"
 include ':app'
+
+// for when modifying ShaderView
+//include ':shader_view'
+//project(':shader_view').projectDir = new File('../Libraries/ShaderView/lib')
