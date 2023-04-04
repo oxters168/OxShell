@@ -820,6 +820,26 @@ public class HomeView extends XMBView implements Refreshable {
     private static void save(ArrayList<ArrayList<XMBItem>> items) {
         saveHomeItemsToFile(items, Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
+    private static boolean updatedItems = false;
+    private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
+        int currentVersion = SettingsKeeper.getVersionCode();
+        int prevVersion = SettingsKeeper.getPrevVersionCode();
+        if (currentVersion != prevVersion && prevVersion < 5 && !updatedItems) {
+            updatedItems = true;
+            for (ArrayList<XMBItem> column : items) {
+                for (XMBItem item : column) {
+                    ImageRef imgRef = item.getImgRef();
+                    if (imgRef != null && imgRef.getRefType() == DataLocation.resource) {
+                        int oldIndex = (int)imgRef.getImageObj();
+                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
+                        Log.d("HomeView", "Switching out " + oldIndex + " => " + newIndex);
+                        item.setImgRef(ImageRef.from(newIndex, imgRef.getRefType()));
+                    }
+                }
+            }
+            save(items);
+        }
+    }
     private static ArrayList<ArrayList<XMBItem>> load() {
         return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
@@ -838,6 +858,9 @@ public class HomeView extends XMBView implements Refreshable {
             } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
         } else
             Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
+
+        if (items != null)
+            upgradeItemsIfNecessary(items);
         return items;
     }
     private static ArrayList<ArrayList<XMBItem>> createDefaultItems() {

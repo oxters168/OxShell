@@ -107,11 +107,15 @@ public class SettingsKeeper {
     }
 
     public static void updateVersion() {
-        int prevVersion = BuildConfig.VERSION_CODE;
-        if (hasValue(VERSION_CODE))
-            prevVersion = (int)getValue(VERSION_CODE);
+        int prevVersion = getVersionCode();
         setValueAndSave(VERSION_CODE, BuildConfig.VERSION_CODE);
         setValueAndSave(PREV_VERSION_CODE, prevVersion);
+    }
+    public static int getVersionCode() {
+        int versionCode = BuildConfig.VERSION_CODE;
+        if (hasValue(VERSION_CODE))
+            versionCode = (int)getValue(VERSION_CODE);
+        return versionCode;
     }
     public static int getPrevVersionCode() {
         int prevVersion = BuildConfig.VERSION_CODE;
