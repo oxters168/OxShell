@@ -13,7 +13,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
+import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.KeyComboAction;
@@ -166,9 +168,9 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     }
     public void sendResult(String path) {
         //final Uri uri = AndroidHelpers.uriFromPath(path);
-        //Uri uri = FileProvider.getUriForFile(this, BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
-        Uri uri = Uri.parse(path);
-        //getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        Uri uri = FileProvider.getUriForFile(getContext(), BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
+        //Uri uri = Uri.parse(path);
+        OxShellApp.getCurrentActivity().grantUriPermission(OxShellApp.getCurrentActivity().getCallingPackage(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         Intent returnIntent = new Intent();
         returnIntent.setData(uri);
         returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
