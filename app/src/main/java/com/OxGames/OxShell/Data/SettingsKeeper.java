@@ -52,45 +52,68 @@ public class SettingsKeeper {
     private static HashMap<String, Object> settingsCache;
 
     private static int currentSysUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
-    public static void setFullscreen(boolean onOff, boolean save) {
+    public static final int FULLSCREEN_FLAGS = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+    public static final int STATUS_BAR_FLAGS = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+    public static final int NAV_BAR_FLAGS = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+    private static int toggleFullscreen(boolean onOff, int sysUiVisibility) {
         if (onOff)
-            currentSysUIVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+            sysUiVisibility |= FULLSCREEN_FLAGS;
         else
-            currentSysUIVisibility &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        setSystemUIState(currentSysUIVisibility, save);
+            sysUiVisibility &= ~FULLSCREEN_FLAGS;
+        return sysUiVisibility;
+    }
+    private static int toggleStatusBarHidden(boolean onOff, int sysUiVisibility) {
+        if (onOff)
+            sysUiVisibility |= STATUS_BAR_FLAGS;
+        else if ((sysUiVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0) // since nav bar also uses sticky
+            sysUiVisibility &= ~STATUS_BAR_FLAGS;
+        else
+            sysUiVisibility &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
+        return sysUiVisibility;
+    }
+    private static int toggleNavBarHidden(boolean onOff, int sysUiVisibility) {
+        if (onOff)
+            sysUiVisibility |= NAV_BAR_FLAGS;
+        else if ((sysUiVisibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) // since status bar also uses sticky
+            sysUiVisibility &= ~NAV_BAR_FLAGS;
+        else
+            sysUiVisibility &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        return sysUiVisibility;
+    }
+    public static void setFullscreen(boolean onOff, boolean save) {
+        setSystemUIState(toggleFullscreen(onOff, currentSysUIVisibility), true, save);
     }
     public static void setStatusBarHidden(boolean onOff, boolean save) {
-        if (onOff)
-            currentSysUIVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        else if ((currentSysUIVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
-            currentSysUIVisibility &= ~(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        else
-            currentSysUIVisibility &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
-        setSystemUIState(currentSysUIVisibility, save);
+        setSystemUIState(toggleStatusBarHidden(onOff, currentSysUIVisibility), true, save);
     }
     public static void setNavBarHidden(boolean onOff, boolean save) {
-        if (onOff)
-            currentSysUIVisibility |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        else if ((currentSysUIVisibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-            currentSysUIVisibility &= ~(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        else
-            currentSysUIVisibility &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        setSystemUIState(currentSysUIVisibility, save);
+        setSystemUIState(toggleNavBarHidden(onOff, currentSysUIVisibility), true, save);
+    }
+    public static void setStoredFullscreen(boolean onOff) {
+        setSystemUIState(toggleFullscreen(onOff, getSystemUiVisibility()), false, true);
+    }
+    public static void setStoredStatusBarHidden(boolean onOff) {
+        setSystemUIState(toggleStatusBarHidden(onOff, getSystemUiVisibility()), false, true);
+    }
+    public static void setStoredNavBarHidden(boolean onOff) {
+        setSystemUIState(toggleNavBarHidden(onOff, getSystemUiVisibility()), false, true);
     }
     public static int getCurrentSysUIState() {
         return currentSysUIVisibility;
     }
-    public static void setSystemUIState(int uiState, boolean save) {
-        currentSysUIVisibility = uiState;
-        OxShellApp.getCurrentActivity().getWindow().getDecorView().setSystemUiVisibility(uiState);
+    public static void setSystemUIState(int uiState, boolean applyNow, boolean save) {
+        if (applyNow) {
+            currentSysUIVisibility = uiState;
+            OxShellApp.getCurrentActivity().getWindow().getDecorView().setSystemUiVisibility(uiState);
+        }
         if (save)
-            setValueAndSave(SYSTEM_UI_VISIBILITY, currentSysUIVisibility);
+            setValueAndSave(SYSTEM_UI_VISIBILITY, uiState);
     }
     public static void reloadCurrentSystemUiState() {
-        setSystemUIState(currentSysUIVisibility, false);
+        setSystemUIState(currentSysUIVisibility, true, false);
     }
     public static void reloadSystemUiState() {
-        setSystemUIState(getSystemUiVisibility(), false);
+        setSystemUIState(getSystemUiVisibility(), true, false);
     }
     public static int getSystemUiVisibility() {
         // create default if not existing

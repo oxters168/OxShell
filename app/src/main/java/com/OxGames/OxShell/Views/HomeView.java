@@ -415,6 +415,31 @@ public class HomeView extends XMBView implements Refreshable {
 
                     dynamicInput.setShown(true);
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.setSystemUi) {
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Set System UI Visibility");
+
+                    int systemUi = SettingsKeeper.getSystemUiVisibility();
+                    //DynamicInputRow.ToggleInput fullscreenToggle = new DynamicInputRow.ToggleInput("Fill screen", "Do not fill screen");
+                    //fullscreenToggle.setOnOff((systemUi & SettingsKeeper.FULLSCREEN_FLAGS) != 0, true);
+                    DynamicInputRow.ToggleInput statusBarToggle = new DynamicInputRow.ToggleInput("Status bar visible", "Status bar hidden");
+                    statusBarToggle.setOnOff(!((systemUi & SettingsKeeper.STATUS_BAR_FLAGS) == SettingsKeeper.STATUS_BAR_FLAGS), true);
+                    DynamicInputRow.ToggleInput navBarToggle = new DynamicInputRow.ToggleInput("Navigation bar visible", "Navigation bar hidden");
+                    navBarToggle.setOnOff(!((systemUi & SettingsKeeper.NAV_BAR_FLAGS) == SettingsKeeper.NAV_BAR_FLAGS), true);
+
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", self -> {
+                        //Log.d("HomeView", "fullscreen: " + fullscreenToggle.getOnOff() + " status: " + statusBarToggle.getOnOff() + " nav: " + navBarToggle.getOnOff());
+                        //SettingsKeeper.setStoredFullscreen(fullscreenToggle.getOnOff());
+                        SettingsKeeper.setStoredStatusBarHidden(!statusBarToggle.getOnOff());
+                        SettingsKeeper.setStoredNavBarHidden(!navBarToggle.getOnOff());
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> {
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getCancelInput());
+
+                    dynamicInput.setItems(new DynamicInputRow(statusBarToggle), new DynamicInputRow(navBarToggle), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.setControls) {
                     //Log.d("HomeView", "Modifying " + selectedItem.obj);
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
@@ -730,10 +755,11 @@ public class HomeView extends XMBView implements Refreshable {
         settingsItem = new XMBItem(null, "Home", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
+        innerSettings = new XMBItem[3];
         innerSettings[0] = new HomeItem(HomeItem.Type.setImageBg, "Set picture as background");
         innerSettings[1] = new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background");
-        settingsItem = new XMBItem(null, "Background", ImageRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings);
+        innerSettings[2] = new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility");
+        settingsItem = new XMBItem(null, "Display", ImageRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings);
         settingsColumn.add(settingsItem);
 
         innerSettings = new XMBItem[3];
