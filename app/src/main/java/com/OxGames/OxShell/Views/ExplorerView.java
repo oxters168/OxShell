@@ -572,13 +572,26 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         currentActivity.getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () -> {
-        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         List<DetailItem> selection = getSelectedItems();
-        String[] filePaths = new String[selection.size()];
-        for (int i = 0; i < selection.size(); i++)
-            filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
-        ExplorerBehaviour.delete(filePaths);
-        refresh();
+
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
+        PromptView prompt = currentActivity.getPrompt();
+        prompt.setCenterOfScreen();
+        prompt.setMessage("You are about to delete " + selection.size() + " item(s) for good. Are you sure?");
+        prompt.setStartBtn("Yes", () -> {
+            String[] filePaths = new String[selection.size()];
+            for (int i = 0; i < selection.size(); i++)
+                filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
+            ExplorerBehaviour.delete(filePaths);
+            refresh();
+
+            prompt.setShown(false);
+        }, SettingsKeeper.getSuperPrimaryInput());
+        prompt.setEndBtn("No", () -> {
+            prompt.setShown(false);
+        });
+
+        prompt.setShown(true);
         currentActivity.getSettingsDrawer().setShown(false);
     });
 }
