@@ -729,7 +729,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
     private static ArrayList<XMBItem> createSettingsColumn() {
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();
-        XMBItem[] innerSettings;
+        List<XMBItem> innerSettings = new ArrayList<>();
 
         XMBItem settingsItem = new XMBItem(null, "Settings", ImageRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
@@ -745,24 +745,25 @@ public class HomeView extends XMBView implements Refreshable {
 //        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
 //        settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home"));
 //        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
 //        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
 //        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
-        innerSettings[1] = new HomeItem(HomeItem.Type.addAppOuter, "Add application to home");
+        innerSettings.add(new HomeItem(HomeItem.Type.addAppOuter, "Add application to home"));
         //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
-        settingsItem = new XMBItem(null, "Home", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings);
+        settingsItem = new XMBItem(null, "Home", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[3];
-        innerSettings[0] = new HomeItem(HomeItem.Type.setImageBg, "Set picture as background");
-        innerSettings[1] = new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background");
-        innerSettings[2] = new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility");
-        settingsItem = new XMBItem(null, "Display", ImageRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings);
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.setImageBg, "Set picture as background"));
+        innerSettings.add(new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background"));
+        if (!AndroidHelpers.isRunningOnTV())
+            innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
+        settingsItem = new XMBItem(null, "Display", ImageRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[3];
+        innerSettings.clear();
         XMBItem[] innerInnerSettings = new XMBItem[9];
         innerInnerSettings[0] = new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input");
         innerInnerSettings[1] = new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input");
@@ -773,38 +774,38 @@ public class HomeView extends XMBView implements Refreshable {
         innerInnerSettings[6] = new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input");
         innerInnerSettings[7] = new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input");
         innerInnerSettings[8] = new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input");
-        innerSettings[0] = new XMBItem(null, "General", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings);
+        innerSettings.add(new XMBItem(null, "General", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings));
         innerInnerSettings = new XMBItem[4];
         innerInnerSettings[0] = new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input");
         innerInnerSettings[1] = new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input");
         innerInnerSettings[2] = new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input");
         innerInnerSettings[3] = new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input");
-        innerSettings[1] = new XMBItem(null, "File Explorer", ImageRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings);
+        innerSettings.add(new XMBItem(null, "File Explorer", ImageRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings));
         innerInnerSettings = new XMBItem[2];
         innerInnerSettings[0] = new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input");
         innerInnerSettings[1] = new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input");
-        innerSettings[2] = new XMBItem(null, "Android System", ImageRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings);
-        settingsItem = new XMBItem(null, "Controls", ImageRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings);
+        innerSettings.add(new XMBItem(null, "Android System", ImageRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings));
+        settingsItem = new XMBItem(null, "Controls", ImageRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         //innerSettings = new XMBItem[0];
         //settingsItem = new XMBItem(null, "Explorer", R.drawable.ic_baseline_source_24, colIndex, localIndex++, innerSettings);
         //settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
+        innerSettings.clear();
 //        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
 //        XMBItem[] intentItems = new XMBItem[intents.length];
 //        for (int i = 0; i < intents.length; i++)
 //            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
-        innerSettings[0] = new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home");
-        innerSettings[1] = new HomeItem(HomeItem.Type.createAssoc, "Create new association");
-        settingsItem = new XMBItem(null, "Associations", ImageRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings);
+        innerSettings.add(new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home"));
+        innerSettings.add(new HomeItem(HomeItem.Type.createAssoc, "Create new association"));
+        settingsItem = new XMBItem(null, "Associations", ImageRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.appInfo, "App info");
-        innerSettings[1] = new HomeItem(HomeItem.Type.saveLogs, "Save logs to file");
-        settingsItem = new XMBItem(null, "About", ImageRef.from("baseline_info_24", DataLocation.resource), innerSettings);
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.appInfo, "App info"));
+        innerSettings.add(new HomeItem(HomeItem.Type.saveLogs, "Save logs to file"));
+        settingsItem = new XMBItem(null, "About", ImageRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         return settingsColumn;
