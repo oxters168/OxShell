@@ -423,9 +423,9 @@ public class HomeView extends XMBView implements Refreshable {
                     //DynamicInputRow.ToggleInput fullscreenToggle = new DynamicInputRow.ToggleInput("Fill screen", "Do not fill screen");
                     //fullscreenToggle.setOnOff((systemUi & SettingsKeeper.FULLSCREEN_FLAGS) != 0, true);
                     DynamicInputRow.ToggleInput statusBarToggle = new DynamicInputRow.ToggleInput("Status bar visible", "Status bar hidden");
-                    statusBarToggle.setOnOff(!((systemUi & SettingsKeeper.STATUS_BAR_FLAGS) == SettingsKeeper.STATUS_BAR_FLAGS), true);
+                    statusBarToggle.setOnOff(SettingsKeeper.hasStatusBarVisible(systemUi), true);
                     DynamicInputRow.ToggleInput navBarToggle = new DynamicInputRow.ToggleInput("Navigation bar visible", "Navigation bar hidden");
-                    navBarToggle.setOnOff(!((systemUi & SettingsKeeper.NAV_BAR_FLAGS) == SettingsKeeper.NAV_BAR_FLAGS), true);
+                    navBarToggle.setOnOff(SettingsKeeper.hasNavBarVisible(systemUi), true);
 
                     DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", self -> {
                         //Log.d("HomeView", "fullscreen: " + fullscreenToggle.getOnOff() + " status: " + statusBarToggle.getOnOff() + " nav: " + navBarToggle.getOnOff());

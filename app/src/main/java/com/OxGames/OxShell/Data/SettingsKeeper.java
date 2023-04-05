@@ -55,6 +55,12 @@ public class SettingsKeeper {
     public static final int FULLSCREEN_FLAGS = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
     public static final int STATUS_BAR_FLAGS = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
     public static final int NAV_BAR_FLAGS = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+    public static boolean hasStatusBarVisible(int systemUiState) {
+        return !((systemUiState & STATUS_BAR_FLAGS) == STATUS_BAR_FLAGS);
+    }
+    public static boolean hasNavBarVisible(int systemUiState) {
+        return !((systemUiState & NAV_BAR_FLAGS) == NAV_BAR_FLAGS);
+    }
     private static int toggleFullscreen(boolean onOff, int sysUiVisibility) {
         if (onOff)
             sysUiVisibility |= FULLSCREEN_FLAGS;

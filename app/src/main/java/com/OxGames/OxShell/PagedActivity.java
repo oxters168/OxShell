@@ -209,12 +209,12 @@ public class PagedActivity extends AppCompatActivity {
         //initBackground();
     }
 
-    protected void setMarginsFor(int... ids) {
+    protected void setMarginsFor(boolean statusBar, boolean navBar, int... ids) {
         // sets the provided views' margins to avoid the status bar and navigation bar
         for (int id : ids) {
             View parent = findViewById(id);
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)parent.getLayoutParams();
-            params.setMargins(0, OxShellApp.getStatusBarHeight(), 0, OxShellApp.getNavBarHeight());
+            params.setMargins(0, statusBar ? OxShellApp.getStatusBarHeight() : 0, 0, navBar ? OxShellApp.getNavBarHeight() : 0);
             parent.setLayoutParams(params);
         }
     }
