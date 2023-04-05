@@ -42,6 +42,8 @@ public class SettingsKeeper {
     public static final String FONT_REF = "font_ref";
     public static final String VERSION_CODE = "version_code";
     public static final String PREV_VERSION_CODE = "prev_version_code";
+    public static final String VERSION_NAME = "version_name";
+    public static final String PREV_VERSION_NAME = "prev_version_name";
 
     //private static boolean fileDidExist;
     private static HashMap<String, Object> settingsCache;
@@ -107,9 +109,13 @@ public class SettingsKeeper {
     }
 
     public static void updateVersion() {
-        int prevVersion = getVersionCode();
+        int prevVersionCode = getVersionCode();
         setValueAndSave(VERSION_CODE, BuildConfig.VERSION_CODE);
-        setValueAndSave(PREV_VERSION_CODE, prevVersion);
+        setValueAndSave(PREV_VERSION_CODE, prevVersionCode);
+
+        String prevVersionName = getVersionName();
+        setValueAndSave(VERSION_NAME, BuildConfig.VERSION_NAME);
+        setValueAndSave(PREV_VERSION_NAME, prevVersionName);
     }
     public static int getVersionCode() {
         int versionCode = BuildConfig.VERSION_CODE;
@@ -121,6 +127,18 @@ public class SettingsKeeper {
         int prevVersion = BuildConfig.VERSION_CODE;
         if (hasValue(PREV_VERSION_CODE))
             prevVersion = (int)getValue(PREV_VERSION_CODE);
+        return prevVersion;
+    }
+    public static String getVersionName() {
+        String versionName = BuildConfig.VERSION_NAME;
+        if (hasValue(VERSION_NAME))
+            versionName = (String)getValue(VERSION_NAME);
+        return versionName;
+    }
+    public static String getPrevVersionName() {
+        String prevVersion = BuildConfig.VERSION_NAME;
+        if (hasValue(PREV_VERSION_NAME))
+            prevVersion = (String)getValue(PREV_VERSION_NAME);
         return prevVersion;
     }
 
