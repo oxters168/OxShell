@@ -73,6 +73,12 @@ android {
     buildFeatures {
         viewBinding true
     }
+    splits {
+        abi {
+            enable true
+            universalApk true
+        }
+    }
     namespace 'com.OxGames.OxShell'
 }
 
