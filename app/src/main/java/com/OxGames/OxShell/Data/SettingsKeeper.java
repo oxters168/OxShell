@@ -3,10 +3,12 @@ package com.OxGames.OxShell.Data;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
+import com.OxGames.OxShell.OxShellApp;
 
 import java.util.HashMap;
 
@@ -45,25 +47,63 @@ public class SettingsKeeper {
     public static final String VERSION_NAME = "version_name";
     public static final String PREV_VERSION_NAME = "prev_version_name";
 
-    //private static boolean fileDidExist;
+    public static final String SYSTEM_UI_VISIBILITY = "system_ui_visibility";
+
     private static HashMap<String, Object> settingsCache;
 
-//    public static boolean fileDidNotExist() {
-//        return !fileDidExist;
-//    }
+    private static int currentSysUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
+    public static void setFullscreen(boolean onOff, boolean save) {
+        if (onOff)
+            currentSysUIVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        else
+            currentSysUIVisibility &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        setSystemUIState(currentSysUIVisibility, save);
+    }
+    public static void setStatusBarHidden(boolean onOff, boolean save) {
+        if (onOff)
+            currentSysUIVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        else if ((currentSysUIVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
+            currentSysUIVisibility &= ~(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        else
+            currentSysUIVisibility &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
+        setSystemUIState(currentSysUIVisibility, save);
+    }
+    public static void setNavBarHidden(boolean onOff, boolean save) {
+        if (onOff)
+            currentSysUIVisibility |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        else if ((currentSysUIVisibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
+            currentSysUIVisibility &= ~(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        else
+            currentSysUIVisibility &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        setSystemUIState(currentSysUIVisibility, save);
+    }
+    public static int getCurrentSysUIState() {
+        return currentSysUIVisibility;
+    }
+    public static void setSystemUIState(int uiState, boolean save) {
+        currentSysUIVisibility = uiState;
+        OxShellApp.getCurrentActivity().getWindow().getDecorView().setSystemUiVisibility(uiState);
+        if (save)
+            setValueAndSave(SYSTEM_UI_VISIBILITY, currentSysUIVisibility);
+    }
+    public static void reloadCurrentSystemUiState() {
+        setSystemUIState(currentSysUIVisibility, false);
+    }
+    public static void reloadSystemUiState() {
+        setSystemUIState(getSystemUiVisibility(), false);
+    }
+    public static int getSystemUiVisibility() {
+        // create default if not existing
+        if (!hasValue(SYSTEM_UI_VISIBILITY))
+            setValueAndSave(SYSTEM_UI_VISIBILITY, View.SYSTEM_UI_FLAG_VISIBLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+
+        return (int)getValue(SYSTEM_UI_VISIBILITY);
+    }
+
     public static void loadOrCreateSettings() {
         load();
-        if (settingsCache == null) {
+        if (settingsCache == null)
             settingsCache = new HashMap<>();
-            //SettingsKeeper.setValueAndSave(TIMES_LOADED, 1);
-        }
-//        else {
-//            fileDidExist = true;
-//            if (SettingsKeeper.hasValue(TIMES_LOADED)) {
-//                int timesLoaded = (Integer)SettingsKeeper.getValue(TIMES_LOADED); // even if saved as Integer for some reason it comes back as Double
-//                SettingsKeeper.setValueAndSave(TIMES_LOADED, timesLoaded + 1);
-//            }
-//        }
     }
     public static void incrementTimesLoaded() {
         setValueAndSave(TIMES_LOADED, getTimesLoaded() + 1);

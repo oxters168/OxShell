@@ -34,7 +34,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
     private final Context context;
     private BetterTextView title;
     private RecyclerView mainList;
-    private int prevUIState;
+    //private int prevUIState;
 
     private DynamicInputRow[] rows;
 
@@ -176,13 +176,13 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                 onShownListener.accept(onOff);
 
         setVisibility(onOff ? VISIBLE : GONE);
-        PagedActivity current = OxShellApp.getCurrentActivity();
+        //PagedActivity current = OxShellApp.getCurrentActivity();
         if (onOff) {
-            if (!isShown)
-                prevUIState = current.getSystemUIState();
+            //if (!isShown)
+            //    prevUIState = current.getSystemUIState();
             isShown = true;
-            current.setNavBarHidden(true);
-            current.setStatusBarHidden(true);
+            SettingsKeeper.setNavBarHidden(true, false);
+            SettingsKeeper.setStatusBarHidden(true, false);
 
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP))).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
@@ -205,7 +205,8 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
         } else {
             isShown = false;
-            current.setSystemUIState(prevUIState);
+            //SettingsKeeper.setSystemUIState(prevUIState, false);
+            SettingsKeeper.reloadSystemUiState();
             if (mainList != null) {
                 RecyclerView.Adapter adapter = mainList.getAdapter();
                 if (adapter != null)
