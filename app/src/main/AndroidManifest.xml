@@ -49,12 +49,12 @@
     <application
         android:allowBackup="true"
         android:name="com.OxGames.OxShell.OxShellApp"
-        android:icon="@drawable/icon_xhdpi"
-        android:banner="@drawable/banner_xhdpi"
+        android:icon="${icon}"
+        android:banner="${bannerPath}"
         android:label="${appLabel}"
         android:requestLegacyExternalStorage="true"
         android:resizeableActivity="false"
-        android:roundIcon="@drawable/icon_xhdpi"
+        android:roundIcon="${icon}"
         android:supportsRtl="true"
         android:theme="@style/Theme.OxShell" >
         <provider

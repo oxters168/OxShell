@@ -36,8 +36,10 @@ android {
         //manifestPlaceholders = [documentsAuthority: documentsAuthorityValue]
         //buildConfigField "String", "DOCUMENTS_AUTHORITY", "\"${documentsAuthorityValue}\""
         def appLabelValue = "Ox Shell"
-        manifestPlaceholders = [appLabel: appLabelValue]
         //buildConfigField "String", "APP_LABEL", "\"${appLabelValue}\""
+        def iconValue = "@drawable/icon_xhdpi"
+        def bannerValue = "@drawable/banner_xhdpi"
+        manifestPlaceholders = [appLabel: appLabelValue, icon: iconValue, banner: bannerValue]
 
         buildConfigField "boolean", "GOLD", "false"
 
@@ -58,8 +60,11 @@ android {
         release_free {
             minifyEnabled true
             applicationIdSuffix ".free"
-            def appLabelValue = "Ox Shell Free"
-            manifestPlaceholders = [appLabel: appLabelValue]
+            //def appLabelValue = "Ox Shell Free"
+            //manifestPlaceholders = [appLabel: appLabelValue]
+            def iconValue = "@drawable/icon_free_xhdpi"
+            def bannerValue = "@drawable/banner_free_xhdpi"
+            manifestPlaceholders = [icon: iconValue, bannerPath: bannerValue]
         }
         debug {
             minifyEnabled true
