@@ -64,7 +64,7 @@ android {
             //manifestPlaceholders = [appLabel: appLabelValue]
             def iconValue = "@drawable/icon_free_xhdpi"
             def bannerValue = "@drawable/banner_free_xhdpi"
-            manifestPlaceholders = [icon: iconValue, bannerPath: bannerValue]
+            manifestPlaceholders = [icon: iconValue, banner: bannerValue]
         }
         debug {
             minifyEnabled true
