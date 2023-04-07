@@ -1,13 +1,15 @@
 package com.OxGames.OxShell;
 
 import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.FontRef;
@@ -18,6 +20,16 @@ import com.appspell.shaderview.log.LibLog;
 
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
 public class OxShellApp extends Application {
+    private BroadcastReceiver pkgInstallationReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive(Context ctxt, Intent intent) {
+            String pkgName = null;
+            if (intent != null && intent.getData() != null)
+                pkgName = intent.getData().getEncodedSchemeSpecificPart();
+            Log.d("OxShellApp", "Broadcast receiver: " + intent + ", " + (intent != null ? (intent.getExtras() + ", " + pkgName) : "no extras"));
+        }
+    };
+
     private static OxShellApp instance;
     private static InputHandler inputHandler;
 
@@ -34,8 +46,12 @@ public class OxShellApp extends Application {
     @Override
     public void onCreate() {
         LibLog.INSTANCE.setEnabled(true);
-
         Log.i("OxShellApp", "onCreate");
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        intentFilter.addDataScheme("package");
+        registerReceiver(pkgInstallationReceiver, intentFilter);
+
         instance = this;
         inputHandler = new InputHandler();
         super.onCreate();
@@ -59,6 +75,7 @@ public class OxShellApp extends Application {
     @Override
     public void onTerminate() {
         Log.i("OxShellApp", "onTerminate");
+        unregisterReceiver(pkgInstallationReceiver);
         super.onTerminate();
     }
 
