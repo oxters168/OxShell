@@ -797,7 +797,7 @@ public class AndroidHelpers {
     public static float getUiScale() {
         // return 2.952551f / AndroidHelpers.dpToInches(context, OxShellApp.getSmallestScreenWidthDp()); // the smallest width when converted to inches was almost always the same size
         float percent = OxShellApp.getSmallestScreenWidthDp() / 462f;
-        return (float)Math.pow(percent, 1.2f); // fine tuned to my liking, not scientific
+        return (float)Math.pow(percent, 0.5f); // fine tuned to my liking, not scientific
     }
 
     public static boolean isRunningOnTV() {
