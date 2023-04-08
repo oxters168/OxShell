@@ -50,7 +50,7 @@
         android:allowBackup="true"
         android:name="com.OxGames.OxShell.OxShellApp"
         android:icon="${icon}"
-        android:banner="${bannerPath}"
+        android:banner="${banner}"
         android:label="${appLabel}"
         android:requestLegacyExternalStorage="true"
         android:resizeableActivity="false"

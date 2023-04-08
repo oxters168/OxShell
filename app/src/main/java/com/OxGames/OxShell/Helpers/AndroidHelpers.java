@@ -42,6 +42,7 @@ import androidx.core.widget.TextViewCompat;
 
 import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 
@@ -789,10 +790,10 @@ public class AndroidHelpers {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
     }
     public static float getScaledSpToPixels(Context context, float sp) {
-        return spToPixels(context, sp) * (float)Math.pow(AndroidHelpers.getUiScale(), 1.8);
+        return spToPixels(context, sp) * (float)Math.pow(AndroidHelpers.getUiScale(), 1.8) * SettingsKeeper.getTextScale();
     }
     public static float getScaledDpToPixels(Context context, float dp) {
-        return AndroidHelpers.dpToPixels(context, dp) * getUiScale();
+        return AndroidHelpers.dpToPixels(context, dp) * getUiScale() * SettingsKeeper.getUiScale();
     }
     public static float getUiScale() {
         // return 2.952551f / AndroidHelpers.dpToInches(context, OxShellApp.getSmallestScreenWidthDp()); // the smallest width when converted to inches was almost always the same size
