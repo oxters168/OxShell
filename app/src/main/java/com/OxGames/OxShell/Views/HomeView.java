@@ -93,6 +93,13 @@ public class HomeView extends XMBView implements Refreshable {
         new ResImage("baseline_info_24", "Info")
     };
 
+    private Consumer<String> pkgInstalledListener = pkgName -> {
+        if (pkgName != null) {
+            getAdapter().createColumnAt(getAdapter().getColumnCount() - 1, new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName)));
+            save(getItems());
+        }
+    };
+
     public HomeView(Context context) {
         super(context);
         init();
@@ -108,7 +115,11 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     private void init() {
+        OxShellApp.addPkgInstalledListener(pkgInstalledListener);
         refresh();
+    }
+    public void onDestroy() {
+        OxShellApp.removePkgInstalledListener(pkgInstalledListener);
     }
 
     @Override

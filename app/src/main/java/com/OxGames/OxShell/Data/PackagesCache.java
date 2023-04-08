@@ -471,7 +471,7 @@ public class PackagesCache {
         return appInfo;
     }
     public static String getAppLabel(ApplicationInfo appInfo) {
-        String appLabel = null;
+        String appLabel;
         if (!appLabels.containsKey(appInfo)) {
             PackageManager packageManager = OxShellApp.getContext().getPackageManager();
             appLabel = (String)packageManager.getApplicationLabel(appInfo);
@@ -483,8 +483,10 @@ public class PackagesCache {
         return appLabel;
     }
     public static String getAppLabel(ResolveInfo rslvInfo) {
+        return getAppLabel(rslvInfo.activityInfo.packageName);
+    }
+    public static String getAppLabel(String pkgName) {
         String appName = null;
-        String pkgName = rslvInfo.activityInfo.packageName;
         if (pkgName != null) {
             ApplicationInfo pkgInfo = PackagesCache.getPackageInfo(pkgName);
             if (pkgInfo != null)

@@ -18,42 +18,53 @@ import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.appspell.shaderview.log.LibLog;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
 public class OxShellApp extends Application {
-    private BroadcastReceiver pkgInstallationReceiver = new BroadcastReceiver(){
+    private BroadcastReceiver pkgInstallationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctxt, Intent intent) {
             String pkgName = null;
             if (intent != null && intent.getData() != null)
                 pkgName = intent.getData().getEncodedSchemeSpecificPart();
-            Log.d("OxShellApp", "Broadcast receiver: " + intent + ", " + (intent != null ? (intent.getExtras() + ", " + pkgName) : "no extras"));
+            for (Consumer<String> listener : pkgInstalledListeners)
+                if (listener != null)
+                    listener.accept(pkgName);
+            //Log.d("OxShellApp", "Broadcast receiver: " + intent + ", " + (intent != null ? (intent.getExtras() + ", " + pkgName) : "no extras"));
         }
     };
 
     private static OxShellApp instance;
     private static InputHandler inputHandler;
+    private static List<Consumer<String>> pkgInstalledListeners;
 
     public static OxShellApp getInstance() {
         return instance;
     }
     private static PagedActivity currentActivity;
 
-    public static Context getContext(){
+    public static Context getContext() {
         return instance;
         // or return instance.getApplicationContext();
     }
 
     @Override
     public void onCreate() {
+        instance = this;
         LibLog.INSTANCE.setEnabled(true);
         Log.i("OxShellApp", "onCreate");
+
+        inputHandler = new InputHandler();
+        pkgInstalledListeners = new ArrayList<>();
+
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
         intentFilter.addDataScheme("package");
         registerReceiver(pkgInstallationReceiver, intentFilter);
 
-        instance = this;
-        inputHandler = new InputHandler();
         super.onCreate();
 
         SettingsKeeper.loadOrCreateSettings();
@@ -90,6 +101,16 @@ public class OxShellApp extends Application {
     public void onLowMemory() {
         Log.e("OxShellApp", "Low memory");
         super.onLowMemory();
+    }
+
+    public static void addPkgInstalledListener(Consumer<String> listener) {
+        pkgInstalledListeners.add(listener);
+    }
+    public static void removePkgInstalledListener(Consumer<String> listener) {
+        pkgInstalledListeners.remove(listener);
+    }
+    public static void clearPkgInstalledListeners() {
+        pkgInstalledListeners.clear();
     }
 
     public static InputHandler getInputHandler() {
