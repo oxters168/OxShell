@@ -47,6 +47,7 @@ public class SettingsKeeper {
     public static final String VERSION_NAME = "version_name";
     public static final String PREV_VERSION_NAME = "prev_version_name";
 
+    public static final String UI_SCALE = "ui_scale";
     public static final String SYSTEM_UI_VISIBILITY = "system_ui_visibility";
 
     private static HashMap<String, Object> settingsCache;
@@ -127,6 +128,16 @@ public class SettingsKeeper {
             setValueAndSave(SYSTEM_UI_VISIBILITY, View.SYSTEM_UI_FLAG_VISIBLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
 
         return (int)getValue(SYSTEM_UI_VISIBILITY);
+    }
+    public static float getUiScale() {
+        // create default if not existing
+        if (!hasValue(UI_SCALE))
+            setUiScale(1f);
+
+        return Float.parseFloat((String)getValue(UI_SCALE));
+    }
+    public static void setUiScale(float scale) {
+        setValueAndSave(UI_SCALE, String.valueOf(scale));
     }
 
     public static void loadOrCreateSettings() {

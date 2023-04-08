@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -415,6 +416,26 @@ public class HomeView extends XMBView implements Refreshable {
 
                     dynamicInput.setShown(true);
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.setUiScale) {
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Set UI Scale");
+
+                    DynamicInputRow.TextInput uiScaleInput = new DynamicInputRow.TextInput("Scale multiplier", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    uiScaleInput.setText(String.valueOf(SettingsKeeper.getUiScale()));
+
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", self -> {
+                        float uiScale = 1f;
+                        try {
+                            uiScale = Float.parseFloat(uiScaleInput.getText());
+                        } catch (Exception e) {}
+                        SettingsKeeper.setUiScale(uiScale);
+                        refresh();
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> dynamicInput.setShown(false), SettingsKeeper.getCancelInput());
+
+                    dynamicInput.setItems(new DynamicInputRow(uiScaleInput), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.setSystemUi) {
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
                     dynamicInput.setTitle("Set System UI Visibility");
@@ -434,9 +455,7 @@ public class HomeView extends XMBView implements Refreshable {
                         SettingsKeeper.setStoredNavBarHidden(!navBarToggle.getOnOff());
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
-                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> {
-                        dynamicInput.setShown(false);
-                    }, SettingsKeeper.getCancelInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> dynamicInput.setShown(false), SettingsKeeper.getCancelInput());
 
                     dynamicInput.setItems(new DynamicInputRow(statusBarToggle), new DynamicInputRow(navBarToggle), new DynamicInputRow(applyBtn, cancelBtn));
                     dynamicInput.setShown(true);
@@ -730,6 +749,7 @@ public class HomeView extends XMBView implements Refreshable {
     private static ArrayList<XMBItem> createSettingsColumn() {
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();
         List<XMBItem> innerSettings = new ArrayList<>();
+        List<XMBItem> innerInnerSettings = new ArrayList<>();
 
         XMBItem settingsItem = new XMBItem(null, "Settings", ImageRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
@@ -758,33 +778,34 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings.clear();
         innerSettings.add(new HomeItem(HomeItem.Type.setImageBg, "Set picture as background"));
         innerSettings.add(new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background"));
+        innerSettings.add(new HomeItem(HomeItem.Type.setUiScale, "Change UI scale"));
         if (!AndroidHelpers.isRunningOnTV())
             innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
         settingsItem = new XMBItem(null, "Display", ImageRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         innerSettings.clear();
-        XMBItem[] innerInnerSettings = new XMBItem[9];
-        innerInnerSettings[0] = new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input");
-        innerInnerSettings[1] = new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input");
-        innerInnerSettings[2] = new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input");
-        innerInnerSettings[3] = new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input");
-        innerInnerSettings[4] = new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input");
-        innerInnerSettings[5] = new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input");
-        innerInnerSettings[6] = new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input");
-        innerInnerSettings[7] = new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input");
-        innerInnerSettings[8] = new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input");
-        innerSettings.add(new XMBItem(null, "General", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings));
-        innerInnerSettings = new XMBItem[4];
-        innerInnerSettings[0] = new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input");
-        innerInnerSettings[1] = new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input");
-        innerInnerSettings[2] = new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input");
-        innerInnerSettings[3] = new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input");
-        innerSettings.add(new XMBItem(null, "File Explorer", ImageRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings));
-        innerInnerSettings = new XMBItem[2];
-        innerInnerSettings[0] = new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input");
-        innerInnerSettings[1] = new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input");
-        innerSettings.add(new XMBItem(null, "Android System", ImageRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings));
+        innerInnerSettings.clear();
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input"));
+        innerSettings.add(new XMBItem(null, "General", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerInnerSettings.clear();
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input"));
+        innerSettings.add(new XMBItem(null, "File Explorer", ImageRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerInnerSettings.clear();
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input"));
+        innerSettings.add(new XMBItem(null, "Android System", ImageRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         settingsItem = new XMBItem(null, "Controls", ImageRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 

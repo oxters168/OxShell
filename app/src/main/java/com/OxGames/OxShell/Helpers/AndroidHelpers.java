@@ -42,6 +42,7 @@ import androidx.core.widget.TextViewCompat;
 
 import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 
@@ -797,7 +798,7 @@ public class AndroidHelpers {
     public static float getUiScale() {
         // return 2.952551f / AndroidHelpers.dpToInches(context, OxShellApp.getSmallestScreenWidthDp()); // the smallest width when converted to inches was almost always the same size
         float percent = OxShellApp.getSmallestScreenWidthDp() / 462f;
-        return (float)Math.pow(percent, 0.5f); // fine tuned to my liking, not scientific
+        return (float)Math.pow(percent, 0.5f) * SettingsKeeper.getUiScale(); // fine tuned to my liking, not scientific
     }
 
     public static boolean isRunningOnTV() {
