@@ -48,6 +48,7 @@ public class SettingsKeeper {
     public static final String PREV_VERSION_NAME = "prev_version_name";
 
     public static final String UI_SCALE = "ui_scale";
+    public static final String TEXT_SCALE = "text_scale";
     public static final String SYSTEM_UI_VISIBILITY = "system_ui_visibility";
 
     private static HashMap<String, Object> settingsCache;
@@ -138,6 +139,16 @@ public class SettingsKeeper {
     }
     public static void setUiScale(float scale) {
         setValueAndSave(UI_SCALE, String.valueOf(scale));
+    }
+    public static float getTextScale() {
+        // create default if not existing
+        if (!hasValue(TEXT_SCALE))
+            setTextScale(1f);
+
+        return Float.parseFloat((String)getValue(TEXT_SCALE));
+    }
+    public static void setTextScale(float scale) {
+        setValueAndSave(TEXT_SCALE, String.valueOf(scale));
     }
 
     public static void loadOrCreateSettings() {

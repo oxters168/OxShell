@@ -790,15 +790,15 @@ public class AndroidHelpers {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics());
     }
     public static float getScaledSpToPixels(Context context, float sp) {
-        return spToPixels(context, sp) * (float)Math.pow(AndroidHelpers.getUiScale(), 1.8);
+        return spToPixels(context, sp) * (float)Math.pow(AndroidHelpers.getUiScale(), 1.8) * SettingsKeeper.getTextScale();
     }
     public static float getScaledDpToPixels(Context context, float dp) {
-        return AndroidHelpers.dpToPixels(context, dp) * getUiScale();
+        return AndroidHelpers.dpToPixels(context, dp) * getUiScale() * SettingsKeeper.getUiScale();
     }
     public static float getUiScale() {
         // return 2.952551f / AndroidHelpers.dpToInches(context, OxShellApp.getSmallestScreenWidthDp()); // the smallest width when converted to inches was almost always the same size
         float percent = OxShellApp.getSmallestScreenWidthDp() / 462f;
-        return (float)Math.pow(percent, 0.5f) * SettingsKeeper.getUiScale(); // fine tuned to my liking, not scientific
+        return (float)Math.pow(percent, 0.5f); // fine tuned to my liking, not scientific
     }
 
     public static boolean isRunningOnTV() {

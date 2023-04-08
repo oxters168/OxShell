@@ -420,21 +420,28 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
                     dynamicInput.setTitle("Set UI Scale");
 
-                    DynamicInputRow.TextInput uiScaleInput = new DynamicInputRow.TextInput("Scale multiplier", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    DynamicInputRow.TextInput uiScaleInput = new DynamicInputRow.TextInput("Main scale multiplier", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                     uiScaleInput.setText(String.valueOf(SettingsKeeper.getUiScale()));
+                    DynamicInputRow.TextInput textScaleInput = new DynamicInputRow.TextInput("Text scale multiplier", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    textScaleInput.setText(String.valueOf(SettingsKeeper.getTextScale()));
 
                     DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", self -> {
                         float uiScale = 1f;
                         try {
                             uiScale = Float.parseFloat(uiScaleInput.getText());
                         } catch (Exception e) {}
+                        float textScale = 1f;
+                        try {
+                            textScale = Float.parseFloat(textScaleInput.getText());
+                        } catch (Exception e) {}
                         SettingsKeeper.setUiScale(uiScale);
+                        SettingsKeeper.setTextScale(textScale);
                         refresh();
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> dynamicInput.setShown(false), SettingsKeeper.getCancelInput());
 
-                    dynamicInput.setItems(new DynamicInputRow(uiScaleInput), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(uiScaleInput), new DynamicInputRow(textScaleInput), new DynamicInputRow(applyBtn, cancelBtn));
                     dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.setSystemUi) {
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
