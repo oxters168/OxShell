@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Helpers;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.OxGames.OxShell.Data.DataLocation;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.TimeoutException;
 
 public class AudioPool {
     private DataRef dataRef;
@@ -31,18 +33,29 @@ public class AudioPool {
     }
 
     public void play(boolean loop) {
-        if (isPlayerAvailable()) {
-            MediaPlayer player = unusedPlayers.poll();
-            playingPlayers.add(player);
-            player.setOnCompletionListener(mp -> {
-                if (playingPlayers.contains(mp)) {
-                    playingPlayers.remove(mp);
-                    unusedPlayers.add(mp);
+        new Thread(() -> {
+            try {
+                long startTime = SystemClock.uptimeMillis();
+                while (!isPlayerAvailable()) {
+                    if ((SystemClock.uptimeMillis() - startTime) / 1000f > 10)
+                        throw new TimeoutException("Failed to play, no audio prepared within 10s");
+                    Thread.sleep(10);
                 }
-            });
-            player.setLooping(loop);
-            player.start();
-        }
+                MediaPlayer player = unusedPlayers.poll();
+                playingPlayers.add(player);
+                player.setOnCompletionListener(mp -> {
+                    if (playingPlayers.contains(mp)) {
+                        playingPlayers.remove(mp);
+                        unusedPlayers.add(mp);
+                    }
+                });
+                player.setLooping(loop);
+                player.setVolume(1, 1);
+                player.start();
+            } catch (Exception e) {
+                Log.e("AudioPool", "Failed to play audio " + dataRef.getLoc() + ": " + e);
+            }
+        }).start();
     }
     public void stopAll() {
         for (MediaPlayer mp : playingPlayers) {
@@ -63,7 +76,7 @@ public class AudioPool {
                 try {
                     AssetFileDescriptor afd = null;
                     if (dataRef.getLocType() == DataLocation.asset)
-                        OxShellApp.getContext().getAssets().openFd((String)dataRef.getLoc());
+                        afd = OxShellApp.getContext().getAssets().openFd((String)dataRef.getLoc());
                     for (int i = 0; i < diff; i++) {
                         MediaPlayer player = new MediaPlayer();
                         try {

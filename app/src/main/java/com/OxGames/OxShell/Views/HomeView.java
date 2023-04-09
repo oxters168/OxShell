@@ -39,6 +39,7 @@ import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.AudioPool;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
@@ -93,6 +94,8 @@ public class HomeView extends XMBView implements Refreshable {
         new ResImage("baseline_info_24", "Info")
     };
 
+    private AudioPool musicPool;
+    private AudioPool movePool;
     private Consumer<String> pkgInstalledListener = pkgName -> {
         if (pkgName != null) {
             getAdapter().createColumnAt(getAdapter().getColumnCount() - 1, new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName)));
@@ -115,11 +118,15 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     private void init() {
+        musicPool = AudioPool.fromAsset("Audio/xmb_music.mp3", 5);
+        movePool = AudioPool.fromAsset("Audio/cow_G7.wav", 5);
+        musicPool.play(true);
         OxShellApp.addPkgInstalledListener(pkgInstalledListener);
         refresh();
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
+        musicPool.setPoolSize(0);
     }
 
     @Override
@@ -731,6 +738,18 @@ public class HomeView extends XMBView implements Refreshable {
         if (packageName != null)
             AndroidHelpers.uninstallApp(OxShellApp.getCurrentActivity(), packageName, onResult);
     }
+
+    @Override
+    protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
+        super.onShiftHorizontally(fromColIndex, fromRowIndex, toColIndex);
+        movePool.play(false);
+    }
+    @Override
+    protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
+        super.onShiftVertically(fromColIndex, fromLocalIndex, toLocalIndex);
+        movePool.play(false);
+    }
+
     @Override
     public void refresh() {
         //Log.d("HomeView", "Refreshing home view");
