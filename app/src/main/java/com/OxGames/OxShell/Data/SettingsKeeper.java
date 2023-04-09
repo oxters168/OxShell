@@ -235,7 +235,7 @@ public class SettingsKeeper {
 
     public static Typeface getFont() {
         if (hasValue(FONT_REF))
-            return ((FontRef)getValue(FONT_REF)).getFont();
+            return ((DataRef)getValue(FONT_REF)).getFont();
         return null;
     }
 

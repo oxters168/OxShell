@@ -2,8 +2,11 @@ package com.OxGames.OxShell.Helpers;
 
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 
+import com.OxGames.OxShell.Data.DataLocation;
+import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.OxShellApp;
 
 import java.util.ArrayDeque;
@@ -16,6 +19,7 @@ import java.util.UUID;
 public class AudioHelper {
     private static HashMap<UUID, AudioPool> pools = new HashMap<>();
     private static class AudioPool {
+        private DataRef dataRef;
         private final List<MediaPlayer> beingPrepped;
         private final Queue<MediaPlayer> unusedPlayers;
 
@@ -29,6 +33,7 @@ public class AudioHelper {
 
         public static AudioPool fromAsset(String assetLoc, int poolSize) {
             AudioPool pool = new AudioPool();
+            pool.dataRef = DataRef.from(assetLoc, DataLocation.asset);
             new Thread(() -> {
                 try {
                     AssetFileDescriptor afd = OxShellApp.getContext().getAssets().openFd(assetLoc);

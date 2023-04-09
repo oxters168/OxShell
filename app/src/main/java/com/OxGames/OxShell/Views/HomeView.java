@@ -25,7 +25,7 @@ import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
-import com.OxGames.OxShell.Data.ImageRef;
+import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -184,7 +184,7 @@ public class HomeView extends XMBView implements Refreshable {
                             intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
                     } else {
                         intentItems = new XMBItem[1];
-                        intentItems[0] = new XMBItem(null, "None created", ImageRef.from("ic_baseline_block_24", DataLocation.resource));
+                        intentItems[0] = new XMBItem(null, "None created", DataRef.from("ic_baseline_block_24", DataLocation.resource));
                     }
                     selectedItem.setInnerItems(intentItems);
                 } else if (selectedItem.type == HomeItem.Type.appInfo) {
@@ -769,7 +769,7 @@ public class HomeView extends XMBView implements Refreshable {
         List<XMBItem> innerSettings = new ArrayList<>();
         List<XMBItem> innerInnerSettings = new ArrayList<>();
 
-        XMBItem settingsItem = new XMBItem(null, "Settings", ImageRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
+        XMBItem settingsItem = new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
 
         // TODO: add option to change icon alpha
@@ -790,7 +790,7 @@ public class HomeView extends XMBView implements Refreshable {
 //        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
         innerSettings.add(new HomeItem(HomeItem.Type.addAppOuter, "Add application to home"));
         //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
-        settingsItem = new XMBItem(null, "Home", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItem = new XMBItem(null, "Home", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         innerSettings.clear();
@@ -799,7 +799,7 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings.add(new HomeItem(HomeItem.Type.setUiScale, "Change UI scale"));
         if (!AndroidHelpers.isRunningOnTV())
             innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
-        settingsItem = new XMBItem(null, "Display", ImageRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItem = new XMBItem(null, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         innerSettings.clear();
@@ -813,18 +813,18 @@ public class HomeView extends XMBView implements Refreshable {
         innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input"));
-        innerSettings.add(new XMBItem(null, "General", ImageRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerSettings.add(new XMBItem(null, "General", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         innerInnerSettings.clear();
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input"));
-        innerSettings.add(new XMBItem(null, "File Explorer", ImageRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerSettings.add(new XMBItem(null, "File Explorer", DataRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         innerInnerSettings.clear();
         innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input"));
-        innerSettings.add(new XMBItem(null, "Android System", ImageRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
-        settingsItem = new XMBItem(null, "Controls", ImageRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        innerSettings.add(new XMBItem(null, "Android System", DataRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        settingsItem = new XMBItem(null, "Controls", DataRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         //innerSettings = new XMBItem[0];
@@ -838,13 +838,13 @@ public class HomeView extends XMBView implements Refreshable {
 //            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
         innerSettings.add(new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home"));
         innerSettings.add(new HomeItem(HomeItem.Type.createAssoc, "Create new association"));
-        settingsItem = new XMBItem(null, "Associations", ImageRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItem = new XMBItem(null, "Associations", DataRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         innerSettings.clear();
         innerSettings.add(new HomeItem(HomeItem.Type.appInfo, "App info"));
         innerSettings.add(new HomeItem(HomeItem.Type.saveLogs, "Save logs to file"));
-        settingsItem = new XMBItem(null, "About", ImageRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItem = new XMBItem(null, "About", DataRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         return settingsColumn;
@@ -894,13 +894,13 @@ public class HomeView extends XMBView implements Refreshable {
             updatedItems = true;
             for (ArrayList<XMBItem> column : items) {
                 for (XMBItem item : column) {
-                    ImageRef imgRef = item.getImgRef();
-                    if (imgRef != null && imgRef.getRefType() == DataLocation.resource) {
-                        int oldIndex = (int)imgRef.getImageObj();
+                    DataRef imgRef = item.getImgRef();
+                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
+                        int oldIndex = (int)imgRef.getLoc();
                         int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
                         String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
                         Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
-                        item.setImgRef(ImageRef.from(resName, imgRef.getRefType()));
+                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
                     }
                 }
             }
@@ -969,7 +969,7 @@ public class HomeView extends XMBView implements Refreshable {
                 catIndex = categories.length - 1;
             ArrayList<XMBItem> column = new ArrayList<>();
             // add the category item at the top
-            column.add(new XMBItem(null, categories[catIndex], ImageRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource)));
+            column.add(new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource)));
             column.addAll(sortedApps.get(existingCategories.get(index)));
             defaultItems.add(column);
         }
@@ -1197,9 +1197,9 @@ public class HomeView extends XMBView implements Refreshable {
     });
     SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
     {
-        ImageRef colImgRef = ((XMBItem)getAdapter().getItem(getPosition()[0], 0)).getImgRef();
-        if (colImgRef.getRefType() == DataLocation.file)
-            ExplorerBehaviour.delete((String)colImgRef.getImageObj());
+        DataRef colImgRef = ((XMBItem)getAdapter().getItem(getPosition()[0], 0)).getImgRef();
+        if (colImgRef.getLocType() == DataLocation.file)
+            ExplorerBehaviour.delete((String)colImgRef.getLoc());
         getAdapter().removeColumnAt(getPosition()[0]);
         save(getItems());
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
@@ -1225,23 +1225,23 @@ public class HomeView extends XMBView implements Refreshable {
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
         dropdownItems.add("Custom");
         XMBItem colItem = (XMBItem)getAdapter().getItem(getPosition()[0], 0);
-        ImageRef origColIcon = colItem.getImgRef();
+        DataRef origColIcon = colItem.getImgRef();
         int origDropdownIndex = resourceImages.length;
-        if (origColIcon.getRefType() == DataLocation.resource)
+        if (origColIcon.getLocType() == DataLocation.resource)
             for (int i = 0; i < resourceImages.length; i++) {
-                if (resourceImages[i].getId().equals(origColIcon.getImageObj())) {
+                if (resourceImages[i].getId().equals(origColIcon.getLoc())) {
                     origDropdownIndex = i;
                     break;
                 }
             }
-        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(ImageRef.from(null, DataLocation.none));
+        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(DataRef.from(null, DataLocation.none));
         //DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
         AtomicReference<Uri> permittedUri = new AtomicReference<>();
         Runnable updateImg = () -> {
             if (permittedUri.get() != null)
-                imageDisplay.setImage(ImageRef.from(permittedUri.get(), DataLocation.resolverUri));
+                imageDisplay.setImage(DataRef.from(permittedUri.get(), DataLocation.resolverUri));
             else
-                imageDisplay.setImage(ImageRef.from("ic_baseline_question_mark_24", DataLocation.resource));
+                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
         };
 //        filePathInput.addListener(new DynamicInputListener() {
 //            @Override
@@ -1272,19 +1272,19 @@ public class HomeView extends XMBView implements Refreshable {
             //filePathInput.setVisibility(isResource ? GONE : VISIBLE);
             chooseFileBtn.setVisibility(isResource ? GONE : VISIBLE);
             if (index >= 0 && isResource)
-                imageDisplay.setImage(ImageRef.from(resourceImages[index].getId(), DataLocation.resource));
+                imageDisplay.setImage(DataRef.from(resourceImages[index].getId(), DataLocation.resource));
         }, dropdownItems.toArray(new String[0]));
         DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
             String title = titleInput.getText();
-            ImageRef imgRef = imageDisplay.getImageRef();
+            DataRef imgRef = imageDisplay.getImageRef();
             // delete old icon
-            if (imgRef != colItem.getImgRef() && colItem.getImgRef().getRefType() == DataLocation.file)
-                ExplorerBehaviour.delete((String)colItem.getImgRef().getImageObj());
-            if (imgRef.getRefType() == DataLocation.resolverUri) {
+            if (imgRef != colItem.getImgRef() && colItem.getImgRef().getLocType() == DataLocation.file)
+                ExplorerBehaviour.delete((String)colItem.getImgRef().getLoc());
+            if (imgRef.getLocType() == DataLocation.resolverUri) {
                 String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
                 AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), iconPath);
-                imgRef = ImageRef.from(iconPath, DataLocation.file);
+                imgRef = DataRef.from(iconPath, DataLocation.file);
             }
             colItem.setTitle(title.length() > 0 ? title : "Unnamed");
             colItem.setImgRef(imgRef);
@@ -1310,14 +1310,14 @@ public class HomeView extends XMBView implements Refreshable {
         dynamicInput.setTitle("Create Column");
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
         dropdownItems.add("Custom");
-        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(ImageRef.from(null, DataLocation.none));
+        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(DataRef.from(null, DataLocation.none));
         //DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
         AtomicReference<Uri> permittedUri = new AtomicReference<>();
         Runnable updateImg = () -> {
             if (permittedUri.get() != null)
-                imageDisplay.setImage(ImageRef.from(permittedUri.get(), DataLocation.resolverUri));
+                imageDisplay.setImage(DataRef.from(permittedUri.get(), DataLocation.resolverUri));
             else
-                imageDisplay.setImage(ImageRef.from("ic_baseline_question_mark_24", DataLocation.resource));
+                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
         };
 //        filePathInput.addListener(new DynamicInputListener() {
 //            @Override
@@ -1347,16 +1347,16 @@ public class HomeView extends XMBView implements Refreshable {
             //filePathInput.setVisibility(isResource ? GONE : VISIBLE);
             chooseFileBtn.setVisibility(isResource ? GONE : VISIBLE);
             if (index >= 0 && isResource)
-                imageDisplay.setImage(ImageRef.from(resourceImages[index].getId(), DataLocation.resource));
+                imageDisplay.setImage(DataRef.from(resourceImages[index].getId(), DataLocation.resource));
         }, dropdownItems.toArray(new String[0]));
         DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
             String title = titleInput.getText();
-            ImageRef imgRef = imageDisplay.getImageRef();
-            if (imgRef.getRefType() == DataLocation.resolverUri) {
+            DataRef imgRef = imageDisplay.getImageRef();
+            if (imgRef.getLocType() == DataLocation.resolverUri) {
                 String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
                 AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), iconPath);
-                imgRef = ImageRef.from(iconPath, DataLocation.file);
+                imgRef = DataRef.from(iconPath, DataLocation.file);
             }
             getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imgRef));
             save(getItems());

@@ -316,18 +316,18 @@ public class DynamicInputRow {
         }
     }
     public static class ImageDisplay extends DynamicInput {
-        private ImageRef img;
+        private DataRef img;
 
-        public ImageDisplay(ImageRef img) {
+        public ImageDisplay(DataRef img) {
             this.inputType = InputType.image;
             this.img = img;
         }
 
-        public void setImage(ImageRef img) {
+        public void setImage(DataRef img) {
             this.img = img;
             valuesChanged();
         }
-        public ImageRef getImageRef() {
+        public DataRef getImageRef() {
             return img;
         }
         public Drawable getImage() {

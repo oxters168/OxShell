@@ -12,7 +12,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.OxGames.OxShell.Data.DataLocation;
-import com.OxGames.OxShell.Data.FontRef;
+import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.InputHandler;
@@ -73,7 +73,7 @@ public class OxShellApp extends Application {
         Log.i("PagedActivity", "Time(s) loaded: " + SettingsKeeper.getTimesLoaded() + "\nVersion: " + SettingsKeeper.getPrevVersionCode() + " (" + SettingsKeeper.getPrevVersionName() + ") => " + BuildConfig.VERSION_CODE + " (" + BuildConfig.VERSION_NAME + ")");
         if (SettingsKeeper.getTimesLoaded() < 1) {
             ShortcutsCache.createAndStoreDefaults();
-            SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, FontRef.from("Fonts/exo.regular.otf", DataLocation.asset));
+            SettingsKeeper.setValueAndSave(SettingsKeeper.FONT_REF, DataRef.from("Fonts/exo.regular.otf", DataLocation.asset));
             Log.i("PagedActivity", "First time launch");
         } else {
             ShortcutsCache.readIntentsFromDisk();
