@@ -57,7 +57,29 @@ public class AudioPool {
             }
         }).start();
     }
-    public void stopAll() {
+
+    public boolean isAnyPlaying() {
+        boolean isPlaying = false;
+        for (MediaPlayer mp : playingPlayers) {
+            if (mp.isPlaying()) {
+                isPlaying = true;
+                break;
+            }
+        }
+        return isPlaying;
+    }
+    public int getActiveCount() {
+        return playingPlayers.size();
+    }
+    public void pauseActive() {
+        for (MediaPlayer mp : playingPlayers)
+            mp.pause();
+    }
+    public void resumeActive() {
+        for (MediaPlayer mp : playingPlayers)
+            mp.start();
+    }
+    public void stopActive() {
         for (MediaPlayer mp : playingPlayers) {
             mp.stop();
             playingPlayers.remove(mp);

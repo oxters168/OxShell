@@ -126,11 +126,13 @@ public class HomeView extends XMBView implements Refreshable {
     public void onResume() {
         musicPool.setPoolSize(1);
         movePool.setPoolSize(5);
-        musicPool.play(true);
+        if (musicPool.getActiveCount() > 0)
+            musicPool.resumeActive();
+        else
+            musicPool.play(true);
     }
     public void onPause() {
-        musicPool.setPoolSize(0);
-        movePool.setPoolSize(0);
+        musicPool.pauseActive();
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
