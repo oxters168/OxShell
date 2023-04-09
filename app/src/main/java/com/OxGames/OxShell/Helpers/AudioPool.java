@@ -9,6 +9,7 @@ import android.util.Log;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.OxShellApp;
+import com.OxGames.OxShell.Views.DebugView;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -33,29 +34,39 @@ public class AudioPool {
     }
 
     public void play(boolean loop) {
-        new Thread(() -> {
-            try {
-                long startTime = SystemClock.uptimeMillis();
-                while (!isPlayerAvailable()) {
-                    if ((SystemClock.uptimeMillis() - startTime) / 1000f > 10)
-                        throw new TimeoutException("Failed to play, no audio prepared within 10s");
-                    Thread.sleep(10);
+        Runnable play = () -> {
+            MediaPlayer player = unusedPlayers.poll();
+            playingPlayers.add(player);
+            player.setOnCompletionListener(mp -> {
+                //if (loop)
+                //    play(true); // same gap between
+                if (playingPlayers.contains(mp)) {
+                    playingPlayers.remove(mp);
+                    unusedPlayers.add(mp);
                 }
-                MediaPlayer player = unusedPlayers.poll();
-                playingPlayers.add(player);
-                player.setOnCompletionListener(mp -> {
-                    if (playingPlayers.contains(mp)) {
-                        playingPlayers.remove(mp);
-                        unusedPlayers.add(mp);
+            });
+            player.setLooping(loop);
+            player.setVolume(1, 1);
+            player.start();
+        };
+
+        if (!isPlayerAvailable()) {
+            setPoolSize(getPoolSize() + 5);
+            new Thread(() -> {
+                try {
+                    long startTime = SystemClock.uptimeMillis();
+                    while (!isPlayerAvailable()) {
+                        if ((SystemClock.uptimeMillis() - startTime) / 1000f > 10)
+                            throw new TimeoutException("Failed to play, no audio prepared within 10s");
+                        Thread.sleep(10);
                     }
-                });
-                player.setLooping(loop);
-                player.setVolume(1, 1);
-                player.start();
-            } catch (Exception e) {
-                Log.e("AudioPool", "Failed to play audio " + dataRef.getLoc() + ": " + e);
-            }
-        }).start();
+                    play.run();
+                } catch (Exception e) {
+                    Log.e("AudioPool", "Failed to play audio " + dataRef.getLoc() + ": " + e);
+                }
+            }).start();
+        } else
+            play.run();
     }
 
     public boolean isAnyPlaying() {
@@ -91,6 +102,7 @@ public class AudioPool {
         return beingPrepped.size() + unusedPlayers.size() + playingPlayers.size();
     }
     public void setPoolSize(int size) {
+        DebugView.print(dataRef.getLoc().toString(), dataRef.getLoc() + ": " + size);
         int diff = size - getPoolSize();
         if (diff > 0) {
             // add media players
