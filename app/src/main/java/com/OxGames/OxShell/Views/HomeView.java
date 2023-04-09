@@ -118,15 +118,24 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     private void init() {
-        musicPool = AudioPool.fromAsset("Audio/xmb_music.mp3", 5);
-        movePool = AudioPool.fromAsset("Audio/cow_G7.wav", 5);
-        musicPool.play(true);
+        musicPool = AudioPool.fromAsset("Audio/xmb_music.mp3", 0);
+        movePool = AudioPool.fromAsset("Audio/cow_G7.wav", 0);
         OxShellApp.addPkgInstalledListener(pkgInstalledListener);
         refresh();
+    }
+    public void onResume() {
+        musicPool.setPoolSize(1);
+        movePool.setPoolSize(5);
+        musicPool.play(true);
+    }
+    public void onPause() {
+        musicPool.setPoolSize(0);
+        movePool.setPoolSize(0);
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
         musicPool.setPoolSize(0);
+        movePool.setPoolSize(0);
     }
 
     @Override

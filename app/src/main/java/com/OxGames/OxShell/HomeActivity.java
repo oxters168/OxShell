@@ -72,8 +72,15 @@ public class HomeActivity extends PagedActivity {
         super.onResume();
         getDynamicInput().addShownListener(onDynamicInputShown);
         refreshXMBInput();
+        ((HomeView)homeView).onResume();
         //showAnnoyingDialog();
         //Log.d("HomeActivity", "onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ((HomeView)homeView).onPause();
     }
 
     @Override
