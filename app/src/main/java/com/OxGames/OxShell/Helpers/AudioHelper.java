@@ -31,27 +31,80 @@ public class AudioHelper {
             return !unusedPlayers.isEmpty();
         }
 
+        public int getPoolSize() {
+            return beingPrepped.size() + unusedPlayers.size();
+        }
+        public void setPoolSize(int size) {
+            int diff = size - getPoolSize();
+            if (diff > 0) {
+                // add media players
+                new Thread(() -> {
+                    try {
+                        AssetFileDescriptor afd = null;
+                        if (dataRef.getLocType() == DataLocation.asset)
+                            OxShellApp.getContext().getAssets().openFd((String)dataRef.getLoc());
+                        for (int i = 0; i < diff; i++) {
+                            MediaPlayer player = new MediaPlayer();
+                            try {
+                                if (dataRef.getLocType() == DataLocation.asset)
+                                    player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                                else if (dataRef.getLocType() == DataLocation.file)
+                                    player.setDataSource((String)dataRef.getLoc());
+                                else if (dataRef.getLocType() == DataLocation.resolverUri)
+                                    player.setDataSource(OxShellApp.getContext(), (Uri)dataRef.getLoc());
+                                else
+                                    throw new UnsupportedOperationException("Cannot load data type: " + dataRef.getLocType());
+                                beingPrepped.add(player);
+                                new Thread(() -> {
+                                    try {
+                                        player.prepare();
+                                        if (beingPrepped.contains(player)) {
+                                            // if its not in beingPrepped, that means its been 'cancelled'
+                                            beingPrepped.remove(player);
+                                            unusedPlayers.add(player);
+                                        }
+                                    } catch (Exception e) {
+                                        Log.e("AudioHelper", "Failed to prepare MediaPlayer: " + e);
+                                    }
+                                }).start();
+                            } catch (Exception e) {
+                                Log.e("AudioHelper", "Failed to load asset into MediaPlayer: " + e);
+                            }
+                        }
+                        if (afd != null)
+                            afd.close();
+                    } catch (Exception e) {
+                        Log.e("AudioHelper", "Failed to read asset: " + e);
+                    }
+                }).start();
+            } else if (diff < 0) {
+                // remove media players
+                int removeCount = Math.abs(diff);
+                int removed = 0;
+                if (beingPrepped.size() > 0) {
+                    for (int i = 0; i < Math.min(beingPrepped.size(), removeCount); i++) {
+                        int lastIndex = (beingPrepped.size() - 1) - i;
+                        MediaPlayer player = beingPrepped.get(lastIndex);
+                        player.reset();
+                        player.release();
+                        beingPrepped.remove(lastIndex);
+                        removed++;
+                    }
+                }
+                if (removed < removeCount && unusedPlayers.size() > 0) {
+                    for (int i = 0; i < Math.min(unusedPlayers.size(), removeCount); i++) {
+                        MediaPlayer player = unusedPlayers.poll();
+                        player.reset();
+                        player.release();
+                        removed++;
+                    }
+                }
+            }
+        }
         public static AudioPool fromAsset(String assetLoc, int poolSize) {
             AudioPool pool = new AudioPool();
             pool.dataRef = DataRef.from(assetLoc, DataLocation.asset);
-            new Thread(() -> {
-                try {
-                    AssetFileDescriptor afd = OxShellApp.getContext().getAssets().openFd(assetLoc);
-                    for (int i = 0; i < poolSize; i++) {
-                        MediaPlayer player = new MediaPlayer();
-                        try {
-                            player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                            pool.beingPrepped.add(player);
-                            player.prepare();
-                        } catch (Exception e) {
-                            Log.e("AudioHelper", "Failed to load asset into MediaPlayer: " + e);
-                        }
-                    }
-                    afd.close();
-                } catch (Exception e) {
-                    Log.e("AudioHelper", "Failed to read asset: " + e);
-                }
-            }).start();
+            pool.setPoolSize(poolSize);
             return pool;
         }
     }
