@@ -2,8 +2,13 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -55,6 +60,27 @@ public class DynamicInputRowView extends FrameLayout {
         row.setLayoutManager(new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false));
         row.setVisibility(VISIBLE);
         row.setFocusable(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create thumb drawable
+            ShapeDrawable thumbDrawable = new ShapeDrawable();
+            thumbDrawable.setShape(new RectShape());
+            thumbDrawable.getPaint().setColor(Color.WHITE);
+            thumbDrawable.setIntrinsicWidth(8);
+            thumbDrawable.setIntrinsicHeight(8);
+            row.setHorizontalScrollbarThumbDrawable(thumbDrawable);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create track drawable
+            ShapeDrawable trackDrawable = new ShapeDrawable();
+            trackDrawable.setShape(new RectShape());
+            trackDrawable.getPaint().setColor(Color.DKGRAY);
+            trackDrawable.setIntrinsicWidth(8);
+            trackDrawable.setIntrinsicHeight(8);
+            row.setHorizontalScrollbarTrackDrawable(trackDrawable);
+        }
+        row.setHorizontalScrollBarEnabled(true);
+        row.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        row.setScrollbarFadingEnabled(false);
         addView(row);
     }
     public void setInputItems(DynamicInputRow items) {
@@ -79,7 +105,7 @@ public class DynamicInputRowView extends FrameLayout {
     private void recalculateRowWidth() {
         // this assumes the dynamic input view is taking up the whole screen
         int dip = Math.round(AndroidHelpers.getScaledDpToPixels(context, 40)); // TODO: change hardcoded dip value to properly reflect padding of parent recycler
-        rowWidth = OxShellApp.getDisplayWidth() - dip;
+        rowWidth = OxShellApp.getDisplayWidth() - (dip * 2); // added *2 since the horizontal scrollbars were showing up when not necessary
         //measure(0, 0);
         //rowWidth = getMeasuredWidth();
         if (adapter != null)

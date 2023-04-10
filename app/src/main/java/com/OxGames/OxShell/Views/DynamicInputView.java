@@ -2,10 +2,15 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
+import android.os.Build;
+import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
@@ -129,6 +134,28 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
         mainList.setLayoutManager(new LinearLayoutManager(context));
         mainList.setVisibility(VISIBLE);
         mainList.setFocusable(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create thumb drawable
+            ShapeDrawable thumbDrawable = new ShapeDrawable();
+            thumbDrawable.setShape(new RectShape());
+            thumbDrawable.getPaint().setColor(Color.WHITE);
+            thumbDrawable.setIntrinsicWidth(8);
+            thumbDrawable.setIntrinsicHeight(8);
+            mainList.setVerticalScrollbarThumbDrawable(thumbDrawable);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create track drawable
+            ShapeDrawable trackDrawable = new ShapeDrawable();
+            trackDrawable.setShape(new RectShape());
+            trackDrawable.getPaint().setColor(Color.DKGRAY);
+            trackDrawable.setIntrinsicWidth(8);
+            trackDrawable.setIntrinsicHeight(8);
+            mainList.setVerticalScrollbarTrackDrawable(trackDrawable);
+        }
+        mainList.setVerticalScrollBarEnabled(true);
+        mainList.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+        mainList.setScrollbarFadingEnabled(false);
+        //mainList.setOverScrollMode(SCROLL_AXIS_VERTICAL);
         addView(mainList);
 
         FrameLayout footer = new FrameLayout(context);

@@ -144,12 +144,12 @@ public class PagedActivity extends AppCompatActivity {
 
     //private InputHandler inputHandler;
     //private boolean isKeyboardShown;
-    private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
+    //private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
     private List<KeyComboAction> accessPopupComboActions;
     KeyComboAction[] showDebugAction;
 
-    private static final String homeAccessMsg = "Ox Shell needs accessibility permission in order to go home when pressing this key combo";
-    private static final String recentsAccessMsg = "Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
+    private static final String homeAccessMsg = "Please enable Ox Shell as an accessibility service. Ox Shell uses your key presses to let you go home even when the app is not in use.";//"Ox Shell needs accessibility permission in order to go home when pressing this key combo";
+    private static final String recentsAccessMsg = "Please enable Ox Shell as an accessibility service. Ox Shell uses your key presses to let you view recent apps even when the app is not in use.";//"Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
 
     private void showAccessibilityPopup(String msg) {
         if (!AccessService.isEnabled() && !prompt.isPromptShown()) {

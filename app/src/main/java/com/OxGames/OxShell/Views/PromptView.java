@@ -5,7 +5,9 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
@@ -16,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,7 +43,8 @@ public class PromptView extends FrameLayout implements InputReceiver {
     private InputHandler inputHandler;
     private final Context context;
     private ImageView img;
-    private BetterTextView msg;
+    //private BetterTextView msg;
+    private TextView msg;
     private Button startBtn;
     private Button middleBtn;
     private Button endBtn;
@@ -110,7 +114,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
 
         LayoutParams layoutParams;
 
-        layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         setLayoutParams(layoutParams);
         setSize(getDefaultWidth(), getDefaultHeight());
@@ -127,7 +131,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         int textLowerMargin = borderMargin * 2 + btnHeight;
 
         img = new ImageView(context);
-        layoutParams = new FrameLayout.LayoutParams(imgSize, imgSize);
+        layoutParams = new LayoutParams(imgSize, imgSize);
         layoutParams.gravity = Gravity.TOP | Gravity.START;
         layoutParams.setMargins(0, borderMargin, 0, 0);
         layoutParams.setMarginStart(borderMargin);
@@ -136,14 +140,34 @@ public class PromptView extends FrameLayout implements InputReceiver {
         img.setFocusable(false);
         addView(img);
 
-        msg = new BetterTextView(context);
-        layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        msg = new TextView(context);
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.END;
         layoutParams.setMargins(0, borderMargin, 0, textLowerMargin);
         layoutParams.setMarginStart(textStartMargin);
         layoutParams.setMarginEnd(borderMargin);
         msg.setLayoutParams(layoutParams);
-        //msg.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create thumb drawable
+            ShapeDrawable thumbDrawable = new ShapeDrawable();
+            thumbDrawable.setShape(new RectShape());
+            thumbDrawable.getPaint().setColor(Color.WHITE);
+            thumbDrawable.setIntrinsicWidth(8);
+            thumbDrawable.setIntrinsicHeight(8);
+            msg.setVerticalScrollbarThumbDrawable(thumbDrawable);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create track drawable
+            ShapeDrawable trackDrawable = new ShapeDrawable();
+            trackDrawable.setShape(new RectShape());
+            trackDrawable.getPaint().setColor(Color.DKGRAY);
+            trackDrawable.setIntrinsicWidth(8);
+            trackDrawable.setIntrinsicHeight(8);
+            msg.setVerticalScrollbarTrackDrawable(trackDrawable);
+        }
+        msg.setVerticalScrollBarEnabled(true);
+        msg.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        msg.setScrollbarFadingEnabled(false);
         msg.setOverScrollMode(SCROLL_AXIS_VERTICAL);
         msg.setMovementMethod(new ScrollingMovementMethod());
         //msg.setEllipsize(TextUtils.TruncateAt.END);
@@ -158,7 +182,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         addView(msg);
 
         startBtn = new Button(context);
-        layoutParams = new FrameLayout.LayoutParams(btnWidth, btnHeight);
+        layoutParams = new LayoutParams(btnWidth, btnHeight);
         layoutParams.gravity = Gravity.BOTTOM | Gravity.START;
         layoutParams.setMargins(0, 0, 0, borderMargin);
         layoutParams.setMarginStart(borderMargin);
@@ -171,7 +195,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         addView(startBtn);
 
         middleBtn = new Button(context);
-        layoutParams = new FrameLayout.LayoutParams(btnWidth, btnHeight);
+        layoutParams = new LayoutParams(btnWidth, btnHeight);
         layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
         layoutParams.setMargins(0, 0, 0, borderMargin);
         middleBtn.setLayoutParams(layoutParams);
@@ -185,7 +209,7 @@ public class PromptView extends FrameLayout implements InputReceiver {
         addView(middleBtn);
 
         endBtn = new Button(context);
-        layoutParams = new FrameLayout.LayoutParams(btnWidth, btnHeight);
+        layoutParams = new LayoutParams(btnWidth, btnHeight);
         layoutParams.gravity = Gravity.BOTTOM | Gravity.END;
         layoutParams.setMargins(0, 0, 0, borderMargin);
         layoutParams.setMarginEnd(borderMargin);
