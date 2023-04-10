@@ -29,11 +29,26 @@ public class AudioPool {
     private final Queue<MediaPlayer> unusedPlayers;
     private final LinkedList<MediaPlayer> playingPlayers;
 
+    private final List<Runnable> completedListeners;
+
     private AudioPool() {
         beingPrepped = new ArrayList<>();
         unusedPlayers = new ArrayDeque<>();
         playingPlayers = new LinkedList<>();
+
+        completedListeners = new ArrayList<>();
     }
+
+    public void addOnCompletedListener(Runnable listener) {
+        completedListeners.add(listener);
+    }
+    public void removeOnCompletedListener(Runnable listener) {
+        completedListeners.remove(listener);
+    }
+    public void clearOnCompletedListeners() {
+        completedListeners.clear();
+    }
+
     public boolean isPlayerAvailable() {
         return !unusedPlayers.isEmpty();
     }
@@ -47,6 +62,9 @@ public class AudioPool {
             if (duration <= COMPLETE_MILLIS) {
                 // if duration of the audio is short, then use the ordinary method of checking completion
                 player.setOnCompletionListener(mp -> {
+                    for (Runnable listener : completedListeners)
+                        if (listener != null)
+                            listener.run();
                     if (playingPlayers.contains(mp)) {
                         playingPlayers.remove(mp);
                         unusedPlayers.add(mp);
@@ -65,11 +83,15 @@ public class AudioPool {
                     @Override
                     public void run() {
                         int position = player.getCurrentPosition();
-                        Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
+                        //Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
                         if (position >= (duration - COMPLETE_MILLIS)) {
                             if (playingPlayers.contains(player)) {
                                 // ready for loop
-                                if (loop)
+                                if (!loop) {
+                                    for (Runnable listener : completedListeners)
+                                        if (listener != null)
+                                            listener.run();
+                                } else
                                     play(true);
                                 playingPlayers.remove(player);
                             }
@@ -80,7 +102,7 @@ public class AudioPool {
                                 unusedPlayers.add(player);
                             } else
                                 completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
-                        } else
+                        } else if (playingPlayers.contains(player))
                             completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
                     }
                 });
@@ -129,7 +151,8 @@ public class AudioPool {
     }
     public void stopActive() {
         for (MediaPlayer mp : playingPlayers) {
-            mp.stop();
+            mp.pause();
+            mp.seekTo(0);
             playingPlayers.remove(mp);
             unusedPlayers.add(mp);
         }
