@@ -19,7 +19,7 @@ Ox Shell is a launcher for android. It is an attempt to recreate the feel of a c
 - [x] Customizable controls
 - [x] Use home/recent apps/etc through controller from anywhere
 - [ ] Add compression/extraction options to file explorer
-- [ ] Give prompts to file operations before doing them
+- [x] Show prompt before deleting files in file explorer
 - [ ] Show which files are in the copy/cut clipboard
 - [ ] Show any file operation errors
 - [ ] Show progress of file operations
@@ -28,9 +28,8 @@ Ox Shell is a launcher for android. It is an attempt to recreate the feel of a c
 - [ ] Add more default associations
 - [ ] Make a chooser in the create association menu to pick a template from the defaults
 - [ ] Add more default shaders
-- [ ] Add setting to change file explorer item size
-- [ ] Add setting to change home menu icon size
-- [ ] Add setting to change home menu font size
+- [x] Add UI scale option
+- [x] Add text scale option
 - [ ] Add setting to choose typeface
 - [x] Optimize home menu performance
 - [ ] Remember where user was in the home menu when coming back
