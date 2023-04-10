@@ -3,6 +3,8 @@ package com.OxGames.OxShell.Helpers;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -17,8 +19,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AudioPool {
+    private static final int COMPLETE_MILLIS = 500; // Through multiple tests, these values seemed to work well to remove the weird clicks/gaps between audio playback
+    private static final int STOP_MILLIS = 300;
     private DataRef dataRef;
     private final List<MediaPlayer> beingPrepped;
     private final Queue<MediaPlayer> unusedPlayers;
@@ -37,17 +42,49 @@ public class AudioPool {
         Runnable play = () -> {
             MediaPlayer player = unusedPlayers.poll();
             playingPlayers.add(player);
-            player.setOnCompletionListener(mp -> {
-                //if (loop)
-                //    play(true); // same gap between
-                if (playingPlayers.contains(mp)) {
-                    playingPlayers.remove(mp);
-                    unusedPlayers.add(mp);
-                }
-            });
-            player.setLooping(loop);
+
+            final int duration = player.getDuration();
+            if (duration <= COMPLETE_MILLIS) {
+                // if duration of the audio is short, then use the ordinary method of checking completion
+                player.setOnCompletionListener(mp -> {
+                    if (playingPlayers.contains(mp)) {
+                        playingPlayers.remove(mp);
+                        unusedPlayers.add(mp);
+                    }
+                });
+                player.setLooping(loop);
+            }
+
             player.setVolume(1, 1);
             player.start();
+
+            if (duration > COMPLETE_MILLIS) {
+                // if the duration of the audio is long enough, then use the better way of checking for completion
+                final Handler completionHandler = new Handler(Looper.getMainLooper());
+                completionHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        int position = player.getCurrentPosition();
+                        Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
+                        if (position >= (duration - COMPLETE_MILLIS)) {
+                            if (playingPlayers.contains(player)) {
+                                // ready for loop
+                                if (loop)
+                                    play(true);
+                                playingPlayers.remove(player);
+                            }
+                            if (position >= (duration - STOP_MILLIS)) {
+                                //player.stop(); // can't play again after stop
+                                player.pause();
+                                player.seekTo(0);
+                                unusedPlayers.add(player);
+                            } else
+                                completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+                        } else
+                            completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+                    }
+                });
+            }
         };
 
         if (!isPlayerAvailable()) {
