@@ -493,6 +493,25 @@ public class HomeView extends XMBView implements Refreshable {
 
                     dynamicInput.setItems(new DynamicInputRow(statusBarToggle), new DynamicInputRow(navBarToggle), new DynamicInputRow(applyBtn, cancelBtn));
                     dynamicInput.setShown(true);
+                } else if (selectedItem.type == HomeItem.Type.setAudioVolume) {
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Set Audio Volume");
+                    DynamicInputRow.Label musicLabel = new DynamicInputRow.Label("Music Volume");
+                    musicLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+                    DynamicInputRow.SliderInput musicSlider = new DynamicInputRow.SliderInput(0, 1, 0, 0.01f, null);
+                    DynamicInputRow.Label sfxLabel = new DynamicInputRow.Label("SFX Volume");
+                    sfxLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+                    DynamicInputRow.SliderInput sfxSlider = new DynamicInputRow.SliderInput(0, 1, 0, 0.01f, null);
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", (selfBtn) -> {
+                        float musicVolume = musicSlider.getValue();
+                        float sfxVolume = sfxSlider.getValue();
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", (selfBtn) -> {
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getCancelInput());
+                    dynamicInput.setItems(new DynamicInputRow(musicLabel), new DynamicInputRow(musicSlider), new DynamicInputRow(sfxLabel), new DynamicInputRow(sfxSlider), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.setControls) {
                     //Log.d("HomeView", "Modifying " + selectedItem.obj);
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
@@ -828,6 +847,11 @@ public class HomeView extends XMBView implements Refreshable {
         if (!AndroidHelpers.isRunningOnTV())
             innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
         settingsItem = new XMBItem(null, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsColumn.add(settingsItem);
+
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.setAudioVolume, "Set volume levels"));
+        settingsItem = new XMBItem(null, "Audio", DataRef.from("ic_baseline_headphones_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         innerSettings.clear();

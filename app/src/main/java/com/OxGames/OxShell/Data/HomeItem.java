@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, settings, setControls, appInfo, saveLogs, }
+    public enum Type { explorer, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, setControls, appInfo, saveLogs, }
     public Type type;
     public ArrayList<String> extraData;
 
@@ -96,6 +96,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 type == Type.setShaderBg ||
                 type == Type.setUiScale ||
                 type == Type.setSystemUi ||
+                type == Type.setAudioVolume ||
                 type == Type.setControls ||
                 type == Type.addAssocOuter ||
                 type == Type.createAssoc;
