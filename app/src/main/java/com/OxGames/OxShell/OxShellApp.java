@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -30,9 +32,18 @@ public class OxShellApp extends Application {
             String pkgName = null;
             if (intent != null && intent.getData() != null)
                 pkgName = intent.getData().getEncodedSchemeSpecificPart();
-            for (Consumer<String> listener : pkgInstalledListeners)
-                if (listener != null)
-                    listener.accept(pkgName);
+            try {
+                PackageInfo packageInfo = getPackageManager().getPackageInfo(pkgName, 0);
+                if (packageInfo.firstInstallTime == packageInfo.lastUpdateTime) {
+                    // This is the first installation of the package
+                    for (Consumer<String> listener : pkgInstalledListeners)
+                        if (listener != null)
+                            listener.accept(pkgName);
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.e("OxShellApp", "Could not find package: " + e);
+            }
+
             //Log.d("OxShellApp", "Broadcast receiver: " + intent + ", " + (intent != null ? (intent.getExtras() + ", " + pkgName) : "no extras"));
         }
     };
