@@ -1,6 +1,8 @@
 package com.OxGames.OxShell.Helpers;
 
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -19,7 +21,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AudioPool {
     private static final int COMPLETE_MILLIS = 500; // Through multiple tests, these values seemed to work well to remove the weird clicks/gaps between audio playback
@@ -31,12 +32,16 @@ public class AudioPool {
 
     private final List<Runnable> completedListeners;
 
+    private float volume;
+
     private AudioPool() {
         beingPrepped = new ArrayList<>();
         unusedPlayers = new ArrayDeque<>();
         playingPlayers = new LinkedList<>();
 
         completedListeners = new ArrayList<>();
+
+        volume = 1;
     }
 
     public void addOnCompletedListener(Runnable listener) {
@@ -51,6 +56,20 @@ public class AudioPool {
 
     public boolean isPlayerAvailable() {
         return !unusedPlayers.isEmpty();
+    }
+
+    public void setVolume(float volume) {
+        this.volume = volume;
+        float log = linearToLogVolume(volume);
+        //Log.d("AudioPool", volume + " -> " + log);
+        for (MediaPlayer player : playingPlayers)
+            player.setVolume(log, log);
+    }
+    private static float linearToLogVolume(float linearValue) {
+        //AudioManager audioManager = (AudioManager)OxShellApp.getContext().getSystemService(Context.AUDIO_SERVICE);
+        //int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        float maxVolume = 100;
+        return Math.max(0, Math.min(1, (float)(1 - Math.log(maxVolume - (maxVolume * linearValue)) / Math.log(maxVolume))));
     }
 
     public void play(boolean loop) {
@@ -73,7 +92,9 @@ public class AudioPool {
                 player.setLooping(loop);
             }
 
-            player.setVolume(1, 1);
+            float log = linearToLogVolume(volume);
+            //Log.d("AudioPool", volume + " -> " + log);
+            player.setVolume(log, log);
             player.start();
 
             if (duration > COMPLETE_MILLIS) {

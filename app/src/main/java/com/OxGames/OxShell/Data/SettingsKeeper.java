@@ -35,6 +35,9 @@ public class SettingsKeeper {
     public static final String NAVIGATE_RIGHT = "navigate_right";
     public static final String SHOW_DEBUG_INPUT = "show_debug_input";
 
+    public static final String MUSIC_VOLUME = "music_volume";
+    public static final String SFX_VOLUME = "sfx_volume";
+
     public static final String TV_BG_TYPE = "tv_bg_type";
 
     public static final String HOME_ITEM_SCALE = "home_item_scale";
@@ -130,6 +133,28 @@ public class SettingsKeeper {
 
         return (int)getValue(SYSTEM_UI_VISIBILITY);
     }
+
+    public static float getMusicVolume() {
+        // create default if not existing
+        if (!hasValue(MUSIC_VOLUME))
+            setMusicVolume(1f);
+
+        return Float.parseFloat((String)getValue(MUSIC_VOLUME));
+    }
+    public static void setMusicVolume(float scale) {
+        setValueAndSave(MUSIC_VOLUME, String.valueOf(scale));
+    }
+    public static float getSfxVolume() {
+        // create default if not existing
+        if (!hasValue(SFX_VOLUME))
+            setSfxVolume(1f);
+
+        return Float.parseFloat((String)getValue(SFX_VOLUME));
+    }
+    public static void setSfxVolume(float scale) {
+        setValueAndSave(SFX_VOLUME, String.valueOf(scale));
+    }
+
     public static float getUiScale() {
         // create default if not existing
         if (!hasValue(UI_SCALE))

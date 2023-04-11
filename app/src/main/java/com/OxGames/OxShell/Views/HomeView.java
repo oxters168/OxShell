@@ -124,6 +124,7 @@ public class HomeView extends XMBView implements Refreshable {
         refresh();
     }
     public void onResume() {
+        refreshAudioPools();
         if (musicPool.getActiveCount() > 0)
             musicPool.resumeActive();
         else
@@ -136,6 +137,10 @@ public class HomeView extends XMBView implements Refreshable {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
         musicPool.setPoolSize(0);
         movePool.setPoolSize(0);
+    }
+    public void refreshAudioPools() {
+        musicPool.setVolume(SettingsKeeper.getMusicVolume());
+        movePool.setVolume(SettingsKeeper.getSfxVolume());
     }
 
     @Override
@@ -495,16 +500,17 @@ public class HomeView extends XMBView implements Refreshable {
                     dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.setAudioVolume) {
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
-                    dynamicInput.setTitle("Set Audio Volume");
+                    dynamicInput.setTitle("Set Volume Levels");
                     DynamicInputRow.Label musicLabel = new DynamicInputRow.Label("Music Volume");
                     musicLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
-                    DynamicInputRow.SliderInput musicSlider = new DynamicInputRow.SliderInput(0, 1, 0, 0.01f, null);
+                    DynamicInputRow.SliderInput musicSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getMusicVolume(), 0.01f, null);
                     DynamicInputRow.Label sfxLabel = new DynamicInputRow.Label("SFX Volume");
                     sfxLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
-                    DynamicInputRow.SliderInput sfxSlider = new DynamicInputRow.SliderInput(0, 1, 0, 0.01f, null);
+                    DynamicInputRow.SliderInput sfxSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getSfxVolume(), 0.01f, null);
                     DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", (selfBtn) -> {
-                        float musicVolume = musicSlider.getValue();
-                        float sfxVolume = sfxSlider.getValue();
+                        SettingsKeeper.setMusicVolume(musicSlider.getValue());
+                        SettingsKeeper.setSfxVolume(sfxSlider.getValue());
+                        refreshAudioPools();
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", (selfBtn) -> {

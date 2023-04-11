@@ -416,13 +416,13 @@ public class DynamicInputItemView extends FrameLayout {
             sliderTouchListener = new Slider.OnSliderTouchListener() {
                 @Override
                 public void onStartTrackingTouch(@NonNull Slider slider) {
-                    Log.d("DynamicInputItemView", "onStartTrackingTouch: " + slider.getValue());
+                    //Log.d("DynamicInputItemView", "onStartTrackingTouch: " + slider.getValue());
                     //innerItem.setValue(slider.getValue());
                 }
 
                 @Override
                 public void onStopTrackingTouch(@NonNull Slider slider) {
-                    Log.d("DynamicInputItemView", "onStopTrackingTouch: " + slider.getValue());
+                    //Log.d("DynamicInputItemView", "onStopTrackingTouch: " + slider.getValue());
                     innerItem.setValue(slider.getValue());
                 }
             };
