@@ -42,6 +42,7 @@ android {
         manifestPlaceholders = [appLabel: appLabelValue, icon: iconValue, banner: bannerValue]
 
         buildConfigField "boolean", "GOLD", "false"
+        buildConfigField "String", "APP_LABEL", "\"{$appLabelValue}\""
 
         //testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

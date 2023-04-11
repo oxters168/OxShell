@@ -2,15 +2,12 @@ package com.OxGames.OxShell.Helpers;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -24,8 +21,8 @@ import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.util.Log;
@@ -58,8 +55,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -520,16 +515,16 @@ public class AndroidHelpers {
         OxShellApp.getCurrentActivity().startActivity(intent);
     }
 
-    public static Uri uriFromFile(File file) {
-        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //Unnecessary since version code is always over 24
-        return FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.APPLICATION_ID, file);
-        //return Uri.parse(Uri.decode(FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.APPLICATION_ID, file).toString()));
-        //} else {
-        //    return Uri.fromFile(file);
-        //}
-    }
+//    public static Uri uriFromFile(File file) {
+//        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { //Unnecessary since version code is always over 24
+//        return FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.APPLICATION_ID, file);
+//        //} else {
+//        //    return Uri.fromFile(file);
+//        //}
+//    }
     public static Uri uriFromPath(String path) {
-        return uriFromFile(new File(path));
+        //return uriFromFile(new File(path));
+        return FileProvider.getUriForFile(OxShellApp.getContext(), BuildConfig.APPLICATION_ID, new File(path));
     }
 
     public static void install(String path) {

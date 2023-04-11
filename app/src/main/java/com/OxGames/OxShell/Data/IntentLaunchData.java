@@ -158,7 +158,7 @@ public class IntentLaunchData implements Serializable {
         if (flags > 0)
             intent.setFlags(flags);
 
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
 
         return intent;
     }
@@ -222,9 +222,11 @@ public class IntentLaunchData implements Serializable {
 //    }
 
     public static Uri formatData(String data, DataType dataType) {
-        if (dataType == DataType.Uri)
+        if (dataType == DataType.Uri) {
+            //final Uri uri = AndroidHelpers.uriFromPath(data);
+            //OxShellApp.getCurrentActivity().grantUriPermission(targetPkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             return AndroidHelpers.uriFromPath(data);
-        if (dataType == DataType.AbsolutePath)
+        } if (dataType == DataType.AbsolutePath)
             return Uri.parse(data);
         if (dataType == DataType.FileNameWithoutExt)
             return Uri.parse(AndroidHelpers.removeExtension(new File(data).getName()));

@@ -167,13 +167,17 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         }
     }
     public void sendResult(String path) {
-        final Uri uri = AndroidHelpers.uriFromPath(path);
-        //Uri uri = FileProvider.getUriForFile(getContext(), BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
-        //Uri uri = Uri.parse(path);
-        OxShellApp.getCurrentActivity().grantUriPermission(OxShellApp.getCurrentActivity().getCallingPackage(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        Intent launchedAs = OxShellApp.getCurrentActivity().getIntent();
+        boolean asAuthority = launchedAs.getBooleanExtra("AsAuthority", true);
+        final Uri uri;
+        if (asAuthority)
+            uri = AndroidHelpers.uriFromPath(path);
+        else
+            uri = Uri.parse(path);
+        //OxShellApp.getCurrentActivity().grantUriPermission(OxShellApp.getCurrentActivity().getCallingPackage(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         Intent returnIntent = new Intent();
         returnIntent.setData(uri);
-        returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         OxShellApp.getCurrentActivity().setResult(Activity.RESULT_OK, returnIntent);
         //Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + uri);
         OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);

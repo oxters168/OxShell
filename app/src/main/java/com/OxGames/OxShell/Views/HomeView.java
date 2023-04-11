@@ -248,6 +248,7 @@ public class HomeView extends XMBView implements Refreshable {
                         Intent intent = new Intent();
                         //intent.setPackage(context.getPackageName());
                         intent.setClass(context, FileChooserActivity.class);
+                        intent.putExtra("AsAuthority", false);
                         currentActivity.requestResult(intent, result -> {
                             Log.d("HomeView", result.toString() + ", " + (result.getData() != null ? result.getData().toString() : null) + ", " + (result.getData() != null && result.getData().getExtras() != null ? result.getData().getExtras().toString() : null));
                             if (result.getResultCode() == Activity.RESULT_OK) {
