@@ -29,12 +29,17 @@ android {
         applicationId "com.OxGames.OxShell"
         minSdkVersion 26
         targetSdkVersion 33
-        versionCode 4
-        versionName "1.1.2"
+        versionCode 6
+        versionName "1.2.1"
 
-        def documentsAuthorityValue = applicationId + ".Explorer"
-        manifestPlaceholders = [documentsAuthority: documentsAuthorityValue]
-        buildConfigField "String", "DOCUMENTS_AUTHORITY", "\"${documentsAuthorityValue}\""
+        //def documentsAuthorityValue = applicationId + ".Explorer"
+        //manifestPlaceholders = [documentsAuthority: documentsAuthorityValue]
+        //buildConfigField "String", "DOCUMENTS_AUTHORITY", "\"${documentsAuthorityValue}\""
+        def appLabelValue = "Ox Shell"
+        //buildConfigField "String", "APP_LABEL", "\"${appLabelValue}\""
+        def iconValue = "@drawable/icon_free_xhdpi"
+        def bannerValue = "@drawable/banner_free_xhdpi"
+        manifestPlaceholders = [appLabel: appLabelValue, icon: iconValue, banner: bannerValue]
 
         buildConfigField "boolean", "GOLD", "false"
 
@@ -46,15 +51,24 @@ android {
 
     buildTypes {
         gold {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true
             buildConfigField "boolean", "GOLD", "true"
-            //debuggable true //TODO: Remove when publishing
+            def iconValue = "@drawable/icon_xhdpi"
+            def bannerValue = "@drawable/banner_xhdpi"
+            manifestPlaceholders = [icon: iconValue, banner: bannerValue]
         }
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            //debuggable true //TODO: Remove when publishing
+            minifyEnabled true
+        }
+        release_free {
+            minifyEnabled true
+            applicationIdSuffix ".free"
+            //def appLabelValue = "Ox Shell Free"
+            //manifestPlaceholders = [appLabel: appLabelValue]
+        }
+        debug {
+            minifyEnabled true
+            debuggable true
         }
     }
     compileOptions {
@@ -64,6 +78,12 @@ android {
     buildFeatures {
         viewBinding true
     }
+    splits {
+        abi {
+            enable true
+            universalApk true
+        }
+    }
     namespace 'com.OxGames.OxShell'
 }
 
@@ -71,7 +91,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.0'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'com.github.oxters168:ShaderView:0.8.11'
+    implementation 'com.github.oxters168:ShaderView:0.8.12'
+    //implementation project(':shader_view') // for when modifying ShaderView
     implementation 'de.ruedigermoeller:fst:2.57'
 }
 repositories {

@@ -13,12 +13,12 @@ public class XMBItem<T> implements Serializable {
     public T obj;
     protected String title;
     //protected Object iconLoc;
-    protected ImageRef iconLoc;
+    protected DataRef iconLoc;
     protected List<XMBItem> innerItems;
 
     protected transient Drawable icon;
 
-    public XMBItem(T _obj, String _title, ImageRef _iconLoc, XMBItem... innerItems) {
+    public XMBItem(T _obj, String _title, DataRef _iconLoc, XMBItem... innerItems) {
         obj = _obj;
         title = _title;
         iconLoc = _iconLoc;
@@ -26,7 +26,7 @@ public class XMBItem<T> implements Serializable {
         if (innerItems != null)
             Collections.addAll(this.innerItems, innerItems);
     }
-    public XMBItem(T _obj, String _title, ImageRef _iconLoc) {
+    public XMBItem(T _obj, String _title, DataRef _iconLoc) {
         this(_obj, _title, _iconLoc, null);
     }
     public XMBItem(T _obj, String _title, XMBItem... innerItems) {
@@ -47,10 +47,10 @@ public class XMBItem<T> implements Serializable {
         onIconLoaded.accept(icon);
         //return icon;
     }
-    public ImageRef getImgRef() {
+    public DataRef getImgRef() {
         return iconLoc;
     }
-    public void setImgRef(ImageRef imgRef) {
+    public void setImgRef(DataRef imgRef) {
         iconLoc = imgRef;
     }
     public void setTitle(String title) {

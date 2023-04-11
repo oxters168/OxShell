@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,7 +25,7 @@ import com.OxGames.OxShell.Adapters.XMBAdapter;
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
-import com.OxGames.OxShell.Data.ImageRef;
+import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -38,6 +39,7 @@ import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.AudioPool;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
@@ -63,33 +65,42 @@ import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
     public final static ResImage[] resourceImages = {
-        new ResImage(R.drawable.ic_baseline_accessibility_24, "Accessibility"),
-        new ResImage(R.drawable.ic_baseline_add_circle_outline_24, "Plus Circle"),
-        new ResImage(R.drawable.ic_baseline_cancel_24, "Cross Circle"),
-        new ResImage(R.drawable.ic_baseline_auto_awesome_24, "Stars"),
-        new ResImage(R.drawable.ic_baseline_block_24, "Block"),
-        new ResImage(R.drawable.ic_baseline_check_24, "Checkmark"),
-        new ResImage(R.drawable.ic_baseline_construction_24, "Construction"),
-        new ResImage(R.drawable.ic_baseline_folder_24, "Folder"),
-        new ResImage(R.drawable.ic_baseline_forum_24, "Message Bubbles"),
-        new ResImage(R.drawable.ic_baseline_games_24, "Directional Pad"),
-        new ResImage(R.drawable.ic_baseline_headphones_24, "Headphones"),
-        new ResImage(R.drawable.ic_baseline_hide_image_24, "Crossed Image"),
-        new ResImage(R.drawable.ic_baseline_home_24, "Home"),
-        new ResImage(R.drawable.ic_baseline_image_24, "Image"),
-        new ResImage(R.drawable.ic_baseline_map_24, "Map"),
-        new ResImage(R.drawable.ic_baseline_movie_24, "Film"),
-        new ResImage(R.drawable.ic_baseline_newspaper_24, "Newspaper"),
-        new ResImage(R.drawable.ic_baseline_photo_camera_24, "Camera"),
-        new ResImage(R.drawable.ic_baseline_question_mark_24, "Question Mark"),
-        new ResImage(R.drawable.ic_baseline_send_time_extension_24, "Send Puzzle Piece"),
-        new ResImage(R.drawable.ic_baseline_settings_24, "Cog"),
-        new ResImage(R.drawable.ic_baseline_source_24, "Source Folder"),
-        new ResImage(R.drawable.ic_baseline_audio_file_24, "Audio File"),
-        new ResImage(R.drawable.ic_baseline_video_file_24, "Video File"),
-        new ResImage(R.drawable.ic_baseline_view_list_24, "List"),
-        new ResImage(R.drawable.ic_baseline_work_24, "Suitcase"),
-        new ResImage(R.drawable.baseline_info_24, "Info")
+        new ResImage("ic_baseline_accessibility_24", "Accessibility"),
+        new ResImage("ic_baseline_add_circle_outline_24", "Plus Circle"),
+        new ResImage("ic_baseline_cancel_24", "Cross Circle"),
+        new ResImage("ic_baseline_auto_awesome_24", "Stars"),
+        new ResImage("ic_baseline_block_24", "Block"),
+        new ResImage("ic_baseline_check_24", "Checkmark"),
+        new ResImage("ic_baseline_construction_24", "Construction"),
+        new ResImage("ic_baseline_folder_24", "Folder"),
+        new ResImage("ic_baseline_forum_24", "Message Bubbles"),
+        new ResImage("ic_baseline_games_24", "Directional Pad"),
+        new ResImage("ic_baseline_headphones_24", "Headphones"),
+        new ResImage("ic_baseline_hide_image_24", "Crossed Image"),
+        new ResImage("ic_baseline_home_24", "Home"),
+        new ResImage("ic_baseline_image_24", "Image"),
+        new ResImage("ic_baseline_map_24", "Map"),
+        new ResImage("ic_baseline_movie_24", "Film"),
+        new ResImage("ic_baseline_newspaper_24", "Newspaper"),
+        new ResImage("ic_baseline_photo_camera_24", "Camera"),
+        new ResImage("ic_baseline_question_mark_24", "Question Mark"),
+        new ResImage("ic_baseline_send_time_extension_24", "Send Puzzle Piece"),
+        new ResImage("ic_baseline_settings_24", "Cog"),
+        new ResImage("ic_baseline_source_24", "Source Folder"),
+        new ResImage("ic_baseline_audio_file_24", "Audio File"),
+        new ResImage("ic_baseline_video_file_24", "Video File"),
+        new ResImage("ic_baseline_view_list_24", "List"),
+        new ResImage("ic_baseline_work_24", "Suitcase"),
+        new ResImage("baseline_info_24", "Info")
+    };
+
+    private AudioPool musicPool;
+    private AudioPool movePool;
+    private Consumer<String> pkgInstalledListener = pkgName -> {
+        if (pkgName != null) {
+            getAdapter().createColumnAt(getAdapter().getColumnCount() - 1, new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName)));
+            save(getItems());
+        }
     };
 
     public HomeView(Context context) {
@@ -107,7 +118,29 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     private void init() {
+        musicPool = AudioPool.fromAsset("Audio/xmb_music.mp3", 2);
+        movePool = AudioPool.fromAsset("Audio/cow_G7.wav", 5);
+        OxShellApp.addPkgInstalledListener(pkgInstalledListener);
         refresh();
+    }
+    public void onResume() {
+        refreshAudioPools();
+        if (musicPool.getActiveCount() > 0)
+            musicPool.resumeActive();
+        else
+            musicPool.play(true);
+    }
+    public void onPause() {
+        musicPool.pauseActive();
+    }
+    public void onDestroy() {
+        OxShellApp.removePkgInstalledListener(pkgInstalledListener);
+        musicPool.setPoolSize(0);
+        movePool.setPoolSize(0);
+    }
+    public void refreshAudioPools() {
+        musicPool.setVolume(SettingsKeeper.getMusicVolume());
+        movePool.setVolume(SettingsKeeper.getSfxVolume());
     }
 
     @Override
@@ -172,7 +205,7 @@ public class HomeView extends XMBView implements Refreshable {
                             intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
                     } else {
                         intentItems = new XMBItem[1];
-                        intentItems[0] = new XMBItem(null, "None created", ImageRef.from(R.drawable.ic_baseline_block_24, DataLocation.resource));
+                        intentItems[0] = new XMBItem(null, "None created", DataRef.from("ic_baseline_block_24", DataLocation.resource));
                     }
                     selectedItem.setInnerItems(intentItems);
                 } else if (selectedItem.type == HomeItem.Type.appInfo) {
@@ -262,14 +295,17 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Apply", v -> {
                         // TODO: show some kind of error when image/path invalid
                         if (permittedUri.get() != null) {
-                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()));
+                            if (AndroidHelpers.isRunningOnTV()) {
+                                String bgDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "bg.png");
+                                if (AndroidHelpers.fileExists(bgDest))
+                                    ExplorerBehaviour.delete(bgDest);
+                                AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), bgDest);
+                                SettingsKeeper.setValueAndSave(SettingsKeeper.TV_BG_TYPE, SettingsKeeper.BG_TYPE_IMAGE);
+                                currentActivity.applyTvBg();
+                            } else
+                                AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()));
                             dynamicInput.setShown(false);
                         }
-//                        String path = titleInput.getText();
-//                        if (path != null && AndroidHelpers.uriExists(Uri.parse(path))) {
-//                            AndroidHelpers.setWallpaper(context, AndroidHelpers.readResolverUriAsBitmap(context, Uri.parse(path)));
-//                            dynamicInput.setShown(false);
-//                        }
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         dynamicInput.setShown(false);
@@ -282,7 +318,13 @@ public class HomeView extends XMBView implements Refreshable {
                     PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();
                     dynamicInput.setTitle("Set Shader as Background");
-                    String[] options = { "Blue Dune", "The Other Dune", "Planet", "Custom" };
+                    //String[] options = { "Blue Dune", "The Other Dune", "Planet", "Custom" };
+                    List<String> options = new ArrayList<>();
+                    options.add("Blue Dune");
+                    options.add("The Other Dune");
+                    //if (!AndroidHelpers.isRunningOnTV())
+                        options.add("Planet");
+                    options.add("Custom");
                     //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     AtomicReference<Uri> permittedUri = new AtomicReference<>();
                     String fragDest = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
@@ -319,34 +361,14 @@ public class HomeView extends XMBView implements Refreshable {
                     });
                     DynamicInputRow.Dropdown dropdown = new DynamicInputRow.Dropdown(index -> {
                         //titleInput.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
-                        selectFileBtn.setVisibility(index == options.length - 1 ? View.VISIBLE : View.GONE);
-                    }, options);
-                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Preview", v -> {
+                        selectFileBtn.setVisibility(index == options.size() - 1 ? View.VISIBLE : View.GONE);
+                    }, options.toArray(new String[0]));
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput(AndroidHelpers.isRunningOnTV() ? "Apply" : "Preview", v -> {
                         // TODO: show some kind of error when input is invalid
                         // TODO: add scoped storage alternative for when no storage access is granted
                         AndroidHelpers.writeToFile(vertDest, AndroidHelpers.readAssetAsString(context, "Shaders/vert.vsh"));
                         boolean readyForPreview = false;
-                        if (dropdown.getIndex() == 0) {
-                            backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/blue_dune.fsh"));
-                            readyForPreview = true;
-                        }
-                        if (dropdown.getIndex() == 1) {
-                            backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/other_dune.fsh"));
-                            readyForPreview = true;
-                        }
-                        if (dropdown.getIndex() == 2) {
-                            backupExistingShader.run();
-                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
-                            //Log.d("HomeView", "Saving channel0 to " + channel0Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel0.png"), channel0Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel1.png"), channel1Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel2.png"), channel2Dest);
-                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel3.png"), channel3Dest);
-                            readyForPreview = true;
-                        }
-                        if (dropdown.getIndex() == options.length - 1) {
+                        if (dropdown.getIndex() == options.size() - 1) {
                             //dropdown.getIndex();
                             if (permittedUri.get() != null) {
                                 backupExistingShader.run();
@@ -367,16 +389,46 @@ public class HomeView extends XMBView implements Refreshable {
 //                                //}
 //                            }
                         }
-                        if (readyForPreview)
-                            AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
-                                if (result.getResultCode() == Activity.RESULT_OK) {
-                                    // delete the old background shader
-                                    if (AndroidHelpers.fileExists(fragTemp))
-                                        ExplorerBehaviour.delete(fragTemp);
-                                    GLWallpaperService.requestReload();
-                                    dynamicInput.setShown(false);
-                                }
-                            });
+                        else if (dropdown.getIndex() == 0) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/blue_dune.fsh"));
+                            readyForPreview = true;
+                        }
+                        else if (dropdown.getIndex() == 1) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/other_dune.fsh"));
+                            readyForPreview = true;
+                        }
+                        else if (dropdown.getIndex() == 2) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
+                            //Log.d("HomeView", "Saving channel0 to " + channel0Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel0.png"), channel0Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel1.png"), channel1Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel2.png"), channel2Dest);
+                            AndroidHelpers.saveBitmapToFile(AndroidHelpers.readAssetAsBitmap(context, "Shaders/channel3.png"), channel3Dest);
+                            readyForPreview = true;
+                        }
+                        if (readyForPreview) {
+                            if (AndroidHelpers.isRunningOnTV()) {
+                                if (AndroidHelpers.fileExists(fragTemp))
+                                    ExplorerBehaviour.delete(fragTemp);
+                                dynamicInput.setShown(false);
+                                //currentActivity.resetShaderViewBg();
+                                SettingsKeeper.setValueAndSave(SettingsKeeper.TV_BG_TYPE, SettingsKeeper.BG_TYPE_SHADER);
+                                currentActivity.applyTvBg();
+                            } else {
+                                AndroidHelpers.setWallpaper(currentActivity, currentActivity.getPackageName(), ".Wallpaper.GLWallpaperService", result -> {
+                                    if (result.getResultCode() == Activity.RESULT_OK) {
+                                        // delete the old background shader
+                                        if (AndroidHelpers.fileExists(fragTemp))
+                                            ExplorerBehaviour.delete(fragTemp);
+                                        GLWallpaperService.requestReload();
+                                        dynamicInput.setShown(false);
+                                    }
+                                });
+                            }
+                        }
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
                         if (AndroidHelpers.fileExists(fragTemp)) {
@@ -396,6 +448,76 @@ public class HomeView extends XMBView implements Refreshable {
 
                     dynamicInput.setShown(true);
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.setUiScale) {
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Set UI Scale");
+
+                    DynamicInputRow.TextInput uiScaleInput = new DynamicInputRow.TextInput("Main scale multiplier", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    uiScaleInput.setText(String.valueOf(SettingsKeeper.getUiScale()));
+                    DynamicInputRow.TextInput textScaleInput = new DynamicInputRow.TextInput("Text scale multiplier", InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                    textScaleInput.setText(String.valueOf(SettingsKeeper.getTextScale()));
+
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", self -> {
+                        float uiScale = 1f;
+                        try {
+                            uiScale = Float.parseFloat(uiScaleInput.getText());
+                        } catch (Exception e) {}
+                        float textScale = 1f;
+                        try {
+                            textScale = Float.parseFloat(textScaleInput.getText());
+                        } catch (Exception e) {}
+                        SettingsKeeper.setUiScale(uiScale);
+                        SettingsKeeper.setTextScale(textScale);
+                        refresh();
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> dynamicInput.setShown(false), SettingsKeeper.getCancelInput());
+
+                    dynamicInput.setItems(new DynamicInputRow(uiScaleInput), new DynamicInputRow(textScaleInput), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setShown(true);
+                } else if (selectedItem.type == HomeItem.Type.setSystemUi) {
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Set System UI Visibility");
+
+                    int systemUi = SettingsKeeper.getSystemUiVisibility();
+                    //DynamicInputRow.ToggleInput fullscreenToggle = new DynamicInputRow.ToggleInput("Fill screen", "Do not fill screen");
+                    //fullscreenToggle.setOnOff((systemUi & SettingsKeeper.FULLSCREEN_FLAGS) != 0, true);
+                    DynamicInputRow.ToggleInput statusBarToggle = new DynamicInputRow.ToggleInput("Status bar visible", "Status bar hidden");
+                    statusBarToggle.setOnOff(SettingsKeeper.hasStatusBarVisible(systemUi), true);
+                    DynamicInputRow.ToggleInput navBarToggle = new DynamicInputRow.ToggleInput("Navigation bar visible", "Navigation bar hidden");
+                    navBarToggle.setOnOff(SettingsKeeper.hasNavBarVisible(systemUi), true);
+
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", self -> {
+                        //Log.d("HomeView", "fullscreen: " + fullscreenToggle.getOnOff() + " status: " + statusBarToggle.getOnOff() + " nav: " + navBarToggle.getOnOff());
+                        //SettingsKeeper.setStoredFullscreen(fullscreenToggle.getOnOff());
+                        SettingsKeeper.setStoredStatusBarHidden(!statusBarToggle.getOnOff());
+                        SettingsKeeper.setStoredNavBarHidden(!navBarToggle.getOnOff());
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> dynamicInput.setShown(false), SettingsKeeper.getCancelInput());
+
+                    dynamicInput.setItems(new DynamicInputRow(statusBarToggle), new DynamicInputRow(navBarToggle), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setShown(true);
+                } else if (selectedItem.type == HomeItem.Type.setAudioVolume) {
+                    DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
+                    dynamicInput.setTitle("Set Volume Levels");
+                    DynamicInputRow.Label musicLabel = new DynamicInputRow.Label("Music Volume");
+                    musicLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+                    DynamicInputRow.SliderInput musicSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getMusicVolume(), 0.01f, null);
+                    DynamicInputRow.Label sfxLabel = new DynamicInputRow.Label("SFX Volume");
+                    sfxLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+                    DynamicInputRow.SliderInput sfxSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getSfxVolume(), 0.01f, null);
+                    DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", (selfBtn) -> {
+                        SettingsKeeper.setMusicVolume(musicSlider.getValue());
+                        SettingsKeeper.setSfxVolume(sfxSlider.getValue());
+                        refreshAudioPools();
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", (selfBtn) -> {
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getCancelInput());
+                    dynamicInput.setItems(new DynamicInputRow(musicLabel), new DynamicInputRow(musicSlider), new DynamicInputRow(sfxLabel), new DynamicInputRow(sfxSlider), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.setControls) {
                     //Log.d("HomeView", "Modifying " + selectedItem.obj);
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
@@ -650,6 +772,18 @@ public class HomeView extends XMBView implements Refreshable {
         if (packageName != null)
             AndroidHelpers.uninstallApp(OxShellApp.getCurrentActivity(), packageName, onResult);
     }
+
+    @Override
+    protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
+        super.onShiftHorizontally(fromColIndex, fromRowIndex, toColIndex);
+        movePool.play(false);
+    }
+    @Override
+    protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
+        super.onShiftVertically(fromColIndex, fromLocalIndex, toLocalIndex);
+        movePool.play(false);
+    }
+
     @Override
     public void refresh() {
         //Log.d("HomeView", "Refreshing home view");
@@ -685,9 +819,10 @@ public class HomeView extends XMBView implements Refreshable {
     }
     private static ArrayList<XMBItem> createSettingsColumn() {
         ArrayList<XMBItem> settingsColumn = new ArrayList<>();
-        XMBItem[] innerSettings;
+        List<XMBItem> innerSettings = new ArrayList<>();
+        List<XMBItem> innerInnerSettings = new ArrayList<>();
 
-        XMBItem settingsItem = new XMBItem(null, "Settings", ImageRef.from(R.drawable.ic_baseline_settings_24, DataLocation.resource));//, colIndex, localIndex++);
+        XMBItem settingsItem = new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
         settingsColumn.add(settingsItem);
 
         // TODO: add option to change icon alpha
@@ -701,65 +836,73 @@ public class HomeView extends XMBView implements Refreshable {
 //        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
 //        settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home");
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home"));
 //        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
 //        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
 //        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
-        innerSettings[1] = new HomeItem(HomeItem.Type.addAppOuter, "Add application to home");
+        innerSettings.add(new HomeItem(HomeItem.Type.addAppOuter, "Add application to home"));
         //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
-        settingsItem = new XMBItem(null, "Home", ImageRef.from(R.drawable.ic_baseline_home_24, DataLocation.resource), innerSettings);
+        settingsItem = new XMBItem(null, "Home", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.setImageBg, "Set picture as background");
-        innerSettings[1] = new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background");
-        settingsItem = new XMBItem(null, "Background", ImageRef.from(R.drawable.ic_baseline_image_24, DataLocation.resource), innerSettings);
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.setImageBg, "Set picture as background"));
+        innerSettings.add(new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background"));
+        innerSettings.add(new HomeItem(HomeItem.Type.setUiScale, "Change UI scale"));
+        if (!AndroidHelpers.isRunningOnTV())
+            innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
+        settingsItem = new XMBItem(null, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[3];
-        XMBItem[] innerInnerSettings = new XMBItem[9];
-        innerInnerSettings[0] = new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input");
-        innerInnerSettings[1] = new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input");
-        innerInnerSettings[2] = new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input");
-        innerInnerSettings[3] = new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input");
-        innerInnerSettings[4] = new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input");
-        innerInnerSettings[5] = new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input");
-        innerInnerSettings[6] = new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input");
-        innerInnerSettings[7] = new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input");
-        innerInnerSettings[8] = new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input");
-        innerSettings[0] = new XMBItem(null, "General", ImageRef.from(R.drawable.ic_baseline_home_24, DataLocation.resource), innerInnerSettings);
-        innerInnerSettings = new XMBItem[4];
-        innerInnerSettings[0] = new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input");
-        innerInnerSettings[1] = new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input");
-        innerInnerSettings[2] = new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input");
-        innerInnerSettings[3] = new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input");
-        innerSettings[1] = new XMBItem(null, "File Explorer", ImageRef.from(R.drawable.ic_baseline_source_24, DataLocation.resource), innerInnerSettings);
-        innerInnerSettings = new XMBItem[2];
-        innerInnerSettings[0] = new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input");
-        innerInnerSettings[1] = new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input");
-        innerSettings[2] = new XMBItem(null, "Android System", ImageRef.from(R.drawable.baseline_adb_24, DataLocation.resource), innerInnerSettings);
-        settingsItem = new XMBItem(null, "Controls", ImageRef.from(R.drawable.ic_baseline_games_24, DataLocation.resource), innerSettings);
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.setAudioVolume, "Set volume levels"));
+        settingsItem = new XMBItem(null, "Audio", DataRef.from("ic_baseline_headphones_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsColumn.add(settingsItem);
+
+        innerSettings.clear();
+        innerInnerSettings.clear();
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input"));
+        innerSettings.add(new XMBItem(null, "General", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerInnerSettings.clear();
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input"));
+        innerSettings.add(new XMBItem(null, "File Explorer", DataRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerInnerSettings.clear();
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input"));
+        innerSettings.add(new XMBItem(null, "Android System", DataRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        settingsItem = new XMBItem(null, "Controls", DataRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         //innerSettings = new XMBItem[0];
         //settingsItem = new XMBItem(null, "Explorer", R.drawable.ic_baseline_source_24, colIndex, localIndex++, innerSettings);
         //settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
+        innerSettings.clear();
 //        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
 //        XMBItem[] intentItems = new XMBItem[intents.length];
 //        for (int i = 0; i < intents.length; i++)
 //            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
-        innerSettings[0] = new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home");
-        innerSettings[1] = new HomeItem(HomeItem.Type.createAssoc, "Create new association");
-        settingsItem = new XMBItem(null, "Associations", ImageRef.from(R.drawable.ic_baseline_send_time_extension_24, DataLocation.resource), innerSettings);
+        innerSettings.add(new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home"));
+        innerSettings.add(new HomeItem(HomeItem.Type.createAssoc, "Create new association"));
+        settingsItem = new XMBItem(null, "Associations", DataRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
-        innerSettings = new XMBItem[2];
-        innerSettings[0] = new HomeItem(HomeItem.Type.appInfo, "App info");
-        innerSettings[1] = new HomeItem(HomeItem.Type.saveLogs, "Save logs to file");
-        settingsItem = new XMBItem(null, "About", ImageRef.from(R.drawable.baseline_info_24, DataLocation.resource), innerSettings);
+        innerSettings.clear();
+        innerSettings.add(new HomeItem(HomeItem.Type.appInfo, "App info"));
+        innerSettings.add(new HomeItem(HomeItem.Type.saveLogs, "Save logs to file"));
+        settingsItem = new XMBItem(null, "About", DataRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsColumn.add(settingsItem);
 
         return settingsColumn;
@@ -801,6 +944,27 @@ public class HomeView extends XMBView implements Refreshable {
     private static void save(ArrayList<ArrayList<XMBItem>> items) {
         saveHomeItemsToFile(items, Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
+    private static boolean updatedItems = false;
+    private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
+        int currentVersion = SettingsKeeper.getVersionCode();
+        int prevVersion = SettingsKeeper.getPrevVersionCode();
+        if (currentVersion != prevVersion && prevVersion < 5 && !updatedItems) {
+            updatedItems = true;
+            for (ArrayList<XMBItem> column : items) {
+                for (XMBItem item : column) {
+                    DataRef imgRef = item.getImgRef();
+                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
+                        int oldIndex = (int)imgRef.getLoc();
+                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
+                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
+                    }
+                }
+            }
+            save(items);
+        }
+    }
     private static ArrayList<ArrayList<XMBItem>> load() {
         return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
@@ -819,6 +983,9 @@ public class HomeView extends XMBView implements Refreshable {
             } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
         } else
             Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
+
+        if (items != null)
+            upgradeItemsIfNecessary(items);
         return items;
     }
     private static ArrayList<ArrayList<XMBItem>> createDefaultItems() {
@@ -837,11 +1004,13 @@ public class HomeView extends XMBView implements Refreshable {
             ResolveInfo currentPkg = apps.get(i);
             if (currentPkg.activityInfo.packageName.equals(OxShellApp.getContext().getPackageName()))
                 continue;
-            int category = -1;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
-                category = currentPkg.activityInfo.applicationInfo.category;
-            if (category < 0)
-                category = otherIndex;
+            int category = currentPkg.activityInfo.applicationInfo.category;
+            if (category < 0) {
+                if ((currentPkg.activityInfo.applicationInfo.flags & ApplicationInfo.FLAG_IS_GAME) != 0)
+                    category = 0;
+                else
+                    category = otherIndex;
+            }
             if (!sortedApps.containsKey(category))
                 sortedApps.put(category, new ArrayList<>());
             ArrayList<XMBItem> currentList = sortedApps.get(category);
@@ -858,7 +1027,7 @@ public class HomeView extends XMBView implements Refreshable {
                 catIndex = categories.length - 1;
             ArrayList<XMBItem> column = new ArrayList<>();
             // add the category item at the top
-            column.add(new XMBItem(null, categories[catIndex], ImageRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource)));
+            column.add(new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource)));
             column.addAll(sortedApps.get(existingCategories.get(index)));
             defaultItems.add(column);
         }
@@ -868,29 +1037,29 @@ public class HomeView extends XMBView implements Refreshable {
         Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         return defaultItems;
     }
-    public static int getDefaultIconForCategory(int category) {
+    public static String getDefaultIconForCategory(int category) {
         if (category == ApplicationInfo.CATEGORY_GAME)
-            return R.drawable.ic_baseline_games_24;
+            return "ic_baseline_games_24";
         else if (category == ApplicationInfo.CATEGORY_AUDIO)
-            return R.drawable.ic_baseline_headphones_24;
+            return "ic_baseline_headphones_24";
         else if (category == ApplicationInfo.CATEGORY_VIDEO)
-            return R.drawable.ic_baseline_movie_24;
+            return "ic_baseline_movie_24";
         else if (category == ApplicationInfo.CATEGORY_IMAGE)
-            return R.drawable.ic_baseline_photo_camera_24;
+            return "ic_baseline_photo_camera_24";
         else if (category == ApplicationInfo.CATEGORY_SOCIAL)
-            return R.drawable.ic_baseline_forum_24;
+            return "ic_baseline_forum_24";
         else if (category == ApplicationInfo.CATEGORY_NEWS)
-            return R.drawable.ic_baseline_newspaper_24;
+            return "ic_baseline_newspaper_24";
         else if (category == ApplicationInfo.CATEGORY_MAPS)
-            return R.drawable.ic_baseline_map_24;
+            return "ic_baseline_map_24";
         else if (category == ApplicationInfo.CATEGORY_PRODUCTIVITY)
-            return R.drawable.ic_baseline_work_24;
+            return "ic_baseline_work_24";
         else if (category == ApplicationInfo.CATEGORY_ACCESSIBILITY)
-            return R.drawable.ic_baseline_accessibility_24;
+            return "ic_baseline_accessibility_24";
         else if (category == getOtherCategoryIndex())
-            return R.drawable.ic_baseline_auto_awesome_24;
+            return "ic_baseline_auto_awesome_24";
         else
-            return R.drawable.ic_baseline_view_list_24;
+            return "ic_baseline_view_list_24";
     }
     private static int getOtherCategoryIndex() {
         return MathHelpers.max(ApplicationInfo.CATEGORY_GAME, ApplicationInfo.CATEGORY_AUDIO, ApplicationInfo.CATEGORY_IMAGE, ApplicationInfo.CATEGORY_SOCIAL, ApplicationInfo.CATEGORY_NEWS, ApplicationInfo.CATEGORY_MAPS, ApplicationInfo.CATEGORY_PRODUCTIVITY, ApplicationInfo.CATEGORY_ACCESSIBILITY) + 1;
@@ -1086,9 +1255,9 @@ public class HomeView extends XMBView implements Refreshable {
     });
     SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
     {
-        ImageRef colImgRef = ((XMBItem)getAdapter().getItem(getPosition()[0], 0)).getImgRef();
-        if (colImgRef.getRefType() == DataLocation.file)
-            ExplorerBehaviour.delete((String)colImgRef.getImageObj());
+        DataRef colImgRef = ((XMBItem)getAdapter().getItem(getPosition()[0], 0)).getImgRef();
+        if (colImgRef.getLocType() == DataLocation.file)
+            ExplorerBehaviour.delete((String)colImgRef.getLoc());
         getAdapter().removeColumnAt(getPosition()[0]);
         save(getItems());
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
@@ -1114,23 +1283,23 @@ public class HomeView extends XMBView implements Refreshable {
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
         dropdownItems.add("Custom");
         XMBItem colItem = (XMBItem)getAdapter().getItem(getPosition()[0], 0);
-        ImageRef origColIcon = colItem.getImgRef();
+        DataRef origColIcon = colItem.getImgRef();
         int origDropdownIndex = resourceImages.length;
-        if (origColIcon.getRefType() == DataLocation.resource)
+        if (origColIcon.getLocType() == DataLocation.resource)
             for (int i = 0; i < resourceImages.length; i++) {
-                if (resourceImages[i].getId() == (int)origColIcon.getImageObj()) {
+                if (resourceImages[i].getId().equals(origColIcon.getLoc())) {
                     origDropdownIndex = i;
                     break;
                 }
             }
-        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(ImageRef.from(null, DataLocation.none));
+        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(DataRef.from(null, DataLocation.none));
         //DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
         AtomicReference<Uri> permittedUri = new AtomicReference<>();
         Runnable updateImg = () -> {
             if (permittedUri.get() != null)
-                imageDisplay.setImage(ImageRef.from(permittedUri.get(), DataLocation.resolverUri));
+                imageDisplay.setImage(DataRef.from(permittedUri.get(), DataLocation.resolverUri));
             else
-                imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
+                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
         };
 //        filePathInput.addListener(new DynamicInputListener() {
 //            @Override
@@ -1161,19 +1330,19 @@ public class HomeView extends XMBView implements Refreshable {
             //filePathInput.setVisibility(isResource ? GONE : VISIBLE);
             chooseFileBtn.setVisibility(isResource ? GONE : VISIBLE);
             if (index >= 0 && isResource)
-                imageDisplay.setImage(ImageRef.from(resourceImages[index].getId(), DataLocation.resource));
+                imageDisplay.setImage(DataRef.from(resourceImages[index].getId(), DataLocation.resource));
         }, dropdownItems.toArray(new String[0]));
         DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
             String title = titleInput.getText();
-            ImageRef imgRef = imageDisplay.getImageRef();
+            DataRef imgRef = imageDisplay.getImageRef();
             // delete old icon
-            if (imgRef != colItem.getImgRef() && colItem.getImgRef().getRefType() == DataLocation.file)
-                ExplorerBehaviour.delete((String)colItem.getImgRef().getImageObj());
-            if (imgRef.getRefType() == DataLocation.resolverUri) {
+            if (imgRef != colItem.getImgRef() && colItem.getImgRef().getLocType() == DataLocation.file)
+                ExplorerBehaviour.delete((String)colItem.getImgRef().getLoc());
+            if (imgRef.getLocType() == DataLocation.resolverUri) {
                 String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
                 AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), iconPath);
-                imgRef = ImageRef.from(iconPath, DataLocation.file);
+                imgRef = DataRef.from(iconPath, DataLocation.file);
             }
             colItem.setTitle(title.length() > 0 ? title : "Unnamed");
             colItem.setImgRef(imgRef);
@@ -1199,14 +1368,14 @@ public class HomeView extends XMBView implements Refreshable {
         dynamicInput.setTitle("Create Column");
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
         dropdownItems.add("Custom");
-        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(ImageRef.from(null, DataLocation.none));
+        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(DataRef.from(null, DataLocation.none));
         //DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
         AtomicReference<Uri> permittedUri = new AtomicReference<>();
         Runnable updateImg = () -> {
             if (permittedUri.get() != null)
-                imageDisplay.setImage(ImageRef.from(permittedUri.get(), DataLocation.resolverUri));
+                imageDisplay.setImage(DataRef.from(permittedUri.get(), DataLocation.resolverUri));
             else
-                imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
+                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
         };
 //        filePathInput.addListener(new DynamicInputListener() {
 //            @Override
@@ -1236,16 +1405,16 @@ public class HomeView extends XMBView implements Refreshable {
             //filePathInput.setVisibility(isResource ? GONE : VISIBLE);
             chooseFileBtn.setVisibility(isResource ? GONE : VISIBLE);
             if (index >= 0 && isResource)
-                imageDisplay.setImage(ImageRef.from(resourceImages[index].getId(), DataLocation.resource));
+                imageDisplay.setImage(DataRef.from(resourceImages[index].getId(), DataLocation.resource));
         }, dropdownItems.toArray(new String[0]));
         DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
         DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
             String title = titleInput.getText();
-            ImageRef imgRef = imageDisplay.getImageRef();
-            if (imgRef.getRefType() == DataLocation.resolverUri) {
+            DataRef imgRef = imageDisplay.getImageRef();
+            if (imgRef.getLocType() == DataLocation.resolverUri) {
                 String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
                 AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), iconPath);
-                imgRef = ImageRef.from(iconPath, DataLocation.file);
+                imgRef = DataRef.from(iconPath, DataLocation.file);
             }
             getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imgRef));
             save(getItems());

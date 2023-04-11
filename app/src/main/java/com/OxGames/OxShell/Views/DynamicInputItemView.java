@@ -10,6 +10,7 @@ import android.os.Build;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -35,6 +36,7 @@ import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -45,6 +47,7 @@ public class DynamicInputItemView extends FrameLayout {
     private DynamicInputRow.DynamicInput inputItem;
     private Consumer<DynamicInputRow.DynamicInput> valuesChangedListener;
 
+    private Slider.OnSliderTouchListener sliderTouchListener;
     private TextWatcher inputWatcher;
     private TextInputLayout inputLayout;
     private Button button;
@@ -52,6 +55,7 @@ public class DynamicInputItemView extends FrameLayout {
     private CheckBox toggle;
     private Spinner dropdown;
     private ImageView image;
+    private Slider slider;
 
 
     public DynamicInputItemView(@NonNull Context context) {
@@ -109,17 +113,32 @@ public class DynamicInputItemView extends FrameLayout {
         item.view = this;
 
         // remove previous listeners from the views if any
-        if (inputLayout != null && inputLayout.getEditText() != null && inputWatcher != null)
-            inputLayout.getEditText().removeTextChangedListener(inputWatcher);
+        if (inputLayout != null && inputLayout.getEditText() != null) {
+            EditText editText = inputLayout.getEditText();
+            editText.setOnFocusChangeListener(null);
+            if (inputWatcher != null)
+                editText.removeTextChangedListener(inputWatcher);
+        }
         if (button != null) {
+            button.setOnFocusChangeListener(null);
             button.setOnClickListener(null);
             button.setOnTouchListener(null);
         }
-        if (toggle != null)
+        if (toggle != null) {
+            //toggle.setOnFocusChangeListener(null);
             toggle.setOnClickListener(null);
+        }
         if (dropdown != null) {
+            dropdown.setOnFocusChangeListener(null);
             dropdown.setOnItemSelectedListener(null);
             dropdown.setOnTouchListener(null);
+        }
+        if (slider != null) {
+            if (sliderTouchListener != null)
+                slider.removeOnSliderTouchListener(sliderTouchListener);
+            //slider.setOnFocusChangeListener(null);
+            //slider.setOnClickListener(null);
+            //slider.setOnTouchListener(null);
         }
 
         // hide all views that exist
@@ -135,6 +154,8 @@ public class DynamicInputItemView extends FrameLayout {
             dropdown.setVisibility(GONE);
         if (image != null)
             image.setVisibility(GONE);
+        if (slider != null)
+            slider.setVisibility(GONE);
 
         // remove the previous item's listener
         if (inputItem != null && valuesChangedListener != null)
@@ -198,6 +219,15 @@ public class DynamicInputItemView extends FrameLayout {
                         label.setGravity(innerItem.getGravity());
                         label.setVisibility(item.getVisibility());
                         label.setEnabled(item.isEnabled());
+                    }
+                }
+                if (slider != null) {
+                    if (item.inputType == DynamicInputRow.DynamicInput.InputType.slider) {
+                        DynamicInputRow.SliderInput innerItem = (DynamicInputRow.SliderInput)item;
+                        slider.setValueFrom(innerItem.getValueFrom());
+                        slider.setValueTo(innerItem.getValueTo());
+                        slider.setValue(innerItem.getValue());
+                        slider.setStepSize(innerItem.getStepSize());
                     }
                 }
         };
@@ -296,7 +326,7 @@ public class DynamicInputItemView extends FrameLayout {
             button.setTypeface(font);
             button.setTextColor(Color.WHITE);
             if (innerItem.getOnClick() != null)
-                button.setOnClickListener(v -> { innerItem.getOnClick().accept(innerItem); });
+                button.setOnClickListener(v -> innerItem.getOnClick().accept(innerItem));
             button.setVisibility(innerItem.getVisibility());
             button.setEnabled(innerItem.isEnabled());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.toggle) {
@@ -366,6 +396,47 @@ public class DynamicInputItemView extends FrameLayout {
                 dropdown.setSelection(innerItem.getIndex());
             dropdown.setVisibility(innerItem.getVisibility());
             dropdown.setEnabled(innerItem.isEnabled());
+        } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.slider) {
+            DynamicInputRow.SliderInput innerItem = (DynamicInputRow.SliderInput)item;
+            if (slider == null) {
+                // create a Spinner widget
+                slider = new Slider(context);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight);
+                params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+                slider.setLayoutParams(params);
+                slider.setBackground(AndroidHelpers.createStateListDrawable(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape)));
+                slider.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#44323232")));
+                //slider.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#88CEEAF0")));
+                addView(slider);
+            }
+            slider.setValueFrom(innerItem.getValueFrom());
+            slider.setValueTo(innerItem.getValueTo());
+            slider.setValue(innerItem.getValue());
+            slider.setStepSize(innerItem.getStepSize());
+            sliderTouchListener = new Slider.OnSliderTouchListener() {
+                @Override
+                public void onStartTrackingTouch(@NonNull Slider slider) {
+                    //Log.d("DynamicInputItemView", "onStartTrackingTouch: " + slider.getValue());
+                    //innerItem.setValue(slider.getValue());
+                }
+
+                @Override
+                public void onStopTrackingTouch(@NonNull Slider slider) {
+                    //Log.d("DynamicInputItemView", "onStopTrackingTouch: " + slider.getValue());
+                    innerItem.setValue(slider.getValue());
+                }
+            };
+            slider.addOnSliderTouchListener(sliderTouchListener);
+//            slider.setOnFocusChangeListener((view, hasFocus) -> {
+//                slider.setBackgroundTintList((hasFocus || slider.isPressed()) ? ColorStateList.valueOf(Color.parseColor("#88CEEAF0")) : null);
+//            });
+//            slider.setOnTouchListener((view, event) -> {
+//                boolean isDown = event.getAction() == KeyEvent.ACTION_DOWN;
+//                slider.setBackgroundTintList((isDown || slider.hasFocus()) ? ColorStateList.valueOf(Color.parseColor("#88CEEAF0")) : null);
+//                return false;
+//            });
+            slider.setVisibility(innerItem.getVisibility());
+            slider.setEnabled(innerItem.isEnabled());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.image) {
             DynamicInputRow.ImageDisplay innerItem = (DynamicInputRow.ImageDisplay)item;
             if (image == null) {

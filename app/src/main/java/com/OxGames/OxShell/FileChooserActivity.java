@@ -1,11 +1,10 @@
 package com.OxGames.OxShell;
 
-import android.app.Activity;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
-import java.util.Hashtable;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 
 public class FileChooserActivity extends PagedActivity {
     @Override
@@ -17,6 +16,7 @@ public class FileChooserActivity extends PagedActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        setMarginsFor(R.id.parent_layout);
+        int systemUi = SettingsKeeper.getSystemUiVisibility();
+        setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), R.id.explorer_list);
     }
 }

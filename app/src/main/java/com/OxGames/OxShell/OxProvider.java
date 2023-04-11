@@ -76,7 +76,7 @@ public class OxProvider extends DocumentsProvider {
 //        row.add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, "mno");
 //        return result;
         row.add(DocumentsContract.Root.COLUMN_ROOT_ID, ROOT_FOLDER_ID);
-        row.add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_launcher);
+        row.add(DocumentsContract.Root.COLUMN_ICON, BuildConfig.GOLD ? R.drawable.icon_xhdpi : R.drawable.icon_free_xhdpi);
         row.add(DocumentsContract.Root.COLUMN_TITLE, "Ox Shell");
         row.add(DocumentsContract.Root.COLUMN_FLAGS, 0);
         row.add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, ROOT_FOLDER_ID);

@@ -5,6 +5,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.OxGames.OxShell.Data.SettingsKeeper;
+
 import java.util.function.Consumer;
 
 public class ExplorerActivity extends PagedActivity {
@@ -24,7 +26,8 @@ public class ExplorerActivity extends PagedActivity {
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        setMarginsFor(R.id.parent_layout);
+        int systemUi = SettingsKeeper.getSystemUiVisibility();
+        setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), R.id.explorer_list);
     }
 
     @Override

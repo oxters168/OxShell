@@ -2,10 +2,15 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
+import android.os.Build;
+import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
@@ -34,7 +39,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
     private final Context context;
     private BetterTextView title;
     private RecyclerView mainList;
-    private int prevUIState;
+    //private int prevUIState;
 
     private DynamicInputRow[] rows;
 
@@ -129,6 +134,28 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
         mainList.setLayoutManager(new LinearLayoutManager(context));
         mainList.setVisibility(VISIBLE);
         mainList.setFocusable(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create thumb drawable
+            ShapeDrawable thumbDrawable = new ShapeDrawable();
+            thumbDrawable.setShape(new RectShape());
+            thumbDrawable.getPaint().setColor(Color.WHITE);
+            thumbDrawable.setIntrinsicWidth(8);
+            thumbDrawable.setIntrinsicHeight(8);
+            mainList.setVerticalScrollbarThumbDrawable(thumbDrawable);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Create track drawable
+            ShapeDrawable trackDrawable = new ShapeDrawable();
+            trackDrawable.setShape(new RectShape());
+            trackDrawable.getPaint().setColor(Color.DKGRAY);
+            trackDrawable.setIntrinsicWidth(8);
+            trackDrawable.setIntrinsicHeight(8);
+            mainList.setVerticalScrollbarTrackDrawable(trackDrawable);
+        }
+        mainList.setVerticalScrollBarEnabled(true);
+        mainList.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+        mainList.setScrollbarFadingEnabled(false);
+        //mainList.setOverScrollMode(SCROLL_AXIS_VERTICAL);
         addView(mainList);
 
         FrameLayout footer = new FrameLayout(context);
@@ -175,18 +202,36 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             if (onShownListener != null)
                 onShownListener.accept(onOff);
 
-        isShown = onOff;
         setVisibility(onOff ? VISIBLE : GONE);
-        PagedActivity current = OxShellApp.getCurrentActivity();
+        //PagedActivity current = OxShellApp.getCurrentActivity();
         if (onOff) {
-            prevUIState = current.getSystemUIState();
-            current.setNavBarHidden(true);
-            current.setStatusBarHidden(true);
+            //if (!isShown)
+            //    prevUIState = current.getSystemUIState();
+            isShown = true;
+            SettingsKeeper.setNavBarHidden(true, false);
+            SettingsKeeper.setStatusBarHidden(true, false);
 
+            int[] index = new int[2];
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP))).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_LEFT))).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
+                boolean foundItem = getCurrentlyFocusedItem(index);
+                DynamicInputRow.DynamicInput item;
+                DynamicInputRow.SliderInput innerItem;
+                if (foundItem && (item = rows[index[0]].get(index[1])) instanceof DynamicInputRow.SliderInput && (innerItem = (DynamicInputRow.SliderInput)item).getValue() > innerItem.getValueFrom())
+                    innerItem.setValue(innerItem.getValue() - innerItem.getStepSize());
+                else
+                    moveFocus(KeyEvent.KEYCODE_DPAD_LEFT);
+            })).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
+                boolean foundItem = getCurrentlyFocusedItem(index);
+                DynamicInputRow.DynamicInput item;
+                DynamicInputRow.SliderInput innerItem;
+                if (foundItem && (item = rows[index[0]].get(index[1])) instanceof DynamicInputRow.SliderInput && (innerItem = (DynamicInputRow.SliderInput)item).getValue() < innerItem.getValueTo())
+                    innerItem.setValue(innerItem.getValue() + innerItem.getStepSize());
+                else
+                    moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT);
+            })).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
                 int[] result = new int[2];
                 if (getCurrentlyFocusedItem(result)) {
@@ -203,7 +248,9 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             }
             OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
         } else {
-            current.setSystemUIState(prevUIState);
+            isShown = false;
+            //SettingsKeeper.setSystemUIState(prevUIState, false);
+            SettingsKeeper.reloadSystemUiState();
             if (mainList != null) {
                 RecyclerView.Adapter adapter = mainList.getAdapter();
                 if (adapter != null)

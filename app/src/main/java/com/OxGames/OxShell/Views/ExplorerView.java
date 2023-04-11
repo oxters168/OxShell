@@ -167,8 +167,8 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         }
     }
     public void sendResult(String path) {
-        //final Uri uri = AndroidHelpers.uriFromPath(path);
-        Uri uri = FileProvider.getUriForFile(getContext(), BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
+        final Uri uri = AndroidHelpers.uriFromPath(path);
+        //Uri uri = FileProvider.getUriForFile(getContext(), BuildConfig.DOCUMENTS_AUTHORITY, new File(path));
         //Uri uri = Uri.parse(path);
         OxShellApp.getCurrentActivity().grantUriPermission(OxShellApp.getCurrentActivity().getCallingPackage(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         Intent returnIntent = new Intent();
@@ -574,13 +574,26 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         currentActivity.getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn deleteBtn = new SettingsDrawer.ContextBtn("Delete", () -> {
-        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         List<DetailItem> selection = getSelectedItems();
-        String[] filePaths = new String[selection.size()];
-        for (int i = 0; i < selection.size(); i++)
-            filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
-        ExplorerBehaviour.delete(filePaths);
-        refresh();
+
+        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
+        PromptView prompt = currentActivity.getPrompt();
+        prompt.setCenterOfScreen();
+        prompt.setMessage("You are about to delete " + selection.size() + " item(s) for good. Are you sure?");
+        prompt.setStartBtn("Yes", () -> {
+            String[] filePaths = new String[selection.size()];
+            for (int i = 0; i < selection.size(); i++)
+                filePaths[i] = ((File)selection.get(i).obj).getAbsolutePath();
+            ExplorerBehaviour.delete(filePaths);
+            refresh();
+
+            prompt.setShown(false);
+        }, SettingsKeeper.getSuperPrimaryInput());
+        prompt.setEndBtn("No", () -> {
+            prompt.setShown(false);
+        });
+
+        prompt.setShown(true);
         currentActivity.getSettingsDrawer().setShown(false);
     });
 }

@@ -325,10 +325,16 @@ public class Shader {
 
         frame++;
         long currentTime = System.currentTimeMillis() - startTime;
-        float deltaTime = (currentTime - prevTime) / 1000f;
-        prevTime = currentTime;
-        float fps = 1 / deltaTime;
         float secondsElapsed = (currentTime) / 1000f; // will be input into shader as iTime
+        float deltaTime = (currentTime - prevTime) / 1000f;
+        float fps = 1 / deltaTime;
+        prevTime = currentTime;
+        if (secondsElapsed > 60 * 60 * 24) {
+            frame = 0;
+            startTime = System.currentTimeMillis();
+            prevTime = startTime;
+            secondsElapsed = 0;
+        }
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
         LocalDateTime localDateTime = LocalDateTime.now();
         int year = localDateTime.getYear();

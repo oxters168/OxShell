@@ -5,11 +5,14 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.opengl.GLES32;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
@@ -23,10 +26,10 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
+import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
-import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.Views.DebugView;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
@@ -38,9 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class PagedActivity extends AppCompatActivity {
@@ -127,27 +128,28 @@ public class PagedActivity extends AppCompatActivity {
     private static final int PROMPT_ID = View.generateViewId();
     private static final int DEBUG_VIEW_ID = View.generateViewId();
 
+    private ShaderView tvShaderBg;
+    private FrameLayout tvImageBg;
     private static boolean startTimeSet;
     private static long startTime;
     //private static long prevFrameTime;
 
-    //private ShaderView shaderView;
     private FrameLayout parentView;
     private DynamicInputView dynamicInput;
     private SettingsDrawer settingsDrawer;
     private PromptView prompt;
     private DebugView debugView;
 
-    private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
+    //private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
     //private InputHandler inputHandler;
     //private boolean isKeyboardShown;
-    private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
+    //private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
     private List<KeyComboAction> accessPopupComboActions;
     KeyComboAction[] showDebugAction;
 
-    private static final String homeAccessMsg = "Ox Shell needs accessibility permission in order to go home when pressing this key combo";
-    private static final String recentsAccessMsg = "Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
+    private static final String homeAccessMsg = "Please enable Ox Shell as an accessibility service. Ox Shell uses your key presses to let you go home even when the app is not in use.";//"Ox Shell needs accessibility permission in order to go home when pressing this key combo";
+    private static final String recentsAccessMsg = "Please enable Ox Shell as an accessibility service. Ox Shell uses your key presses to let you view recent apps even when the app is not in use.";//"Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
 
     private void showAccessibilityPopup(String msg) {
         if (!AccessService.isEnabled() && !prompt.isPromptShown()) {
@@ -190,28 +192,30 @@ public class PagedActivity extends AppCompatActivity {
         refreshAccessibilityInput();
         refreshShowDebugInput();
 
-        trySetStartTime();
+        //trySetStartTime();
         super.onCreate(savedInstanceState);
 
         LogcatHelper.getInstance(this).start();
 
         Log.i("PagedActivity", "OnCreate " + this);
+        Log.i("PagedActivity", "Running on a tv: " + AndroidHelpers.isRunningOnTV());
     }
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         prepareOtherViews();
+        SettingsKeeper.reloadSystemUiState();
         //initBackground();
     }
 
-    protected void setMarginsFor(int... ids) {
+    protected void setMarginsFor(boolean statusBar, boolean navBar, int... ids) {
         // sets the provided views' margins to avoid the status bar and navigation bar
         for (int id : ids) {
-            View parent = findViewById(id);
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)parent.getLayoutParams();
-            params.setMargins(0, OxShellApp.getStatusBarHeight(), 0, OxShellApp.getNavBarHeight());
-            parent.setLayoutParams(params);
+            View view = findViewById(id);
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)view.getLayoutParams();
+            params.setMargins(0, statusBar ? OxShellApp.getStatusBarHeight() : 0, 0, navBar ? OxShellApp.getNavBarHeight() : 0);
+            view.setLayoutParams(params);
         }
     }
 
@@ -227,11 +231,19 @@ public class PagedActivity extends AppCompatActivity {
         //settingsDrawer.setX(settingsDrawerWidth);
         //Add an if statement later to have a setting for hiding status bar
         setActionBarHidden(true);
-        setFullscreen(true);
+        SettingsKeeper.reloadCurrentSystemUiState();
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
-        //resumeBackground();
+        //resetShaderViewBg();
+        applyTvBg();
+        resumeBackground();
 
+        // TODO: find less hacky solution to active tag sometimes being null when coming back to Ox Shell
+        if (tagFromPause != null) {
+            if (OxShellApp.getInputHandler().getActiveTag() == null)
+                OxShellApp.getInputHandler().setActiveTag(tagFromPause);
+            tagFromPause = null;
+        }
         Log.i("PagedActivity", "OnResume " + this);
     }
 
@@ -273,11 +285,13 @@ public class PagedActivity extends AppCompatActivity {
         //return isKeyboardShown;
     }
 
+    private String tagFromPause = null;
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
         //OxShellApp.setCurrentActivity(null);
-        //pauseBackground();
+        pauseBackground();
+        tagFromPause = OxShellApp.getInputHandler().getActiveTag();
         super.onPause();
     }
     @Override
@@ -308,7 +322,7 @@ public class PagedActivity extends AppCompatActivity {
         Log.i("PagedActivity", "OnWindowFocusChanged " + this);
         super.onWindowFocusChanged(hasFocus);
         setActionBarHidden(true);
-        setFullscreen(true);
+        SettingsKeeper.reloadCurrentSystemUiState();
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
     }
@@ -337,6 +351,8 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
+        String activeTag = OxShellApp.getInputHandler().getActiveTag();
+        DebugView.print("INPUT_DEBUG", "InputTag: " + (activeTag != null ? activeTag : "null"));
         boolean isDpadInput = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
         if (isKeyboardShown()) {// && (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B))
             if (!isDpadInput) {
@@ -401,6 +417,7 @@ public class PagedActivity extends AppCompatActivity {
     }
     private void prepareOtherViews() {
         parentView = findViewById(R.id.parent_layout);
+        //refreshShaderViewBg();
         initSettingsDrawer();
         settingsDrawer.setShown(settingsDrawer.isDrawerOpen());
         initDynamicInputView();
@@ -462,43 +479,134 @@ public class PagedActivity extends AppCompatActivity {
     private void trySetStartTime() {
         if (!startTimeSet) {
             startTimeSet = true;
-            startTime = System.currentTimeMillis();
+            startTime = SystemClock.uptimeMillis();
             //prevFrameTime = startTime;
         }
     }
 
-    public ShaderView getBackground() {
-        return null;
-        //return findViewById(R.id.bgShader);
+    public void applyTvBg() {
+        int bgType = SettingsKeeper.getTvBgType();
+        if (bgType == SettingsKeeper.BG_TYPE_SHADER) {
+            destroyImageBg();
+            resetShaderViewBg();
+        } else if (bgType == SettingsKeeper.BG_TYPE_IMAGE) {
+            destroyShaderBg();
+            initImageBg();
+            refreshImageBg();
+        }
+    }
+    private void initImageBg() {
+        if (AndroidHelpers.isRunningOnTV() && tvImageBg == null) {
+            tvImageBg = new FrameLayout(this);
+            tvImageBg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            tvImageBg.setZ(-1000);
+            parentView.addView(tvImageBg);
+        }
+    }
+    private void destroyImageBg() {
+        if (tvImageBg != null) {
+            parentView.removeView(tvImageBg);
+            tvImageBg = null;
+        }
+    }
+    private void refreshImageBg() {
+        if (tvImageBg != null) {
+            String bgPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "bg.png");
+            tvImageBg.setBackground(AndroidHelpers.bitmapToDrawable(this, AndroidHelpers.bitmapFromFile(bgPath)));
+        }
+    }
+    private void initShaderBg() {
+        if (AndroidHelpers.isRunningOnTV() && tvShaderBg == null) {
+            tvShaderBg = new ShaderView(this);
+            tvShaderBg.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            tvShaderBg.setZ(-1000);
+            parentView.addView(tvShaderBg);
+            startTimeSet = false;
+        }
+    }
+    private void destroyShaderBg() {
+        if (tvShaderBg != null) {
+            tvShaderBg.setUpdateContinuously(false);
+            parentView.removeView(tvShaderBg);
+            tvShaderBg = null;
+        }
     }
     private void pauseBackground() {
-        ShaderView shaderView = getBackground();
-        shaderView.setUpdateContinuously(false);
+        if (tvShaderBg != null)
+            tvShaderBg.setUpdateContinuously(false);
     }
     private void resumeBackground() {
         //Later will have more logic based on options set by user
-        ShaderView shaderView = getBackground();
-        shaderView.setUpdateContinuously(true);
-        shaderView.setFramerate(30);
+        if (tvShaderBg != null) {
+            tvShaderBg.setUpdateContinuously(true);
+            tvShaderBg.setFramerate(60);
+        }
     }
-    private void initBackground() {
-        ShaderView shaderView = getBackground();
-        Log.d("Paged Activity", "Shader view null: " + (shaderView == null));
-        if (shaderView != null) {
-            shaderView.setFragmentShader(AndroidHelpers.readAssetAsString(this, "Shader/blue_dune.fsh"));
-            shaderView.setVertexShader(AndroidHelpers.readAssetAsString(this, "Shader/vert.vsh"));
+    private void resetShaderViewBg() {
+        boolean updateContinuously = false;
+        int framerate = 0;
+        if (tvShaderBg != null) {
+            updateContinuously = tvShaderBg.getUpdateContinuously();
+            framerate = tvShaderBg.getFramerate();
+        }
+
+        destroyShaderBg();
+        initShaderBg();
+        trySetStartTime();
+        refreshShaderViewBg(updateContinuously, framerate);
+    }
+    private void refreshShaderViewBg(boolean updateContinuously, int framerate) {
+        Log.d("Paged Activity", "Shader view null: " + (tvShaderBg == null));
+        if (tvShaderBg != null) {
+            String fragPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
+            String vertPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh");
+            String channel0Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel0.png");
+            String channel1Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel1.png");
+            String channel2Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel2.png");
+            String channel3Path = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "channel3.png");
+
+            String fragShader;
+            String vertShader;
+            if (AndroidHelpers.fileExists(fragPath))
+                fragShader = AndroidHelpers.readFile(fragPath);
+            else
+                fragShader = AndroidHelpers.readAssetAsString(this, "Shaders/blue_dune.fsh");
+            if (AndroidHelpers.fileExists(vertPath))
+                vertShader = AndroidHelpers.readFile(vertPath);
+            else
+                vertShader = AndroidHelpers.readAssetAsString(this, "Shaders/vert.vsh");
+
+            tvShaderBg.setFragmentShader(fragShader);
+            tvShaderBg.setVertexShader(vertShader);
+            tvShaderBg.setUpdateContinuously(updateContinuously);
+            tvShaderBg.setFramerate(framerate);
             ShaderParamsBuilder paramsBuilder = new ShaderParamsBuilder();
             paramsBuilder.addFloat("iTime", 0f);
+            paramsBuilder.addVec4f("iMouse", new float[] { 0, 0, 0, 0 });
             //DisplayMetrics displayMetrics = OxShellApp.getCurrentActivity().getDisplayMetrics();
-            paramsBuilder.addVec2i("iResolution", new int[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight() });
-            shaderView.setShaderParams(paramsBuilder.build());
-            shaderView.setOnDrawFrameListener(shaderParams -> {
+            paramsBuilder.addVec3f("iResolution", new float[] { OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight(), 1f });
+            if (AndroidHelpers.fileExists(channel0Path))
+                paramsBuilder.addTexture2D("iChannel0", AndroidHelpers.bitmapFromFile(channel0Path), GLES32.GL_TEXTURE0);
+            if (AndroidHelpers.fileExists(channel1Path))
+                paramsBuilder.addTexture2D("iChannel1", AndroidHelpers.bitmapFromFile(channel1Path), GLES32.GL_TEXTURE1);
+            if (AndroidHelpers.fileExists(channel2Path))
+                paramsBuilder.addTexture2D("iChannel2", AndroidHelpers.bitmapFromFile(channel2Path), GLES32.GL_TEXTURE2);
+            if (AndroidHelpers.fileExists(channel3Path))
+                paramsBuilder.addTexture2D("iChannel3", AndroidHelpers.bitmapFromFile(channel3Path), GLES32.GL_TEXTURE3);
+            tvShaderBg.setShaderParams(paramsBuilder.build());
+            tvShaderBg.setOnDrawFrameListener(shaderParams -> {
                 //float deltaTime = (System.currentTimeMillis() - prevFrameTime) / 1000f;
                 //float fps = 1f / deltaTime;
                 //Log.d("FPS", String.valueOf(fps));
                 //prevFrameTime = System.currentTimeMillis();
-                float secondsElapsed = (System.currentTimeMillis() - startTime) / 1000f;
+                float secondsElapsed = (SystemClock.uptimeMillis() - startTime) / 1000f;
+                if (secondsElapsed > 60 * 60 * 24) {
+                    // if more than 24 hours have passed, then reset the timer
+                    secondsElapsed = 0;
+                    startTime = SystemClock.uptimeMillis();
+                }
                 shaderParams.updateValue("iTime", secondsElapsed);
+                shaderParams.updateValue("iMouse", new float[] { 0, 0, 0, 0 });
                 return null;
             });
         }
@@ -520,37 +628,5 @@ public class PagedActivity extends AppCompatActivity {
             else
                 actionBar.show();
         }
-    }
-    public void setFullscreen(boolean onOff) {
-        if (onOff)
-            systemUIVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-        else
-            systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        setSystemUIState(systemUIVisibility);
-    }
-    public void setStatusBarHidden(boolean onOff) {
-        if (onOff)
-            systemUIVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        else if ((systemUIVisibility & View.SYSTEM_UI_FLAG_HIDE_NAVIGATION) == 0)
-            systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        else
-            systemUIVisibility &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
-        setSystemUIState(systemUIVisibility);
-    }
-    public void setNavBarHidden(boolean onOff) {
-        if (onOff)
-            systemUIVisibility |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        else if ((systemUIVisibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-            systemUIVisibility &= ~(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        else
-            systemUIVisibility &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-        setSystemUIState(systemUIVisibility);
-    }
-    public int getSystemUIState() {
-        return systemUIVisibility;
-    }
-    public void setSystemUIState(int uiState) {
-        systemUIVisibility = uiState;
-        getWindow().getDecorView().setSystemUiVisibility(uiState);
     }
 }

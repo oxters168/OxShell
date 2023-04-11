@@ -4,7 +4,6 @@ import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
 
-import com.OxGames.OxShell.Interfaces.DynamicInputListener;
 import com.OxGames.OxShell.Views.DynamicInputItemView;
 import com.OxGames.OxShell.Views.DynamicInputRowView;
 
@@ -44,7 +43,8 @@ public class DynamicInputRow {
             label,
             toggle,
             dropdown,
-            image
+            image,
+            slider
         }
         public int row = -1, col = -1;
         public DynamicInputItemView view;
@@ -214,6 +214,58 @@ public class DynamicInputRow {
             return true;
         }
     }
+    public static class SliderInput extends DynamicInput {
+        private float fromValue;
+        private float toValue;
+        private float currentValue;
+        private float stepSize;
+        private Consumer<SliderInput> onValueSet;
+
+        public SliderInput(float fromValue, float toValue, float startValue, float stepSize, Consumer<SliderInput> onValueSet) {
+            this.inputType = InputType.slider;
+            this.fromValue = fromValue;
+            this.toValue = toValue;
+            this.currentValue = startValue;
+            this.stepSize = stepSize;
+            this.onValueSet = onValueSet;
+        }
+
+        public float getValueFrom() {
+            return fromValue;
+        }
+        public float getValueTo() {
+            return toValue;
+        }
+        public float getValue() {
+            return currentValue;
+        }
+        public float getStepSize() {
+            return stepSize;
+        }
+        public void setValueFrom(float fromValue) {
+            this.fromValue = fromValue;
+            valuesChanged();
+        }
+        public void setValueTo(float toValue) {
+            this.toValue = toValue;
+            valuesChanged();
+        }
+        public void setValue(float value) {
+            this.currentValue = Math.max(Math.min(value, toValue), fromValue);
+            if (onValueSet != null)
+                onValueSet.accept(this);
+            valuesChanged();
+        }
+        public void setStepSize(float stepSize) {
+            this.stepSize = stepSize;
+            valuesChanged();
+        }
+
+        @Override
+        public boolean isFocusable() {
+            return true;
+        }
+    }
     public static class ToggleInput extends DynamicInput {
         private String onLabel;
         private String offLabel;
@@ -316,18 +368,18 @@ public class DynamicInputRow {
         }
     }
     public static class ImageDisplay extends DynamicInput {
-        private ImageRef img;
+        private DataRef img;
 
-        public ImageDisplay(ImageRef img) {
+        public ImageDisplay(DataRef img) {
             this.inputType = InputType.image;
             this.img = img;
         }
 
-        public void setImage(ImageRef img) {
+        public void setImage(DataRef img) {
             this.img = img;
             valuesChanged();
         }
-        public ImageRef getImageRef() {
+        public DataRef getImageRef() {
             return img;
         }
         public Drawable getImage() {

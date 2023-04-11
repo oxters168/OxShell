@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.PromptView;
 import com.OxGames.OxShell.Views.XMBView;
 
@@ -19,9 +20,7 @@ import java.util.function.Consumer;
 public class HomeActivity extends PagedActivity {
     private static final String XMB_INPUT = "XMB_INPUT";
     View homeView;
-    private Consumer<Boolean> onDynamicInputShown = (onOff) -> {
-        homeView.setVisibility(onOff ? View.GONE : View.VISIBLE);
-    };
+    private Consumer<Boolean> onDynamicInputShown = (onOff) -> homeView.setVisibility(onOff ? View.GONE : View.VISIBLE);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,8 +71,16 @@ public class HomeActivity extends PagedActivity {
     protected void onResume() {
         super.onResume();
         getDynamicInput().addShownListener(onDynamicInputShown);
+        refreshXMBInput();
+        ((HomeView)homeView).onResume();
         //showAnnoyingDialog();
         //Log.d("HomeActivity", "onResume");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ((HomeView)homeView).onPause();
     }
 
     @Override
@@ -82,6 +89,7 @@ public class HomeActivity extends PagedActivity {
         getDynamicInput().removeShownListener(onDynamicInputShown);
         OxShellApp.getInputHandler().removeTagFromHistory(XMB_INPUT);
         OxShellApp.getInputHandler().clearKeyComboActions(XMB_INPUT);
+        ((HomeView)homeView).onDestroy();
         homeView = null;
         //Log.d("HomeActivity", "onDestroy");
     }
