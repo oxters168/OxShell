@@ -251,7 +251,7 @@ public class DynamicInputRow {
             valuesChanged();
         }
         public void setValue(float value) {
-            this.currentValue = value;
+            this.currentValue = Math.max(Math.min(value, toValue), fromValue);
             if (onValueSet != null)
                 onValueSet.accept(this);
             valuesChanged();

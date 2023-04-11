@@ -211,10 +211,27 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             SettingsKeeper.setNavBarHidden(true, false);
             SettingsKeeper.setStatusBarHidden(true, false);
 
+            int[] index = new int[2];
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP))).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_LEFT))).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT))).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
+                boolean foundItem = getCurrentlyFocusedItem(index);
+                DynamicInputRow.DynamicInput item;
+                DynamicInputRow.SliderInput innerItem;
+                if (foundItem && (item = rows[index[0]].get(index[1])) instanceof DynamicInputRow.SliderInput && (innerItem = (DynamicInputRow.SliderInput)item).getValue() > innerItem.getValueFrom())
+                    innerItem.setValue(innerItem.getValue() - innerItem.getStepSize());
+                else
+                    moveFocus(KeyEvent.KEYCODE_DPAD_LEFT);
+            })).toArray(KeyComboAction[]::new));
+            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
+                boolean foundItem = getCurrentlyFocusedItem(index);
+                DynamicInputRow.DynamicInput item;
+                DynamicInputRow.SliderInput innerItem;
+                if (foundItem && (item = rows[index[0]].get(index[1])) instanceof DynamicInputRow.SliderInput && (innerItem = (DynamicInputRow.SliderInput)item).getValue() < innerItem.getValueTo())
+                    innerItem.setValue(innerItem.getValue() + innerItem.getStepSize());
+                else
+                    moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT);
+            })).toArray(KeyComboAction[]::new));
             OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
                 int[] result = new int[2];
                 if (getCurrentlyFocusedItem(result)) {
