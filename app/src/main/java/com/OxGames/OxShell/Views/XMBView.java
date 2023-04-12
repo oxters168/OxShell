@@ -909,7 +909,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             z = CAT_Z;
         viewHolder.itemView.setTranslationZ(z);
         boolean isOurCat = itemPosition[0] == this.colIndex && itemPosition[1] == 0;
-        viewHolder.setHighlighted(moveMode && ((!columnMode && isSelection) || (columnMode && isOurCat)));
+        viewHolder.setHighlighted(moveMode && ((!columnMode && isSelection) || (columnMode && isSamePosition(new Integer[] { colIndex, columnLocalIndex }, itemPosition))));
         viewHolder.setHideTitle(isInsideItem() && isPartOfPosition && !isSelection);
         float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
         if (isSelection)
