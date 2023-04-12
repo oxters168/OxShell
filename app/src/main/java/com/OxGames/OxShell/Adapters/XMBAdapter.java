@@ -118,7 +118,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         if (position != null && position.length > 0) {
             current = items.get(position[0]);
             for (int i = 1; i < position.length; i++)
-                current = current.getInnerItem(position[i]);
+                if (i == 1 && position[i] > 0 || i > 1)
+                    current = current.getInnerItem(position[i] - (i == 1 ? 1 : 0));
         }
         return current;
     }
