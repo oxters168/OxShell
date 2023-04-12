@@ -35,7 +35,8 @@ import java.util.function.Consumer;
 
 public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
-    private ArrayList<ArrayList<XMBItem>> items;
+    //private ArrayList<ArrayList<XMBItem>> items;
+    private ArrayList<XMBItem> items;
 
     private static final int TITLE_ID = View.generateViewId();
     private static final int ICON_HIGHLIGHT_ID = View.generateViewId();
@@ -53,12 +54,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 //        this.items = items.toArray(new XMBItem[0]);
 //        font = Typeface.createFromAsset(context.getAssets(), "Fonts/exo.regular.otf");
 //    }
-    public XMBAdapter(Context context, ArrayList<ArrayList<XMBItem>> items) {
+    public XMBAdapter(Context context, ArrayList<XMBItem> items) {
         this.context = context;
-        ArrayList<ArrayList<Object>> casted = new ArrayList<>();
-        for (ArrayList<XMBItem> column : items)
-            casted.add(new ArrayList<>(column));
-        setItems(casted);
+        this.items = new ArrayList<>(items);
         //QUESTION_MARK_DRAWABLE = ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24);
         //font = SettingsKeeper.getFont();
         //if (SettingsKeeper.hasValue(SettingsKeeper.FONT_REF))
@@ -82,18 +80,18 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull XMBViewHolder holder, Integer... position) {
         XMBItem item = null;
-        if (position[1] < items.get(position[0]).size()) // empty item condition
+        if (position[1] < items.get(position[0]).getInnerItemCount()) // empty item condition
             item = (XMBItem)getItem(position);
         holder.bindItem(item);
     }
     @Override
     public int getItemCount(boolean withInnerItems) {
         int size = 0;
-        for (List<XMBItem> column : items) {
+        for (XMBItem column : items) {
             if (column != null)
-                size += column.size();
-            if (withInnerItems)
-                for (XMBItem item : column)
+                size += column.getInnerItemCount();
+            if (withInnerItems && column.hasInnerItems())
+                for (XMBItem item : column.getInnerItems())
                     if (item != null)
                         size += item.getInnerItemCount();
         }
@@ -107,7 +105,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
     @Override
     public int getColumnSize(int columnIndex) {
-        return items.get(columnIndex).size();
+        return items.get(columnIndex).getInnerItemCount();
     }
 
     @Override
@@ -118,30 +116,23 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public Object getItem(Integer... position) {
         XMBItem current = null;
         if (position != null && position.length > 0) {
-            current = items.get(position[0]).get(position[1]);
-            for (int i = 2; i < position.length; i++)
+            current = items.get(position[0]);
+            for (int i = 1; i < position.length; i++)
                 current = current.getInnerItem(position[i]);
         }
         return current;
     }
 
     @Override
-    public ArrayList<ArrayList<Object>> getItems() {
-        ArrayList<ArrayList<Object>> casted = new ArrayList<>();
-        for (ArrayList<XMBItem> column : items)
-            casted.add(new ArrayList<>(column));
-        return casted;
+    public ArrayList<Object> getItems() {
+        return new ArrayList<>(items);
     }
 
     @Override
-    public void setItems(ArrayList<ArrayList<Object>> items) {
+    public void setItems(ArrayList<Object> items) {
         this.items = new ArrayList<>();
-        for (ArrayList<Object> column : items) {
-            ArrayList<XMBItem> casted = new ArrayList<>();
-            for (Object item : column)
-                casted.add((XMBItem)item);
-            this.items.add(casted);
-        }
+        for (Object item : items)
+            this.items.add((XMBItem)item);
     }
 
     @Override
@@ -225,7 +216,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     protected void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
         //Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
-        XMBItem toBeMoved = items.get(toBeMovedColIndex).get(toBeMovedLocalIndex);
+        XMBItem toBeMoved = items.get(toBeMovedColIndex).getInnerItem(toBeMovedLocalIndex);
         if (createColumn) {
             removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex);
             createColumnAt(moveToColIndex, toBeMoved);
@@ -236,7 +227,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     protected void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
-        XMBItem toBeMoved = items.get(startColIndex).get(fromLocalIndex);
+        XMBItem toBeMoved = items.get(startColIndex).getInnerItem(fromLocalIndex);
         removeSubItem(startColIndex, fromLocalIndex);
         addSubItem(startColIndex, toLocalIndex, toBeMoved);
     }
@@ -253,9 +244,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public void createColumnAt(int columnIndex, Object head) {
-        ArrayList<XMBItem> newColumn = new ArrayList<>();
-        newColumn.add((XMBItem)head);
-        items.add(columnIndex, newColumn);
+        //ArrayList<XMBItem> newColumn = new ArrayList<>();
+        //newColumn.add((XMBItem)head);
+        items.add(columnIndex, (XMBItem)head);
         fireColumnAddedEvent(columnIndex);
         fireSubItemAddedEvent(columnIndex, 0);
     }
@@ -267,7 +258,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
     @Override
     public void shiftColumnTo(int fromColIndex, int toColIndex) {
-        ArrayList<XMBItem> origItems = items.get(fromColIndex);
+        XMBItem origItems = items.get(fromColIndex);
         if (toColIndex > fromColIndex) {
             items.add(toColIndex + 1, origItems);
             items.remove(fromColIndex);
@@ -279,7 +270,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     private void removeColIfEmpty(int columnIndex) {
-        if (items.get(columnIndex).size() <= 0)
+        if (items.get(columnIndex).getInnerItemCount() <= 0)
             removeColumnAt(columnIndex);
     }
     private void fireColumnAddedEvent(int columnIndex) {

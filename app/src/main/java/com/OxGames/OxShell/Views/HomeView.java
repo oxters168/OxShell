@@ -795,7 +795,7 @@ public class HomeView extends XMBView implements Refreshable {
 //        };
         long loadHomeStart = SystemClock.uptimeMillis();
 
-        ArrayList<ArrayList<XMBItem>> items;
+        ArrayList<XMBItem> items;
         if (!cachedItemsExists()) {
             // if no file exists then add apps to the home
             // TODO: make optional?
@@ -818,13 +818,13 @@ public class HomeView extends XMBView implements Refreshable {
         setIndex(cachedColIndex, cachedRowIndex, true);
         Log.i("HomeView", "Time to load home items: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s");
     }
-    private static ArrayList<XMBItem> createSettingsColumn() {
-        ArrayList<XMBItem> settingsColumn = new ArrayList<>();
+    private static XMBItem createSettingsColumn() {
+        ArrayList<XMBItem> settingsItems = new ArrayList<>();
         List<XMBItem> innerSettings = new ArrayList<>();
         List<XMBItem> innerInnerSettings = new ArrayList<>();
 
-        XMBItem settingsItem = new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
-        settingsColumn.add(settingsItem);
+        //XMBItem settingsItem = new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
+        //settingsColumn.add(settingsItem);
 
         // TODO: add option to change icon alpha
         // TODO: add option to reset home items to default
@@ -837,6 +837,7 @@ public class HomeView extends XMBView implements Refreshable {
 //        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
 //        settingsColumn.add(settingsItem);
 
+        XMBItem currentSettingsItem;
         innerSettings.clear();
         innerSettings.add(new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home"));
 //        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
@@ -844,8 +845,8 @@ public class HomeView extends XMBView implements Refreshable {
 //        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
         innerSettings.add(new HomeItem(HomeItem.Type.addAppOuter, "Add application to home"));
         //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
-        settingsItem = new XMBItem(null, "Home", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsColumn.add(settingsItem);
+        currentSettingsItem = new XMBItem(null, "Home", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerSettings.add(new HomeItem(HomeItem.Type.setImageBg, "Set picture as background"));
@@ -853,13 +854,13 @@ public class HomeView extends XMBView implements Refreshable {
         innerSettings.add(new HomeItem(HomeItem.Type.setUiScale, "Change UI scale"));
         if (!AndroidHelpers.isRunningOnTV())
             innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
-        settingsItem = new XMBItem(null, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsColumn.add(settingsItem);
+        currentSettingsItem = new XMBItem(null, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerSettings.add(new HomeItem(HomeItem.Type.setAudioVolume, "Set volume levels"));
-        settingsItem = new XMBItem(null, "Audio", DataRef.from("ic_baseline_headphones_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsColumn.add(settingsItem);
+        currentSettingsItem = new XMBItem(null, "Audio", DataRef.from("ic_baseline_headphones_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerInnerSettings.clear();
@@ -883,8 +884,8 @@ public class HomeView extends XMBView implements Refreshable {
         innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input"));
         innerSettings.add(new XMBItem(null, "Android System", DataRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
-        settingsItem = new XMBItem(null, "Controls", DataRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsColumn.add(settingsItem);
+        currentSettingsItem = new XMBItem(null, "Controls", DataRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItems.add(currentSettingsItem);
 
         //innerSettings = new XMBItem[0];
         //settingsItem = new XMBItem(null, "Explorer", R.drawable.ic_baseline_source_24, colIndex, localIndex++, innerSettings);
@@ -897,16 +898,16 @@ public class HomeView extends XMBView implements Refreshable {
 //            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
         innerSettings.add(new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home"));
         innerSettings.add(new HomeItem(HomeItem.Type.createAssoc, "Create new association"));
-        settingsItem = new XMBItem(null, "Associations", DataRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsColumn.add(settingsItem);
+        currentSettingsItem = new XMBItem(null, "Associations", DataRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerSettings.add(new HomeItem(HomeItem.Type.appInfo, "App info"));
         innerSettings.add(new HomeItem(HomeItem.Type.saveLogs, "Save logs to file"));
-        settingsItem = new XMBItem(null, "About", DataRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsColumn.add(settingsItem);
+        currentSettingsItem = new XMBItem(null, "About", DataRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        settingsItems.add(currentSettingsItem);
 
-        return settingsColumn;
+        return new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource), settingsItems.toArray(new XMBItem[0]));//, colIndex, localIndex++);
     }
 
     @Override
@@ -915,81 +916,84 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     // TODO: remove assoc inner items
-    public ArrayList<ArrayList<XMBItem>> getItems() {
-        ArrayList<ArrayList<Object>> items = getAdapter().getItems();
+    public ArrayList<XMBItem> getItems() {
+        ArrayList<Object> items = getAdapter().getItems();
+        ArrayList<XMBItem> casted = new ArrayList<>();
         items.remove(items.size() - 1); // remove the settings
         for (int i = 0; i < items.size(); i++) {
-            ArrayList<Object> column = items.get(i);
-            for (int j = 0; j < column.size(); j++) {
-                Object item = column.get(j);
+            XMBItem column = (XMBItem)items.get(i);
+            casted.add(column);
+            for (int j = 0; j < column.getInnerItemCount(); j++) {
+                Object item = column.getInnerItem(j);
                 if (item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.assoc)
                     ((HomeItem)item).clearInnerItems();
             }
         }
-        return cast(items);
-    }
-    private static ArrayList<ArrayList<XMBItem>> cast(ArrayList<ArrayList<Object>> items) {
-        ArrayList<ArrayList<XMBItem>> casted = new ArrayList<>();
-        for (ArrayList<Object> column : items) {
-            ArrayList<XMBItem> innerCasted = new ArrayList<>();
-            for (Object item : column)
-                innerCasted.add((XMBItem)item);
-            casted.add(innerCasted);
-        }
         return casted;
     }
+//    private static ArrayList<ArrayList<XMBItem>> cast(ArrayList<ArrayList<Object>> items) {
+//        ArrayList<ArrayList<XMBItem>> casted = new ArrayList<>();
+//        for (ArrayList<Object> column : items) {
+//            ArrayList<XMBItem> innerCasted = new ArrayList<>();
+//            for (Object item : column)
+//                innerCasted.add((XMBItem)item);
+//            casted.add(innerCasted);
+//        }
+//        return casted;
+//    }
 
     private static boolean cachedItemsExists() {
         return AndroidHelpers.fileExists(AndroidHelpers.combinePaths(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME));
     }
-    private static void save(ArrayList<ArrayList<XMBItem>> items) {
+    private static void save(ArrayList<XMBItem> items) {
         saveHomeItemsToFile(items, Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
     private static boolean updatedItems = false;
-    private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
-        int currentVersion = SettingsKeeper.getVersionCode();
-        int prevVersion = SettingsKeeper.getPrevVersionCode();
-        if (currentVersion != prevVersion && prevVersion < 5 && !updatedItems) {
-            updatedItems = true;
-            for (ArrayList<XMBItem> column : items) {
-                for (XMBItem item : column) {
-                    DataRef imgRef = item.getImgRef();
-                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
-                        int oldIndex = (int)imgRef.getLoc();
-                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
-                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
-                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
-                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
-                    }
-                }
-            }
-            save(items);
-        }
-    }
-    private static ArrayList<ArrayList<XMBItem>> load() {
+//    private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
+//        int currentVersion = SettingsKeeper.getVersionCode();
+//        int prevVersion = SettingsKeeper.getPrevVersionCode();
+//        if (currentVersion != prevVersion && prevVersion < 5 && !updatedItems) {
+//            updatedItems = true;
+//            for (ArrayList<XMBItem> column : items) {
+//                for (XMBItem item : column) {
+//                    DataRef imgRef = item.getImgRef();
+//                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
+//                        int oldIndex = (int)imgRef.getLoc();
+//                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
+//                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+//                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+//                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
+//                    }
+//                }
+//            }
+//            save(items);
+//        }
+//    }
+    private static ArrayList<XMBItem> load() {
         return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
-    private static void saveHomeItemsToFile(ArrayList<ArrayList<XMBItem>> items, String parentDir, String fileName) {
+    private static void saveHomeItemsToFile(ArrayList<XMBItem> items, String parentDir, String fileName) {
         AndroidHelpers.makeDir(parentDir);
         String fullPath = AndroidHelpers.combinePaths(parentDir, fileName);
         //Serialaver.saveFile(items, fullPath);
         Serialaver.saveAsFSTJSON(items, fullPath);
     }
-    private static ArrayList<ArrayList<XMBItem>> loadHomeItemsFromFile(String parentDir, String fileName) {
-        ArrayList<ArrayList<XMBItem>> items = null;
+    private static ArrayList<XMBItem> loadHomeItemsFromFile(String parentDir, String fileName) {
+        ArrayList<XMBItem> items = null;
         String path = AndroidHelpers.combinePaths(parentDir, fileName);
         if (AndroidHelpers.fileExists(path)) {
             try {
-                items = (ArrayList<ArrayList<XMBItem>>) Serialaver.loadFromFSTJSON(path);
+                items = (ArrayList<XMBItem>)Serialaver.loadFromFSTJSON(path);
             } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
         } else
             Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
 
-        if (items != null)
-            upgradeItemsIfNecessary(items);
+        // TODO: set up another upgrade system
+        //if (items != null)
+        //    upgradeItemsIfNecessary(items);
         return items;
     }
-    private static ArrayList<ArrayList<XMBItem>> createDefaultItems() {
+    private static ArrayList<XMBItem> createDefaultItems() {
         Log.d("HomeView", "Retrieving default apps");
         long createDefaultStart = SystemClock.uptimeMillis();
 
@@ -998,7 +1002,7 @@ public class HomeView extends XMBView implements Refreshable {
         List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
         Log.d("HomeView", "Time to get installed packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         createDefaultStart = SystemClock.uptimeMillis();
-        ArrayList<ArrayList<XMBItem>> defaultItems = new ArrayList<>();
+        ArrayList<XMBItem> defaultItems = new ArrayList<>();
         // go through all apps creating HomeItems for them and sorting them into their categories
         int otherIndex = getOtherCategoryIndex();
         for (int i = 0; i < apps.size(); i++) {
@@ -1026,15 +1030,16 @@ public class HomeView extends XMBView implements Refreshable {
             int catIndex = existingCategories.get(index);
             if (catIndex == -1)
                 catIndex = categories.length - 1;
-            ArrayList<XMBItem> column = new ArrayList<>();
+            //ArrayList<XMBItem> column = new ArrayList<>();
             // add the category item at the top
-            column.add(new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource)));
-            column.addAll(sortedApps.get(existingCategories.get(index)));
-            defaultItems.add(column);
+            XMBItem columnHead = new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource), sortedApps.get(existingCategories.get(index)).toArray(new XMBItem[0]));
+            //column.add(new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource)));
+            //column.addAll(sortedApps.get(existingCategories.get(index)));
+            defaultItems.add(columnHead);
         }
-        ArrayList<XMBItem> explorerColumn = new ArrayList<>();
-        explorerColumn.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
-        defaultItems.add(0, explorerColumn);
+        //ArrayList<XMBItem> explorerColumn = new ArrayList<>();
+        //explorerColumn.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
+        defaultItems.add(0, new HomeItem(HomeItem.Type.explorer, "Explorer"));
         Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         return defaultItems;
     }

@@ -8,12 +8,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class XMBItem<T> implements Serializable {
     public T obj;
     protected String title;
     //protected Object iconLoc;
     protected DataRef iconLoc;
+    protected Function<XMBItem, List<XMBItem>> innerItemCreator;
     protected List<XMBItem> innerItems;
 
     protected transient Drawable icon;
@@ -57,8 +59,23 @@ public class XMBItem<T> implements Serializable {
         this.title = title;
     }
 
+    public void add(int localIndex, XMBItem item) {
+        this.innerItems.add(localIndex, item);
+    }
+    public void remove(int localIndex) {
+        this.innerItems.remove(localIndex);
+    }
+    public void setInnerItems(Function<XMBItem, List<XMBItem>> creator) {
+        this.innerItemCreator = creator;
+        this.innerItems = null; // resetting inner items since the creator has changed
+    }
     public void setInnerItems(XMBItem... innerItems) {
         this.innerItems = new ArrayList<>(Arrays.asList(innerItems));
+        this.innerItemCreator = null; // resetting creator since inner items was directly set
+    }
+    public void refreshInnerItems() {
+        if (innerItemCreator != null)
+            innerItems = innerItemCreator.apply(this);
     }
     public boolean hasInnerItems() {
         return innerItems != null && innerItems.size() > 0;
@@ -66,12 +83,16 @@ public class XMBItem<T> implements Serializable {
     public int getInnerItemCount() {
         return innerItems != null ? innerItems.size() : 0;
     }
+    public XMBItem[] getInnerItems() {
+        return innerItems != null ? innerItems.toArray(new XMBItem[0]) : null;
+    }
     public XMBItem getInnerItem(int index) {
         return innerItems.get(index);
     }
     public void clearInnerItems() {
         if (innerItems != null)
             innerItems.clear();
+        innerItemCreator = null;
     }
     public String getTitle() {
         return title;

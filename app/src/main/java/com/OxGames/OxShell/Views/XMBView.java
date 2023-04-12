@@ -202,8 +202,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         public abstract int getColumnSize(int columnIndex);
         public abstract void onViewAttachedToWindow(@NonNull T holder);
         public abstract Object getItem(Integer... position);
-        public abstract ArrayList<ArrayList<Object>> getItems();
-        public abstract void setItems(ArrayList<ArrayList<Object>> items);
+        public abstract ArrayList<Object> getItems();
+        public abstract void setItems(ArrayList<Object> items);
         public abstract boolean hasInnerItems(Integer... position);
         public abstract int getInnerItemCount(Integer... position);
         public abstract boolean isColumnHead(Integer... position);
