@@ -2,6 +2,7 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
@@ -29,6 +30,7 @@ import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -141,21 +143,18 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             thumbDrawable.getPaint().setColor(Color.WHITE);
             thumbDrawable.setIntrinsicWidth(8);
             thumbDrawable.setIntrinsicHeight(8);
-            mainList.setVerticalScrollbarThumbDrawable(thumbDrawable);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            AndroidHelpers.setVerticalThumbDrawable(mainList, thumbDrawable);
             // Create track drawable
             ShapeDrawable trackDrawable = new ShapeDrawable();
             trackDrawable.setShape(new RectShape());
             trackDrawable.getPaint().setColor(Color.DKGRAY);
             trackDrawable.setIntrinsicWidth(8);
             trackDrawable.setIntrinsicHeight(8);
-            mainList.setVerticalScrollbarTrackDrawable(trackDrawable);
+            AndroidHelpers.setVerticalTrackDrawable(mainList, trackDrawable);
+            mainList.setVerticalScrollBarEnabled(true);
+            mainList.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
+            mainList.setScrollbarFadingEnabled(false);
         }
-        mainList.setVerticalScrollBarEnabled(true);
-        mainList.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
-        mainList.setScrollbarFadingEnabled(false);
-        //mainList.setOverScrollMode(SCROLL_AXIS_VERTICAL);
         addView(mainList);
 
         FrameLayout footer = new FrameLayout(context);

@@ -58,8 +58,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -773,6 +773,47 @@ public class AndroidHelpers {
             }
         }
         return matching;
+    }
+
+    public static void setVerticalThumbDrawable(View view, Drawable thumbDrawable) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            // getting "java.lang.NullPointerException: Attempt to invoke virtual method 'android.widget.ScrollBarDrawable android.widget.ScrollBarDrawable.mutate()' on a null object reference"
+            // when using setScrollbarFadingEnabled(false) afterwards
+            try {
+                Field mScrollCacheField = View.class.getDeclaredField("mScrollCache");
+                mScrollCacheField.setAccessible(true);
+                Object mScrollCache = mScrollCacheField.get(view);
+                Field scrollBarField = mScrollCache.getClass().getDeclaredField("scrollBar");
+                scrollBarField.setAccessible(true);
+                Object scrollBar = scrollBarField.get(mScrollCache);
+                Method method = scrollBar.getClass().getDeclaredMethod("setVerticalThumbDrawable", Drawable.class);
+                method.setAccessible(true);
+                method.invoke(scrollBar, thumbDrawable);
+            } catch(Exception e) {
+                Log.e("AndroidHelpers", "Failed to set scrollbar thumb drawable: " + e);
+            }
+        } else
+            view.setVerticalScrollbarThumbDrawable(thumbDrawable);
+    }
+    public static void setVerticalTrackDrawable(View view, Drawable trackDrawable) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            // getting "java.lang.NullPointerException: Attempt to invoke virtual method 'android.widget.ScrollBarDrawable android.widget.ScrollBarDrawable.mutate()' on a null object reference"
+            // when using setScrollbarFadingEnabled(false) afterwards
+            try {
+                Field mScrollCacheField = View.class.getDeclaredField("mScrollCache");
+                mScrollCacheField.setAccessible(true);
+                Object mScrollCache = mScrollCacheField.get(view);
+                Field scrollBarField = mScrollCache.getClass().getDeclaredField("scrollBar");
+                scrollBarField.setAccessible(true);
+                Object scrollBar = scrollBarField.get(mScrollCache);
+                Method method = scrollBar.getClass().getDeclaredMethod("setVerticalScrollbarTrackDrawable", Drawable.class);
+                method.setAccessible(true);
+                method.invoke(scrollBar, trackDrawable);
+            } catch(Exception e) {
+                Log.e("AndroidHelpers", "Failed to set scrollbar track drawable: " + e);
+            }
+        } else
+            view.setVerticalScrollbarTrackDrawable(trackDrawable);
     }
 
     // source: https://stackoverflow.com/questions/8399184/convert-dip-to-px-in-android

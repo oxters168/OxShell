@@ -147,7 +147,7 @@ public class SettingsKeeper {
     public static float getSfxVolume() {
         // create default if not existing
         if (!hasValue(SFX_VOLUME))
-            setSfxVolume(1f);
+            setSfxVolume(0.33f);
 
         return Float.parseFloat((String)getValue(SFX_VOLUME));
     }

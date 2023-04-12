@@ -11,6 +11,7 @@ import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -34,6 +35,8 @@ import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,6 +74,9 @@ public class PromptView extends FrameLayout implements InputReceiver {
     private float percentY = 0;
     private int chosenWidth = 0;
     private int chosenHeight = 0;
+
+    private ShapeDrawable thumbDrawable;
+    private ShapeDrawable trackDrawable;
 
     private static final String INPUT_TAG = "PROMPT_INPUT";
 
@@ -149,25 +155,25 @@ public class PromptView extends FrameLayout implements InputReceiver {
         msg.setLayoutParams(layoutParams);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Create thumb drawable
-            ShapeDrawable thumbDrawable = new ShapeDrawable();
+            thumbDrawable = new ShapeDrawable();
             thumbDrawable.setShape(new RectShape());
             thumbDrawable.getPaint().setColor(Color.WHITE);
             thumbDrawable.setIntrinsicWidth(8);
             thumbDrawable.setIntrinsicHeight(8);
-            msg.setVerticalScrollbarThumbDrawable(thumbDrawable);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            AndroidHelpers.setVerticalThumbDrawable(msg, thumbDrawable);
             // Create track drawable
-            ShapeDrawable trackDrawable = new ShapeDrawable();
+            trackDrawable = new ShapeDrawable();
             trackDrawable.setShape(new RectShape());
             trackDrawable.getPaint().setColor(Color.DKGRAY);
             trackDrawable.setIntrinsicWidth(8);
             trackDrawable.setIntrinsicHeight(8);
-            msg.setVerticalScrollbarTrackDrawable(trackDrawable);
+            AndroidHelpers.setVerticalTrackDrawable(msg, trackDrawable);
+            msg.setVerticalScrollBarEnabled(true);
+            msg.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            // getting "java.lang.NullPointerException: Attempt to invoke virtual method 'android.widget.ScrollBarDrawable android.widget.ScrollBarDrawable.mutate()' on a null object reference"
+            // when using setScrollbarFadingEnabled(false)
+            msg.setScrollbarFadingEnabled(false);
         }
-        msg.setVerticalScrollBarEnabled(true);
-        msg.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        msg.setScrollbarFadingEnabled(false);
         msg.setOverScrollMode(SCROLL_AXIS_VERTICAL);
         msg.setMovementMethod(new ScrollingMovementMethod());
         //msg.setEllipsize(TextUtils.TruncateAt.END);

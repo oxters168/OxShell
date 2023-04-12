@@ -67,20 +67,18 @@ public class DynamicInputRowView extends FrameLayout {
             thumbDrawable.getPaint().setColor(Color.WHITE);
             thumbDrawable.setIntrinsicWidth(8);
             thumbDrawable.setIntrinsicHeight(8);
-            row.setHorizontalScrollbarThumbDrawable(thumbDrawable);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            AndroidHelpers.setVerticalThumbDrawable(row, thumbDrawable);
             // Create track drawable
             ShapeDrawable trackDrawable = new ShapeDrawable();
             trackDrawable.setShape(new RectShape());
             trackDrawable.getPaint().setColor(Color.DKGRAY);
             trackDrawable.setIntrinsicWidth(8);
             trackDrawable.setIntrinsicHeight(8);
-            row.setHorizontalScrollbarTrackDrawable(trackDrawable);
+            AndroidHelpers.setVerticalTrackDrawable(row, trackDrawable);
+            row.setHorizontalScrollBarEnabled(true);
+            row.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+            row.setScrollbarFadingEnabled(false);
         }
-        row.setHorizontalScrollBarEnabled(true);
-        row.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        row.setScrollbarFadingEnabled(false);
         addView(row);
     }
     public void setInputItems(DynamicInputRow items) {
