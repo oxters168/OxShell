@@ -258,7 +258,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             items.get(columnIndex).remove(localIndex - 1);
         fireSubItemRemovedEvent(columnIndex, localIndex);
         if (localIndex == 0)
-            removeColIfEmpty(columnIndex);
+            removeColumnAt(columnIndex);
+            //removeColIfEmpty(columnIndex);
     }
     @Override
     public void createColumnAt(int columnIndex, Object head) {

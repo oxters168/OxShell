@@ -72,6 +72,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private final ArrayList<Float> catPos; // go from 0 to (adapter.getColumnSize(colIndex) - 1) * getVerShiftOffset()
     private boolean moveMode;
     private boolean columnMode;
+    private int columnLocalIndex; // the current index of the column in move mode
     private int origMoveColIndex;
     private int origMoveLocalIndex;
     //private int moveColIndex;
@@ -1279,6 +1280,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             //moveLocalIndex = getLocalIndex();
             origMoveColIndex = this.colIndex;
             origMoveLocalIndex = this.rowIndex;// + (catHasSubItems(moveColIndex) ? 1 : 0);
+            columnLocalIndex = 0;
         } else
             this.columnMode = false;
         //setAdapterHighlightColor(moveMode ? moveHighlightColor : normalHighlightColor);
@@ -1286,7 +1288,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         //refresh();
     }
     private void applyMove() {
-        if (this.colIndex != origMoveColIndex || this.rowIndex != origMoveLocalIndex)
+        //if (this.colIndex != origMoveColIndex || this.rowIndex != origMoveLocalIndex)
+        if (moveMode)
             onAppliedMove(origMoveColIndex, origMoveLocalIndex, this.colIndex, this.rowIndex);
         toggleMoveMode(false, false);
     }
@@ -1296,13 +1299,13 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
         //Log.d("XMBView", Arrays.toString(getPosition()));
         if (moveMode) {
-            if (columnMode) {
-                int nextColIndex = Math.min(Math.max(toColIndex, 0), adapter.getColumnCount() - 2);
+            //if (columnMode) {
+            //    int nextColIndex = Math.min(Math.max(toColIndex, 0), adapter.getColumnCount() - 2);
                 //if (nextColIndex != fromColIndex)
-                    adapter.shiftColumnTo(fromColIndex, nextColIndex);
-            } else {
+            //        adapter.shiftColumnTo(fromColIndex, nextColIndex);
+            //} else {
                 //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
-                boolean isInColumn = catHasSubItems(fromColIndex);
+                boolean isInColumn = (!columnMode || columnLocalIndex > 0) && catHasSubItems(fromColIndex);
                 // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
                 int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 1 : 2));
                 //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
@@ -1329,7 +1332,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
                     //getViewHolder(fromColIndex, fromRowIndex).setDirty();
                     //getViewHolder(nextColIndex, nextLocalIndex).setDirty();
-                    adapter.shiftItemHorizontally(fromColIndex, fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
+                    adapter.shiftItemHorizontally(fromColIndex, columnMode ? columnLocalIndex : fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
+                    columnLocalIndex = !isInColumn ? nextLocalIndex : 0;
 
                     this.colIndex = setColIndex;
                 } else
@@ -1337,7 +1341,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
                 this.rowIndex = getCachedIndexOfCat(this.colIndex);
                 this.shiftX = getShiftX(this.colIndex);
-            }
+            //}
         }
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
@@ -1346,6 +1350,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             //getViewHolder(fromColIndex, fromLocalIndex).setDirty();
             //getViewHolder(fromColIndex, toLocalIndex).setDirty();
             adapter.shiftItemVertically(fromColIndex, fromLocalIndex, toLocalIndex);
+            columnLocalIndex = toLocalIndex;
         }
     }
 }
