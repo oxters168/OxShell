@@ -452,7 +452,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private int yToIndex(float yValue, int colIndex) {
         // finds the local index closest to the current y value then clamps it to be within the proper range
         boolean hasSubItems = catHasSubItems(colIndex);
-        return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), adapter.getColumnSize(colIndex) - (hasSubItems ? 2 : 1)) + (hasSubItems ? 1 : 0);
+        return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), adapter.getColumnSize(colIndex) - (hasSubItems ? 1 : 0)) + (hasSubItems ? 1 : 0);
     }
     private void setShiftYToNearestItem(int colIndex) {
         if (colIndex < 0 || colIndex >= catPos.size())
@@ -1140,7 +1140,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     }
 
     public boolean catHasSubItems(int colIndex) {
-        return adapter != null && adapter.getColumnSize(colIndex) > 1;
+        return adapter != null && adapter.getColumnSize(colIndex) > 0;
     }
 
     protected void setIndex(int colIndex, int localIndex, boolean instant) {
@@ -1291,6 +1291,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         // local indices are total within the columns they represent and not traversable
     }
     protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
+        Log.d("XMBView", Arrays.toString(getPosition()));
         if (moveMode) {
             if (columnMode) {
                 int nextColIndex = Math.min(Math.max(toColIndex, 0), adapter.getColumnCount() - 2);
@@ -1337,6 +1338,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
+        Log.d("XMBView", Arrays.toString(getPosition()));
         if (moveMode) {
             //getViewHolder(fromColIndex, fromLocalIndex).setDirty();
             //getViewHolder(fromColIndex, toLocalIndex).setDirty();

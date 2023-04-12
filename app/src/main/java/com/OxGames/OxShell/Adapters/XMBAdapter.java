@@ -79,10 +79,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public void onBindViewHolder(@NonNull XMBViewHolder holder, Integer... position) {
-        XMBItem item = null;
-        if (position[1] < items.get(position[0]).getInnerItemCount()) // empty item condition
-            item = (XMBItem)getItem(position);
-        holder.bindItem(item);
+//        XMBItem item = null;
+//        if (position[1] < items.get(position[0]).getInnerItemCount()) // empty item condition
+//            item = (XMBItem)getItem(position);
+        holder.bindItem((XMBItem)getItem(position));
     }
     @Override
     public int getItemCount(boolean withInnerItems) {
@@ -146,12 +146,12 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public boolean hasInnerItems(Integer... position) {
         XMBItem current = (XMBItem)getItem(position);
         //Log.d("XMBView", "Checking if " + current.title + " has inner items? " + current.hasInnerItems());
-        return current != null && current.hasInnerItems();
+        return ((position.length == 2 && position[1] != 0) || position.length > 2) && (current != null && current.hasInnerItems());
     }
     @Override
     public int getInnerItemCount(Integer... position) {
         XMBItem current = (XMBItem)getItem(position);
-        return current != null ? current.getInnerItemCount() : 0;
+        return hasInnerItems(position) ? current.getInnerItemCount() : 0;
     }
 
     public class XMBViewHolder extends XMBView.ViewHolder {
@@ -169,7 +169,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 title.setSelected(true);
                 title.setTypeface(font);
                 //AndroidHelpers.setTextAsync(title, item != null ? item.getTitle() : "Empty");
-                title.setText(item != null ? item.getTitle() : "Empty");
+                title.setText(item != null ? item.getTitle() : "null");
 
                 //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
                 //superIcon.setVisibility(View.GONE);
@@ -194,8 +194,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                     });
                 } else {
                     //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
-                    img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
-                    highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                    img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+                    highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
                 }
                 if (isHighlighted())
                     Log.d("XMBAdapter", "Highlighting " + item.getTitle());
