@@ -721,9 +721,9 @@ public class HomeView extends XMBView implements Refreshable {
                     homeItem = (HomeItem)selectedItem;
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
-                if (isNotSettings && !isColumnHead && !isInnerItem)
+                if (isNotSettings && !isInnerItem)
                     btns.add(moveItemBtn);
-                if (isNotSettings && !isColumnHead && !isInnerItem)
+                if (isNotSettings && !isInnerItem)
                     btns.add(deleteBtn);
                 if (isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && homeItem.type != HomeItem.Type.explorer)
                     btns.add(uninstallBtn);

@@ -8,17 +8,13 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-import com.OxGames.OxShell.Data.KeyComboAction;
-import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.MathHelpers;
-import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.Interfaces.XMBAdapterListener;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
@@ -28,7 +24,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 public class XMBView extends ViewGroup {// implements InputReceiver {//, Refreshable {
     private static final float EPSILON = 0.0001f;
@@ -72,7 +67,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private final ArrayList<Float> catPos; // go from 0 to (adapter.getColumnSize(colIndex) - 1) * getVerShiftOffset()
     private boolean moveMode;
     private boolean columnMode;
-    private int columnLocalIndex; // the current index of the column in move mode
+    private int moveLocalIndex; // the current index of the column in move mode
     private int origMoveColIndex;
     private int origMoveLocalIndex;
     //private int moveColIndex;
@@ -909,7 +904,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             z = CAT_Z;
         viewHolder.itemView.setTranslationZ(z);
         boolean isOurCat = itemPosition[0] == this.colIndex && itemPosition[1] == 0;
-        viewHolder.setHighlighted(moveMode && ((!columnMode && isSelection) || (columnMode && isSamePosition(new Integer[] { colIndex, columnLocalIndex }, itemPosition))));
+        viewHolder.setHighlighted(moveMode && isSamePosition(new Integer[] { colIndex, moveLocalIndex}, itemPosition));
         viewHolder.setHideTitle(isInsideItem() && isPartOfPosition && !isSelection);
         float itemAlpha = (isPartOfPosition || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
         if (isSelection)
@@ -1280,7 +1275,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             //moveLocalIndex = getLocalIndex();
             origMoveColIndex = this.colIndex;
             origMoveLocalIndex = this.rowIndex;// + (catHasSubItems(moveColIndex) ? 1 : 0);
-            columnLocalIndex = 0;
+            moveLocalIndex = columnMode ? 0 : this.rowIndex;
         } else
             this.columnMode = false;
         //setAdapterHighlightColor(moveMode ? moveHighlightColor : normalHighlightColor);
@@ -1305,7 +1300,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             //        adapter.shiftColumnTo(fromColIndex, nextColIndex);
             //} else {
                 //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
-                boolean isInColumn = (!columnMode || columnLocalIndex > 0) && catHasSubItems(fromColIndex);
+                //boolean isInColumn = (!columnMode || moveLocalIndex > 0) && catHasSubItems(fromColIndex);
+                boolean isInColumn = moveLocalIndex > 0 && catHasSubItems(fromColIndex);
                 // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
                 int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 1 : 2));
                 //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
@@ -1332,8 +1328,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
                     //getViewHolder(fromColIndex, fromRowIndex).setDirty();
                     //getViewHolder(nextColIndex, nextLocalIndex).setDirty();
-                    adapter.shiftItemHorizontally(fromColIndex, columnMode ? columnLocalIndex : fromRowIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
-                    columnLocalIndex = !isInColumn ? nextLocalIndex : 0;
+                    adapter.shiftItemHorizontally(fromColIndex, moveLocalIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
+                    moveLocalIndex = !isInColumn ? nextLocalIndex : 0;
 
                     this.colIndex = setColIndex;
                 } else
@@ -1350,7 +1346,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             //getViewHolder(fromColIndex, fromLocalIndex).setDirty();
             //getViewHolder(fromColIndex, toLocalIndex).setDirty();
             adapter.shiftItemVertically(fromColIndex, fromLocalIndex, toLocalIndex);
-            columnLocalIndex = toLocalIndex;
+            moveLocalIndex = toLocalIndex;
         }
     }
 }
