@@ -288,7 +288,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         this.prevColIndex = 0;
         this.innerItemEntryPos.clear();
         this.innerItemVerPos.clear();
-        this.rowIndex = (adapter != null && adapter.getColumnCount() > 0 && adapter.getColumnSize(this.colIndex) > 1) ? 1 : 0;
+        this.rowIndex = (adapter != null && adapter.getColumnCount() > 0 && adapter.getColumnSize(this.colIndex) > 0) ? 1 : 0;
         removeViews();
         for (int i = 0; i < adapter.getColumnCount(); i++)
             this.catPos.add(0f);
@@ -399,7 +399,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
     }
     private float clampYValue(float yValue, int colIndex) {
-        return Math.min(Math.max(yValue, 0), (getColTraversableCount(colIndex) - 1) * getVerShiftOffset());
+        //return Math.min(Math.max(yValue, 0), (getColTraversableCount(colIndex) - 1) * getVerShiftOffset());
+        return Math.min(Math.max(yValue, 0), (adapter.getColumnSize(colIndex) - 1) * getVerShiftOffset());
     }
     private void setShiftY(float yValue, int colIndex) {
         //Log.d("XMBView", "Shift Y " + colIndex + ", " + yValue);
@@ -438,7 +439,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         // determines the pixel position of the sub-item within the given column
         if (catHasSubItems(colIndex))
             localIndex -= 1; // since we don't want to count the column head
-        return getVerShiftOffset() * Math.min(Math.max(localIndex, 0), getColTraversableCount(colIndex));
+        //return getVerShiftOffset() * Math.min(Math.max(localIndex, 0), getColTraversableCount(colIndex));
+        return getVerShiftOffset() * Math.min(Math.max(localIndex, 0), adapter.getColumnSize(colIndex));
     }
     private void shiftY(float amount, int colIndex) {
         //Log.d("XMBView", "Shift Y on " + colIndex + " by " + amount);
@@ -482,10 +484,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             }
         }
     }
-    private int getColTraversableCount(int colIndex) {
-        int columnSize = adapter.getColumnSize(colIndex);
-        return columnSize - (columnSize > 1 ? 1 : 0);
-    }
+//    private int getColTraversableCount(int colIndex) {
+//        int columnSize = adapter.getColumnSize(colIndex);
+//        return columnSize - (columnSize > 0 ? 1 : 0);
+//    }
 
     private float touchMarginTop = 50;
     private float touchMarginLeft = 50;
@@ -809,8 +811,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             else
                 returnItemView(colIndex, 0);
 
-            if (adapter.getColumnSize(colIndex) == 1 && adapter.isColumnHead(colIndex, 0)) {
-                // this column has only 1 item and it is meant to be a column head, so add an empty item below it
+            if (adapter.getColumnSize(colIndex) <= 0 && adapter.isColumnHead(colIndex, 0)) {
+                // this column has no items and it is meant to be a column head, so add an empty item below it
                 calcItemRect(startXInt, startYInt, horShiftOffsetInt, 0, colIndex, 1, reusableRect);
                 inBounds = inView(reusableRect, viewWidth, viewHeight);
 
@@ -838,7 +840,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             if (!catHasSubItems(itemColIndex))
                 continue;
             // start from one since the 0th item will always be the column head
-            for (int itemRowIndex = 1; itemRowIndex < adapter.getColumnSize(itemColIndex); itemRowIndex++) {
+            for (int itemRowIndex = 1; itemRowIndex < adapter.getColumnSize(itemColIndex) + 1; itemRowIndex++) {
                 calcItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, itemColIndex, itemRowIndex, reusableRect);
 
                 boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
@@ -858,7 +860,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     }
     private void drawInnerItems(boolean instant) {
         for (int itemColIndex = 0; itemColIndex < adapter.getColumnCount(); itemColIndex++)
-            for (int itemRowIndex = 0; itemRowIndex < adapter.getColumnSize(itemColIndex); itemRowIndex++)
+            for (int itemRowIndex = 0; itemRowIndex < adapter.getColumnSize(itemColIndex) + 1; itemRowIndex++)
                 if (adapter.hasInnerItems(itemColIndex, itemRowIndex))
                     drawInnerItems(instant, itemColIndex, itemRowIndex);
     }
@@ -1321,7 +1323,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                             setColIndex = fromColIndex;
                         }
                     }
-                    if (nextIsColumn && adapter.getColumnSize(nextColIndex) == 1)
+                    if (nextIsColumn && adapter.getColumnSize(nextColIndex) == 0)
                         nextLocalIndex = 1;
 
                     //getViewHolder(fromColIndex, fromRowIndex).setDirty();

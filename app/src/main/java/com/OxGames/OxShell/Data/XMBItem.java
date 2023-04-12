@@ -62,6 +62,9 @@ public class XMBItem<T> implements Serializable {
     public void add(int localIndex, XMBItem item) {
         this.innerItems.add(localIndex, item);
     }
+    public void add(XMBItem item) {
+        this.innerItems.add(item);
+    }
     public void remove(int localIndex) {
         this.innerItems.remove(localIndex);
     }

@@ -116,10 +116,17 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public Object getItem(Integer... position) {
         XMBItem current = null;
         if (position != null && position.length > 0) {
-            current = items.get(position[0]);
-            for (int i = 1; i < position.length; i++)
-                if (i == 1 && position[i] > 0 || i > 1)
-                    current = current.getInnerItem(position[i] - (i == 1 ? 1 : 0));
+            int index = position[0];
+            if (index >= 0 && index < items.size()) {
+                current = items.get(index);
+                for (int i = 1; i < position.length; i++) {
+                    if (i == 1 && position[i] > 0 || i > 1) {
+                        index = position[i] - (i == 1 ? 1 : 0);
+                        if (index >= 0 && index < current.getInnerItemCount())
+                            current = current.getInnerItem(index);
+                    }
+                }
+            }
         }
         return current;
     }
@@ -139,7 +146,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public boolean isColumnHead(Integer... position) {
         XMBItem item = (XMBItem)getItem(position);
-        return item.obj == null && !(item instanceof HomeItem);
+        return item != null && item.obj == null && !(item instanceof HomeItem);
     }
 
     @Override
@@ -169,7 +176,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 title.setSelected(true);
                 title.setTypeface(font);
                 //AndroidHelpers.setTextAsync(title, item != null ? item.getTitle() : "Empty");
-                title.setText(item != null ? item.getTitle() : "null");
+                title.setText(item != null ? item.getTitle() : "Empty");
 
                 //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
                 //superIcon.setVisibility(View.GONE);
@@ -194,8 +201,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                     });
                 } else {
                     //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
-                    img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
-                    highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.rounded_outline_shape));
+                    img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
+                    highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
                 }
                 if (isHighlighted())
                     Log.d("XMBAdapter", "Highlighting " + item.getTitle());
@@ -217,7 +224,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     protected void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
         //Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
-        XMBItem toBeMoved = items.get(toBeMovedColIndex).getInnerItem(toBeMovedLocalIndex);
+        //XMBItem toBeMoved = items.get(toBeMovedColIndex).getInnerItem(toBeMovedLocalIndex - 1);
+        XMBItem toBeMoved = (XMBItem)getItem(toBeMovedColIndex, toBeMovedLocalIndex);
         if (createColumn) {
             removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex);
             createColumnAt(moveToColIndex, toBeMoved);
@@ -228,20 +236,27 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     protected void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
-        XMBItem toBeMoved = items.get(startColIndex).getInnerItem(fromLocalIndex);
+        //XMBItem toBeMoved = items.get(startColIndex).getInnerItem(fromLocalIndex - 1);
+        XMBItem toBeMoved = (XMBItem)getItem(startColIndex, fromLocalIndex);
         removeSubItem(startColIndex, fromLocalIndex);
         addSubItem(startColIndex, toLocalIndex, toBeMoved);
     }
     @Override
     public void addSubItem(int columnIndex, int localIndex, Object toBeAdded) {
-        items.get(columnIndex).add(localIndex, (XMBItem)toBeAdded);
+        XMBItem item = items.get(columnIndex);
+        if (item.getInnerItemCount() <= 0)
+            item.add((XMBItem)toBeAdded);
+        else
+            item.add(localIndex - 1, (XMBItem)toBeAdded);
         fireSubItemAddedEvent(columnIndex, localIndex);
     }
     @Override
     public void removeSubItem(int columnIndex, int localIndex) {
-        items.get(columnIndex).remove(localIndex);
+        if (localIndex > 0)
+            items.get(columnIndex).remove(localIndex - 1);
         fireSubItemRemovedEvent(columnIndex, localIndex);
-        removeColIfEmpty(columnIndex);
+        if (localIndex == 0)
+            removeColIfEmpty(columnIndex);
     }
     @Override
     public void createColumnAt(int columnIndex, Object head) {
