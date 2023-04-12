@@ -124,6 +124,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                         index = position[i] - (i == 1 ? 1 : 0);
                         if (index >= 0 && index < current.getInnerItemCount())
                             current = current.getInnerItem(index);
+                        else
+                            current = null;
                     }
                 }
             }
@@ -167,7 +169,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             super(itemView);
         }
         public void bindItem(XMBItem item) {
-            if (isDirty || item != prevItem) {
+            if (isDirty || item != prevItem || item == null) {
                 isDirty = false;
                 prevItem = item;
 
