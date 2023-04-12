@@ -129,7 +129,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
                 if (intent == null)
                     return null;
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent.getExtensions());
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
             }
         }
         return super.getInnerItem(index);
@@ -141,7 +141,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
                 if (intent == null)
                     return false;
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent.getExtensions());
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
             }
         }
         return super.hasInnerItems();
@@ -153,16 +153,16 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
                 if (intent == null)
                     return 0;
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent.getExtensions());
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
             }
         }
         return super.getInnerItemCount();
     }
 
-    private static List<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, String[] extensions) {
+    private static List<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, IntentLaunchData intent) {
         if (dirs != null && dirs.size() > 0) {
             // gets the files in the directories as streams then flattens them into one stream then maps them to home items then sorts them then turns the resulting stream into a list
-            return dirs.stream().flatMap(dir -> AndroidHelpers.getItemsInDirWithExt(dir, extensions).stream()).map(exe -> new HomeItem(exe.toString(), type, AndroidHelpers.removeExtension(exe.getName()))).sorted(Comparator.comparing(item -> item.title)).collect(Collectors.toList());
+            return dirs.stream().flatMap(dir -> AndroidHelpers.getItemsInDirWithExt(dir, intent.getExtensions()).stream()).map(exe -> new HomeItem(new Executable(intent.getId(), exe.toString()), type, AndroidHelpers.removeExtension(exe.getName()))).sorted(Comparator.comparing(item -> item.title)).collect(Collectors.toList());
         }
         return null;
     }

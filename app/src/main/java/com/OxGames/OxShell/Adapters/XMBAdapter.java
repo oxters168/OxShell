@@ -206,8 +206,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                     img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
                     highlight.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_block_24));
                 }
-                if (isHighlighted())
-                    Log.d("XMBAdapter", "Highlighting " + item.getTitle());
+                //if (isHighlighted())
+                //    Log.d("XMBAdapter", "Highlighting " + item.getTitle());
                 highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
             }
         }

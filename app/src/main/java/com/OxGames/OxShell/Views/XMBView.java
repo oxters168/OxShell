@@ -1184,7 +1184,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 for (int i = position.length - 1; i > 1; i--)
                     position[i] = entryClone.pop();
             }
-        }
+        } else
+            position = new Integer[] { this.colIndex };
         return position;
     }
     protected int getColIndex() {
@@ -1293,7 +1294,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         // local indices are total within the columns they represent and not traversable
     }
     protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
-        Log.d("XMBView", Arrays.toString(getPosition()));
+        //Log.d("XMBView", Arrays.toString(getPosition()));
         if (moveMode) {
             if (columnMode) {
                 int nextColIndex = Math.min(Math.max(toColIndex, 0), adapter.getColumnCount() - 2);
@@ -1340,7 +1341,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
-        Log.d("XMBView", Arrays.toString(getPosition()));
+        //Log.d("XMBView", Arrays.toString(getPosition()));
         if (moveMode) {
             //getViewHolder(fromColIndex, fromLocalIndex).setDirty();
             //getViewHolder(fromColIndex, toLocalIndex).setDirty();

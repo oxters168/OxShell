@@ -26,6 +26,7 @@ import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.DataRef;
+import com.OxGames.OxShell.Data.Executable;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -273,12 +274,13 @@ public class HomeView extends XMBView implements Refreshable {
                     dynamicInput.setShown(true);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.assocExe) {
-                    String path = (String)selectedItem.obj;
-                    IntentLaunchData launcher = ShortcutsCache.getIntent((UUID)((HomeItem)getAdapter().getItem(getEntryPosition())).obj);
-                    if (PackagesCache.isPackageInstalled(launcher.getPackageName()))
-                        launcher.launch(path);
-                    else
-                        Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
+                    ((Executable)selectedItem.obj).run();
+//                    String path = (String)selectedItem.obj;
+//                    IntentLaunchData launcher = ShortcutsCache.getIntent((UUID)((HomeItem)getAdapter().getItem(getEntryPosition())).obj);
+//                    if (PackagesCache.isPackageInstalled(launcher.getPackageName()))
+//                        launcher.launch(path);
+//                    else
+//                        Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.createAssoc) {
                     showAssocEditor("Create Association", null);
@@ -917,17 +919,34 @@ public class HomeView extends XMBView implements Refreshable {
 
     // TODO: remove assoc inner items
     public ArrayList<XMBItem> getItems() {
+        //Log.d("HomeView", "Getting items");
         ArrayList<Object> items = getAdapter().getItems();
         ArrayList<XMBItem> casted = new ArrayList<>();
         items.remove(items.size() - 1); // remove the settings
-        for (int i = 0; i < items.size(); i++) {
-            XMBItem column = (XMBItem)items.get(i);
-            casted.add(column);
-            for (int j = 0; j < column.getInnerItemCount(); j++) {
-                Object item = column.getInnerItem(j);
-                if (item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.assoc)
-                    ((HomeItem)item).clearInnerItems();
+        Consumer<XMBItem> clearIfNeeded = xmbItem -> {
+            if (xmbItem instanceof HomeItem && ((HomeItem)xmbItem).type == HomeItem.Type.assoc) {
+                //Log.d("HomeView", "Clearing " + xmbItem.getTitle());
+                xmbItem.clearInnerItems();
             }
+        };
+        Consumer<XMBItem> goInto = new Consumer<XMBItem>() {
+            @Override
+            public void accept(XMBItem xmbItem) {
+                for (int j = 0; j < xmbItem.getInnerItemCount(); j++) {
+                    XMBItem innerItem = xmbItem.getInnerItem(j);
+                    //Log.d("HomeView", "Found " + innerItem.getTitle() + ", " + (innerItem instanceof HomeItem ? ((HomeItem)innerItem).type : "xmbItem"));
+                    if (innerItem.hasInnerItems())
+                        accept(innerItem);
+                    clearIfNeeded.accept(innerItem); // call after to make sure not to recreate inner items
+                }
+            }
+        };
+        for (int i = 0; i < items.size(); i++) {
+            XMBItem item = (XMBItem)items.get(i);
+            //Log.d("HomeView", "Found " + item.getTitle());
+            casted.add(item);
+            goInto.accept(item);
+            clearIfNeeded.accept(item); // call after to make sure not to recreate inner items
         }
         return casted;
     }
