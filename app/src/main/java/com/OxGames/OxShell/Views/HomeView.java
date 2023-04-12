@@ -710,20 +710,27 @@ public class HomeView extends XMBView implements Refreshable {
             PagedActivity currentActivity = OxShellApp.getCurrentActivity();
             if (!currentActivity.getSettingsDrawer().isDrawerOpen()) {
                 Integer[] position = getPosition();
+                Integer[] parentPos = new Integer[position.length - 1];
+                for (int i = 0; i < parentPos.length; i++)
+                    parentPos[i] = position[i];
                 boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
                 boolean hasColumnHead = getAdapter().isColumnHead(position[0], 0);
                 boolean isColumnHead = getAdapter().isColumnHead(position);
                 boolean hasInnerItems = getAdapter().hasInnerItems(position);
                 boolean isInnerItem = position.length > 2;
                 XMBItem selectedItem = (XMBItem)getSelectedItem();
+                XMBItem parentItem = (XMBItem)getAdapter().getItem(parentPos);
                 HomeItem homeItem = null;
+                HomeItem parentHomeItem = null;
                 if (selectedItem instanceof HomeItem)
                     homeItem = (HomeItem)selectedItem;
+                if (parentItem instanceof HomeItem)
+                    parentHomeItem = (HomeItem)parentItem;
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
-                if (isNotSettings && !isInnerItem)
+                if (isNotSettings && !isInnerItem && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(moveItemBtn);
-                if (isNotSettings && !isInnerItem)
+                if (isNotSettings && !isInnerItem && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(deleteBtn);
                 if (isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && homeItem.type != HomeItem.Type.explorer)
                     btns.add(uninstallBtn);
@@ -733,7 +740,7 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(deleteAssocBtn);
                 if (!isInnerItem)
                     btns.add(createColumnBtn);
-                if (isNotSettings && hasColumnHead && !isInnerItem)
+                if (isNotSettings && !isInnerItem)
                     btns.add(moveColumnBtn);
                 if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(editColumnBtn);
@@ -771,7 +778,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
     public void uninstallSelection(Consumer<ActivityResult> onResult) {
         HomeItem selectedItem = (HomeItem)getSelectedItem();
-        String packageName = selectedItem.type == HomeItem.Type.app ? (String)selectedItem.obj : selectedItem.type == HomeItem.Type.assoc ? ShortcutsCache.getIntent((UUID)selectedItem.obj).getPackageName() : null;
+        String packageName = selectedItem.type == HomeItem.Type.app ? (String)selectedItem.obj : selectedItem.type == HomeItem.Type.assoc ? ShortcutsCache.getIntent((UUID)selectedItem.obj).getPackageName() : selectedItem.type == HomeItem.Type.assocExe ? ((Executable)(selectedItem.obj)).getLaunchIntent().getPackageName() : null;
         if (packageName != null)
             AndroidHelpers.uninstallApp(OxShellApp.getCurrentActivity(), packageName, onResult);
     }

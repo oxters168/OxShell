@@ -14,7 +14,7 @@ public class Executable implements Serializable {
         this.path = path;
     }
     public void run() {
-        IntentLaunchData launcher = ShortcutsCache.getIntent(launchDataRef);
+        IntentLaunchData launcher = getLaunchIntent();
         if (launcher != null) {
             if (PackagesCache.isPackageInstalled(launcher.getPackageName()))
                 launcher.launch(path);
@@ -22,5 +22,8 @@ public class Executable implements Serializable {
                 Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
         } else
             Log.e("IntentShortcutsView", "Failed to launch, launch intent (" + launchDataRef + ") not found");
+    }
+    public IntentLaunchData getLaunchIntent() {
+        return ShortcutsCache.getIntent(launchDataRef);
     }
 }
