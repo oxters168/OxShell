@@ -62,9 +62,6 @@
             android:authorities="${applicationId}"
             android:exported="false"
             android:grantUriPermissions="true">
-            <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>
-            </intent-filter>
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
@@ -107,16 +104,16 @@
         <activity
             android:name=".FileChooserActivity"
             android:exported="true">
-<!--            <intent-filter>-->
-<!--                <action android:name="android.intent.action.GET_CONTENT"/>-->
-<!--                <action android:name="android.intent.action.OPEN_DOCUMENT"/>-->
-<!--                <action android:name="android.intent.action.OPEN_DOCUMENT_TREE"/>-->
-<!--                <category android:name="android.intent.category.OPENABLE"/>-->
-<!--                <category android:name="android.intent.category.DEFAULT"/>-->
-<!--                <data android:mimeType="*/*"/>-->
-<!--&lt;!&ndash;                <data android:mimeType="image/*"/>&ndash;&gt;-->
-<!--&lt;!&ndash;                <data android:mimeType="video/*"/>&ndash;&gt;-->
-<!--            </intent-filter>-->
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT"/>
+                <action android:name="android.intent.action.OPEN_DOCUMENT"/>
+                <action android:name="android.intent.action.OPEN_DOCUMENT_TREE"/>
+                <category android:name="android.intent.category.OPENABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="*/*"/>
+<!--                <data android:mimeType="image/*"/>-->
+<!--                <data android:mimeType="video/*"/>-->
+            </intent-filter>
         </activity>
         <activity
             android:name=".HomeActivity"
