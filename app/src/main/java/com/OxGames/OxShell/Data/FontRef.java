@@ -8,25 +8,25 @@ import org.nustaq.serialization.FSTObjectOutput;
 import java.io.IOException;
 
 // do not use this class, this is just for older versions of the app
-public class ImageRef {
+public class FontRef {
     public DataLocation dataType;
-    public Object imageLoc;
+    public Object fontLoc;
 
-    public static class ImageRefSerializer extends FSTBasicObjectSerializer {
+    public static class FontRefSerializer extends FSTBasicObjectSerializer {
         @Override
         public boolean willHandleClass(Class cl) {
-            return cl.equals(ImageRef.class);
+            return cl.equals(FontRef.class);
         }
         @Override
         public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-            ImageRef imageRef = (ImageRef)toWrite;
-            out.writeObject(imageRef.dataType);
-            out.writeObject(imageRef.imageLoc);
+            FontRef fontRef = (FontRef)toWrite;
+            out.writeObject(fontRef.dataType);
+            out.writeObject(fontRef.fontLoc);
         }
         @Override
         public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
             // Map the old fully qualified class name to the new one
-            String className = objectClass.getName().replace("ImageRef", "DataRef");
+            String className = objectClass.getName().replace("FontRef", "DataRef");
             Class<?> newClass = Class.forName(className);
 
             // Deserialize the object using the new class

@@ -1039,29 +1039,7 @@ public class HomeView extends XMBView implements Refreshable {
         if (AndroidHelpers.fileExists(path)) {
             try {
                 FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
-                conf.registerSerializer(ImageRef.class, new FSTBasicObjectSerializer() {
-                    @Override
-                    public boolean willHandleClass(Class cl) {
-                        return cl.equals(ImageRef.class);
-                    }
-                    @Override
-                    public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
-                        ImageRef imageRef = (ImageRef)toWrite;
-                        out.writeObject(imageRef.dataType);
-                        out.writeObject(imageRef.imageLoc);
-                    }
-                    @Override
-                    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
-                        // Map the old fully qualified class name to the new one
-                        String className = objectClass.getName().replace("ImageRef", "DataRef");
-                        Class<?> newClass = Class.forName(className);
-
-                        // Deserialize the object using the new class
-                        DataLocation locType = (DataLocation)in.readObject();
-                        Object loc = in.readObject();
-                        return newClass.getConstructor(Object.class, DataLocation.class).newInstance(loc, locType);
-                    }
-                }, true);
+                conf.registerSerializer(ImageRef.class, new ImageRef.ImageRefSerializer(), true);
                 items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFromFSTJSON(path, conf);
             } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
         } else

@@ -10,6 +10,8 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.OxShellApp;
 
+import org.nustaq.serialization.FSTConfiguration;
+
 import java.util.HashMap;
 
 public class SettingsKeeper {
@@ -193,7 +195,9 @@ public class SettingsKeeper {
     public static void load() {
         if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH)) {
             try {
-                settingsCache = (HashMap<String, Object>)Serialaver.loadFromFSTJSON(Paths.SETTINGS_INTERNAL_PATH);
+                FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+                conf.registerSerializer(FontRef.class, new FontRef.FontRefSerializer(), true);
+                settingsCache = (HashMap<String, Object>)Serialaver.loadFromFSTJSON(Paths.SETTINGS_INTERNAL_PATH, conf);
             } catch (Exception e) {
                 Log.e("SettingsKeeper", "Failed to read settings: " + e);
             }
