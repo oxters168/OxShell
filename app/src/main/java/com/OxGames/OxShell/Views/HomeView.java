@@ -27,6 +27,7 @@ import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.Executable;
+import com.OxGames.OxShell.Data.ImageRef;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -51,6 +52,13 @@ import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
+import org.nustaq.serialization.FSTBasicObjectSerializer;
+import org.nustaq.serialization.FSTClazzInfo;
+import org.nustaq.serialization.FSTConfiguration;
+import org.nustaq.serialization.FSTObjectInput;
+import org.nustaq.serialization.FSTObjectOutput;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -1030,7 +1038,31 @@ public class HomeView extends XMBView implements Refreshable {
         String path = AndroidHelpers.combinePaths(parentDir, fileName);
         if (AndroidHelpers.fileExists(path)) {
             try {
-                items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFromFSTJSON(path);
+                FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+                conf.registerSerializer(ImageRef.class, new FSTBasicObjectSerializer() {
+                    @Override
+                    public boolean willHandleClass(Class cl) {
+                        return cl.equals(ImageRef.class);
+                    }
+                    @Override
+                    public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
+                        ImageRef imageRef = (ImageRef)toWrite;
+                        out.writeObject(imageRef.locType);
+                        out.writeObject(imageRef.loc);
+                    }
+                    @Override
+                    public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
+                        // Map the old fully qualified class name to the new one
+                        String className = objectClass.getName().replace("ImageRef", "DataRef");
+                        Class<?> newClass = Class.forName(className);
+
+                        // Deserialize the object using the new class
+                        DataLocation locType = (DataLocation)in.readObject();
+                        Object loc = in.readObject();
+                        return newClass.getConstructor(Object.class, DataLocation.class).newInstance(loc, locType);
+                    }
+                }, true);
+                items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFromFSTJSON(path, conf);
             } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
         } else
             Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);

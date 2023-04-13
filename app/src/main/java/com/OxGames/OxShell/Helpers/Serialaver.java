@@ -52,8 +52,10 @@ public class Serialaver {
         //Object deser = conf.asObject(bytes);
     }
     public static Object loadFromFSTJSON(String absPath) {
-        FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+        return loadFromFSTJSON(absPath, FSTConfiguration.createJsonConfiguration());
+    }
+    public static Object loadFromFSTJSON(String absPath, FSTConfiguration customConf) {
         String json = AndroidHelpers.readFile(absPath);
-        return conf.asObject(json.getBytes(StandardCharsets.UTF_8));
+        return customConf.asObject(json.getBytes(StandardCharsets.UTF_8));
     }
 }
