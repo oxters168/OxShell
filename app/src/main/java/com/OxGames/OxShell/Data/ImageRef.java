@@ -6,9 +6,10 @@ import org.nustaq.serialization.FSTObjectInput;
 import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 // do not use this class, this is just for older versions of the app
-public class ImageRef {
+public class ImageRef implements Serializable {
     public DataLocation dataType;
     public Object imageLoc;
 
