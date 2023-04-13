@@ -1047,8 +1047,8 @@ public class HomeView extends XMBView implements Refreshable {
                     @Override
                     public void writeObject(FSTObjectOutput out, Object toWrite, FSTClazzInfo clzInfo, FSTClazzInfo.FSTFieldInfo referencedBy, int streamPosition) throws IOException {
                         ImageRef imageRef = (ImageRef)toWrite;
-                        out.writeObject(imageRef.locType);
-                        out.writeObject(imageRef.loc);
+                        out.writeObject(imageRef.dataType);
+                        out.writeObject(imageRef.imageLoc);
                     }
                     @Override
                     public Object instantiate(Class objectClass, FSTObjectInput in, FSTClazzInfo serializationInfo, FSTClazzInfo.FSTFieldInfo referencee, int streamPosition) throws Exception {
@@ -1067,19 +1067,21 @@ public class HomeView extends XMBView implements Refreshable {
         } else
             Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
 
-        // upgrade icons
-        if (items != null)
+        if (items != null) {
+            // upgrade icons
             upgradeItemsIfNecessary(items);
-        // upgrade to inner items system
-        ArrayList<XMBItem> reformed = new ArrayList<>();
-        for (int i = 0; i < items.size(); i++) {
-            ArrayList<XMBItem> column = items.get(i);
-            XMBItem columnHead = column.get(0);
-            column.remove(0);
-            columnHead.setInnerItems(column.toArray(new XMBItem[0]));
-            reformed.add(columnHead);
-        }
-        return reformed;
+            // upgrade to inner items system
+            ArrayList<XMBItem> reformed = new ArrayList<>();
+            for (int i = 0; i < items.size(); i++) {
+                ArrayList<XMBItem> column = items.get(i);
+                XMBItem columnHead = column.get(0);
+                column.remove(0);
+                columnHead.setInnerItems(column.toArray(new XMBItem[0]));
+                reformed.add(columnHead);
+            }
+            return reformed;
+        } else
+            return null;
     }
     private static ArrayList<XMBItem> createDefaultItems() {
         Log.d("HomeView", "Retrieving default apps");
