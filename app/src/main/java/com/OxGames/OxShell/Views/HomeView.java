@@ -49,7 +49,6 @@ import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
-import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.util.ArrayList;
@@ -974,28 +973,35 @@ public class HomeView extends XMBView implements Refreshable {
     private static void save(ArrayList<XMBItem> items) {
         saveHomeItemsToFile(items, Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
-    private static boolean updatedItems = false;
-//    private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
-//        int currentVersion = SettingsKeeper.getVersionCode();
-//        int prevVersion = SettingsKeeper.getPrevVersionCode();
-//        if (currentVersion != prevVersion && prevVersion < 5 && !updatedItems) {
-//            updatedItems = true;
-//            for (ArrayList<XMBItem> column : items) {
-//                for (XMBItem item : column) {
-//                    DataRef imgRef = item.getImgRef();
-//                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
-//                        int oldIndex = (int)imgRef.getLoc();
-//                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
-//                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
-//                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
-//                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
-//                    }
-//                }
-//            }
-//            save(items);
-//        }
-//    }
+    private static boolean updatedIcons = false;
+    private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
+        int currentVersion = SettingsKeeper.getVersionCode();
+        int prevVersion = SettingsKeeper.getPrevVersionCode();
+        if (currentVersion != prevVersion && prevVersion < 5 && !updatedIcons) {
+            updatedIcons = true;
+            for (ArrayList<XMBItem> column : items) {
+                for (XMBItem item : column) {
+                    DataRef imgRef = item.getImgRef();
+                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
+                        int oldIndex = (int)imgRef.getLoc();
+                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
+                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
+                    }
+                }
+            }
+            //save(items);
+        }
+    }
+    private static boolean loadedOldItems = false;
     private static ArrayList<XMBItem> load() {
+        int currentVersion = SettingsKeeper.getVersionCode();
+        int prevVersion = SettingsKeeper.getPrevVersionCode();
+        // load items the old way and save them in the new way
+        if (currentVersion != prevVersion && prevVersion < 7 && !loadedOldItems)
+            save(oldLoadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME));
+
         return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
     private static void saveHomeItemsToFile(ArrayList<XMBItem> items, String parentDir, String fileName) {
@@ -1018,6 +1024,30 @@ public class HomeView extends XMBView implements Refreshable {
         //if (items != null)
         //    upgradeItemsIfNecessary(items);
         return items;
+    }
+    private static ArrayList<XMBItem> oldLoadHomeItemsFromFile(String parentDir, String fileName) {
+        ArrayList<ArrayList<XMBItem>> items = null;
+        String path = AndroidHelpers.combinePaths(parentDir, fileName);
+        if (AndroidHelpers.fileExists(path)) {
+            try {
+                items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFromFSTJSON(path);
+            } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
+        } else
+            Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
+
+        // upgrade icons
+        if (items != null)
+            upgradeItemsIfNecessary(items);
+        // upgrade to inner items system
+        ArrayList<XMBItem> reformed = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            ArrayList<XMBItem> column = items.get(i);
+            XMBItem columnHead = column.get(0);
+            column.remove(0);
+            columnHead.setInnerItems(column.toArray(new XMBItem[0]));
+            reformed.add(columnHead);
+        }
+        return reformed;
     }
     private static ArrayList<XMBItem> createDefaultItems() {
         Log.d("HomeView", "Retrieving default apps");
