@@ -122,40 +122,45 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         return super.getTitle();
     }
 
+    public void reload() {
+        if (type == Type.assoc) {
+            IntentLaunchData intent = ShortcutsCache.getIntent((UUID) obj);
+            if (intent != null)
+                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
+        }
+    }
     @Override
     public XMBItem getInnerItem(int index) {
-        if (type == Type.assoc) {
-            if (innerItems == null || innerItems.size() <= 0) {
-                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-                if (intent == null)
-                    return null;
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
-            }
-        }
+        //if (type == Type.assoc) {
+            if (innerItems == null || innerItems.size() <= 0)
+                reload();
+        //}
         return super.getInnerItem(index);
     }
     @Override
     public boolean hasInnerItems() {
-        if (type == Type.assoc) {
+        //if (type == Type.assoc) {
             if (innerItems == null || innerItems.size() <= 0) {
-                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-                if (intent == null)
-                    return false;
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
+                reload();
+//                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+//                if (intent == null)
+//                    return false;
+//                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
             }
-        }
+        //}
         return super.hasInnerItems();
     }
     @Override
     public int getInnerItemCount() {
-        if (type == Type.assoc) {
+        //if (type == Type.assoc) {
             if (innerItems == null || innerItems.size() <= 0) {
-                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-                if (intent == null)
-                    return 0;
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
+                reload();
+//                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+//                if (intent == null)
+//                    return 0;
+//                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
             }
-        }
+        //}
         return super.getInnerItemCount();
     }
 
