@@ -54,13 +54,28 @@ public class XMBItem<T> implements Serializable {
     public void upgradeImgRef(int prevVersion) {
         // only for upgrading from older versions of the app
         if (iconLoc instanceof ImageRef) {
-            ImageRef imgRef = (ImageRef) iconLoc;
+            ImageRef imgRef = (ImageRef)iconLoc;
             if (imgRef.dataType == DataLocation.resource) {
-                int oldIndex = (int)imgRef.imageLoc;
-                int newIndex = oldIndex + (prevVersion > 1 ? 2 : 3);
-                String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
-                Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                String resName;
+                if (prevVersion < 5) {
+                    int oldIndex = (int)imgRef.imageLoc;
+                    int newIndex = oldIndex + (prevVersion > 1 ? 2 : 3);
+                    resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+                    Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                } else {
+                    resName = (String)imgRef.imageLoc;
+                    if (!resName.startsWith("com.OxGames.OxShell:drawable/"))
+                        resName = "com.OxGames.OxShell:drawable/" + resName;
+                }
                 iconLoc = DataRef.from(resName, imgRef.dataType);
+            }
+        } else if (iconLoc instanceof DataRef) {
+            DataRef imgRef = (DataRef)iconLoc;
+            if (imgRef.locType == DataLocation.resource) {
+                String resName = (String) imgRef.getLoc();
+                if (!resName.startsWith("com.OxGames.OxShell:drawable/"))
+                    resName = "com.OxGames.OxShell:drawable/" + resName;
+                iconLoc = DataRef.from(resName, imgRef.getLocType());
             }
         }
     }

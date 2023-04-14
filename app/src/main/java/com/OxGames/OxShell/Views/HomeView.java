@@ -985,7 +985,7 @@ public class HomeView extends XMBView implements Refreshable {
     private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
         int currentVersion = SettingsKeeper.getVersionCode();
         int prevVersion = SettingsKeeper.getPrevVersionCode();
-        if (currentVersion != prevVersion && prevVersion < 5 && !updatedIcons) {
+        if (currentVersion != prevVersion && prevVersion < 7 && !updatedIcons) {
             updatedIcons = true;
             for (ArrayList<XMBItem> column : items) {
                 for (XMBItem item : column) {
