@@ -148,7 +148,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public boolean isColumnHead(Integer... position) {
         XMBItem item = (XMBItem)getItem(position);
-        return item != null && item.obj == null && !(item instanceof HomeItem);
+        return item != null && (!(item instanceof HomeItem) || ((HomeItem)item).type == HomeItem.Type.assoc);
     }
 
     @Override
@@ -254,6 +254,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public void removeSubItem(int columnIndex, int localIndex) {
+        //Log.d("XMBAdapter", "Attempting to remove sub item from [" + columnIndex + ", " + localIndex + "]");
+        // the local index is expected to be 0 for the column head then anything greater is an inner item, and since they are in a list of their own, we need to subtract by 1 to account for that
         if (localIndex > 0)
             items.get(columnIndex).remove(localIndex - 1);
         fireSubItemRemovedEvent(columnIndex, localIndex);

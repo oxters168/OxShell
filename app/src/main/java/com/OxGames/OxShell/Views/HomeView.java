@@ -745,7 +745,7 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(createColumnBtn);
                 if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc))
                     btns.add(editAssocBtn);
-                if (isNotSettings && hasColumnHead && !isInnerItem)
+                if (isNotSettings && hasColumnHead && !isInnerItem && parentHomeItem == null)
                     btns.add(editColumnBtn);
                 if (isNotSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(deleteBtn);

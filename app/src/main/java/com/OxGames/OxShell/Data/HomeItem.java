@@ -24,6 +24,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public enum Type { explorer, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, setControls, appInfo, saveLogs, }
     public Type type;
     public ArrayList<String> extraData;
+    private boolean innerItemsLoaded;
 
     public HomeItem(Type _type) {
         this(_type, null);
@@ -128,39 +129,24 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             if (intent != null)
                 innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
         }
+        innerItemsLoaded = true;
     }
     @Override
     public XMBItem getInnerItem(int index) {
-        //if (type == Type.assoc) {
-            if (innerItems == null || innerItems.size() <= 0)
-                reload();
-        //}
+        if (!innerItemsLoaded && (innerItems == null || innerItems.size() <= 0))
+            reload();
         return super.getInnerItem(index);
     }
     @Override
     public boolean hasInnerItems() {
-        //if (type == Type.assoc) {
-            if (innerItems == null || innerItems.size() <= 0) {
-                reload();
-//                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-//                if (intent == null)
-//                    return false;
-//                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
-            }
-        //}
+        if (!innerItemsLoaded && (innerItems == null || innerItems.size() <= 0))
+            reload();
         return super.hasInnerItems();
     }
     @Override
     public int getInnerItemCount() {
-        //if (type == Type.assoc) {
-            if (innerItems == null || innerItems.size() <= 0) {
-                reload();
-//                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-//                if (intent == null)
-//                    return 0;
-//                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
-            }
-        //}
+        if (!innerItemsLoaded && (innerItems == null || innerItems.size() <= 0))
+            reload();
         return super.getInnerItemCount();
     }
 
