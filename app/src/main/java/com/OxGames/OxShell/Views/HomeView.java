@@ -982,35 +982,31 @@ public class HomeView extends XMBView implements Refreshable {
         saveHomeItemsToFile(items, Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
     private static boolean updatedIcons = false;
+    private static boolean updatedExes = false;
     private static void upgradeItemsIfNecessary(ArrayList<ArrayList<XMBItem>> items) {
-        int currentVersion = SettingsKeeper.getVersionCode();
+        //int currentVersion = SettingsKeeper.getVersionCode();
         int prevVersion = SettingsKeeper.getPrevVersionCode();
-        if (currentVersion != prevVersion && prevVersion < 7 && !updatedIcons) {
-            updatedIcons = true;
-            for (ArrayList<XMBItem> column : items) {
-                for (XMBItem item : column) {
+        for (ArrayList<XMBItem> column : items) {
+            for (int i = 0; i < column.size(); i++) {
+                XMBItem item = column.get(i);
+                if (prevVersion < 7 && !updatedIcons)
                     item.upgradeImgRef(prevVersion);
-//                    DataRef imgRef = item.getImgRef();
-//                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
-//                        int oldIndex = (int)imgRef.getLoc();
-//                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
-//                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
-//                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
-//                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
-//                    }
-                }
+                if (prevVersion < 7 && !updatedExes && item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.assocExe)
+                    column.set(i, new HomeItem(new Executable((UUID)column.get(0).obj, item.obj.toString()), HomeItem.Type.assocExe, item.getTitle()));
             }
-            //save(items);
         }
+        updatedIcons = true;
+        updatedExes = true;
     }
     private static boolean loadedOldItems = false;
     private static ArrayList<XMBItem> load() {
-        int currentVersion = SettingsKeeper.getVersionCode();
+        //int currentVersion = SettingsKeeper.getVersionCode();
         int prevVersion = SettingsKeeper.getPrevVersionCode();
         // load items the old way and save them in the new way
-        if (currentVersion != prevVersion && prevVersion < 7 && !loadedOldItems) {
+        if (prevVersion < 7 && !loadedOldItems) {
             ArrayList<XMBItem> homeItems = oldLoadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
             save(homeItems);
+            loadedOldItems = true;
             return homeItems;
         } else
             return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
