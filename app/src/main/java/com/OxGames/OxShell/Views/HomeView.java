@@ -73,33 +73,33 @@ import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
     public final static ResImage[] resourceImages = {
-        new ResImage("ic_baseline_accessibility_24", "Accessibility"),
-        new ResImage("ic_baseline_add_circle_outline_24", "Plus Circle"),
-        new ResImage("ic_baseline_cancel_24", "Cross Circle"),
-        new ResImage("ic_baseline_auto_awesome_24", "Stars"),
-        new ResImage("ic_baseline_block_24", "Block"),
-        new ResImage("ic_baseline_check_24", "Checkmark"),
-        new ResImage("ic_baseline_construction_24", "Construction"),
-        new ResImage("ic_baseline_folder_24", "Folder"),
-        new ResImage("ic_baseline_forum_24", "Message Bubbles"),
-        new ResImage("ic_baseline_games_24", "Directional Pad"),
-        new ResImage("ic_baseline_headphones_24", "Headphones"),
-        new ResImage("ic_baseline_hide_image_24", "Crossed Image"),
-        new ResImage("ic_baseline_home_24", "Home"),
-        new ResImage("ic_baseline_image_24", "Image"),
-        new ResImage("ic_baseline_map_24", "Map"),
-        new ResImage("ic_baseline_movie_24", "Film"),
-        new ResImage("ic_baseline_newspaper_24", "Newspaper"),
-        new ResImage("ic_baseline_photo_camera_24", "Camera"),
-        new ResImage("ic_baseline_question_mark_24", "Question Mark"),
-        new ResImage("ic_baseline_send_time_extension_24", "Send Puzzle Piece"),
-        new ResImage("ic_baseline_settings_24", "Cog"),
-        new ResImage("ic_baseline_source_24", "Source Folder"),
-        new ResImage("ic_baseline_audio_file_24", "Audio File"),
-        new ResImage("ic_baseline_video_file_24", "Video File"),
-        new ResImage("ic_baseline_view_list_24", "List"),
-        new ResImage("ic_baseline_work_24", "Suitcase"),
-        new ResImage("baseline_info_24", "Info")
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_accessibility_24", "Accessibility"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_add_circle_outline_24", "Plus Circle"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_cancel_24", "Cross Circle"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_auto_awesome_24", "Stars"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_block_24", "Block"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_check_24", "Checkmark"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_construction_24", "Construction"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_folder_24", "Folder"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_forum_24", "Message Bubbles"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_games_24", "Directional Pad"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_headphones_24", "Headphones"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_hide_image_24", "Crossed Image"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_home_24", "Home"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_image_24", "Image"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_map_24", "Map"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_movie_24", "Film"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_newspaper_24", "Newspaper"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_photo_camera_24", "Camera"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_question_mark_24", "Question Mark"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_send_time_extension_24", "Send Puzzle Piece"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_settings_24", "Cog"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_source_24", "Source Folder"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_audio_file_24", "Audio File"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_video_file_24", "Video File"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_view_list_24", "List"),
+        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_work_24", "Suitcase"),
+        new ResImage("com.OxGames.OxShell:drawable/baseline_info_24", "Info")
     };
 
     private AudioPool musicPool;
@@ -989,14 +989,15 @@ public class HomeView extends XMBView implements Refreshable {
             updatedIcons = true;
             for (ArrayList<XMBItem> column : items) {
                 for (XMBItem item : column) {
-                    DataRef imgRef = item.getImgRef();
-                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
-                        int oldIndex = (int)imgRef.getLoc();
-                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
-                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
-                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
-                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
-                    }
+                    item.upgradeImgRef(prevVersion);
+//                    DataRef imgRef = item.getImgRef();
+//                    if (imgRef != null && imgRef.getLocType() == DataLocation.resource) {
+//                        int oldIndex = (int)imgRef.getLoc();
+//                        int newIndex = oldIndex + (prevVersion > 1 ? 1 : 2);
+//                        String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+//                        Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+//                        item.setImgRef(DataRef.from(resName, imgRef.getLocType()));
+//                    }
                 }
             }
             //save(items);
@@ -1007,10 +1008,12 @@ public class HomeView extends XMBView implements Refreshable {
         int currentVersion = SettingsKeeper.getVersionCode();
         int prevVersion = SettingsKeeper.getPrevVersionCode();
         // load items the old way and save them in the new way
-        if (currentVersion != prevVersion && prevVersion < 7 && !loadedOldItems)
-            save(oldLoadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME));
-
-        return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+        if (currentVersion != prevVersion && prevVersion < 7 && !loadedOldItems) {
+            ArrayList<XMBItem> homeItems = oldLoadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
+            save(homeItems);
+            return homeItems;
+        } else
+            return loadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
     }
     private static void saveHomeItemsToFile(ArrayList<XMBItem> items, String parentDir, String fileName) {
         AndroidHelpers.makeDir(parentDir);
@@ -1038,12 +1041,12 @@ public class HomeView extends XMBView implements Refreshable {
         String path = AndroidHelpers.combinePaths(parentDir, fileName);
         if (AndroidHelpers.fileExists(path)) {
             try {
-                FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
-                conf.registerSerializer(ImageRef.class, new ImageRef.ImageRefSerializer(), true);
-                items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFromFSTJSON(path, conf);
-            } catch (Exception e) { Log.e("HomeView", "Failed to load home items: " + e); }
+                //FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+                //conf.registerSerializer(ImageRef.class, new DataRef.DataRefSerializer(), false);
+                items = (ArrayList<ArrayList<XMBItem>>)Serialaver.loadFromFSTJSON(path);//, conf);
+            } catch (Exception e) { Log.e("HomeView", "Failed to load old home items: " + e); }
         } else
-            Log.e("HomeView", "Attempted to read non-existant home items file @ " + path);
+            Log.e("HomeView", "Attempted to read non-existant old home items file @ " + path);
 
         if (items != null) {
             // upgrade icons

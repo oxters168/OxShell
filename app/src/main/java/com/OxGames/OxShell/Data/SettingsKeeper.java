@@ -195,9 +195,9 @@ public class SettingsKeeper {
     public static void load() {
         if (AndroidHelpers.fileExists(Paths.SETTINGS_INTERNAL_PATH)) {
             try {
-                FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
-                conf.registerSerializer(FontRef.class, new FontRef.FontRefSerializer(), true);
-                settingsCache = (HashMap<String, Object>)Serialaver.loadFromFSTJSON(Paths.SETTINGS_INTERNAL_PATH, conf);
+                //FSTConfiguration conf = FSTConfiguration.createJsonConfiguration();
+                //conf.registerSerializer(FontRef.class, new FontRef.FontRefSerializer(), true);
+                settingsCache = (HashMap<String, Object>)Serialaver.loadFromFSTJSON(Paths.SETTINGS_INTERNAL_PATH);//, conf);
             } catch (Exception e) {
                 Log.e("SettingsKeeper", "Failed to read settings: " + e);
             }
@@ -263,8 +263,14 @@ public class SettingsKeeper {
     }
 
     public static Typeface getFont() {
-        if (hasValue(FONT_REF))
+        if (hasValue(FONT_REF)) {
+            // upgrade to newer system if needed
+            Object fontRef;
+            if ((fontRef = getValue(FONT_REF)) instanceof FontRef)
+                setValueAndSave(FONT_REF, DataRef.from(((FontRef)fontRef).fontLoc, ((FontRef)fontRef).dataType));
+
             return ((DataRef)getValue(FONT_REF)).getFont();
+        }
         return null;
     }
 

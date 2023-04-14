@@ -1,6 +1,9 @@
 package com.OxGames.OxShell.Data;
 
 import android.graphics.drawable.Drawable;
+import android.util.Log;
+
+import com.OxGames.OxShell.OxShellApp;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,8 +16,8 @@ import java.util.function.Function;
 public class XMBItem<T> implements Serializable {
     public T obj;
     protected String title;
-    //protected Object iconLoc;
-    protected DataRef iconLoc;
+    protected Object iconLoc; // had to change back to Object since FST wasn't letting me load ImageRef into DataRef anymore for some reason
+    //protected DataRef iconLoc;
     protected List<XMBItem> innerItems;
 
     protected transient Drawable icon;
@@ -36,7 +39,7 @@ public class XMBItem<T> implements Serializable {
 
     public void getIcon(Consumer<Drawable> onIconLoaded) {
         if (icon == null && iconLoc != null) {
-            onIconLoaded.accept(icon = iconLoc.getImage());
+            onIconLoaded.accept(icon = ((DataRef)iconLoc).getImage());
 //            if (iconLoc instanceof Integer) {
 //                onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), (Integer)iconLoc));
 //            } else if (iconLoc instanceof Drawable) {
@@ -48,8 +51,21 @@ public class XMBItem<T> implements Serializable {
         onIconLoaded.accept(icon);
         //return icon;
     }
+    public void upgradeImgRef(int prevVersion) {
+        // only for upgrading from older versions of the app
+        if (iconLoc instanceof ImageRef) {
+            ImageRef imgRef = (ImageRef) iconLoc;
+            if (imgRef.dataType == DataLocation.resource) {
+                int oldIndex = (int)imgRef.imageLoc;
+                int newIndex = oldIndex + (prevVersion > 1 ? 2 : 3);
+                String resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+                Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                iconLoc = DataRef.from(resName, imgRef.dataType);
+            }
+        }
+    }
     public DataRef getImgRef() {
-        return iconLoc;
+        return (DataRef)iconLoc;
     }
     public void setImgRef(DataRef imgRef) {
         iconLoc = imgRef;
