@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -27,7 +28,6 @@ import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.Executable;
-import com.OxGames.OxShell.Data.ImageRef;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -52,13 +52,6 @@ import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
-import org.nustaq.serialization.FSTBasicObjectSerializer;
-import org.nustaq.serialization.FSTClazzInfo;
-import org.nustaq.serialization.FSTConfiguration;
-import org.nustaq.serialization.FSTObjectInput;
-import org.nustaq.serialization.FSTObjectOutput;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -1319,26 +1312,63 @@ public class HomeView extends XMBView implements Refreshable {
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle(title);
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
+        dropdownItems.add("From App");
         dropdownItems.add("Custom");
         //XMBItem colItem = toBeEdited;
         DataRef origColIcon = toBeEdited != null ? toBeEdited.getImgRef() : null;
-        int origDropdownIndex = resourceImages.length;
-        if (origColIcon != null && origColIcon.getLocType() == DataLocation.resource)
+        int origDropdownIndex = resourceImages.length + 1;
+        if (origColIcon != null && origColIcon.getLocType() == DataLocation.resource) {
             for (int i = 0; i < resourceImages.length; i++) {
                 if (resourceImages[i].getId().equals(origColIcon.getLoc())) {
                     origDropdownIndex = i;
                     break;
                 }
             }
+        } else if (origColIcon != null && origColIcon.getLocType() == DataLocation.pkg)
+            origDropdownIndex = resourceImages.length;
+
+        DynamicInputRow.TextInput pkgNameInput = new DynamicInputRow.TextInput("Package Name");
         DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(DataRef.from(null, DataLocation.none));
-        //DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
+        Runnable setImgAsPkg = () -> {
+            Log.d("HomeView", "Setting pkg as icon " + pkgNameInput.getText());
+            if (PackagesCache.isPackageInstalled(pkgNameInput.getText()))
+                imageDisplay.setImage(DataRef.from(pkgNameInput.getText(), DataLocation.pkg));
+            else
+                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
+        };
         AtomicReference<Uri> permittedUri = new AtomicReference<>();
-        Runnable updateImg = () -> {
+        Runnable setImgAsCustom = () -> {
             if (permittedUri.get() != null)
                 imageDisplay.setImage(DataRef.from(permittedUri.get(), DataLocation.resolverUri));
             else
                 imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
         };
+
+        List<ResolveInfo> pkgs = PackagesCache.getLaunchableInstalledPackages();
+        pkgs.sort(Comparator.comparing(PackagesCache::getAppLabel));
+        List<String> pkgNames = pkgs.stream().map(PackagesCache::getAppLabel).collect(Collectors.toList());
+        pkgNames.add(0, "Unlisted");
+        DynamicInputRow.Dropdown pkgsDropdown = new DynamicInputRow.Dropdown(index -> {
+            if (index >= 1) {
+                String pkgName = pkgs.get(index - 1).activityInfo.packageName;
+                pkgNameInput.setText(pkgName);
+            }
+            setImgAsPkg.run();
+        }, pkgNames.toArray(new String[0]));
+        pkgNameInput.addValuesChangedListener(selfTxt -> {
+            //currentPkgName.set(((DynamicInputRow.TextInput) selfTxt).getText());
+            int index = 0;
+            for (int i = 0; i < pkgs.size(); i++)
+                if (pkgs.get(i).activityInfo.packageName.equals(pkgNameInput.getText())) {
+                    index = i + 1;
+                    break;
+                }
+            pkgsDropdown.setIndex(index);
+        });
+        if (origColIcon != null && origColIcon.getLocType() == DataLocation.pkg)
+            pkgNameInput.setText((String)origColIcon.getLoc());
+        //DynamicInputRow pkgRow = new DynamicInputRow(pkgNameInput, pkgsDropdown);
+        //DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
 //        filePathInput.addListener(new DynamicInputListener() {
 //            @Override
 //            public void onFocusChanged(View view, boolean hasFocus) {
@@ -1356,17 +1386,24 @@ public class HomeView extends XMBView implements Refreshable {
         DynamicInputRow.ButtonInput chooseFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
             currentActivity.requestContent(uri -> {
                 permittedUri.set(uri);
-                updateImg.run();
+                setImgAsCustom.run();
             }, "image/*");
-            updateImg.run();
+            setImgAsCustom.run();
         });
         DynamicInputRow.Dropdown resourcesDropdown = new DynamicInputRow.Dropdown(index -> {
             Log.d("HomeView", "Resources dropdown index set to " + index);
             boolean isResource = index < resourceImages.length;
-            if (!isResource)
-                updateImg.run();
+            boolean isPkg = index == dropdownItems.size() - 2;
+            if (!isResource) {
+                if (isPkg)
+                    setImgAsPkg.run();
+                else
+                    setImgAsCustom.run();
+            }
+            pkgNameInput.setVisibility((!isResource && isPkg) ? VISIBLE : GONE);
+            pkgsDropdown.setVisibility((!isResource && isPkg) ? VISIBLE : GONE);
             //filePathInput.setVisibility(isResource ? GONE : VISIBLE);
-            chooseFileBtn.setVisibility(isResource ? GONE : VISIBLE);
+            chooseFileBtn.setVisibility((!isResource && !isPkg) ? VISIBLE : GONE);
             if (index >= 0 && isResource)
                 imageDisplay.setImage(DataRef.from(resourceImages[index].getId(), DataLocation.resource));
         }, dropdownItems.toArray(new String[0]));
@@ -1400,7 +1437,7 @@ public class HomeView extends XMBView implements Refreshable {
             resourcesDropdown.setIndex(origDropdownIndex);
             imageDisplay.setImage(toBeEdited.getImgRef());
         }
-        dynamicInput.setItems(new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
+        dynamicInput.setItems(new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
 
         dynamicInput.setShown(true);
     }

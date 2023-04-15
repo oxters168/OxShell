@@ -77,8 +77,10 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 iconLoc = DataRef.from(obj, DataLocation.pkg);
             } else if (type == Type.assoc) {
                 IntentLaunchData launchData = ShortcutsCache.getIntent((UUID)obj);
-                if (launchData != null)
+                if (launchData != null) {
                     iconLoc = DataRef.from(launchData.getPackageName(), DataLocation.pkg);
+                    title = launchData.getDisplayName();
+                }
             }
         }
     }
