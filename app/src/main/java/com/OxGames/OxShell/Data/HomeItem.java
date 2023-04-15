@@ -30,7 +30,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         this(_type, null);
     }
     public HomeItem(Type _type, String _title) {
-        this(_type, _title, null);
+        this(null, _type, _title);
     }
     public HomeItem(T _obj, Type _type, String _title, DataRef _iconLoc, XMBItem... innerItems) {
         super(_obj, _title, _iconLoc, innerItems);
@@ -39,6 +39,9 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     }
     public HomeItem(Type _type, String _title, XMBItem... innerItems) {
         this(null, _type, _title, null, innerItems);
+    }
+    public HomeItem(Type _type, String _title, DataRef _iconLoc) {
+        this(null, _type, _title, _iconLoc);
     }
     public HomeItem(T _obj, Type _type, XMBItem... innerItems) {
         this(_obj, _type, null, null, innerItems);
@@ -49,14 +52,14 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     @Override
     public void getIcon(Consumer<Drawable> onIconLoaded) {
         //Drawable icon = null;
-        if (type == Type.explorer)
-            onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24));
-        else if (type == Type.addApp)// || type == Type.app)
+        //if (type == Type.explorer)
+        //    onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24));
+        if (type == Type.addApp)// || type == Type.app)
             PackagesCache.requestPackageIcon((String) obj, drawable -> onIconLoaded.accept(icon = drawable));
         else if (isInnerSettingType(type))
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
-        else if (type == Type.assocExe)
-            onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24));
+        //else if (type == Type.assocExe)
+        //    onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24));
         else if (type == Type.addAssoc) {// || type == Type.assoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent != null)
@@ -81,11 +84,15 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                     iconLoc = DataRef.from(launchData.getPackageName(), DataLocation.pkg);
                     title = launchData.getDisplayName();
                 }
+            } else if (type == Type.assocExe) {
+                iconLoc = DataRef.from(ResImage.get(R.drawable.ic_baseline_auto_awesome_24).getId(), DataLocation.resource);
+            } else if (type == Type.explorer) {
+                iconLoc = DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource);
             }
         }
     }
 
-    public boolean isInnerSettingType(Type type) {
+    public static boolean isInnerSettingType(Type type) {
         return type == Type.appInfo ||
                 type == Type.saveLogs ||
                 type == Type.settings ||
@@ -99,6 +106,9 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 type == Type.setControls ||
                 type == Type.addAssocOuter ||
                 type == Type.createAssoc;
+    }
+    public static boolean isSetting(Type type) {
+        return type == Type.settings || isInnerSettingType(type);
     }
 
     @Override
@@ -152,7 +162,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     private static List<XMBItem> generateInnerItemsFrom(Type type, ArrayList<String> dirs, IntentLaunchData intent) {
         if (dirs != null && dirs.size() > 0) {
             // gets the files in the directories as streams then flattens them into one stream then maps them to home items then sorts them then turns the resulting stream into a list
-            return dirs.stream().flatMap(dir -> AndroidHelpers.getItemsInDirWithExt(dir, intent.getExtensions()).stream()).map(exe -> new HomeItem(new Executable(intent.getId(), exe.toString()), type, AndroidHelpers.removeExtension(exe.getName()))).sorted(Comparator.comparing(item -> item.title)).collect(Collectors.toList());
+            return dirs.stream().flatMap(dir -> AndroidHelpers.getItemsInDirWithExt(dir, intent.getExtensions()).stream()).map(exe -> new HomeItem(new Executable(intent.getId(), exe.toString()), type, AndroidHelpers.removeExtension(exe.getName()), DataRef.from(ResImage.get(R.drawable.ic_baseline_auto_awesome_24).getId(), DataLocation.resource))).sorted(Comparator.comparing(item -> item.title)).collect(Collectors.toList());
         }
         return null;
     }

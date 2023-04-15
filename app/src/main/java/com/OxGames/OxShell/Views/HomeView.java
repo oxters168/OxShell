@@ -50,6 +50,7 @@ import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
+import com.OxGames.OxShell.R;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.util.ArrayList;
@@ -65,35 +66,35 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
-    public final static ResImage[] resourceImages = {
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_accessibility_24", "Accessibility"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_add_circle_outline_24", "Plus Circle"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_cancel_24", "Cross Circle"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_auto_awesome_24", "Stars"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_block_24", "Block"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_check_24", "Checkmark"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_construction_24", "Construction"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_folder_24", "Folder"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_forum_24", "Message Bubbles"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_games_24", "Directional Pad"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_headphones_24", "Headphones"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_hide_image_24", "Crossed Image"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_home_24", "Home"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_image_24", "Image"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_map_24", "Map"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_movie_24", "Film"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_newspaper_24", "Newspaper"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_photo_camera_24", "Camera"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_question_mark_24", "Question Mark"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_send_time_extension_24", "Send Puzzle Piece"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_settings_24", "Cog"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_source_24", "Source Folder"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_audio_file_24", "Audio File"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_video_file_24", "Video File"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_view_list_24", "List"),
-        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_work_24", "Suitcase"),
-        new ResImage("com.OxGames.OxShell:drawable/baseline_info_24", "Info")
-    };
+//    public final static ResImage[] resourceImages = {
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_accessibility_24", "Accessibility"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_add_circle_outline_24", "Plus Circle"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_cancel_24", "Cross Circle"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_auto_awesome_24", "Stars"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_block_24", "Block"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_check_24", "Checkmark"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_construction_24", "Construction"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_folder_24", "Folder"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_forum_24", "Message Bubbles"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_games_24", "Directional Pad"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_headphones_24", "Headphones"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_hide_image_24", "Crossed Image"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_home_24", "Home"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_image_24", "Image"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_map_24", "Map"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_movie_24", "Film"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_newspaper_24", "Newspaper"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_photo_camera_24", "Camera"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_question_mark_24", "Question Mark"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_send_time_extension_24", "Send Puzzle Piece"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_settings_24", "Cog"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_source_24", "Source Folder"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_audio_file_24", "Audio File"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_video_file_24", "Video File"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_view_list_24", "List"),
+//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_work_24", "Suitcase"),
+//        new ResImage("com.OxGames.OxShell:drawable/baseline_info_24", "Info")
+//    };
 
     private AudioPool musicPool;
     private AudioPool movePool;
@@ -193,7 +194,7 @@ public class HomeView extends XMBView implements Refreshable {
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addExplorer) {
                     Adapter adapter = getAdapter();
-                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer"));
+                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
                     Toast.makeText(OxShellApp.getCurrentActivity(), "Explorer added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
@@ -714,7 +715,7 @@ public class HomeView extends XMBView implements Refreshable {
                 Integer[] parentPos = new Integer[position.length - 1];
                 for (int i = 0; i < parentPos.length; i++)
                     parentPos[i] = position[i];
-                boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
+                //boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
                 boolean hasColumnHead = getAdapter().isColumnHead(position[0], 0);
                 boolean isColumnHead = getAdapter().isColumnHead(position);
                 boolean hasInnerItems = getAdapter().hasInnerItems(position);
@@ -727,6 +728,7 @@ public class HomeView extends XMBView implements Refreshable {
                     homeItem = (HomeItem)selectedItem;
                 if (parentItem instanceof HomeItem)
                     parentHomeItem = (HomeItem)parentItem;
+                boolean isNotSettings = homeItem == null || !HomeItem.isSetting(homeItem.type);
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
                 if (isNotSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
@@ -737,9 +739,11 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(reloadBtn);
                 if (!isInnerItem)
                     btns.add(createColumnBtn);
+                if (isNotSettings)
+                    btns.add(editItemBtn);
                 if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc))
                     btns.add(editAssocBtn);
-                if (isNotSettings && hasColumnHead && !isInnerItem && parentHomeItem == null)
+                if (isNotSettings && hasColumnHead && !isInnerItem)// && parentHomeItem == null)
                     btns.add(editColumnBtn);
                 if (isNotSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(deleteBtn);
@@ -989,7 +993,7 @@ public class HomeView extends XMBView implements Refreshable {
                 if (prevVersion < 7 && !updatedIcons)
                     item.upgradeImgRef(prevVersion);
                 if (prevVersion < 7 && !updatedExes && item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.assocExe)
-                    column.set(i, new HomeItem(new Executable((UUID)column.get(0).obj, item.obj.toString()), HomeItem.Type.assocExe, item.getTitle()));
+                    column.set(i, new HomeItem(new Executable((UUID)column.get(0).obj, item.obj.toString()), HomeItem.Type.assocExe, item.getTitle(), DataRef.from(ResImage.get(R.drawable.ic_baseline_auto_awesome_24).getId(), DataLocation.resource)));
             }
         }
         updatedIcons = true;
@@ -1103,7 +1107,7 @@ public class HomeView extends XMBView implements Refreshable {
         }
         //ArrayList<XMBItem> explorerColumn = new ArrayList<>();
         //explorerColumn.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
-        defaultItems.add(0, new HomeItem(HomeItem.Type.explorer, "Explorer"));
+        defaultItems.add(0, new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
         Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         return defaultItems;
     }
@@ -1311,6 +1315,7 @@ public class HomeView extends XMBView implements Refreshable {
         PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle(title);
+        ResImage[] resourceImages = ResImage.getResourceImages();
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
         dropdownItems.add("From App");
         dropdownItems.add("Custom");
@@ -1412,7 +1417,7 @@ public class HomeView extends XMBView implements Refreshable {
             String itemTitle = titleInput.getText();
             DataRef imgRef = imageDisplay.getImageRef();
             // delete old icon
-            if (toBeEdited != null && imgRef != toBeEdited.getImgRef() && toBeEdited.getImgRef().getLocType() == DataLocation.file)
+            if (toBeEdited != null && toBeEdited.getImgRef() != null && imgRef != toBeEdited.getImgRef() && toBeEdited.getImgRef().getLocType() == DataLocation.file)
                 ExplorerBehaviour.delete((String)toBeEdited.getImgRef().getLoc());
             if (imgRef.getLocType() == DataLocation.resolverUri) {
                 String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
@@ -1495,6 +1500,11 @@ public class HomeView extends XMBView implements Refreshable {
         HomeItem assocItem = (HomeItem)getSelectedItem();
         showAssocEditor("Edit Association", ShortcutsCache.getIntent((UUID)assocItem.obj));
         //refresh();
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
+    });
+    SettingsDrawer.ContextBtn editItemBtn = new SettingsDrawer.ContextBtn("Edit Item", () -> {
+        XMBItem item = (XMBItem)getSelectedItem();
+        showItemEditor("Edit Item", item);
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn editColumnBtn = new SettingsDrawer.ContextBtn("Edit Column", () -> {

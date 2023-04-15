@@ -383,11 +383,14 @@ public class DynamicInputRow {
             return img;
         }
         public void getImage(Consumer<Drawable> onImageLoaded) {
-            img.getImage(onImageLoaded);
+            if (img != null)
+                img.getImage(onImageLoaded);
+            else
+                onImageLoaded.accept(null);
         }
         @Override
         public int getVisibility() {
-            return img.isValid() ? super.getVisibility() : View.GONE;
+            return img != null && img.isValid() ? super.getVisibility() : View.GONE;
         }
     }
     public static class Label extends DynamicInput {
