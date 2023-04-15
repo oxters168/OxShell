@@ -68,6 +68,21 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             super.getIcon(onIconLoaded);
         }
     }
+
+    @Override
+    public void upgradeImgRef(int prevVersion) {
+        super.upgradeImgRef(prevVersion);
+        if (iconLoc == null) {
+            if (type == Type.app) {
+                iconLoc = DataRef.from(obj, DataLocation.pkg);
+            } else if (type == Type.assoc) {
+                IntentLaunchData launchData = ShortcutsCache.getIntent((UUID)obj);
+                if (launchData != null)
+                    iconLoc = DataRef.from(launchData.getPackageName(), DataLocation.pkg);
+            }
+        }
+    }
+
     public boolean isInnerSettingType(Type type) {
         return type == Type.appInfo ||
                 type == Type.saveLogs ||

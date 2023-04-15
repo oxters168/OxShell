@@ -268,7 +268,7 @@ public class HomeView extends XMBView implements Refreshable {
                         // TODO: show some kind of error when input is invalid
                         Adapter adapter = getAdapter();
                         IntentLaunchData launchData = ShortcutsCache.getIntent((UUID)selectedItem.obj);
-                        HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc, launchData != null ? launchData.getDisplayName() : "Missing", DataRef.from(launchData != null ? launchData.getPackageName() : null, DataLocation.pkg));
+                        HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc, launchData != null ? launchData.getDisplayName() : "Missing", launchData != null ? DataRef.from(launchData.getPackageName(), DataLocation.pkg) : null);
                         assocItem.addToDirsList(titleInput.getText());
                         adapter.createColumnAt(adapter.getColumnCount() - 1, assocItem);
                         save(getItems());
