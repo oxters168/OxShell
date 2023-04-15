@@ -781,6 +781,7 @@ public class HomeView extends XMBView implements Refreshable {
 
     public void deleteSelection() {
         Integer[] position = getPosition();
+        ((XMBItem)getAdapter().getItem(position)).clearImgCache();
         getAdapter().removeSubItem(position[0], position[1]);
         save(getItems());
         refresh();
@@ -1432,9 +1433,9 @@ public class HomeView extends XMBView implements Refreshable {
     });
     SettingsDrawer.ContextBtn deleteColumnBtn = new SettingsDrawer.ContextBtn("Remove Column", () ->
     {
-        DataRef colImgRef = ((XMBItem)getAdapter().getItem(getPosition()[0], 0)).getImgRef();
-        if (colImgRef != null && colImgRef.getLocType() == DataLocation.file)
-            ExplorerBehaviour.delete((String)colImgRef.getLoc());
+        XMBItem colHead = ((XMBItem)getAdapter().getItem(getPosition()[0], 0));
+        colHead.clearImgCache();
+        colHead.clearInnerItemImgCache(true);
         getAdapter().removeColumnAt(getPosition()[0]);
         save(getItems());
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);

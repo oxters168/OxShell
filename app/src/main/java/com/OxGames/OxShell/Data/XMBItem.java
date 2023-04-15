@@ -3,6 +3,7 @@ package com.OxGames.OxShell.Data;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
+import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.OxShellApp;
 
 import java.io.Serializable;
@@ -50,6 +51,19 @@ public class XMBItem<T> implements Serializable {
         }
         onIconLoaded.accept(icon);
         //return icon;
+    }
+    public void clearImgCache() {
+        DataRef colImgRef = getImgRef();
+        if (colImgRef != null && colImgRef.getLocType() == DataLocation.file)
+            ExplorerBehaviour.delete((String)colImgRef.getLoc());
+    }
+    public void clearInnerItemImgCache(boolean recursive) {
+        if (innerItems != null)
+            for (XMBItem innerItem : innerItems) {
+                innerItem.clearImgCache();
+                if (recursive)
+                    innerItem.clearInnerItemImgCache(true);
+            }
     }
     public void upgradeImgRef(int prevVersion) {
         // only for upgrading from older versions of the app
