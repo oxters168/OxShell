@@ -188,13 +188,13 @@ public class HomeView extends XMBView implements Refreshable {
                     selectedItem.setInnerItems(sortedApps);
                 } else if (selectedItem.type == HomeItem.Type.addApp) {
                     Adapter adapter = getAdapter();
-                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle(), DataRef.from(selectedItem.obj, DataLocation.pkg)));
+                    adapter.createColumnAt(adapter.getColumnCount(), new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle(), DataRef.from(selectedItem.obj, DataLocation.pkg)));
                     Toast.makeText(OxShellApp.getCurrentActivity(), selectedItem.getTitle() + " added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addExplorer) {
                     Adapter adapter = getAdapter();
-                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
+                    adapter.createColumnAt(adapter.getColumnCount(), new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
                     Toast.makeText(OxShellApp.getCurrentActivity(), "Explorer added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
@@ -264,7 +264,7 @@ public class HomeView extends XMBView implements Refreshable {
                         IntentLaunchData launchData = ShortcutsCache.getIntent((UUID)selectedItem.obj);
                         HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc, launchData != null ? launchData.getDisplayName() : "Missing", launchData != null ? DataRef.from(launchData.getPackageName(), DataLocation.pkg) : null);
                         assocItem.addToDirsList(titleInput.getText());
-                        adapter.createColumnAt(adapter.getColumnCount() - 1, assocItem);
+                        adapter.createColumnAt(adapter.getColumnCount(), assocItem);
                         save(getItems());
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
