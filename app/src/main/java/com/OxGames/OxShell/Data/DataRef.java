@@ -20,6 +20,7 @@ import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.function.Consumer;
 
 public class DataRef implements Serializable {
     protected DataLocation locType;
@@ -44,28 +45,30 @@ public class DataRef implements Serializable {
         return loc;
     }
 
-    public Drawable getImage() {
+    public void getImage(Consumer<Drawable> onIconLoaded) {
         if (locType == DataLocation.resource) {
             try {
-                return ContextCompat.getDrawable(OxShellApp.getContext(), OxShellApp.getCurrentActivity().getResources().getIdentifier((String)loc, "drawable", BuildConfig.APPLICATION_ID));
+                onIconLoaded.accept(ContextCompat.getDrawable(OxShellApp.getContext(), OxShellApp.getCurrentActivity().getResources().getIdentifier((String)loc, "drawable", BuildConfig.APPLICATION_ID)));
             } catch (Exception e) {
                 Log.e("ImageRef", "Failed to find resource " + loc + ": " + e);
-                return ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_question_mark_24);
+                onIconLoaded.accept(ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_question_mark_24));
             }
         }
-        if (locType == DataLocation.asset)
-            return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readAssetAsBitmap(OxShellApp.getContext(), (String)loc));
-        if (locType == DataLocation.file)
-            return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)loc));
-        if (locType == DataLocation.resolverUri)
-            return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readResolverUriAsBitmap(OxShellApp.getContext(), (Uri)loc));
-        if (locType == DataLocation.self) {
+        else if (locType == DataLocation.asset)
+            onIconLoaded.accept(AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readAssetAsBitmap(OxShellApp.getContext(), (String)loc)));
+        else if (locType == DataLocation.pkg)
+            PackagesCache.requestPackageIcon((String)loc, onIconLoaded);
+        else if (locType == DataLocation.file)
+            onIconLoaded.accept(AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.bitmapFromFile((String)loc)));
+        else if (locType == DataLocation.resolverUri)
+            onIconLoaded.accept(AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), AndroidHelpers.readResolverUriAsBitmap(OxShellApp.getContext(), (Uri)loc)));
+        else if (locType == DataLocation.self) {
             if (loc instanceof Drawable)
-                return (Drawable)loc;
+                onIconLoaded.accept((Drawable)loc);
             else if (loc instanceof Bitmap)
-                return AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), (Bitmap)loc);
-        }
-        return null;
+                onIconLoaded.accept(AndroidHelpers.bitmapToDrawable(OxShellApp.getContext(), (Bitmap)loc));
+        } else
+            onIconLoaded.accept(null);
     }
 
     public Typeface getFont() {

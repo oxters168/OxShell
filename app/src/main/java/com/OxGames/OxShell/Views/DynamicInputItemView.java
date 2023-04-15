@@ -207,7 +207,7 @@ public class DynamicInputItemView extends FrameLayout {
                 }
                 if (image != null) {
                     if (item.inputType == DynamicInputRow.DynamicInput.InputType.image) {
-                        image.setImageDrawable(((DynamicInputRow.ImageDisplay)item).getImage());
+                        ((DynamicInputRow.ImageDisplay)item).getImage(img -> image.setImageDrawable(img));
                         image.setVisibility(item.getVisibility());
                         image.setEnabled(item.isEnabled());
                     }
@@ -448,7 +448,7 @@ public class DynamicInputItemView extends FrameLayout {
                 image.setClickable(false);
                 addView(image);
             }
-            image.setImageDrawable(innerItem.getImage());
+            innerItem.getImage(img -> image.setImageDrawable(img));
             image.setVisibility(innerItem.getVisibility());
             image.setEnabled(innerItem.isEnabled());
         } else if (item.inputType == DynamicInputRow.DynamicInput.InputType.label) {

@@ -382,8 +382,8 @@ public class DynamicInputRow {
         public DataRef getImageRef() {
             return img;
         }
-        public Drawable getImage() {
-            return img.getImage();
+        public void getImage(Consumer<Drawable> onImageLoaded) {
+            img.getImage(onImageLoaded);
         }
         @Override
         public int getVisibility() {

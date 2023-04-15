@@ -49,9 +49,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         if (type == Type.explorer)
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24));
         else if (type == Type.app || type == Type.addApp)
-            PackagesCache.requestPackageIcon((String) obj, drawable -> {
-                onIconLoaded.accept(icon = drawable);
-            });
+            PackagesCache.requestPackageIcon((String) obj, drawable -> onIconLoaded.accept(icon = drawable));
         else if (isInnerSettingType(type))
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
         else if (type == Type.assocExe)
@@ -59,9 +57,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         else if (type == Type.assoc || type == Type.addAssoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent != null)
-                PackagesCache.requestPackageIcon(intent.getPackageName(), drawable -> {
-                    onIconLoaded.accept(icon = drawable);
-                });
+                PackagesCache.requestPackageIcon(intent.getPackageName(), drawable -> onIconLoaded.accept(icon = drawable));
                 //onIconLoaded.accept(icon = PackagesCache.getPackageIcon(intent.getPackageName()));
             else
                 onIconLoaded.accept(null);
