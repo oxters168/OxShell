@@ -194,7 +194,7 @@ public class HomeView extends XMBView implements Refreshable {
                     selectedItem.setInnerItems(sortedApps);
                 } else if (selectedItem.type == HomeItem.Type.addApp) {
                     Adapter adapter = getAdapter();
-                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle()));
+                    adapter.createColumnAt(adapter.getColumnCount() - 1, new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle(), DataRef.from(selectedItem.obj, DataLocation.pkg)));
                     Toast.makeText(OxShellApp.getCurrentActivity(), selectedItem.getTitle() + " added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
@@ -267,7 +267,8 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
                         // TODO: show some kind of error when input is invalid
                         Adapter adapter = getAdapter();
-                        HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc);
+                        IntentLaunchData launchData = ShortcutsCache.getIntent((UUID)selectedItem.obj);
+                        HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc, launchData != null ? launchData.getDisplayName() : "Missing", DataRef.from(launchData != null ? launchData.getPackageName() : null, DataLocation.pkg));
                         assocItem.addToDirsList(titleInput.getText());
                         adapter.createColumnAt(adapter.getColumnCount() - 1, assocItem);
                         save(getItems());
@@ -1089,7 +1090,7 @@ public class HomeView extends XMBView implements Refreshable {
             if (!sortedApps.containsKey(category))
                 sortedApps.put(category, new ArrayList<>());
             ArrayList<XMBItem> currentList = sortedApps.get(category);
-            currentList.add(new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg)));
+            currentList.add(new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.app, PackagesCache.getAppLabel(currentPkg), DataRef.from(currentPkg.activityInfo.packageName, DataLocation.pkg)));
         }
         // separate the categories to avoid empty ones and order them into an arraylist so no game in indices occurs
         ArrayList<Integer> existingCategories = new ArrayList<>();

@@ -32,29 +32,32 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public HomeItem(Type _type, String _title) {
         this(_type, _title, null);
     }
-    public HomeItem(T _obj, Type _type, String _title, XMBItem... innerItems) {
-        super(_obj, _title, innerItems);
+    public HomeItem(T _obj, Type _type, String _title, DataRef _iconLoc, XMBItem... innerItems) {
+        super(_obj, _title, _iconLoc, innerItems);
         type = _type;
         extraData = new ArrayList<>();
     }
     public HomeItem(Type _type, String _title, XMBItem... innerItems) {
-        this(null, _type, _title, innerItems);
+        this(null, _type, _title, null, innerItems);
     }
     public HomeItem(T _obj, Type _type, XMBItem... innerItems) {
-        this(_obj, _type, null, innerItems);
+        this(_obj, _type, null, null, innerItems);
+    }
+    public HomeItem(T _obj, Type _type, String _title, XMBItem... innerItems) {
+        this(_obj, _type, _title, null, innerItems);
     }
     @Override
     public void getIcon(Consumer<Drawable> onIconLoaded) {
         //Drawable icon = null;
         if (type == Type.explorer)
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24));
-        else if (type == Type.app || type == Type.addApp)
+        else if (type == Type.addApp)// || type == Type.app)
             PackagesCache.requestPackageIcon((String) obj, drawable -> onIconLoaded.accept(icon = drawable));
         else if (isInnerSettingType(type))
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
         else if (type == Type.assocExe)
             onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24));
-        else if (type == Type.assoc || type == Type.addAssoc) {
+        else if (type == Type.addAssoc) {// || type == Type.assoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent != null)
                 PackagesCache.requestPackageIcon(intent.getPackageName(), drawable -> onIconLoaded.accept(icon = drawable));
@@ -64,24 +67,6 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         } else {
             super.getIcon(onIconLoaded);
         }
-//        icon = super.getIcon();
-//        if (icon == null) {
-//            if (type == Type.explorer)
-//                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24);
-//            else if (type == Type.app || type == Type.addApp)
-//                icon = PackagesCache.getPackageIcon((String)obj);
-//            else if (type == Type.settings || type == Type.addExplorer || type == Type.setImageBg || type == Type.setShaderBg)
-//                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24);
-//            else if (type == Type.assocExe)
-//                icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24);
-//            else if (type == Type.assoc || type == Type.addAssoc) {
-//                IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-//                if (intent == null)
-//                    return null;
-//                icon = PackagesCache.getPackageIcon(intent.getPackageName());
-//            }
-//        }
-//        return icon;
     }
     public boolean isInnerSettingType(Type type) {
         return type == Type.appInfo ||
@@ -101,10 +86,11 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
 
     @Override
     public String getTitle() {
-        if (type == Type.assoc) {
-            IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
-            return intent != null ? intent.getDisplayName() : "Missing";
-        } else if (type == Type.addAssoc) {
+//        if (type == Type.assoc) {
+//            IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
+//            return intent != null ? intent.getDisplayName() : "Missing";
+//        } else if
+        if (type == Type.addAssoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent == null)
                 return "Missing";
