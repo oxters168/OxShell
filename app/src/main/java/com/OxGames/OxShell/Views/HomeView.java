@@ -1320,9 +1320,9 @@ public class HomeView extends XMBView implements Refreshable {
         List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
         dropdownItems.add("Custom");
         //XMBItem colItem = toBeEdited;
-        DataRef origColIcon = toBeEdited.getImgRef();
+        DataRef origColIcon = toBeEdited != null ? toBeEdited.getImgRef() : null;
         int origDropdownIndex = resourceImages.length;
-        if (origColIcon.getLocType() == DataLocation.resource)
+        if (origColIcon != null && origColIcon.getLocType() == DataLocation.resource)
             for (int i = 0; i < resourceImages.length; i++) {
                 if (resourceImages[i].getId().equals(origColIcon.getLoc())) {
                     origDropdownIndex = i;
@@ -1374,15 +1374,18 @@ public class HomeView extends XMBView implements Refreshable {
             String itemTitle = titleInput.getText();
             DataRef imgRef = imageDisplay.getImageRef();
             // delete old icon
-            if (imgRef != toBeEdited.getImgRef() && toBeEdited.getImgRef().getLocType() == DataLocation.file)
+            if (toBeEdited != null && imgRef != toBeEdited.getImgRef() && toBeEdited.getImgRef().getLocType() == DataLocation.file)
                 ExplorerBehaviour.delete((String)toBeEdited.getImgRef().getLoc());
             if (imgRef.getLocType() == DataLocation.resolverUri) {
                 String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
                 AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), iconPath);
                 imgRef = DataRef.from(iconPath, DataLocation.file);
             }
-            toBeEdited.setTitle(itemTitle.length() > 0 ? itemTitle : "Unnamed");
-            toBeEdited.setImgRef(imgRef);
+            if (toBeEdited != null) {
+                toBeEdited.setTitle(itemTitle.length() > 0 ? itemTitle : "Unnamed");
+                toBeEdited.setImgRef(imgRef);
+            } else
+                getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, itemTitle.length() > 0 ? itemTitle : "Unnamed", imgRef));
             save(getItems());
             refresh();
             dynamicInput.setShown(false);
@@ -1391,9 +1394,11 @@ public class HomeView extends XMBView implements Refreshable {
             dynamicInput.setShown(false);
         }, SettingsKeeper.getCancelInput());
 
-        titleInput.setText(toBeEdited.getTitle());
-        resourcesDropdown.setIndex(origDropdownIndex);
-        imageDisplay.setImage(toBeEdited.getImgRef());
+        if (toBeEdited != null) {
+            titleInput.setText(toBeEdited.getTitle());
+            resourcesDropdown.setIndex(origDropdownIndex);
+            imageDisplay.setImage(toBeEdited.getImgRef());
+        }
         dynamicInput.setItems(new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
 
         dynamicInput.setShown(true);
@@ -1459,71 +1464,8 @@ public class HomeView extends XMBView implements Refreshable {
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () -> {
-        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
-        DynamicInputView dynamicInput = currentActivity.getDynamicInput();
-        dynamicInput.setTitle("Create Column");
-        List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
-        dropdownItems.add("Custom");
-        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(DataRef.from(null, DataLocation.none));
-        //DynamicInputRow.TextInput filePathInput = new DynamicInputRow.TextInput("File Path");
-        AtomicReference<Uri> permittedUri = new AtomicReference<>();
-        Runnable updateImg = () -> {
-            if (permittedUri.get() != null)
-                imageDisplay.setImage(DataRef.from(permittedUri.get(), DataLocation.resolverUri));
-            else
-                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
-        };
-//        filePathInput.addListener(new DynamicInputListener() {
-//            @Override
-//            public void onFocusChanged(View view, boolean hasFocus) {
-//
-//            }
-//
-//            @Override
-//            public void onValuesChanged() {
-//                if (AndroidHelpers.uriExists(Uri.parse(filePathInput.getText())))
-//                    imageDisplay.setImage(ImageRef.from(filePathInput.getText(), DataLocation.resolverUri));
-//                else
-//                    imageDisplay.setImage(ImageRef.from(R.drawable.ic_baseline_question_mark_24, DataLocation.resource));
-//            }
-//        });
-        DynamicInputRow.ButtonInput chooseFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
-            currentActivity.requestContent(uri -> {
-                permittedUri.set(uri);
-                updateImg.run();
-            }, "image/*");
-        });
-        DynamicInputRow.Dropdown resourcesDropdown = new DynamicInputRow.Dropdown(index -> {
-            Log.d("HomeView", "Resources dropdown index set to " + index);
-            boolean isResource = index < resourceImages.length;
-            if (!isResource)
-                updateImg.run();
-            //filePathInput.setVisibility(isResource ? GONE : VISIBLE);
-            chooseFileBtn.setVisibility(isResource ? GONE : VISIBLE);
-            if (index >= 0 && isResource)
-                imageDisplay.setImage(DataRef.from(resourceImages[index].getId(), DataLocation.resource));
-        }, dropdownItems.toArray(new String[0]));
-        DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Title");
-        DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Create", v -> {
-            String title = titleInput.getText();
-            DataRef imgRef = imageDisplay.getImageRef();
-            if (imgRef.getLocType() == DataLocation.resolverUri) {
-                String iconPath = AndroidHelpers.combinePaths(Paths.ICONS_DIR_INTERNAL, UUID.randomUUID().toString());
-                AndroidHelpers.saveBitmapToFile(AndroidHelpers.readResolverUriAsBitmap(context, permittedUri.get()), iconPath);
-                imgRef = DataRef.from(iconPath, DataLocation.file);
-            }
-            getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, title.length() > 0 ? title : "Unnamed", imgRef));
-            save(getItems());
-            dynamicInput.setShown(false);
-        }, SettingsKeeper.getSuperPrimaryInput());
-        DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
-            dynamicInput.setShown(false);
-        }, SettingsKeeper.getCancelInput());
-
-        dynamicInput.setItems(new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(titleInput), new DynamicInputRow(okBtn, cancelBtn));
-
-        currentActivity.getSettingsDrawer().setShown(false);
-        dynamicInput.setShown(true);
+        showItemEditor("Create Column", null);
+        OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn cancelBtn = new SettingsDrawer.ContextBtn("Cancel", () ->
     {
