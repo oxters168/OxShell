@@ -148,7 +148,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     @Override
     public boolean isColumnHead(Integer... position) {
         XMBItem item = (XMBItem)getItem(position);
-        return item != null && (!(item instanceof HomeItem) || ((HomeItem)item).type == HomeItem.Type.assoc);
+        return item != null && (!(item instanceof HomeItem) || ((HomeItem)item).type == HomeItem.Type.assoc || ((HomeItem)item).type == HomeItem.Type.settings);
     }
 
     @Override

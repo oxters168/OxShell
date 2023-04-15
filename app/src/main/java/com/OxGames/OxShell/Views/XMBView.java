@@ -357,6 +357,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 int moveColIndex = xToIndex(xValue);
                 if (xValue < 0)
                     moveColIndex = -1; // just for touch input since the amount a user can move by per frame is not enough to move a whole index
+                else if (xValue > getShiftX(adapter.getColumnCount() - 1))
+                    moveColIndex = adapter.getColumnCount(); // just for touch input since the amount a user can move by per frame is not enough to move a whole index
                 int properColIndex = clampColIndex(moveColIndex);
                 boolean changed = properColIndex != this.colIndex;
                 int newRowIndex = getCachedIndexOfCat(properColIndex);
@@ -1299,11 +1301,11 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 //if (nextColIndex != fromColIndex)
             //        adapter.shiftColumnTo(fromColIndex, nextColIndex);
             //} else {
-                //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
+                Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
                 //boolean isInColumn = (!columnMode || moveLocalIndex > 0) && catHasSubItems(fromColIndex);
                 boolean isInColumn = moveLocalIndex > 0 && catHasSubItems(fromColIndex);
                 // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
-                int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 1 : 2));
+                int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 0 : 1));
                 //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
                 if (fromColIndex != nextColIndex) {
                     nextColIndex = Math.max(nextColIndex, 0);
@@ -1328,6 +1330,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
                     //getViewHolder(fromColIndex, fromRowIndex).setDirty();
                     //getViewHolder(nextColIndex, nextLocalIndex).setDirty();
+                    Log.d("XMBView", "[" + fromColIndex + ", " + moveLocalIndex + "] => [" + nextColIndex + ", " + nextLocalIndex + "]");
                     adapter.shiftItemHorizontally(fromColIndex, moveLocalIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
                     moveLocalIndex = !isInColumn ? nextLocalIndex : 0;
 

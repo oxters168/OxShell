@@ -731,9 +731,9 @@ public class HomeView extends XMBView implements Refreshable {
                 boolean isNotSettings = homeItem == null || !HomeItem.isSetting(homeItem.type);
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
-                if (isNotSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
+                if ((homeItem == null || (homeItem.type != HomeItem.Type.nonDescriptSetting && !HomeItem.isInnerSettingType(homeItem.type))) && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(moveItemBtn);
-                if (isNotSettings && !isInnerItem)
+                if (hasColumnHead && !isInnerItem)
                     btns.add(moveColumnBtn);
                 if ((homeItem != null && (homeItem.type == HomeItem.Type.assoc)) || (parentHomeItem != null && (parentHomeItem.type == HomeItem.Type.assoc)))
                     btns.add(reloadBtn);
@@ -827,104 +827,13 @@ public class HomeView extends XMBView implements Refreshable {
                 items = createDefaultItems();
         }
         save(items);
-        items.add(createSettingsColumn());
+        //items.add(createSettingsColumn());
         int cachedColIndex = colIndex;
         int cachedRowIndex = rowIndex;
         setAdapter(new XMBAdapter(getContext(), items));
         setFont(SettingsKeeper.getFont());
         setIndex(cachedColIndex, cachedRowIndex, true);
         Log.i("HomeView", "Time to load home items: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s");
-    }
-    private static XMBItem createSettingsColumn() {
-        ArrayList<XMBItem> settingsItems = new ArrayList<>();
-        List<XMBItem> innerSettings = new ArrayList<>();
-        List<XMBItem> innerInnerSettings = new ArrayList<>();
-
-        //XMBItem settingsItem = new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
-        //settingsColumn.add(settingsItem);
-
-        // TODO: add option to change icon alpha
-        // TODO: add option to reset home items to default
-        // TODO: add option to change home/explorer scale
-        // TODO: move add association to home settings?
-        // TODO: add edit association option (and/or add it in the context drawer)
-//        innerSettings = new XMBItem[2];
-//        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set font size");
-//        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set typeface");
-//        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
-//        settingsColumn.add(settingsItem);
-
-        XMBItem currentSettingsItem;
-        innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home"));
-//        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
-//        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
-//        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
-        innerSettings.add(new HomeItem(HomeItem.Type.addAppOuter, "Add application to home"));
-        //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
-        currentSettingsItem = new XMBItem(null, "Home", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsItems.add(currentSettingsItem);
-
-        innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.setImageBg, "Set picture as background"));
-        innerSettings.add(new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background"));
-        innerSettings.add(new HomeItem(HomeItem.Type.setUiScale, "Change UI scale"));
-        if (!AndroidHelpers.isRunningOnTV())
-            innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
-        currentSettingsItem = new XMBItem(null, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsItems.add(currentSettingsItem);
-
-        innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.setAudioVolume, "Set volume levels"));
-        currentSettingsItem = new XMBItem(null, "Audio", DataRef.from("ic_baseline_headphones_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsItems.add(currentSettingsItem);
-
-        innerSettings.clear();
-        innerInnerSettings.clear();
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input"));
-        innerSettings.add(new XMBItem(null, "General", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
-        innerInnerSettings.clear();
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input"));
-        innerSettings.add(new XMBItem(null, "File Explorer", DataRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
-        innerInnerSettings.clear();
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input"));
-        innerSettings.add(new XMBItem(null, "Android System", DataRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
-        currentSettingsItem = new XMBItem(null, "Controls", DataRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsItems.add(currentSettingsItem);
-
-        //innerSettings = new XMBItem[0];
-        //settingsItem = new XMBItem(null, "Explorer", R.drawable.ic_baseline_source_24, colIndex, localIndex++, innerSettings);
-        //settingsColumn.add(settingsItem);
-
-        innerSettings.clear();
-//        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
-//        XMBItem[] intentItems = new XMBItem[intents.length];
-//        for (int i = 0; i < intents.length; i++)
-//            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
-        innerSettings.add(new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home"));
-        innerSettings.add(new HomeItem(HomeItem.Type.createAssoc, "Create new association"));
-        currentSettingsItem = new XMBItem(null, "Associations", DataRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsItems.add(currentSettingsItem);
-
-        innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.appInfo, "App info"));
-        innerSettings.add(new HomeItem(HomeItem.Type.saveLogs, "Save logs to file"));
-        currentSettingsItem = new XMBItem(null, "About", DataRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
-        settingsItems.add(currentSettingsItem);
-
-        return new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource), settingsItems.toArray(new XMBItem[0]));//, colIndex, localIndex++);
     }
 
     @Override
@@ -937,11 +846,12 @@ public class HomeView extends XMBView implements Refreshable {
         //Log.d("HomeView", "Getting items");
         ArrayList<Object> items = getAdapter().getItems();
         ArrayList<XMBItem> casted = new ArrayList<>();
-        items.remove(items.size() - 1); // remove the settings
+        //items.remove(items.size() - 1); // remove the settings
         Consumer<XMBItem> clearIfNeeded = xmbItem -> {
-            if (xmbItem instanceof HomeItem && ((HomeItem)xmbItem).type == HomeItem.Type.assoc) {
+            if (xmbItem instanceof HomeItem) {
                 //Log.d("HomeView", "Clearing " + xmbItem.getTitle());
-                xmbItem.clearInnerItems();
+                if (((HomeItem)xmbItem).type == HomeItem.Type.settings)// || ((HomeItem)xmbItem).type == HomeItem.Type.assoc)
+                    xmbItem.clearInnerItems();
             }
         };
         Consumer<XMBItem> goInto = new Consumer<XMBItem>() {
@@ -952,7 +862,7 @@ public class HomeView extends XMBView implements Refreshable {
                     //Log.d("HomeView", "Found " + innerItem.getTitle() + ", " + (innerItem instanceof HomeItem ? ((HomeItem)innerItem).type : "xmbItem"));
                     if (innerItem.hasInnerItems())
                         accept(innerItem);
-                    //clearIfNeeded.accept(innerItem); // call after to make sure not to recreate inner items
+                    clearIfNeeded.accept(innerItem); // call after to make sure not to recreate inner items
                 }
             }
         };
@@ -961,7 +871,7 @@ public class HomeView extends XMBView implements Refreshable {
             //Log.d("HomeView", "Found " + item.getTitle());
             casted.add(item);
             goInto.accept(item);
-            //clearIfNeeded.accept(item); // call after to make sure not to recreate inner items
+            clearIfNeeded.accept(item); // call after to make sure not to recreate inner items
         }
         return casted;
     }
@@ -1108,32 +1018,33 @@ public class HomeView extends XMBView implements Refreshable {
         //ArrayList<XMBItem> explorerColumn = new ArrayList<>();
         //explorerColumn.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
         defaultItems.add(0, new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
+        defaultItems.add(new HomeItem(HomeItem.Type.settings, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource)));
         Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         return defaultItems;
     }
     public static String getDefaultIconForCategory(int category) {
         if (category == ApplicationInfo.CATEGORY_GAME)
-            return "ic_baseline_games_24";
+            return ResImage.get(R.drawable.ic_baseline_games_24).getId();
         else if (category == ApplicationInfo.CATEGORY_AUDIO)
-            return "ic_baseline_headphones_24";
+            return ResImage.get(R.drawable.ic_baseline_headphones_24).getId();
         else if (category == ApplicationInfo.CATEGORY_VIDEO)
-            return "ic_baseline_movie_24";
+            return ResImage.get(R.drawable.ic_baseline_movie_24).getId();
         else if (category == ApplicationInfo.CATEGORY_IMAGE)
-            return "ic_baseline_photo_camera_24";
+            return ResImage.get(R.drawable.ic_baseline_photo_camera_24).getId();
         else if (category == ApplicationInfo.CATEGORY_SOCIAL)
-            return "ic_baseline_forum_24";
+            return ResImage.get(R.drawable.ic_baseline_forum_24).getId();
         else if (category == ApplicationInfo.CATEGORY_NEWS)
-            return "ic_baseline_newspaper_24";
+            return ResImage.get(R.drawable.ic_baseline_newspaper_24).getId();
         else if (category == ApplicationInfo.CATEGORY_MAPS)
-            return "ic_baseline_map_24";
+            return ResImage.get(R.drawable.ic_baseline_map_24).getId();
         else if (category == ApplicationInfo.CATEGORY_PRODUCTIVITY)
-            return "ic_baseline_work_24";
+            return ResImage.get(R.drawable.ic_baseline_work_24).getId();
         else if (category == ApplicationInfo.CATEGORY_ACCESSIBILITY)
-            return "ic_baseline_accessibility_24";
+            return ResImage.get(R.drawable.ic_baseline_accessibility_24).getId();
         else if (category == getOtherCategoryIndex())
-            return "ic_baseline_auto_awesome_24";
+            return ResImage.get(R.drawable.ic_baseline_auto_awesome_24).getId();
         else
-            return "ic_baseline_view_list_24";
+            return ResImage.get(R.drawable.ic_baseline_view_list_24).getId();
     }
     private static int getOtherCategoryIndex() {
         return MathHelpers.max(ApplicationInfo.CATEGORY_GAME, ApplicationInfo.CATEGORY_AUDIO, ApplicationInfo.CATEGORY_IMAGE, ApplicationInfo.CATEGORY_SOCIAL, ApplicationInfo.CATEGORY_NEWS, ApplicationInfo.CATEGORY_MAPS, ApplicationInfo.CATEGORY_PRODUCTIVITY, ApplicationInfo.CATEGORY_ACCESSIBILITY) + 1;
