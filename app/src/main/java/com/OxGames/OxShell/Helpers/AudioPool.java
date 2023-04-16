@@ -119,7 +119,7 @@ public class AudioPool {
                     public void run() {
                         if (mpr.player.isPlaying()) {
                             int position = mpr.player.getCurrentPosition();
-                            //Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
+                            Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
                             //Log.d("AudioPool", "isMusicActive: " + OxShellApp.getAudioManager().isMusicActive());
                             if (position >= (duration - COMPLETE_MILLIS)) {
                                 if (playingPlayers.contains(mpr)) {

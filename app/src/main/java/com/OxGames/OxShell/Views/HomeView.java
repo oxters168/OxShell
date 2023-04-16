@@ -5,7 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
-import android.graphics.drawable.Drawable;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Handler;
@@ -96,15 +97,87 @@ public class HomeView extends XMBView implements Refreshable {
         OxShellApp.addPkgInstalledListener(pkgInstalledListener);
         refresh();
     }
+    //private boolean isInHome;
     public void onResume() {
+        //playBgMusic();
+//        isInHome = true;
+//        Handler musicHandler = new Handler(Looper.getMainLooper());
+//        musicHandler.post(new Runnable() {
+//            boolean checkOtherApps;
+//            boolean waitedAFrame;
+//            @Override
+//            public void run() {
+//                if (isInHome) {
+//                    //Log.d("HomeView", "Checking for other apps playing audio");
+//                    if (waitedAFrame) {
+//                        checkOtherApps = false;
+//                        waitedAFrame = false;
+//                        if (!OxShellApp.getAudioManager().isMusicActive())
+//                            playBgMusic();
+//                        else
+//                            Log.d("HomeView", "Another app is playing audio");
+//                        musicHandler.post(this);
+//                        //musicHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+//                    } else if (checkOtherApps) {
+//                        pauseBgMusic();
+//                        waitedAFrame = true;
+//                        musicHandler.post(this);
+//                        //musicHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+//                    } else {
+//                        checkOtherApps = true;
+//                        musicHandler.postDelayed(this, MathHelpers.calculateMillisForFps(20));
+//                    }
+//                }
+//            }
+//        });
+//        if (OxShellApp.getAudioManager().isMusicActive()) {
+//
+//        }
+//        AudioFocusRequest.Builder b = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+//        b.setAcceptsDelayedFocusGain(true);
+//        AudioAttributes.Builder b2 = new AudioAttributes.Builder();
+//        b2.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC);
+//        b.setAudioAttributes(b2.build());
+//        b.setOnAudioFocusChangeListener(new AudioManager.OnAudioFocusChangeListener() {
+//            @Override
+//            public void onAudioFocusChange(int focusChange) {
+//                //Log.d("HomeView", "OnAudioFocusChangeListener " + focusChange);
+//                if (focusChange == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+//                    Log.d("HomeView", "OnAudioFocusChangeListener request granted: " + focusChange);
+//                    //OxShellApp.getAudioManager().requestAudioFocus(b.build());
+//                    //playBgMusic();
+//                } else {
+//                    Log.d("HomeView", "OnAudioFocusChangeListener request denied: " + focusChange);
+//                }
+//            }
+//        });
+//        OxShellApp.getAudioManager().requestAudioFocus(b.build());
+//        OxShellApp.getAudioManager().requestAudioFocus(new AudioManager.OnAudioFocusChangeListener() {
+//            @Override
+//            public void onAudioFocusChange(int focusChange) {
+//                if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+//                    Log.d("HomeView", "OnAudioFocusChangeListener AUDIOFOCUS_LOSS_TRANSIENT || AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
+//                } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+//                    Log.d("HomeView", "OnAudioFocusChangeListener AUDIOFOCUS_GAIN");
+//                } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+//                    Log.d("HomeView", "OnAudioFocusChangeListener AUDIOFOCUS_LOSS");
+//                }
+//            }
+//        }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+    }
+    private void playBgMusic() {
         refreshAudioPools();
         if (musicPool.getActiveCount() > 0)
             musicPool.resumeActive();
         else
             musicPool.play(true);
     }
-    public void onPause() {
+    private void pauseBgMusic() {
         musicPool.pauseActive();
+    }
+    public void onPause() {
+        //isInHome = false;
+        pauseBgMusic();
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
@@ -138,6 +211,7 @@ public class HomeView extends XMBView implements Refreshable {
         // this is so that we don't both go into the inner items of an item and try to execute it at the same time
         //if (super.affirmativeAction())
         //    return true;
+        playMoveSfx();
 
         if (!isInMoveMode()) {
             if (getSelectedItem() instanceof HomeItem) {
@@ -477,14 +551,14 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.setAudioVolume) {
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
                     dynamicInput.setTitle("Set Volume Levels");
-                    DynamicInputRow.Label musicLabel = new DynamicInputRow.Label("Music Volume");
-                    musicLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
-                    DynamicInputRow.SliderInput musicSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getMusicVolume(), 0.01f, null);
+                    //DynamicInputRow.Label musicLabel = new DynamicInputRow.Label("Music Volume");
+                    //musicLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+                    //DynamicInputRow.SliderInput musicSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getMusicVolume(), 0.01f, null);
                     DynamicInputRow.Label sfxLabel = new DynamicInputRow.Label("SFX Volume");
                     sfxLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
                     DynamicInputRow.SliderInput sfxSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getSfxVolume(), 0.01f, null);
                     DynamicInputRow.ButtonInput applyBtn = new DynamicInputRow.ButtonInput("Apply", (selfBtn) -> {
-                        SettingsKeeper.setMusicVolume(musicSlider.getValue());
+                        //SettingsKeeper.setMusicVolume(musicSlider.getValue());
                         SettingsKeeper.setSfxVolume(sfxSlider.getValue());
                         refreshAudioPools();
                         dynamicInput.setShown(false);
@@ -492,7 +566,8 @@ public class HomeView extends XMBView implements Refreshable {
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", (selfBtn) -> {
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getCancelInput());
-                    dynamicInput.setItems(new DynamicInputRow(musicLabel), new DynamicInputRow(musicSlider), new DynamicInputRow(sfxLabel), new DynamicInputRow(sfxSlider), new DynamicInputRow(applyBtn, cancelBtn));
+                    //dynamicInput.setItems(new DynamicInputRow(musicLabel), new DynamicInputRow(musicSlider), new DynamicInputRow(sfxLabel), new DynamicInputRow(sfxSlider), new DynamicInputRow(applyBtn, cancelBtn));
+                    dynamicInput.setItems(new DynamicInputRow(sfxLabel), new DynamicInputRow(sfxSlider), new DynamicInputRow(applyBtn, cancelBtn));
                     dynamicInput.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.setControls) {
                     //Log.d("HomeView", "Modifying " + selectedItem.obj);
@@ -736,6 +811,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
     @Override
     public boolean cancelAction() {
+        playMoveSfx();
         if (super.cancelAction())
             return true;
 
@@ -766,12 +842,16 @@ public class HomeView extends XMBView implements Refreshable {
     @Override
     protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
         super.onShiftHorizontally(fromColIndex, fromRowIndex, toColIndex);
-        movePool.play(false);
+        playMoveSfx();
     }
     @Override
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
         super.onShiftVertically(fromColIndex, fromLocalIndex, toLocalIndex);
-        movePool.play(false);
+        playMoveSfx();
+    }
+    private void playMoveSfx() {
+        if (musicPool.isAnyPlaying() || movePool.isAnyPlaying() || !OxShellApp.getAudioManager().isMusicActive())
+            movePool.play(false);
     }
 
     @Override
