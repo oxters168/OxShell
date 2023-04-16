@@ -850,8 +850,10 @@ public class HomeView extends XMBView implements Refreshable {
         playMoveSfx();
     }
     private void playMoveSfx() {
-        if (musicPool.isAnyPlaying() || movePool.isAnyPlaying() || !OxShellApp.getAudioManager().isMusicActive())
+        if (musicPool.isAnyPlaying() || movePool.isAnyPlaying() || !OxShellApp.getAudioManager().isMusicActive()) {
+            refreshAudioPools();
             movePool.play(false);
+        }
     }
 
     @Override
