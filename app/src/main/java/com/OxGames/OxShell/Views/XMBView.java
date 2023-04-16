@@ -1428,7 +1428,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
         //Log.d("XMBView", Arrays.toString(getPosition()));
-        if (moveMode) {
+        if (moveMode && (!columnMode || moveLocalIndex > 0)) {
             //getViewHolder(fromColIndex, fromLocalIndex).setDirty();
             //getViewHolder(fromColIndex, toLocalIndex).setDirty();
             adapter.shiftItemVertically(fromColIndex, fromLocalIndex, toLocalIndex);
