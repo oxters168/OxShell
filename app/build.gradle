@@ -52,23 +52,23 @@ android {
 
     buildTypes {
         gold {
-            minifyEnabled true
+            //minifyEnabled true
             buildConfigField "boolean", "GOLD", "true"
             def iconValue = "@drawable/icon_xhdpi"
             def bannerValue = "@drawable/banner_xhdpi"
             manifestPlaceholders = [icon: iconValue, banner: bannerValue]
         }
         release {
-            minifyEnabled true
+            //minifyEnabled true
         }
         release_free {
-            minifyEnabled true
+            //minifyEnabled true
             applicationIdSuffix ".free"
             //def appLabelValue = "Ox Shell Free"
             //manifestPlaceholders = [appLabel: appLabelValue]
         }
         debug {
-            minifyEnabled true
+            //minifyEnabled true
             debuggable true
         }
     }
@@ -89,7 +89,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'com.github.oxters168:ShaderView:0.8.12'
