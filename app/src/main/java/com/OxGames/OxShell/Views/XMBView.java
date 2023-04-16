@@ -21,9 +21,13 @@ import com.OxGames.OxShell.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
+import java.util.function.Consumer;
 
 public class XMBView extends ViewGroup {// implements InputReceiver {//, Refreshable {
     private static final float EPSILON = 0.0001f;
@@ -83,7 +87,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             }
             rowIndex = getCachedIndexOfCat(colIndex);
             shiftX = getShiftX(colIndex);
-            returnAllViews();
+            //returnAllViews();
             setViews(false, true);
         }
         @Override
@@ -95,7 +99,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             }
             rowIndex = getCachedIndexOfCat(colIndex);
             shiftX = getShiftX(colIndex);
-            returnAllViews();
+            //returnAllViews();
             setViews(false, true);
         }
 
@@ -112,7 +116,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             colIndex = toColIndex;
             rowIndex = getCachedIndexOfCat(colIndex);
             shiftX = getShiftX(colIndex);
-            returnAllViews();
+            //returnAllViews();
             setViews(false, true);
         }
 
@@ -282,6 +286,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         this.adapter.addListener(adapterListener);
         this.colIndex = 0;
         this.prevColIndex = 0;
+        this.moveMode = false;
+        this.columnMode = false;
         this.innerItemEntryPos.clear();
         this.innerItemVerPos.clear();
         this.rowIndex = (adapter != null && adapter.getColumnCount() > 0 && adapter.getColumnSize(this.colIndex) > 0) ? 1 : 0;
@@ -773,6 +779,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             view.layout(expX, expY, right, bottom);
         }
     }
+    private final List<Integer> hashTracker = new ArrayList<>();
     private void setViews(boolean indexChanged, boolean instant) {
         // indexChanged is true when currentIndex actually changes and false when otherwise
         // it is used to know when to apply fade transitions
@@ -784,18 +791,53 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             //if (moveMode && indexChanged)
             //    returnAllViews();
             long startTime = SystemClock.uptimeMillis();
-            drawCategories(indexChanged, startX, startY, horShiftOffset, instant || moveMode);
+            //returnUnusedViews();
+            hashTracker.clear();
+            drawCategories(hashTracker, indexChanged, startX, startY, horShiftOffset, instant || moveMode);
             long catTime = SystemClock.uptimeMillis() - startTime;
             startTime = SystemClock.uptimeMillis();
-            drawItems(indexChanged, instant || moveMode, startX, startY, horShiftOffset, verShiftOffset);
+            drawItems(hashTracker, indexChanged, instant || moveMode, startX, startY, horShiftOffset, verShiftOffset);
             long itemTime = SystemClock.uptimeMillis() - startTime;
             startTime = SystemClock.uptimeMillis();
-            drawInnerItems(instant || moveMode);
+            drawInnerItems(hashTracker, instant || moveMode);
+            Set<Integer> extraneous = new TreeSet<>(usedViews.keySet());
+            hashTracker.forEach(extraneous::remove);
+            extraneous.forEach(this::returnItemViewHash);
             long innerTime = SystemClock.uptimeMillis() - startTime;
             DebugView.print("SET_VIEWS", "xmb_time: cats(" + catTime + " ms) | items(" + itemTime + " ms) | inner(" + innerTime + " ms)", 2);
         }
     }
-    private void drawCategories(boolean indexChanged, int startXInt, int startYInt, int horShiftOffsetInt, boolean instant) {
+//    private void returnUnusedViews() {
+//        if (usedViews.isEmpty())
+//            return;
+//
+//        List<Integer> allHashes = new ArrayList<>();
+//        Consumer<Integer[]> enterItem = new Consumer<Integer[]>() {
+//            @Override
+//            public void accept(Integer[] pos) {
+//                allHashes.add(MathHelpers.hash(pos));
+//                int itemCount = adapter.getInnerItemCount(pos);
+//                List<Integer> innerPos = new ArrayList<>();
+//                Collections.addAll(innerPos, pos);
+//                for (int i = 0; i < itemCount; i++) {
+//                    if (i > 0)
+//                        innerPos.remove(innerPos.size() - 1);
+//                    innerPos.add(i);
+//                    accept(innerPos.toArray(new Integer[0]));
+//                }
+//            }
+//        };
+//        for (int i = 0; i < adapter.getColumnCount(); i++) {
+//            allHashes.add(MathHelpers.hash(i));
+//            enterItem.accept(new Integer[] { i });
+//        }
+//        //Set<Integer> activeViewHashes = new TreeSet<>(usedViews.keySet());
+//        //allHashes.forEach(activeViewHashes::remove);
+//        //activeViewHashes.forEach(this::returnItemViewHash);
+//        usedViews.keySet().forEach(allHashes::remove);
+//        allHashes.forEach(this::returnItemViewHash);
+//    }
+    private void drawCategories(List<Integer> usedHashes, boolean indexChanged, int startXInt, int startYInt, int horShiftOffsetInt, boolean instant) {
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         int origColIndex = this.colIndex;
@@ -804,9 +846,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         for (int colIndex = 0; colIndex < adapter.getColumnCount(); colIndex++) {
             calcCatRect(startXInt, startYInt, horShiftOffsetInt, colIndex, reusableRect);
             boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-            if (inBounds)
+            if (inBounds) {
                 drawItem(reusableRect, FADE_VISIBLE, instant, colIndex, 0);
-            else
+                usedHashes.add(MathHelpers.hash(colIndex, 0));
+            } else
                 returnItemView(colIndex, 0);
 
             if (adapter.getColumnSize(colIndex) <= 0 && adapter.isColumnHead(colIndex, 0)) {
@@ -821,14 +864,15 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     fadeTransition = FADE_OUT;
                 else if (((!indexChanged || instant) && colIndex != origColIndex) || ((indexChanged || instant) && colIndex != origColIndex && colIndex != prevColIndex))
                     fadeTransition = FADE_INVISIBLE;
-                if (colIndex >= origColIndex - 1 && colIndex <= origColIndex + 1 && inBounds)
+                if (colIndex >= origColIndex - 1 && colIndex <= origColIndex + 1 && inBounds) {
                     drawItem(reusableRect, fadeTransition, instant, colIndex, 1);
-                else
+                    usedHashes.add(MathHelpers.hash(colIndex, 1));
+                } else
                     returnItemView(colIndex, 1);
             }
         }
     }
-    private void drawItems(boolean indexChanged, boolean instant, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
+    private void drawItems(List<Integer> usedHashes, boolean indexChanged, boolean instant, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
         int origColIndex = this.colIndex;
         int prevColIndex = this.prevColIndex;
         int viewWidth = getWidth();
@@ -849,40 +893,56 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     fadeTransition = FADE_OUT;
                 else if (((!indexChanged || instant) && itemColIndex != origColIndex) || ((indexChanged || instant) && itemColIndex != origColIndex && itemColIndex != prevColIndex))
                     fadeTransition = FADE_INVISIBLE;
-                if (itemColIndex >= origColIndex - 1 && itemColIndex <= origColIndex + 1 && inBounds)
+                if (itemColIndex >= origColIndex - 1 && itemColIndex <= origColIndex + 1 && inBounds) {
                     drawItem(reusableRect, fadeTransition, instant, itemColIndex, itemRowIndex);
-                else
+                    usedHashes.add(MathHelpers.hash(itemColIndex, itemRowIndex));
+                } else
                     returnItemView(itemColIndex, itemRowIndex);
             }
         }
     }
-    private void drawInnerItems(boolean instant) {
+    private void drawInnerItems(List<Integer> usedHashes, boolean instant) {
+        Integer[] currentEntry = getEntryPosition();
         for (int itemColIndex = 0; itemColIndex < adapter.getColumnCount(); itemColIndex++)
             for (int itemRowIndex = 0; itemRowIndex < adapter.getColumnSize(itemColIndex) + 1; itemRowIndex++)
                 if (adapter.hasInnerItems(itemColIndex, itemRowIndex))
-                    drawInnerItems(instant, itemColIndex, itemRowIndex);
+                    drawInnerItems(usedHashes, instant, currentEntry, itemColIndex, itemRowIndex);
     }
-    private void drawInnerItems(boolean instant, Integer... position) {
+    private void drawInnerItems(List<Integer> usedHashes, boolean instant, Integer[] currentEntry, Integer... position) {
+        // the issue with the app list staying after leaving 'add app to home' item after adding item to home
+        // when an item is added to home, the items get saved, when they are saved, settings are cleared
+        // when the settings are cleared, 'add app to home' does not have inner items anymore
+        // so because 'add app to home' does not have inner items anymore, we cannot traverse them to return them
+        // I believe a good solution could be to go through all items get all their hashes, then get all used views hashes
+        // check which used view hashes do not exist anymore and remove them
         int viewWidth = getWidth();
         int viewHeight = getHeight();
-        Integer[] currentEntry = getEntryPosition();
         Integer[] innerPosition = Arrays.copyOf(position, position.length + 1);
         // draw list of inner items
         for (int innerItemIndex = 0; innerItemIndex < adapter.getInnerItemCount(position); innerItemIndex++) {
             innerPosition[innerPosition.length - 1] = innerItemIndex;
             // if the inner item has inner items of its own, then draw them
-            if (adapter.hasInnerItems(innerPosition))
-                drawInnerItems(instant, innerPosition);
+            if (adapter.hasInnerItems(innerPosition)) {
+                drawInnerItems(usedHashes, instant, currentEntry, innerPosition);
+                usedHashes.add(MathHelpers.hash(innerPosition));
+            }
             // if the current inner item is where the user is right now, then draw it
-            if (currentEntry != null && (currentEntry.length > 0 && (((innerPosition.length - 1) == currentEntry.length) && isPartOfPosition(innerPosition, currentEntry)) || isPartOfPosition(currentEntry, innerPosition))) {
+            if (currentEntry != null && (currentEntry.length > 0 && ((((innerPosition.length - 1) == currentEntry.length) && isPartOfPosition(innerPosition, currentEntry)) || isPartOfPosition(currentEntry, innerPosition)))) {
+                //Log.d("XMBView", Arrays.toString(innerPosition) + " entered first if");
                 calcInnerItemRect(reusableRect, getStartX(), getStartY(), Math.round(innerHorSpacing), Math.round(innerVerSpacing), innerPosition);
                 boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
-                if (inBounds)
+                if (inBounds) {
+                    //Log.d("XMBView", Arrays.toString(innerPosition) + " being drawn");
                     drawItem(reusableRect, FADE_VISIBLE, instant, innerPosition);
-                else
+                    usedHashes.add(MathHelpers.hash(innerPosition));
+                } else {
+                    //Log.d("XMBView", Arrays.toString(innerPosition) + " being returned");
                     returnItemView(innerPosition);
-            } else
+                }
+            } else {
+                //Log.d("XMBView", Arrays.toString(innerPosition) + " being returned");
                 returnItemView(innerPosition);
+            }
         }
     }
     private static final int FADE_VISIBLE = 0;
@@ -893,6 +953,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         ViewHolder viewHolder = getViewHolder(itemPosition);
         boolean isCat = itemPosition.length == 2 && itemPosition[1] == 0;
         boolean isInnerItem = itemPosition.length > 2;
+        //if (isInnerItem)
+        //    Log.d("XMBView", "Drawing " + Arrays.toString(itemPosition));
         viewHolder.setX(itemBounds.left);
         viewHolder.setY(itemBounds.top);
         Integer[] currentPosition = getPosition();
@@ -970,6 +1032,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             removeView(goneCatViews.pop().itemView);
         while (!goneItemViews.isEmpty())
             removeView(goneItemViews.pop().itemView);
+        while (!goneInnerItemViews.isEmpty())
+            removeView(goneInnerItemViews.pop().itemView);
     }
     private void createItemViews(int amount) {
         if (adapter == null)
@@ -1027,6 +1091,19 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             usedViews.remove(indexHash);
         }
     }
+    private void returnItemViewHash(int hash) {
+        if (usedViews.containsKey(hash)) {
+            ViewHolder viewHolder = usedViews.get(hash);
+            viewHolder.itemView.setVisibility(GONE);
+            if (viewHolder.getItemViewType() == CATEGORY_TYPE)
+                goneCatViews.push(viewHolder);
+            else if (viewHolder.getItemViewType() == ITEM_TYPE)
+                goneItemViews.push(viewHolder);
+            else if (viewHolder.getItemViewType() == INNER_TYPE)
+                goneInnerItemViews.push(viewHolder);
+            usedViews.remove(hash);
+        }
+    }
     private void returnAllViews() {
         for (ViewHolder viewHolder : usedViews.values()) {
             viewHolder.itemView.setVisibility(GONE);
@@ -1045,10 +1122,16 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         int viewType = isCat ? CATEGORY_TYPE : isInnerItem ? INNER_TYPE : ITEM_TYPE;
         ViewHolder viewHolder = null;
         int indexHash = MathHelpers.hash(position);
+        //if (isInnerItem)
+        //    Log.d("XMBView", Arrays.toString(position) + " => " + indexHash);
         if (usedViews.containsKey(indexHash)) {
+            //if (isInnerItem)
+            //    Log.d("XMBView", Arrays.toString(position) + " => " + indexHash + " exists");
             viewHolder = usedViews.get(indexHash);
             viewHolder.isNew = false;
         } else {
+            //if (isInnerItem)
+            //    Log.d("XMBView", Arrays.toString(position) + " => " + indexHash + " does not exist");
             if (viewType == CATEGORY_TYPE) {
                 if (goneCatViews.isEmpty())
                     createCatViews(1);

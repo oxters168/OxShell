@@ -66,36 +66,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
-//    public final static ResImage[] resourceImages = {
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_accessibility_24", "Accessibility"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_add_circle_outline_24", "Plus Circle"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_cancel_24", "Cross Circle"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_auto_awesome_24", "Stars"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_block_24", "Block"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_check_24", "Checkmark"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_construction_24", "Construction"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_folder_24", "Folder"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_forum_24", "Message Bubbles"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_games_24", "Directional Pad"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_headphones_24", "Headphones"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_hide_image_24", "Crossed Image"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_home_24", "Home"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_image_24", "Image"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_map_24", "Map"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_movie_24", "Film"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_newspaper_24", "Newspaper"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_photo_camera_24", "Camera"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_question_mark_24", "Question Mark"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_send_time_extension_24", "Send Puzzle Piece"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_settings_24", "Cog"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_source_24", "Source Folder"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_audio_file_24", "Audio File"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_video_file_24", "Video File"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_view_list_24", "List"),
-//        new ResImage("com.OxGames.OxShell:drawable/ic_baseline_work_24", "Suitcase"),
-//        new ResImage("com.OxGames.OxShell:drawable/baseline_info_24", "Info")
-//    };
-
     private AudioPool musicPool;
     private AudioPool movePool;
     private Consumer<String> pkgInstalledListener = pkgName -> {
