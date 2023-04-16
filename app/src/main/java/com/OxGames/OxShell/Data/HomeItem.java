@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -14,14 +15,17 @@ import com.OxGames.OxShell.R;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, }
+    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, addMusicFolder, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, }
     public Type type;
     public ArrayList<String> extraData;
     private boolean innerItemsLoaded;
@@ -100,6 +104,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 type == Type.saveLogs ||
                 type == Type.addExplorer ||
                 type == Type.addAppOuter ||
+                type == Type.addMusicFolder ||
                 type == Type.setImageBg ||
                 type == Type.setShaderBg ||
                 type == Type.setUiScale ||
@@ -134,11 +139,17 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         return super.getTitle();
     }
 
+    public boolean isColumnHead() {
+        return type == Type.musicTree || type == Type.musicFolder || type == Type.musicAlbum || type == Type.musicArtist || type == HomeItem.Type.assoc || type == HomeItem.Type.settings;
+    }
     public void reload() {
         if (type == Type.assoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID) obj);
             if (intent != null)
                 innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
+            innerItemsLoaded = true;
+        } else if (type == Type.musicTree) {
+            innerItems = generateMusicTree(getDirsList());
             innerItemsLoaded = true;
         } else if (type == Type.settings) {
             innerItems = generateSettings();
@@ -170,90 +181,123 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         }
         return null;
     }
+    private static List<XMBItem> generateMusicTree(String... dirs) {
+        // TODO: include sort type (by folder, by artist, by album, by artist and album)
+        HashMap<String, ArrayList<String>> allMusicPaths = new HashMap<>();
+        BiConsumer<String, String> addIfMusic = (parent, path) -> {
+            String pathCmp = path.toLowerCase();
+            if (pathCmp.endsWith(".mp3") || pathCmp.endsWith(".flac")) {
+                Log.d("HomeItem", path + " is music");
+                // add to music
+                String key = parent != null ? (new File(parent)).getName() : null;
+                if (!allMusicPaths.containsKey(key))
+                    allMusicPaths.put(key, new ArrayList<>());
+                allMusicPaths.get(key).add(path);
+            }
+        };
+        Consumer<String> lookInsideOf = new Consumer<String>() {
+            @Override
+            public void accept(String path) {
+                Log.d("HomeItem", "Entering " + path);
+                File f = new File(path);
+                if (f.isDirectory()) {
+                    String[] contents = f.list();
+                    if (contents != null) {
+                        Log.d("HomeItem", "Contains " + Arrays.toString(contents));
+                        for (String innerPath : contents) {
+                            String fullInnerPath = AndroidHelpers.combinePaths(path, innerPath);
+                            if (AndroidHelpers.isDirectory(fullInnerPath))
+                                accept(fullInnerPath);
+                            else
+                                addIfMusic.accept(path, fullInnerPath);
+                        }
+                    }
+                } else
+                    addIfMusic.accept(null, path);
+            }
+        };
+        for (String path : dirs)
+            lookInsideOf.accept(path);
+
+        // sorted by folder by default
+        List<XMBItem> innerMusic = new ArrayList<>();
+        for (String key : allMusicPaths.keySet()) {
+            ArrayList<HomeItem> innerInnerMusic = new ArrayList<>();
+            for (String trackPath : allMusicPaths.get(key))
+                innerInnerMusic.add(new HomeItem(trackPath, Type.musicTrack, (new File(trackPath)).getName(), DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource)));
+            if (key != null)
+                innerMusic.add(new HomeItem(Type.musicFolder, key, DataRef.from(ResImage.get(R.drawable.ic_baseline_folder_24).getId(), DataLocation.resource), innerInnerMusic.toArray(new XMBItem[0])));
+            else
+                innerMusic.addAll(innerInnerMusic);
+        }
+
+        return innerMusic;
+    }
     private static List<XMBItem> generateSettings() {
         ArrayList<XMBItem> settingsItems = new ArrayList<>();
         List<XMBItem> innerSettings = new ArrayList<>();
         List<XMBItem> innerInnerSettings = new ArrayList<>();
 
-        //XMBItem settingsItem = new XMBItem(null, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource));//, colIndex, localIndex++);
-        //settingsColumn.add(settingsItem);
-
         // TODO: add option to change icon alpha
         // TODO: add option to reset home items to default
         // TODO: move add association to home settings?
-//        innerSettings = new XMBItem[2];
-//        innerSettings[0] = new HomeItem(HomeItem.Type.settings, "Set font size");
-//        innerSettings[1] = new HomeItem(HomeItem.Type.settings, "Set typeface");
-//        settingsItem = new XMBItem(null, "General", R.drawable.ic_baseline_view_list_24, innerSettings);
-//        settingsColumn.add(settingsItem);
 
         XMBItem currentSettingsItem;
         innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.addExplorer, "Add explorer item to home"));
-//        List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
-//        List<XMBItem> sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList());
-//        sortedApps.sort(Comparator.comparing(o -> o.getTitle().toLowerCase()));
-        innerSettings.add(new HomeItem(HomeItem.Type.addAppOuter, "Add application to home"));
-        //innerSettings[2] = new HomeItem(HomeItem.Type.settings, "Add new column to home");
+        innerSettings.add(new HomeItem(Type.addExplorer, "Add explorer item to home"));
+        innerSettings.add(new HomeItem(Type.addAppOuter, "Add application to home"));
+        innerSettings.add(new HomeItem(Type.addMusicFolder, "Add music from directory to home"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Home", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.setImageBg, "Set picture as background"));
-        innerSettings.add(new HomeItem(HomeItem.Type.setShaderBg, "Set shader as background"));
-        innerSettings.add(new HomeItem(HomeItem.Type.setUiScale, "Change UI scale"));
+        innerSettings.add(new HomeItem(Type.setImageBg, "Set picture as background"));
+        innerSettings.add(new HomeItem(Type.setShaderBg, "Set shader as background"));
+        innerSettings.add(new HomeItem(Type.setUiScale, "Change UI scale"));
         if (!AndroidHelpers.isRunningOnTV())
-            innerSettings.add(new HomeItem(HomeItem.Type.setSystemUi, "Change system UI visibility"));
+            innerSettings.add(new HomeItem(Type.setSystemUi, "Change system UI visibility"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.setAudioVolume, "Set volume levels"));
+        innerSettings.add(new HomeItem(Type.setAudioVolume, "Set volume levels"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Audio", DataRef.from("ic_baseline_headphones_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerInnerSettings.clear();
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.PRIMARY_INPUT, HomeItem.Type.setControls, "Change primary input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, HomeItem.Type.setControls, "Change super primary input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.SECONDARY_INPUT, HomeItem.Type.setControls, "Change secondary input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.CANCEL_INPUT, HomeItem.Type.setControls, "Change cancel input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_UP, HomeItem.Type.setControls, "Change navigate up input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_DOWN, HomeItem.Type.setControls, "Change navigate down input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_LEFT, HomeItem.Type.setControls, "Change navigate left input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, HomeItem.Type.setControls, "Change navigate right input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, HomeItem.Type.setControls, "Change show debug view input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.PRIMARY_INPUT, Type.setControls, "Change primary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SUPER_PRIMARY_INPUT, Type.setControls, "Change super primary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SECONDARY_INPUT, Type.setControls, "Change secondary input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.CANCEL_INPUT, Type.setControls, "Change cancel input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_UP, Type.setControls, "Change navigate up input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_DOWN, Type.setControls, "Change navigate down input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_LEFT, Type.setControls, "Change navigate left input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, Type.setControls, "Change navigate right input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, Type.setControls, "Change show debug view input"));
         innerSettings.add(new HomeItem(Type.nonDescriptSetting, "General", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         innerInnerSettings.clear();
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, HomeItem.Type.setControls, "Change go up input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, HomeItem.Type.setControls, "Change go back input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, HomeItem.Type.setControls, "Change highlight input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, HomeItem.Type.setControls, "Change exit input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, Type.setControls, "Change go up input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, Type.setControls, "Change go back input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, Type.setControls, "Change highlight input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, Type.setControls, "Change exit input"));
         innerSettings.add(new HomeItem(Type.nonDescriptSetting, "File Explorer", DataRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         innerInnerSettings.clear();
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, HomeItem.Type.setControls, "Change go home input"));
-        innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, HomeItem.Type.setControls, "Change view recent apps input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, Type.setControls, "Change go home input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, Type.setControls, "Change view recent apps input"));
         innerSettings.add(new HomeItem(Type.nonDescriptSetting, "Android System", DataRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Controls", DataRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
-        //innerSettings = new XMBItem[0];
-        //settingsItem = new XMBItem(null, "Explorer", R.drawable.ic_baseline_source_24, colIndex, localIndex++, innerSettings);
-        //settingsColumn.add(settingsItem);
-
         innerSettings.clear();
-//        IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
-//        XMBItem[] intentItems = new XMBItem[intents.length];
-//        for (int i = 0; i < intents.length; i++)
-//            intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
-        innerSettings.add(new HomeItem(HomeItem.Type.addAssocOuter, "Add association to home"));
-        innerSettings.add(new HomeItem(HomeItem.Type.createAssoc, "Create new association"));
+        innerSettings.add(new HomeItem(Type.addAssocOuter, "Add association to home"));
+        innerSettings.add(new HomeItem(Type.createAssoc, "Create new association"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Associations", DataRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
-        innerSettings.add(new HomeItem(HomeItem.Type.appInfo, "App info"));
-        innerSettings.add(new HomeItem(HomeItem.Type.saveLogs, "Save logs to file"));
+        innerSettings.add(new HomeItem(Type.appInfo, "App info"));
+        innerSettings.add(new HomeItem(Type.saveLogs, "Save logs to file"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "About", DataRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
         return settingsItems;

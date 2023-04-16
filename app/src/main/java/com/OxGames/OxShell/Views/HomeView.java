@@ -243,6 +243,39 @@ public class HomeView extends XMBView implements Refreshable {
                     Toast.makeText(OxShellApp.getCurrentActivity(), "Explorer added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
+                } else if (selectedItem.type == HomeItem.Type.addMusicFolder) {
+                    PagedActivity currentActivity = OxShellApp.getCurrentActivity();
+                    DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+                    dynamicInput.setTitle("Add Music from Directory to Home");
+                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
+                    DynamicInputRow.ButtonInput selectDirBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
+                        Intent intent = new Intent();
+                        //intent.setPackage(context.getPackageName());
+                        intent.setClass(context, FileChooserActivity.class);
+                        intent.putExtra("AsAuthority", false);
+                        currentActivity.requestResult(intent, result -> {
+                            Log.d("HomeView", result.toString() + ", " + (result.getData() != null ? result.getData().toString() : null) + ", " + (result.getData() != null && result.getData().getExtras() != null ? result.getData().getExtras().toString() : null));
+                            if (result.getResultCode() == Activity.RESULT_OK) {
+                                titleInput.setText(Uri.decode(result.getData().getData().toString()));
+                            }
+                        });
+                    });
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
+                        // TODO: show some kind of error when input is invalid
+                        HomeItem musicHead = new HomeItem(HomeItem.Type.musicTree, "Music", DataRef.from(ResImage.get(R.drawable.ic_baseline_headphones_24).getId(), DataLocation.resource));
+                        musicHead.addToDirsList(titleInput.getText());
+                        getAdapter().createColumnAt(getAdapter().getColumnCount(), musicHead);
+                        musicHead.reload();
+                        save(getItems());
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getCancelInput());
+                    dynamicInput.setItems(new DynamicInputRow(titleInput, selectDirBtn), new DynamicInputRow(okBtn, cancelBtn));
+
+                    dynamicInput.setShown(true);
+                    return true;
                 } else if (selectedItem.type == HomeItem.Type.addAssocOuter) {
                     XMBItem[] intentItems;
                     IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
