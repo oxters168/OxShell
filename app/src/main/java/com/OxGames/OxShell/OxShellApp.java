@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.media.AudioManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -56,10 +57,16 @@ public class OxShellApp extends Application {
         return instance;
     }
     private static PagedActivity currentActivity;
+    private static AudioManager manager;
 
     public static Context getContext() {
         return instance;
         // or return instance.getApplicationContext();
+    }
+    public static AudioManager getAudioManager() {
+        if (manager == null)
+            manager = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
+        return manager;
     }
 
     @Override
@@ -98,6 +105,7 @@ public class OxShellApp extends Application {
     public void onTerminate() {
         Log.i("OxShellApp", "onTerminate");
         unregisterReceiver(pkgInstallationReceiver);
+        currentActivity = null;
         super.onTerminate();
     }
 

@@ -28,11 +28,22 @@ public class AudioPool {
     private DataRef dataRef;
     private final List<MediaPlayer> beingPrepped;
     private final Queue<MediaPlayer> unusedPlayers;
-    private final LinkedList<MediaPlayer> playingPlayers;
+    private final LinkedList<MPR> playingPlayers;
 
     private final List<Runnable> completedListeners;
 
+    private final Handler completionHandler;
+    //private Runnable currentRunnable;
+
     private float volume;
+
+    private class MPR {
+        MediaPlayer player;
+        Runnable runnable;
+        MPR(MediaPlayer player) {
+            this.player = player;
+        }
+    }
 
     private AudioPool() {
         beingPrepped = new ArrayList<>();
@@ -40,6 +51,8 @@ public class AudioPool {
         playingPlayers = new LinkedList<>();
 
         completedListeners = new ArrayList<>();
+
+        completionHandler = new Handler(Looper.getMainLooper());
 
         volume = 1;
     }
@@ -62,8 +75,8 @@ public class AudioPool {
         this.volume = volume;
         float log = linearToLogVolume(volume);
         //Log.d("AudioPool", volume + " -> " + log);
-        for (MediaPlayer player : playingPlayers)
-            player.setVolume(log, log);
+        for (MPR mpr : playingPlayers)
+            mpr.player.setVolume(log, log);
     }
     private static float linearToLogVolume(float linearValue) {
         //AudioManager audioManager = (AudioManager)OxShellApp.getContext().getSystemService(Context.AUDIO_SERVICE);
@@ -74,59 +87,64 @@ public class AudioPool {
 
     public void play(boolean loop) {
         Runnable play = () -> {
-            MediaPlayer player = unusedPlayers.poll();
-            playingPlayers.add(player);
+            //MediaPlayer player = unusedPlayers.poll();
+            MPR mpr = new MPR(unusedPlayers.poll());
+            playingPlayers.add(mpr);
 
-            final int duration = player.getDuration();
+            final int duration = mpr.player.getDuration();
             if (duration <= COMPLETE_MILLIS) {
                 // if duration of the audio is short, then use the ordinary method of checking completion
-                player.setOnCompletionListener(mp -> {
+                mpr.player.setOnCompletionListener(mp -> {
                     for (Runnable listener : completedListeners)
                         if (listener != null)
                             listener.run();
-                    if (playingPlayers.contains(mp)) {
-                        playingPlayers.remove(mp);
-                        unusedPlayers.add(mp);
+                    if (playingPlayers.contains(mpr)) {
+                        playingPlayers.remove(mpr);
+                        unusedPlayers.add(mpr.player);
                     }
                 });
-                player.setLooping(loop);
+                mpr.player.setLooping(loop);
             }
 
             float log = linearToLogVolume(volume);
             //Log.d("AudioPool", volume + " -> " + log);
-            player.setVolume(log, log);
-            player.start();
+            mpr.player.setVolume(log, log);
+            mpr.player.start();
 
             if (duration > COMPLETE_MILLIS) {
                 // if the duration of the audio is long enough, then use the better way of checking for completion
-                final Handler completionHandler = new Handler(Looper.getMainLooper());
-                completionHandler.post(new Runnable() {
+                //final Handler completionHandler = new Handler(Looper.getMainLooper());
+                mpr.runnable = new Runnable() {
                     @Override
                     public void run() {
-                        int position = player.getCurrentPosition();
-                        //Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
-                        if (position >= (duration - COMPLETE_MILLIS)) {
-                            if (playingPlayers.contains(player)) {
-                                // ready for loop
-                                if (!loop) {
-                                    for (Runnable listener : completedListeners)
-                                        if (listener != null)
-                                            listener.run();
+                        if (mpr.player.isPlaying()) {
+                            int position = mpr.player.getCurrentPosition();
+                            //Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
+                            //Log.d("AudioPool", "isMusicActive: " + OxShellApp.getAudioManager().isMusicActive());
+                            if (position >= (duration - COMPLETE_MILLIS)) {
+                                if (playingPlayers.contains(mpr)) {
+                                    // ready for loop
+                                    if (!loop) {
+                                        for (Runnable listener : completedListeners)
+                                            if (listener != null)
+                                                listener.run();
+                                    } else
+                                        play(true);
+                                    playingPlayers.remove(mpr);
+                                }
+                                if (position >= (duration - STOP_MILLIS)) {
+                                    //player.stop(); // can't play again after stop
+                                    mpr.player.pause();
+                                    mpr.player.seekTo(0);
+                                    unusedPlayers.add(mpr.player);
                                 } else
-                                    play(true);
-                                playingPlayers.remove(player);
-                            }
-                            if (position >= (duration - STOP_MILLIS)) {
-                                //player.stop(); // can't play again after stop
-                                player.pause();
-                                player.seekTo(0);
-                                unusedPlayers.add(player);
-                            } else
+                                    completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+                            } else if (playingPlayers.contains(mpr))
                                 completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
-                        } else if (playingPlayers.contains(player))
-                            completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+                        }
                     }
-                });
+                };
+                completionHandler.post(mpr.runnable);
             }
         };
 
@@ -151,8 +169,8 @@ public class AudioPool {
 
     public boolean isAnyPlaying() {
         boolean isPlaying = false;
-        for (MediaPlayer mp : playingPlayers) {
-            if (mp.isPlaying()) {
+        for (MPR mpr : playingPlayers) {
+            if (mpr.player.isPlaying()) {
                 isPlaying = true;
                 break;
             }
@@ -163,19 +181,21 @@ public class AudioPool {
         return playingPlayers.size();
     }
     public void pauseActive() {
-        for (MediaPlayer mp : playingPlayers)
-            mp.pause();
+        for (MPR mpr : playingPlayers)
+            mpr.player.pause();
     }
     public void resumeActive() {
-        for (MediaPlayer mp : playingPlayers)
-            mp.start();
+        for (MPR mpr : playingPlayers) {
+            mpr.player.start();
+            completionHandler.post(mpr.runnable);
+        }
     }
     public void stopActive() {
-        for (MediaPlayer mp : playingPlayers) {
-            mp.pause();
-            mp.seekTo(0);
-            playingPlayers.remove(mp);
-            unusedPlayers.add(mp);
+        for (MPR mpr : playingPlayers) {
+            mpr.player.pause();
+            mpr.player.seekTo(0);
+            playingPlayers.remove(mpr);
+            unusedPlayers.add(mpr.player);
         }
     }
 
@@ -250,9 +270,9 @@ public class AudioPool {
             }
             if (removed < removeCount && playingPlayers.size() > 0) {
                 for (int i = 0; i < Math.min(playingPlayers.size(), removeCount); i++) {
-                    MediaPlayer player = playingPlayers.poll();
-                    player.reset();
-                    player.release();
+                    MPR mpr = playingPlayers.poll();
+                    mpr.player.reset();
+                    mpr.player.release();
                     removed++;
                 }
             }
