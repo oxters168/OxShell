@@ -699,9 +699,10 @@ public class HomeView extends XMBView implements Refreshable {
                 if (parentItem instanceof HomeItem)
                     parentHomeItem = (HomeItem)parentItem;
                 boolean isNotSettings = homeItem == null || !HomeItem.isSetting(homeItem.type);
+                boolean isNotInnerSettings = homeItem == null || (homeItem.type != HomeItem.Type.nonDescriptSetting && !HomeItem.isInnerSettingType(homeItem.type));
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
-                if ((homeItem == null || (homeItem.type != HomeItem.Type.nonDescriptSetting && !HomeItem.isInnerSettingType(homeItem.type))) && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
+                if (isNotInnerSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(moveItemBtn);
                 if (hasColumnHead && !isInnerItem)
                     btns.add(moveColumnBtn);
@@ -709,11 +710,11 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(reloadBtn);
                 if (!isInnerItem)
                     btns.add(createColumnBtn);
-                if (isNotSettings)
+                if (isNotInnerSettings)
                     btns.add(editItemBtn);
                 if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc))
                     btns.add(editAssocBtn);
-                if (isNotSettings && hasColumnHead && !isInnerItem)// && parentHomeItem == null)
+                if (hasColumnHead && !isInnerItem)// && parentHomeItem == null)
                     btns.add(editColumnBtn);
                 if (isNotSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(deleteBtn);
@@ -937,6 +938,7 @@ public class HomeView extends XMBView implements Refreshable {
                 columnHead.setInnerItems(column.toArray(new XMBItem[0]));
                 reformed.add(columnHead);
             }
+            reformed.add(new HomeItem(HomeItem.Type.settings, "Settings", DataRef.from(ResImage.get(R.drawable.ic_baseline_settings_24).getId(), DataLocation.resource)));
             return reformed;
         } else
             return null;
@@ -988,7 +990,7 @@ public class HomeView extends XMBView implements Refreshable {
         //ArrayList<XMBItem> explorerColumn = new ArrayList<>();
         //explorerColumn.add(new HomeItem(HomeItem.Type.explorer, "Explorer"));
         defaultItems.add(0, new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
-        defaultItems.add(new HomeItem(HomeItem.Type.settings, "Settings", DataRef.from("ic_baseline_settings_24", DataLocation.resource)));
+        defaultItems.add(new HomeItem(HomeItem.Type.settings, "Settings", DataRef.from(ResImage.get(R.drawable.ic_baseline_settings_24).getId(), DataLocation.resource)));
         Log.d("HomeView", "Time to sort packages: " + ((SystemClock.uptimeMillis() - createDefaultStart) / 1000f) + "s");
         return defaultItems;
     }
