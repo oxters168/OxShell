@@ -394,7 +394,8 @@ public class PagedActivity extends AppCompatActivity {
                 key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN_RIGHT ||
                 key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP_LEFT ||
                 key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP_RIGHT ||
-                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER;
+                key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER ||
+                key_event.getKeyCode() == KeyEvent.KEYCODE_BACK;
     }
     private static void sendKeyEvent(View targetView, KeyEvent keyEvent) {
         //Reference: https://developer.android.com/reference/android/view/inputmethod/InputConnection#sendKeyEvent(android.view.KeyEvent)
