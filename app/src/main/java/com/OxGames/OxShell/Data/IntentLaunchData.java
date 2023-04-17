@@ -3,7 +3,10 @@ package com.OxGames.OxShell.Data;
 import static androidx.core.content.ContextCompat.startActivity;
 
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.util.Log;
 
@@ -152,9 +155,19 @@ public class IntentLaunchData implements Serializable {
                     extra.putExtraInto(intent);
             }
         }
-        if (dataType != DataType.None && path != null && !path.isEmpty())
+        if (dataType != DataType.None && path != null && !path.isEmpty()) {
+//            PackageManager packageManager = OxShellApp.getContext().getPackageManager();
+//            ProviderInfo providerInfo = packageManager.resolveContentProvider(packageName, PackageManager.GET_META_DATA);
+//            Uri fileUri = new Uri.Builder()
+//                    .scheme(ContentResolver.SCHEME_CONTENT)
+//                    .authority(providerInfo.authority)
+//                    .path(path)
+//                    .build();
+//            intent.setData(fileUri);
+            //intent.setDataAndType(formatData(path, dataType), "application/octet-stream");
             intent.setData(formatData(path, dataType));
             //intent.setData(Uri.parse(data));
+        }
         if (flags > 0)
             intent.setFlags(flags);
 

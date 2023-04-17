@@ -788,7 +788,7 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(createColumnBtn);
                 if (isNotInnerSettings)
                     btns.add(editItemBtn);
-                if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc))
+                if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc || homeItem.type == HomeItem.Type.assocExe))
                     btns.add(editAssocBtn);
                 if (hasColumnHead && !isInnerItem)// && parentHomeItem == null)
                     btns.add(editColumnBtn);
@@ -1464,7 +1464,7 @@ public class HomeView extends XMBView implements Refreshable {
     SettingsDrawer.ContextBtn editAssocBtn = new SettingsDrawer.ContextBtn("Edit Association", () ->
     {
         HomeItem assocItem = (HomeItem)getSelectedItem();
-        showAssocEditor("Edit Association", ShortcutsCache.getIntent((UUID)assocItem.obj));
+        showAssocEditor("Edit Association", ShortcutsCache.getIntent(assocItem.type == HomeItem.Type.assocExe ? ((Executable)assocItem.obj).getLaunchIntent().getId() : (UUID)assocItem.obj));
         //refresh();
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
