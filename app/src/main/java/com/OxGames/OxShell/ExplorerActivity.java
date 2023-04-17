@@ -28,13 +28,9 @@ public class ExplorerActivity extends PagedActivity {
         super.onPostCreate(savedInstanceState);
         int systemUi = SettingsKeeper.getSystemUiVisibility();
         setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), R.id.explorer_list);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
         getDynamicInput().addShownListener(onDynamicInputShown);
     }
+    
     @Override
     protected void onDestroy() {
         super.onDestroy();
