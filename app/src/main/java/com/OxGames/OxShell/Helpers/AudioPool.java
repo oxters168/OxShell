@@ -75,8 +75,8 @@ public class AudioPool {
         this.volume = volume;
         float log = linearToLogVolume(volume);
         //Log.d("AudioPool", volume + " -> " + log);
-        for (MPR mpr : playingPlayers)
-            mpr.player.setVolume(log, log);
+        for (int i = 0; i < playingPlayers.size(); i++)
+            playingPlayers.get(i).player.setVolume(log, log);
     }
     private static float linearToLogVolume(float linearValue) {
         //AudioManager audioManager = (AudioManager)OxShellApp.getContext().getSystemService(Context.AUDIO_SERVICE);
@@ -170,7 +170,7 @@ public class AudioPool {
     public boolean isAnyPlaying() {
         boolean isPlaying = false;
         for (MPR mpr : playingPlayers) {
-            if (mpr.player.isPlaying()) {
+            if (mpr != null && mpr.player.isPlaying()) {
                 isPlaying = true;
                 break;
             }

@@ -432,9 +432,13 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             float currentY = innerItemVerPos.peek();
             //Log.d("XMBView", "Attempting to move vertically when inside an item from " + currentY + " to " + yValue);
             if (Math.abs(currentY - yValue) > EPSILON) {
+                Integer[] prevPos = getPosition();
                 float adjustedY = Math.min(Math.max(yValue, 0), (adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerItemSize + innerVerSpacing));
                 innerItemVerPos.pop();
                 innerItemVerPos.push(adjustedY);
+                Integer[] nextPos = getPosition();
+                if (!prevPos[prevPos.length - 1].equals(nextPos[nextPos.length - 1]))
+                    onShiftVertically(this.colIndex, this.rowIndex, this.rowIndex);
                 setViews(false, false);
             }
         }
@@ -1428,7 +1432,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     }
     protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
         //Log.d("XMBView", Arrays.toString(getPosition()));
-        if (moveMode && (!columnMode || moveLocalIndex > 0)) {
+        if (!isInsideItem() && moveMode && (!columnMode || moveLocalIndex > 0)) {
             //getViewHolder(fromColIndex, fromLocalIndex).setDirty();
             //getViewHolder(fromColIndex, toLocalIndex).setDirty();
             adapter.shiftItemVertically(fromColIndex, fromLocalIndex, toLocalIndex);
