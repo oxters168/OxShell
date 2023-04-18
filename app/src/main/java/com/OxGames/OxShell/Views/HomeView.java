@@ -47,6 +47,7 @@ import com.OxGames.OxShell.Helpers.AudioPool;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
+import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Interfaces.Refreshable;
@@ -183,6 +184,7 @@ public class HomeView extends XMBView implements Refreshable {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
         musicPool.setPoolSize(0);
         movePool.setPoolSize(0);
+        MusicPlayer.clearPlaylist();
     }
     public void refreshAudioPools() {
         musicPool.setVolume(SettingsKeeper.getMusicVolume());
@@ -215,7 +217,7 @@ public class HomeView extends XMBView implements Refreshable {
 
         if (!isInMoveMode()) {
             if (getSelectedItem() instanceof HomeItem) {
-                HomeItem selectedItem = (HomeItem) getSelectedItem();
+                HomeItem selectedItem = (HomeItem)getSelectedItem();
                 //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
                 if (selectedItem.type == HomeItem.Type.explorer) {
                     // TODO: show pop up explaining permissions?
@@ -225,6 +227,27 @@ public class HomeView extends XMBView implements Refreshable {
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
                 } else if (selectedItem.type == HomeItem.Type.app) {
                     (IntentLaunchData.createFromPackage((String)selectedItem.obj, Intent.FLAG_ACTIVITY_NEW_TASK)).launch();
+                    return true;
+                } else if (selectedItem.type == HomeItem.Type.musicTrack) {
+                    Integer[] position = getPosition();
+                    int initialPos = position[position.length - 1];
+                    Integer[] parent = new Integer[position.length - 1];
+                    for (int i = 0; i < parent.length; i++)
+                        parent[i] = position[i];
+                    int count = getAdapter().getInnerItemCount(parent);
+                    List<DataRef> trackLocs = new ArrayList<>();
+                    for (int i = 0; i < count; i++) {
+                        position[position.length - 1] = i;
+                        Object item = getAdapter().getItem(position);
+                        if (item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.musicTrack) {
+                            if (i == initialPos) // this should be fine since we are ++ and we can only be losing items, not gaining
+                                initialPos = trackLocs.size(); // so it should only set once and it will either be the same or a lesser than value
+                            trackLocs.add(DataRef.from((String)((HomeItem)item).obj, DataLocation.file));
+                        }
+                    }
+                    //String trackPath = (String)selectedItem.obj;
+                    //AudioPool.fromFile(trackPath, 1).play(false);
+                    MusicPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addAppOuter) {
                     List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
@@ -265,8 +288,10 @@ public class HomeView extends XMBView implements Refreshable {
                         HomeItem musicHead = new HomeItem(HomeItem.Type.musicTree, "Music", DataRef.from(ResImage.get(R.drawable.ic_baseline_headphones_24).getId(), DataLocation.resource));
                         musicHead.addToDirsList(titleInput.getText());
                         getAdapter().createColumnAt(getAdapter().getColumnCount(), musicHead);
-                        musicHead.reload();
-                        save(getItems());
+                        musicHead.reload(() -> {
+                            save(getItems());
+                            refresh();
+                        });
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
@@ -1456,11 +1481,15 @@ public class HomeView extends XMBView implements Refreshable {
         Object currentItem = getAdapter().getItem(position);
         Object parentItem = getAdapter().getItem(parentPos);
         if (currentItem instanceof HomeItem)
-            ((HomeItem)currentItem).reload();
+            ((HomeItem)currentItem).reload(() -> {
+                save(getItems());
+                refresh();
+            });
         if (parentItem instanceof HomeItem)
-            ((HomeItem)parentItem).reload();
-        save(getItems());
-        refresh();
+            ((HomeItem)parentItem).reload(() -> {
+                save(getItems());
+                refresh();
+            });
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn moveColumnBtn = new SettingsDrawer.ContextBtn("Move Column", () ->

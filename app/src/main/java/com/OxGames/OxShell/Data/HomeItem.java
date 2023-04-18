@@ -9,7 +9,9 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.DirsCarrier;
+import com.OxGames.OxShell.Interfaces.TriConsumer;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
@@ -25,7 +27,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, addMusicFolder, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, }
+    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, addMusicFolder, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, placeholder, }
     public Type type;
     public ArrayList<String> extraData;
     private boolean innerItemsLoaded;
@@ -142,35 +144,45 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public boolean isColumnHead() {
         return type == Type.musicTree || type == Type.musicFolder || type == Type.musicAlbum || type == Type.musicArtist || type == HomeItem.Type.assoc || type == HomeItem.Type.settings;
     }
-    public void reload() {
+    public void reload(Runnable onReloaded) {
         if (type == Type.assoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID) obj);
             if (intent != null)
                 innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
             innerItemsLoaded = true;
+            if (onReloaded != null)
+                onReloaded.run();
         } else if (type == Type.musicTree) {
-            innerItems = generateMusicTree(getDirsList());
+            innerItems = new ArrayList<>();
+            innerItems.add(new HomeItem(Type.placeholder, "Loading...", DataRef.from(ResImage.get(R.drawable.ic_baseline_block_24).getId(), DataLocation.resource)));
+            generateMusicTree(musicItems -> {
+                innerItems = musicItems;
+                if (onReloaded != null)
+                    onReloaded.run();
+            }, getDirsList());
             innerItemsLoaded = true;
         } else if (type == Type.settings) {
             innerItems = generateSettings();
+            if (onReloaded != null)
+                onReloaded.run();
         }
     }
     @Override
     public XMBItem getInnerItem(int index) {
         if (!innerItemsLoaded && (innerItems == null || innerItems.size() <= 0))
-            reload();
+            reload(null);
         return super.getInnerItem(index);
     }
     @Override
     public boolean hasInnerItems() {
         if (!innerItemsLoaded && (innerItems == null || innerItems.size() <= 0))
-            reload();
+            reload(null);
         return super.hasInnerItems();
     }
     @Override
     public int getInnerItemCount() {
         if (!innerItemsLoaded && (innerItems == null || innerItems.size() <= 0))
-            reload();
+            reload(null);
         return super.getInnerItemCount();
     }
 
@@ -181,57 +193,96 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         }
         return null;
     }
-    private static List<XMBItem> generateMusicTree(String... dirs) {
-        // TODO: include sort type (by folder, by artist, by album, by artist and album)
-        HashMap<String, ArrayList<String>> allMusicPaths = new HashMap<>();
-        BiConsumer<String, String> addIfMusic = (parent, path) -> {
-            String pathCmp = path.toLowerCase();
-            if (pathCmp.endsWith(".mp3") || pathCmp.endsWith(".flac")) {
-                Log.d("HomeItem", path + " is music");
-                // add to music
-                String key = parent != null ? (new File(parent)).getName() : null;
-                if (!allMusicPaths.containsKey(key))
-                    allMusicPaths.put(key, new ArrayList<>());
-                allMusicPaths.get(key).add(path);
-            }
-        };
-        Consumer<String> lookInsideOf = new Consumer<String>() {
-            @Override
-            public void accept(String path) {
-                Log.d("HomeItem", "Entering " + path);
-                File f = new File(path);
-                if (f.isDirectory()) {
-                    String[] contents = f.list();
-                    if (contents != null) {
-                        Log.d("HomeItem", "Contains " + Arrays.toString(contents));
-                        for (String innerPath : contents) {
-                            String fullInnerPath = AndroidHelpers.combinePaths(path, innerPath);
-                            if (AndroidHelpers.isDirectory(fullInnerPath))
-                                accept(fullInnerPath);
-                            else
-                                addIfMusic.accept(path, fullInnerPath);
+    private static void generateMusicTree(Consumer<List<XMBItem>> onGenerated, String... dirs) {
+        new Thread(() -> {
+            // TODO: include sort type (by folder, by artist, by album, by artist and album)
+            //HashMap<String, ArrayList<String>> allMusicPaths = new HashMap<>();
+            List<String> allMusicPaths = new ArrayList<>();
+            Consumer<String> addIfMusic = (path) -> {
+                String pathCmp = path.toLowerCase();
+                if (pathCmp.endsWith(".mp3") || pathCmp.endsWith(".flac")) {
+                    Log.d("HomeItem", path + " is music");
+                    // add to music
+                    allMusicPaths.add(path);
+//                    String key = parent != null ? (new File(parent)).getName() : null;
+//                    if (!allMusicPaths.containsKey(key))
+//                        allMusicPaths.put(key, new ArrayList<>());
+//                    allMusicPaths.get(key).add(path);
+                }
+            };
+            Consumer<String> lookInsideOf = new Consumer<String>() {
+                @Override
+                public void accept(String path) {
+                    Log.d("HomeItem", "Entering " + path);
+                    File f = new File(path);
+                    if (f.isDirectory()) {
+                        String[] contents = f.list();
+                        if (contents != null) {
+                            Log.d("HomeItem", "Contains " + Arrays.toString(contents));
+                            for (String innerPath : contents) {
+                                String fullInnerPath = AndroidHelpers.combinePaths(path, innerPath);
+                                if (AndroidHelpers.isDirectory(fullInnerPath))
+                                    accept(fullInnerPath);
+                                else
+                                    addIfMusic.accept(fullInnerPath);
+                            }
                         }
+                    } else
+                        addIfMusic.accept(path);
+                }
+            };
+            for (String path : dirs)
+                lookInsideOf.accept(path);
+
+            // sorted by folder by default
+            List<XMBItem> innerMusic = new ArrayList<>();
+            try {
+                // TODO: sort artists by name, sort albums by year, sort tracks by number
+                HashMap<String, HomeItem> albums = new HashMap<>();
+                HashMap<String, HomeItem> artists = new HashMap<>();
+                BiConsumer<String, HomeItem> placeIntoArtist = (artist, item) -> {
+                    if (!artists.containsKey(artist)) {
+                        HomeItem artistItem = new HomeItem(Type.musicArtist, artist, DataRef.from(ResImage.get(R.drawable.ic_baseline_folder_24).getId(), DataLocation.resource));
+                        artists.put(artist, artistItem);
+                        innerMusic.add(artistItem);
                     }
-                } else
-                    addIfMusic.accept(null, path);
+                    artists.get(artist).add(item);
+                };
+                TriConsumer<String, String, HomeItem> placeIntoAlbum = (artist, album, track) -> {
+                    if (!albums.containsKey(album)) {
+                        HomeItem albumItem = new HomeItem(Type.musicAlbum, album, DataRef.from(ResImage.get(R.drawable.ic_baseline_folder_24).getId(), DataLocation.resource));
+                        albums.put(album, albumItem);
+                        placeIntoArtist.accept(artist, albumItem);
+                    }
+                    albums.get(album).add(track);
+                };
+                for (String trackPath : allMusicPaths) {
+                    //ArrayList<HomeItem> innerInnerMusic = new ArrayList<>();
+                    //for (String trackPath : allMusicPaths.get(key)) {
+                    Thread.sleep(MathHelpers.calculateMillisForFps(30));
+                    Metadata metadata = Metadata.getMediaMetadata(DataRef.from(trackPath, DataLocation.file));
+                    HomeItem track = new HomeItem(trackPath, Type.musicTrack, (metadata.getTitle() == null || metadata.getTitle().isEmpty()) ? AndroidHelpers.removeExtension((new File(trackPath)).getName()) : metadata.getTitle(), DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource));
+                    String artist = metadata.getArtist() == null || metadata.getArtist().isEmpty() ? "Various Artists" : metadata.getArtist();
+                    if (metadata.getAlbum() != null && !metadata.getAlbum().isEmpty())
+                        placeIntoAlbum.accept(artist, metadata.getAlbum(), track);
+                    else
+                        placeIntoArtist.accept(artist, track);
+                    //}
+//                    if (key != null)
+//                        innerMusic.add(new HomeItem(Type.musicFolder, key, DataRef.from(ResImage.get(R.drawable.ic_baseline_folder_24).getId(), DataLocation.resource), innerInnerMusic.toArray(new XMBItem[0])));
+//                    else
+//                        innerMusic.addAll(innerInnerMusic);
+                }
+            } catch (Exception e) {
+                Log.e("HomeItem", "Failed to read all music: " + e);
             }
-        };
-        for (String path : dirs)
-            lookInsideOf.accept(path);
 
-        // sorted by folder by default
-        List<XMBItem> innerMusic = new ArrayList<>();
-        for (String key : allMusicPaths.keySet()) {
-            ArrayList<HomeItem> innerInnerMusic = new ArrayList<>();
-            for (String trackPath : allMusicPaths.get(key))
-                innerInnerMusic.add(new HomeItem(trackPath, Type.musicTrack, (new File(trackPath)).getName(), DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource)));
-            if (key != null)
-                innerMusic.add(new HomeItem(Type.musicFolder, key, DataRef.from(ResImage.get(R.drawable.ic_baseline_folder_24).getId(), DataLocation.resource), innerInnerMusic.toArray(new XMBItem[0])));
-            else
-                innerMusic.addAll(innerInnerMusic);
-        }
-
-        return innerMusic;
+            //return innerMusic;
+            OxShellApp.getCurrentActivity().runOnUiThread(() -> {
+                if (onGenerated != null)
+                    onGenerated.accept(innerMusic);
+            });
+        }).start();
     }
     private static List<XMBItem> generateSettings() {
         ArrayList<XMBItem> settingsItems = new ArrayList<>();

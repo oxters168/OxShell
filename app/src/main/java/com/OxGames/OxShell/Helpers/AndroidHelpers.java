@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -18,6 +19,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -39,6 +41,8 @@ import androidx.core.widget.TextViewCompat;
 
 import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
+import com.OxGames.OxShell.Data.DataLocation;
+import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
@@ -348,6 +352,7 @@ public class AndroidHelpers {
 
         return bitmap;
     }
+
 
     public static int getRelativeLeft(View view) {
         if (view.getParent() == view.getRootView())

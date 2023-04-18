@@ -1,13 +1,19 @@
 package com.OxGames.OxShell.Helpers;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import com.OxGames.OxShell.Data.DataLocation;
@@ -15,6 +21,7 @@ import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.Views.DebugView;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -36,6 +43,7 @@ public class AudioPool {
     //private Runnable currentRunnable;
 
     private float volume;
+    private boolean looping;
 
     private class MPR {
         MediaPlayer player;
@@ -55,6 +63,10 @@ public class AudioPool {
         completionHandler = new Handler(Looper.getMainLooper());
 
         volume = 1;
+    }
+
+    private void setDataRef(DataRef dataRef) {
+        this.dataRef = dataRef;
     }
 
     public void addOnCompletedListener(Runnable listener) {
@@ -86,6 +98,7 @@ public class AudioPool {
     }
 
     public void play(boolean loop) {
+        this.looping = loop;
         Runnable play = () -> {
             //MediaPlayer player = unusedPlayers.poll();
             MPR mpr = new MPR(unusedPlayers.poll());
@@ -103,7 +116,7 @@ public class AudioPool {
                         unusedPlayers.add(mpr.player);
                     }
                 });
-                mpr.player.setLooping(loop);
+                mpr.player.setLooping(AudioPool.this.looping);
             }
 
             float log = linearToLogVolume(volume);
@@ -119,12 +132,12 @@ public class AudioPool {
                     public void run() {
                         if (mpr.player.isPlaying()) {
                             int position = mpr.player.getCurrentPosition();
-                            Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
+                            //Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
                             //Log.d("AudioPool", "isMusicActive: " + OxShellApp.getAudioManager().isMusicActive());
                             if (position >= (duration - COMPLETE_MILLIS)) {
                                 if (playingPlayers.contains(mpr)) {
                                     // ready for loop
-                                    if (!loop) {
+                                    if (!AudioPool.this.looping) {
                                         for (Runnable listener : completedListeners)
                                             if (listener != null)
                                                 listener.run();
@@ -165,6 +178,10 @@ public class AudioPool {
             }).start();
         } else
             play.run();
+    }
+
+    public void setLooping(boolean onOff) {
+        looping = onOff;
     }
 
     public boolean isAnyPlaying() {
@@ -279,20 +296,17 @@ public class AudioPool {
         }
     }
     public static AudioPool fromAsset(String assetLoc, int poolSize) {
-        AudioPool pool = new AudioPool();
-        pool.dataRef = DataRef.from(assetLoc, DataLocation.asset);
-        pool.setPoolSize(poolSize);
-        return pool;
+        return from(DataRef.from(assetLoc, DataLocation.asset), poolSize);
     }
     public static AudioPool fromFile(String filePath, int poolSize) {
-        AudioPool pool = new AudioPool();
-        pool.dataRef = DataRef.from(filePath, DataLocation.file);
-        pool.setPoolSize(poolSize);
-        return pool;
+        return from(DataRef.from(filePath, DataLocation.file), poolSize);
     }
     public static AudioPool fromUri(Uri uri, int poolSize) {
+        return from(DataRef.from(uri, DataLocation.resolverUri), poolSize);
+    }
+    public static AudioPool from(DataRef loc, int poolSize) {
         AudioPool pool = new AudioPool();
-        pool.dataRef = DataRef.from(uri, DataLocation.resolverUri);
+        pool.setDataRef(loc);
         pool.setPoolSize(poolSize);
         return pool;
     }
