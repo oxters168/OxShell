@@ -19,6 +19,7 @@ import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
 import com.OxGames.OxShell.Helpers.InputHandler;
+import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.appspell.shaderview.log.LibLog;
 
 import java.util.ArrayList;
@@ -30,22 +31,28 @@ public class OxShellApp extends Application {
     private BroadcastReceiver pkgInstallationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context ctxt, Intent intent) {
-            String pkgName = null;
-            if (intent != null && intent.getData() != null)
-                pkgName = intent.getData().getEncodedSchemeSpecificPart();
-            try {
-                PackageInfo packageInfo = getPackageManager().getPackageInfo(pkgName, 0);
-                if (packageInfo.firstInstallTime == packageInfo.lastUpdateTime) {
-                    // This is the first installation of the package
-                    for (Consumer<String> listener : pkgInstalledListeners)
-                        if (listener != null)
-                            listener.accept(pkgName);
-                }
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.e("OxShellApp", "Could not find package: " + e);
+        String pkgName = null;
+        if (intent != null && intent.getData() != null)
+            pkgName = intent.getData().getEncodedSchemeSpecificPart();
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(pkgName, 0);
+            if (packageInfo.firstInstallTime == packageInfo.lastUpdateTime) {
+                // This is the first installation of the package
+                for (Consumer<String> listener : pkgInstalledListeners)
+                    if (listener != null)
+                        listener.accept(pkgName);
             }
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e("OxShellApp", "Could not find package: " + e);
+        }
 
-            //Log.d("OxShellApp", "Broadcast receiver: " + intent + ", " + (intent != null ? (intent.getExtras() + ", " + pkgName) : "no extras"));
+        //Log.d("OxShellApp", "Broadcast receiver: " + intent + ", " + (intent != null ? (intent.getExtras() + ", " + pkgName) : "no extras"));
+        }
+    };
+    private BroadcastReceiver musicActionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context ctxt, Intent intent) {
+            Log.d("OxShellApp", "Music action receiver: " + intent + ", " + (intent != null ? intent.getExtras() : "no extras"));
         }
     };
 
@@ -83,6 +90,11 @@ public class OxShellApp extends Application {
         intentFilter.addDataScheme("package");
         registerReceiver(pkgInstallationReceiver, intentFilter);
 
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(MusicPlayer.PLAY_INTENT);
+        intentFilter.addAction(MusicPlayer.STOP_INTENT);
+        registerReceiver(musicActionReceiver, intentFilter);
+
         super.onCreate();
 
         SettingsKeeper.loadOrCreateSettings();
@@ -105,6 +117,7 @@ public class OxShellApp extends Application {
     public void onTerminate() {
         Log.i("OxShellApp", "onTerminate");
         unregisterReceiver(pkgInstallationReceiver);
+        unregisterReceiver(musicActionReceiver);
         currentActivity = null;
         super.onTerminate();
     }
