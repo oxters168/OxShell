@@ -1388,7 +1388,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 //if (nextColIndex != fromColIndex)
             //        adapter.shiftColumnTo(fromColIndex, nextColIndex);
             //} else {
-                Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
+                //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
                 //boolean isInColumn = (!columnMode || moveLocalIndex > 0) && catHasSubItems(fromColIndex);
                 boolean isInColumn = moveLocalIndex > 0 && catHasSubItems(fromColIndex);
                 // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
@@ -1417,7 +1417,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
                     //getViewHolder(fromColIndex, fromRowIndex).setDirty();
                     //getViewHolder(nextColIndex, nextLocalIndex).setDirty();
-                    Log.d("XMBView", "[" + fromColIndex + ", " + moveLocalIndex + "] => [" + nextColIndex + ", " + nextLocalIndex + "]");
+                    //Log.d("XMBView", "[" + fromColIndex + ", " + moveLocalIndex + "] => [" + nextColIndex + ", " + nextLocalIndex + "]");
                     adapter.shiftItemHorizontally(fromColIndex, moveLocalIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
                     moveLocalIndex = !isInColumn ? nextLocalIndex : 0;
 

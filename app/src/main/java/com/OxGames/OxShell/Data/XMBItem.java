@@ -53,10 +53,24 @@ public class XMBItem<T> implements Serializable {
         onIconLoaded.accept(icon);
         //return icon;
     }
+    public void applyToInnerItems(Consumer<XMBItem> action, boolean recursive) {
+        if (innerItems != null) {
+            for (int i = 0; i < innerItems.size(); i++) {
+                XMBItem innerItem = innerItems.get(i);
+                if (action != null)
+                    action.accept(innerItem);
+                if (recursive && innerItem != null)
+                    innerItem.applyToInnerItems(action, true);
+            }
+        }
+    }
     public void clearImgCache() {
+        //Log.d("XMBItem", "Attempting to clear image of " + title);
         DataRef colImgRef = getImgRef();
-        if (colImgRef != null && colImgRef.getLocType() == DataLocation.file)
+        if (colImgRef != null && colImgRef.getLocType() == DataLocation.file) {
+            //Log.d("XMBItem", title + " has file icon (@" + colImgRef.getLoc() + "), deleting");
             ExplorerBehaviour.delete((String)colImgRef.getLoc());
+        }
     }
     public void clearInnerItemImgCache(boolean recursive) {
         if (innerItems != null)

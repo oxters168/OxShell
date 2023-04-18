@@ -59,6 +59,9 @@ public class ResImage {
             resources.put(R.drawable.ic_baseline_view_list_24, new ResImage("com.OxGames.OxShell:drawable/ic_baseline_view_list_24", "List"));
             resources.put(R.drawable.ic_baseline_work_24, new ResImage("com.OxGames.OxShell:drawable/ic_baseline_work_24", "Suitcase"));
             resources.put(R.drawable.baseline_info_24, new ResImage("com.OxGames.OxShell:drawable/baseline_info_24", "Info"));
+            resources.put(R.drawable.baseline_adb_24, new ResImage("com.OxGames.OxShell:drawable/baseline_adb_24", "Android"));
+            resources.put(R.drawable.baseline_person_24, new ResImage("com.OxGames.OxShell:drawable/baseline_person_24", "Person"));
+            resources.put(R.drawable.baseline_library_music_24, new ResImage("com.OxGames.OxShell:drawable/baseline_library_music_24", "Music Library"));
         }
     }
 }

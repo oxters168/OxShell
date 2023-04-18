@@ -256,9 +256,15 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public void removeSubItem(int columnIndex, int localIndex) {
         //Log.d("XMBAdapter", "Attempting to remove sub item from [" + columnIndex + ", " + localIndex + "]");
         // the local index is expected to be 0 for the column head then anything greater is an inner item, and since they are in a list of their own, we need to subtract by 1 to account for that
-        if (localIndex > 0)
+        if (localIndex > 0) {
+            XMBItem toBeRemoved = items.get(columnIndex).getInnerItem(localIndex - 1);
+            if (toBeRemoved != null) {
+                toBeRemoved.clearImgCache();
+                toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
+            }
             items.get(columnIndex).remove(localIndex - 1);
-        fireSubItemRemovedEvent(columnIndex, localIndex);
+            fireSubItemRemovedEvent(columnIndex, localIndex);
+        }
         if (localIndex == 0)
             removeColumnAt(columnIndex);
             //removeColIfEmpty(columnIndex);
@@ -273,6 +279,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public void removeColumnAt(int columnIndex) {
+        XMBItem toBeRemoved = items.get(columnIndex);
+        if (toBeRemoved != null) {
+            toBeRemoved.clearImgCache();
+            toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
+        }
         items.remove(columnIndex);
         fireColumnRemovedEvent(columnIndex);
     }

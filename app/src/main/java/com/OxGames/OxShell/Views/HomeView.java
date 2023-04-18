@@ -885,7 +885,7 @@ public class HomeView extends XMBView implements Refreshable {
 
     public void deleteSelection() {
         Integer[] position = getPosition();
-        ((XMBItem)getAdapter().getItem(position)).clearImgCache();
+        //((XMBItem)getAdapter().getItem(position)).clearImgCache();
         getAdapter().removeSubItem(position[0], position[1]);
         save(getItems());
         refresh();
