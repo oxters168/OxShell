@@ -9,6 +9,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -54,13 +56,15 @@ public class OxShellApp extends Application {
         public void onReceive(Context ctxt, Intent intent) {
             Log.d("OxShellApp", "Music action receiver: " + intent + ", " + (intent != null ? intent.getExtras() : "no extras"));
             if (intent.getAction().equals(MusicPlayer.PREV_INTENT)) {
-
+                MusicPlayer.playPrev();
             } else if (intent.getAction().equals(MusicPlayer.NEXT_INTENT)) {
-
+                MusicPlayer.playNext();
             } else if (intent.getAction().equals(MusicPlayer.PLAY_INTENT)) {
-
+                MusicPlayer.play();
+            } else if (intent.getAction().equals(MusicPlayer.PAUSE_INTENT)) {
+                MusicPlayer.pause();
             } else if (intent.getAction().equals(MusicPlayer.STOP_INTENT)) {
-
+                MusicPlayer.stop();
             }
         }
     };
@@ -69,9 +73,9 @@ public class OxShellApp extends Application {
     private static InputHandler inputHandler;
     private static List<Consumer<String>> pkgInstalledListeners;
 
-    public static OxShellApp getInstance() {
-        return instance;
-    }
+//    public static OxShellApp getInstance() {
+//        return instance;
+//    }
     private static PagedActivity currentActivity;
     private static AudioManager manager;
 
@@ -103,8 +107,11 @@ public class OxShellApp extends Application {
         intentFilter.addAction(MusicPlayer.PREV_INTENT);
         intentFilter.addAction(MusicPlayer.NEXT_INTENT);
         intentFilter.addAction(MusicPlayer.PLAY_INTENT);
+        intentFilter.addAction(MusicPlayer.PAUSE_INTENT);
         intentFilter.addAction(MusicPlayer.STOP_INTENT);
         registerReceiver(musicActionReceiver, intentFilter);
+
+        //prepareSession();
 
         super.onCreate();
 
@@ -130,6 +137,7 @@ public class OxShellApp extends Application {
         unregisterReceiver(pkgInstallationReceiver);
         unregisterReceiver(musicActionReceiver);
         currentActivity = null;
+        //releaseSession();
         super.onTerminate();
     }
 
@@ -212,4 +220,88 @@ public class OxShellApp extends Application {
         Configuration cfg = instance.getResources().getConfiguration();
         return cfg.densityDpi;
     }
+
+//    private MediaSessionCompat session;
+//    public static void setSessionActive(boolean onOff) {
+//        instance.session.setActive(onOff);
+//    }
+//    public static MediaSessionCompat.Token getSessionToken() {
+//        return instance.session.getSessionToken();
+//    }
+//    private void releaseSession() {
+//        if (session != null) {
+//            session.release();
+//            session = null;
+//        }
+//    }
+//    public static void setSessionState(boolean isPlaying) {
+//        PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
+//        playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
+//        playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+//        instance.session.setPlaybackState(playbackState.build());
+//    }
+//    private void prepareSession() {
+//        session = new MediaSessionCompat(OxShellApp.getContext(), BuildConfig.APP_LABEL);
+//        session.setCallback(new MediaSessionCompat.Callback() {
+//            @Override
+//            public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
+//                Log.d("MusicPlayer", mediaButtonIntent + ", " + (mediaButtonIntent.getExtras() != null ? mediaButtonIntent.getExtras().toString() : "null"));
+//                return super.onMediaButtonEvent(mediaButtonIntent);
+//            }
+//
+//            @Override
+//            public void onPlay() {
+//                super.onPlay();
+//                Log.d("MusicPlayer", "onPlay");
+//            }
+//
+//            @Override
+//            public void onSkipToQueueItem(long id) {
+//                super.onSkipToQueueItem(id);
+//                Log.d("MusicPlayer", "onSkipToQueueItem " + id);
+//            }
+//
+//            @Override
+//            public void onPause() {
+//                super.onPause();
+//                Log.d("MusicPlayer", "onPause");
+//            }
+//
+//            @Override
+//            public void onSkipToNext() {
+//                super.onSkipToNext();
+//                Log.d("MusicPlayer", "onSkipToNext");
+//            }
+//
+//            @Override
+//            public void onSkipToPrevious() {
+//                super.onSkipToPrevious();
+//                Log.d("MusicPlayer", "onSkipToPrevious");
+//            }
+//
+//            @Override
+//            public void onFastForward() {
+//                super.onFastForward();
+//                Log.d("MusicPlayer", "onFastForward");
+//            }
+//
+//            @Override
+//            public void onRewind() {
+//                super.onRewind();
+//                Log.d("MusicPlayer", "onRewind");
+//            }
+//
+//            @Override
+//            public void onStop() {
+//                super.onStop();
+//                Log.d("MusicPlayer", "onStop");
+//            }
+//
+//            @Override
+//            public void onSeekTo(long pos) {
+//                super.onSeekTo(pos);
+//                Log.d("MusicPlayer", "onSeekTo " + pos);
+//            }
+//        });
+//    }
 }

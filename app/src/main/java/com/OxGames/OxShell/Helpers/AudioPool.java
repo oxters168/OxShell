@@ -1,19 +1,11 @@
 package com.OxGames.OxShell.Helpers;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.res.AssetFileDescriptor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import com.OxGames.OxShell.Data.DataLocation;
@@ -21,13 +13,13 @@ import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.Views.DebugView;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 public class AudioPool {
     private static final int COMPLETE_MILLIS = 500; // Through multiple tests, these values seemed to work well to remove the weird clicks/gaps between audio playback
@@ -84,6 +76,22 @@ public class AudioPool {
 
     public boolean isPlayerAvailable() {
         return !unusedPlayers.isEmpty();
+    }
+    public void getDuration(Consumer<Integer> onValueReceived) {
+        actionOnAnyPlayer(player -> onValueReceived.accept(player.getDuration()));
+    }
+    private void actionOnAnyPlayer(Consumer<MediaPlayer> action) {
+        Runnable returnDuration = () -> {
+            if (isPlayerAvailable())
+                action.accept(unusedPlayers.peek());
+            else if (playingPlayers.size() > 0)
+                action.accept(playingPlayers.peek().player);
+        };
+        if (!isPlayerAvailable() && playingPlayers.size() <= 0) {
+            setPoolSize(getPoolSize() + 5);
+            onUnusedPopulated(returnDuration);
+        } else
+            returnDuration.run();
     }
 
     public void setVolume(float volume) {
@@ -166,21 +174,24 @@ public class AudioPool {
 
         if (!isPlayerAvailable()) {
             setPoolSize(getPoolSize() + 5);
-            new Thread(() -> {
-                try {
-                    long startTime = SystemClock.uptimeMillis();
-                    while (!isPlayerAvailable()) {
-                        if ((SystemClock.uptimeMillis() - startTime) / 1000f > 10)
-                            throw new TimeoutException("Failed to play, no audio prepared within 10s");
-                        Thread.sleep(10);
-                    }
-                    play.run();
-                } catch (Exception e) {
-                    Log.e("AudioPool", "Failed to play audio " + dataRef.getLoc() + ": " + e);
-                }
-            }).start();
+            onUnusedPopulated(play);
         } else
             play.run();
+    }
+    private void onUnusedPopulated(Runnable onPrepared) {
+        new Thread(() -> {
+            try {
+                long startTime = SystemClock.uptimeMillis();
+                while (!isPlayerAvailable()) {
+                    if ((SystemClock.uptimeMillis() - startTime) / 1000f > 10)
+                        throw new TimeoutException("Failed to play, no audio prepared within 10s");
+                    Thread.sleep(10);
+                }
+                onPrepared.run();
+            } catch (Exception e) {
+                Log.e("AudioPool", "Failed to play audio " + dataRef.getLoc() + ": " + e);
+            }
+        }).start();
     }
 
     public void setLooping(boolean onOff) {
@@ -223,7 +234,7 @@ public class AudioPool {
         return beingPrepped.size() + unusedPlayers.size() + playingPlayers.size();
     }
     public void setPoolSize(int size) {
-        DebugView.print(dataRef.getLoc().toString(), dataRef.getLoc() + ": " + size);
+        DebugView.print(dataRef.getLoc().toString(), dataRef.getLoc() + ": " + size, size <= 0 ? 3 : DebugView.TTL_INDEFINITE);
         int diff = size - getPoolSize();
         if (diff > 0) {
             // add media players

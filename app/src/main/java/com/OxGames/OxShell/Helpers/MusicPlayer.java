@@ -8,17 +8,12 @@ import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
-import android.os.Bundle;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.media.MediaBrowserServiceCompat;
 import androidx.media.session.MediaButtonReceiver;
 //import androidx.media.app.NotificationCompat;
 
@@ -26,22 +21,20 @@ import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.Metadata;
-import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
-public class MusicPlayer extends MediaBrowserServiceCompat {
-    public static final String PREV_INTENT = "com.OxGames.OxShell.PREV";
-    public static final String NEXT_INTENT = "com.OxGames.OxShell.NEXT";
-    public static final String PLAY_INTENT = "com.OxGames.OxShell.PLAY";
-    public static final String STOP_INTENT = "com.OxGames.OxShell.STOP";
+public class MusicPlayer {// extends MediaBrowserServiceCompat {
+    public static final String PREV_INTENT = "ACTION_SKIP_TO_PREVIOUS";
+    public static final String NEXT_INTENT = "ACTION_SKIP_TO_NEXT";
+    public static final String PLAY_INTENT = "ACTION_PLAY";
+    public static final String PAUSE_INTENT = "ACTION_PAUSE";
+    public static final String STOP_INTENT = "ACTION_STOP";
 
-    private static LinkedList<AudioPool> playlist = new LinkedList<>();
+    private static final LinkedList<AudioPool> playlist = new LinkedList<>();
     private static Metadata currentTrackData;
     private static int currentPos = 0;
     private static MediaSessionCompat session = null;
@@ -52,28 +45,28 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
     private static final int NOTIFICATION_ID = 12345;
     private static final String CHANNEL_ID = "54321";
 
-    private static MusicPlayer instance = null;
+    //private static MusicPlayer instance = null;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d("MusicPlayer", "onCreate");
-        instance = this;
-        prepareSession();
-        showNotification();
-    }
+//    @Override
+//    public void onCreate() {
+//        super.onCreate();
+//        Log.d("MusicPlayer", "onCreate");
+//        instance = this;
+//        prepareSession();
+//        showNotification();
+//    }
 
-    public static boolean isServiceRunning() {
-        return instance != null;
-    }
-    private static void startService() {
-        Intent intent = new Intent(OxShellApp.getContext(), MusicPlayer.class);
-        OxShellApp.getContext().startService(intent);
-    }
-    private static void stopService() {
-        Intent intent = new Intent(OxShellApp.getContext(), MusicPlayer.class);
-        OxShellApp.getContext().stopService(intent);
-    }
+//    public static boolean isServiceRunning() {
+//        return instance != null;
+//    }
+//    private static void startService() {
+//        Intent intent = new Intent(OxShellApp.getContext(), MusicPlayer.class);
+//        OxShellApp.getContext().startService(intent);
+//    }
+//    private static void stopService() {
+//        Intent intent = new Intent(OxShellApp.getContext(), MusicPlayer.class);
+//        OxShellApp.getContext().stopService(intent);
+//    }
 
     public static void setPlaylist(DataRef... trackLocs) {
         setPlaylist(0, trackLocs);
@@ -82,22 +75,19 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
         clearPlaylist();
         boolean hasTracks = trackLocs != null && trackLocs.length > 0;
         if (hasTracks) {
-            if (!isServiceRunning())
-                startService();
 
             for (DataRef trackLoc : trackLocs)
                 playlist.add(AudioPool.from(trackLoc, 2));
-            //currentPos = Math.min(Math.max(0, startPos), trackLocs.length - 1);
             setCurrentPos(startPos);
             Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + currentPos);
             refreshMetadata();
-            //prepareSession();
-            //if (session != null)
-            //    session.setActive(true);
-            //showNotification();
+            prepareSession();
+            showNotification(false);
         }
     }
     public static void clearPlaylist() {
+        if (playlist.size() > 0 && getCurrentTrack().isAnyPlaying())
+            getCurrentTrack().stopActive();
         for (AudioPool track : playlist)
             track.setPoolSize(0);
         playlist.clear();
@@ -106,35 +96,36 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
         abandonAudioFocus();
         hideNotification();
         releaseSession();
-        stopService();
     }
 
     public static void play() {
         play(currentPos);
     }
-    public static void togglePlayback() {
-        if (playlist.size() > 0) {
-            if (getCurrentTrack().isAnyPlaying())
-                pause();
-            else
-                play();
-        }
-    }
+//    public static void togglePlayback() {
+//        if (playlist.size() > 0) {
+//            if (getCurrentTrack().isAnyPlaying())
+//                pause();
+//            else
+//                play();
+//        }
+//    }
     public static void play(int index) {
         if (playlist.size() > 0) {
             if (currentCompletedListener != null)
                 getCurrentTrack().removeOnCompletedListener(currentCompletedListener);
+            if (getCurrentTrack().isAnyPlaying())
+                getCurrentTrack().stopActive();
 
             requestAudioFocus();
 
             setCurrentPos(index);
             refreshMetadata();
-            //showNotification();
+            showNotification(true);
             AudioPool currentTrack = getCurrentTrack();
             currentCompletedListener = MusicPlayer::playNext;
             currentTrack.addOnCompletedListener(currentCompletedListener);
             currentTrack.play(false);
-            //setSessionState();
+            setSessionState(true);
         }
     }
     public static void playNext() {
@@ -145,9 +136,9 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
     }
     public static void pause() {
         getCurrentTrack().pauseActive();
-        setSessionState();
+        setSessionState(false);
         abandonAudioFocus();
-        showNotification();
+        showNotification(false);
     }
     public static void stop() {
         clearPlaylist();
@@ -207,7 +198,7 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
         // Cancel the notification with the specified ID.
         notificationManager.cancel(NOTIFICATION_ID);
     }
-    private static void showNotification() {
+    private static void showNotification(boolean isPlaying) {
 //        MediaMetadataCompat mediaMetadata = new MediaMetadataCompat.Builder()
 //                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, getCurrentTitle())
 //                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, currentTrackData.getAlbumArt())
@@ -252,36 +243,44 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
                 .setCancelButtonIntent(stopPendingIntent);
         builder.setStyle(mediaStyle);
 
-        NotificationCompat.Action prevAction = new NotificationCompat.Action(R.drawable.baseline_skip_previous_24, "Previous", MediaButtonReceiver.buildMediaButtonPendingIntent(instance, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
-        NotificationCompat.Action playAction = new NotificationCompat.Action(R.drawable.baseline_play_arrow_24, "Play", MediaButtonReceiver.buildMediaButtonPendingIntent(instance, PlaybackStateCompat.ACTION_PLAY));
-        //NotificationCompat.Action pauseAction = new NotificationCompat.Action(R.drawable.baseline_pause_24, "Pause", MediaButtonReceiver.buildMediaButtonPendingIntent(instance, PlaybackStateCompat.ACTION_PAUSE));
-        NotificationCompat.Action nextAction = new NotificationCompat.Action(R.drawable.baseline_skip_next_24, "Next", MediaButtonReceiver.buildMediaButtonPendingIntent(instance, PlaybackStateCompat.ACTION_SKIP_TO_NEXT));
-        NotificationCompat.Action stopAction = new NotificationCompat.Action(R.drawable.baseline_close_24, "Stop", MediaButtonReceiver.buildMediaButtonPendingIntent(instance, PlaybackStateCompat.ACTION_STOP));
-        builder.addAction(prevAction);
-        builder.addAction(playAction);
-        builder.addAction(nextAction);
-        builder.addAction(stopAction);
+//        NotificationCompat.Action prevAction = new NotificationCompat.Action(R.drawable.baseline_skip_previous_24, "Previous", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
+//        NotificationCompat.Action playAction = new NotificationCompat.Action(R.drawable.baseline_play_arrow_24, "Play", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_PLAY));
+//        NotificationCompat.Action pauseAction = new NotificationCompat.Action(R.drawable.baseline_pause_24, "Pause", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_PAUSE));
+//        NotificationCompat.Action nextAction = new NotificationCompat.Action(R.drawable.baseline_skip_next_24, "Next", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_SKIP_TO_NEXT));
+//        NotificationCompat.Action stopAction = new NotificationCompat.Action(R.drawable.baseline_close_24, "Stop", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_STOP));
+//        builder.addAction(prevAction);
+//        builder.addAction(isPlaying ? pauseAction : playAction);
+//        builder.addAction(nextAction);
+//        builder.addAction(stopAction);
 
-//        // Create a prev button action.
-//        Intent prevIntent = new Intent(PREV_INTENT);
-//        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, prevIntent, PendingIntent.FLAG_MUTABLE);
-//        // Add the prev button action to the notification.
-//        builder.addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent);
-//
-//        // Create a play button action.
-//        Intent playIntent = new Intent(PLAY_INTENT);
-//        PendingIntent playPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, playIntent, PendingIntent.FLAG_MUTABLE);
-//        // Add the play button action to the notification.
-//        builder.addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent);
-//
-//        // Create a next button action.
-//        Intent nextIntent = new Intent(NEXT_INTENT);
-//        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, nextIntent, PendingIntent.FLAG_MUTABLE);
-//        // Add the next button action to the notification.
-//        builder.addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent);
-//
-//        // Add the cancel button action to the notification.
-//        builder.addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent);
+        // Create a prev button action.
+        Intent prevIntent = new Intent(PREV_INTENT);
+        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, prevIntent, PendingIntent.FLAG_MUTABLE);
+        // Add the prev button action to the notification.
+        builder.addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent);
+
+        if (isPlaying) {
+            // Create a pause button action.
+            Intent pauseIntent = new Intent(PAUSE_INTENT);
+            PendingIntent pausePendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, pauseIntent, PendingIntent.FLAG_MUTABLE);
+            // Add the pause button action to the notification.
+            builder.addAction(R.drawable.baseline_pause_24, "Pause", pausePendingIntent);
+        } else {
+            // Create a play button action.
+            Intent playIntent = new Intent(PLAY_INTENT);
+            PendingIntent playPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, playIntent, PendingIntent.FLAG_MUTABLE);
+            // Add the play button action to the notification.
+            builder.addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent);
+        }
+
+        // Create a next button action.
+        Intent nextIntent = new Intent(NEXT_INTENT);
+        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, nextIntent, PendingIntent.FLAG_MUTABLE);
+        // Add the next button action to the notification.
+        builder.addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent);
+
+        // Add the cancel button action to the notification.
+        builder.addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent);
 
         //setSessionButtons(prevPendingIntent, playPendingIntent, nextPendingIntent);
 
@@ -289,25 +288,28 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
         notificationManager.notify(NOTIFICATION_ID, builder.build());
     }
 
+//    public static boolean isPlaying() {
+//        return playlist.size() > 0 && getCurrentTrack().isAnyPlaying();
+//    }
     private static void releaseSession() {
         if (session != null) {
             session.release();
             session = null;
         }
     }
-    private static void setSessionState() {
+    private static void setSessionState(boolean isPlaying) {
         PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
-        playbackState.setActions(PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
-        playbackState.setState(PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+        playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
+        playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
         session.setPlaybackState(playbackState.build());
     }
-//    private static void setSessionButtons(PendingIntent prevButton, PendingIntent playButton, PendingIntent nextButton) {
-//        session.setMediaButtonReceiver(prevButton);
-//        session.setMediaButtonReceiver(playButton);
-//        session.setMediaButtonReceiver(nextButton);
-//    }
+    private static void setSessionButtons(PendingIntent prevButton, PendingIntent playButton, PendingIntent nextButton) {
+        session.setMediaButtonReceiver(prevButton);
+        session.setMediaButtonReceiver(playButton);
+        session.setMediaButtonReceiver(nextButton);
+    }
     private static void prepareSession() {
-        session = new MediaSessionCompat(instance, BuildConfig.APP_LABEL);
+        session = new MediaSessionCompat(OxShellApp.getContext(), BuildConfig.APP_LABEL);
         session.setCallback(new MediaSessionCompat.Callback() {
             @Override
             public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
@@ -319,30 +321,35 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
             public void onPlay() {
                 super.onPlay();
                 Log.d("MusicPlayer", "onPlay");
+                play();
             }
 
             @Override
             public void onSkipToQueueItem(long id) {
                 super.onSkipToQueueItem(id);
                 Log.d("MusicPlayer", "onSkipToQueueItem " + id);
+                play((int)id);
             }
 
             @Override
             public void onPause() {
                 super.onPause();
                 Log.d("MusicPlayer", "onPause");
+                pause();
             }
 
             @Override
             public void onSkipToNext() {
                 super.onSkipToNext();
                 Log.d("MusicPlayer", "onSkipToNext");
+                playNext();
             }
 
             @Override
             public void onSkipToPrevious() {
                 super.onSkipToPrevious();
                 Log.d("MusicPlayer", "onSkipToPrevious");
+                playPrev();
             }
 
             @Override
@@ -361,6 +368,7 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
             public void onStop() {
                 super.onStop();
                 Log.d("MusicPlayer", "onStop");
+                stop();
             }
 
             @Override
@@ -372,16 +380,16 @@ public class MusicPlayer extends MediaBrowserServiceCompat {
         session.setActive(true);
     }
 
-    @Nullable
-    @Override
-    public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
-        return new BrowserRoot("root", null);
-    }
-    @Override
-    public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        // Return a list of MediaBrowserCompat.MediaItem objects for the given parent ID
-        List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
-        // Add media items to the list
-        result.sendResult(mediaItems);
-    }
+//    @Nullable
+//    @Override
+//    public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
+//        return new BrowserRoot("root", null);
+//    }
+//    @Override
+//    public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+//        // Return a list of MediaBrowserCompat.MediaItem objects for the given parent ID
+//        List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
+//        // Add media items to the list
+//        result.sendResult(mediaItems);
+//    }
 }

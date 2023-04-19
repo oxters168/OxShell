@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DebugView extends FrameLayout {
+    public static final float TTL_INDEFINITE = -1;
     private final Context context;
     private boolean isShown;
     private BetterTextView debugLabel;
