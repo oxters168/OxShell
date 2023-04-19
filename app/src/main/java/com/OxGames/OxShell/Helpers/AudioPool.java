@@ -68,6 +68,9 @@ public class AudioPool {
     private void setDataRef(DataRef dataRef) {
         this.dataRef = dataRef;
     }
+    public DataRef getDataRef() {
+        return dataRef;
+    }
 
     public void addOnCompletedListener(Runnable listener) {
         completedListeners.add(listener);

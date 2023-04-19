@@ -53,6 +53,15 @@ public class OxShellApp extends Application {
         @Override
         public void onReceive(Context ctxt, Intent intent) {
             Log.d("OxShellApp", "Music action receiver: " + intent + ", " + (intent != null ? intent.getExtras() : "no extras"));
+            if (intent.getAction().equals(MusicPlayer.PREV_INTENT)) {
+
+            } else if (intent.getAction().equals(MusicPlayer.NEXT_INTENT)) {
+
+            } else if (intent.getAction().equals(MusicPlayer.PLAY_INTENT)) {
+
+            } else if (intent.getAction().equals(MusicPlayer.STOP_INTENT)) {
+
+            }
         }
     };
 
@@ -91,6 +100,8 @@ public class OxShellApp extends Application {
         registerReceiver(pkgInstallationReceiver, intentFilter);
 
         intentFilter = new IntentFilter();
+        intentFilter.addAction(MusicPlayer.PREV_INTENT);
+        intentFilter.addAction(MusicPlayer.NEXT_INTENT);
         intentFilter.addAction(MusicPlayer.PLAY_INTENT);
         intentFilter.addAction(MusicPlayer.STOP_INTENT);
         registerReceiver(musicActionReceiver, intentFilter);

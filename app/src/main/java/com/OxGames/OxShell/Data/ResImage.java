@@ -62,6 +62,11 @@ public class ResImage {
             resources.put(R.drawable.baseline_adb_24, new ResImage("com.OxGames.OxShell:drawable/baseline_adb_24", "Android"));
             resources.put(R.drawable.baseline_person_24, new ResImage("com.OxGames.OxShell:drawable/baseline_person_24", "Person"));
             resources.put(R.drawable.baseline_library_music_24, new ResImage("com.OxGames.OxShell:drawable/baseline_library_music_24", "Music Library"));
+            resources.put(R.drawable.baseline_play_arrow_24, new ResImage("com.OxGames.OxShell:drawable/baseline_play_arrow_24", "Play"));
+            resources.put(R.drawable.baseline_pause_24, new ResImage("com.OxGames.OxShell:drawable/baseline_pause_24", "Pause"));
+            resources.put(R.drawable.baseline_skip_next_24, new ResImage("com.OxGames.OxShell:drawable/baseline_skip_next_24", "Skip Next"));
+            resources.put(R.drawable.baseline_skip_previous_24, new ResImage("com.OxGames.OxShell:drawable/baseline_skip_previous_24", "Skip Previous"));
+            resources.put(R.drawable.baseline_close_24, new ResImage("com.OxGames.OxShell:drawable/baseline_close_24", "Cross"));
         }
     }
 }

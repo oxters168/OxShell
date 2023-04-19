@@ -248,6 +248,7 @@ public class HomeView extends XMBView implements Refreshable {
                     //String trackPath = (String)selectedItem.obj;
                     //AudioPool.fromFile(trackPath, 1).play(false);
                     MusicPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
+                    MusicPlayer.play();
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addAppOuter) {
                     List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
