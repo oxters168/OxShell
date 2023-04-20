@@ -37,7 +37,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
 
     private static final LinkedList<AudioPool> playlist = new LinkedList<>();
     private static Metadata currentTrackData;
-    private static int currentPos = 0;
+    private static int trackIndex = 0;
     private static MediaSessionCompat session = null;
 
     private static Runnable currentCompletedListener = null;
@@ -79,8 +79,8 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
 
             for (DataRef trackLoc : trackLocs)
                 playlist.add(AudioPool.from(trackLoc, 2));
-            setCurrentPos(startPos);
-            Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + currentPos);
+            setTrackIndex(startPos);
+            Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
             refreshMetadata();
             prepareSession();
             showNotification(false);
@@ -100,7 +100,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
     }
 
     public static void play() {
-        play(currentPos);
+        play(trackIndex);
     }
 //    public static void togglePlayback() {
 //        if (playlist.size() > 0) {
@@ -112,17 +112,17 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
 //    }
     public static void play(int index) {
         if (playlist.size() > 0) {
-            boolean differentTrack = index != currentPos;
+            boolean differentTrack = index != trackIndex;
             if (currentCompletedListener != null)
                 getCurrentTrack().removeOnCompletedListener(currentCompletedListener);
             if (differentTrack && getCurrentTrack().getActiveCount() > 0) {
-                Log.d("MusicPlayer", "Stopping current track since " + index + " != " + currentPos);
+                Log.d("MusicPlayer", "Stopping current track since " + index + " != " + trackIndex);
                 getCurrentTrack().stopActive();
             }
 
             requestAudioFocus();
 
-            setCurrentPos(index);
+            setTrackIndex(index);
             AudioPool currentTrack = getCurrentTrack();
             currentCompletedListener = MusicPlayer::playNext;
             currentTrack.addOnCompletedListener(currentCompletedListener);
@@ -136,14 +136,14 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         }
     }
     public static boolean hasNext() {
-        return currentPos + 1 < playlist.size();
+        return trackIndex + 1 < playlist.size();
     }
     public static boolean hasPrev() {
-        return currentPos - 1 >= 0;
+        return trackIndex - 1 >= 0;
     }
     public static void playNext() {
         if (hasNext())
-            play(currentPos + 1);
+            play(trackIndex + 1);
         else {
             pause();
             seekTo(0);
@@ -152,7 +152,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
     }
     public static void playPrev() {
         if (hasPrev())
-            play(currentPos - 1);
+            play(trackIndex - 1);
         else {
             pause();
             seekTo(0);
@@ -189,14 +189,14 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         }
     }
 
-    private static void setCurrentPos(int index) {
-        currentPos = clampPos(index);
+    private static void setTrackIndex(int index) {
+        trackIndex = clampTrackIndex(index);
     }
-    private static int clampPos(int index) {
+    private static int clampTrackIndex(int index) {
         return Math.min(Math.max(0, index), playlist.size() - 1);
     }
     private static AudioPool getCurrentTrack() {
-        return playlist.get(currentPos);
+        return playlist.get(trackIndex);
     }
 //    private static AudioPool getNextTrack() {
 //        return playlist.get(clampPos(currentPos + 1));
@@ -332,7 +332,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         // Create the notification using the builder.
         NotificationCompat.Builder builder = new NotificationCompat.Builder(OxShellApp.getContext(), CHANNEL_ID)
                 //.setSmallIcon(R.drawable.baseline_library_music_24)
-                .setSmallIcon(BuildConfig.GOLD ? R.drawable.icon_xhdpi : R.drawable.icon_free_xhdpi) // TODO: turn into black&white version
+                .setSmallIcon(R.drawable.ox_white)
                 .setLargeIcon(currentTrackData.getAlbumArt())
                 .setContentTitle(getCurrentTitle())
                 .setContentText(getCurrentArtist() + " - " + getCurrentAlbum())
