@@ -5,9 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -171,7 +168,7 @@ public class HomeView extends XMBView implements Refreshable {
         if (musicPool.getActiveCount() > 0)
             musicPool.resumeActive();
         else
-            musicPool.play(true);
+            musicPool.playNew(true);
     }
     private void pauseBgMusic() {
         musicPool.pauseActive();
@@ -911,7 +908,7 @@ public class HomeView extends XMBView implements Refreshable {
     private void playMoveSfx() {
         if (musicPool.isAnyPlaying() || movePool.isAnyPlaying() || !OxShellApp.getAudioManager().isMusicActive()) {
             refreshAudioPools();
-            movePool.play(false);
+            movePool.playNew(false);
         }
     }
 

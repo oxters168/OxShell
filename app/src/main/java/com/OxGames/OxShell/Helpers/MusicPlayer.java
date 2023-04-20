@@ -8,13 +8,14 @@ import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.media.MediaMetadata;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
-import androidx.media.session.MediaButtonReceiver;
 //import androidx.media.app.NotificationCompat;
 
 import com.OxGames.OxShell.BuildConfig;
@@ -111,37 +112,66 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
 //    }
     public static void play(int index) {
         if (playlist.size() > 0) {
+            boolean differentTrack = index != currentPos;
             if (currentCompletedListener != null)
                 getCurrentTrack().removeOnCompletedListener(currentCompletedListener);
-            if (getCurrentTrack().isAnyPlaying())
+            if (differentTrack && getCurrentTrack().getActiveCount() > 0) {
+                Log.d("MusicPlayer", "Stopping current track since " + index + " != " + currentPos);
                 getCurrentTrack().stopActive();
+            }
 
             requestAudioFocus();
 
             setCurrentPos(index);
-            refreshMetadata();
-            showNotification(true);
             AudioPool currentTrack = getCurrentTrack();
             currentCompletedListener = MusicPlayer::playNext;
             currentTrack.addOnCompletedListener(currentCompletedListener);
-            currentTrack.play(false);
-            setSessionState(true);
+            if (currentTrack.getActiveCount() > 0)
+                currentTrack.resumeActive();
+            else
+                currentTrack.playNew(false);
+
+            refreshMetadata();
+            refreshNotificationAndSession(true);
         }
     }
+    public static boolean hasNext() {
+        return currentPos + 1 < playlist.size();
+    }
+    public static boolean hasPrev() {
+        return currentPos - 1 >= 0;
+    }
     public static void playNext() {
-        play(currentPos + 1);
+        if (hasNext())
+            play(currentPos + 1);
+        else {
+            pause();
+            seekTo(0);
+            //refreshNotificationAndSession(false);
+        }
     }
     public static void playPrev() {
-        play(currentPos - 1);
+        if (hasPrev())
+            play(currentPos - 1);
+        else {
+            pause();
+            seekTo(0);
+            //refreshNotificationAndSession(false);
+        }
     }
     public static void pause() {
         getCurrentTrack().pauseActive();
-        setSessionState(false);
         abandonAudioFocus();
-        showNotification(false);
+        refreshNotificationAndSession(false);
     }
     public static void stop() {
         clearPlaylist();
+    }
+    public static void seekTo(int ms) {
+        if (playlist.size() > 0)
+            getCurrentTrack().seekTo(ms);
+        else
+            Log.e("MusicPlayer", "Failed to seek to " + ms + " ms, playlist is empty");
     }
 
     private static void requestAudioFocus() {
@@ -191,7 +221,38 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         }
         return title;
     }
+    private static String getCurrentArtist() {
+        if (currentTrackData == null)
+            refreshMetadata();
+        String artist = currentTrackData.getArtist();
+        if (artist == null || artist.isEmpty())
+            artist = "Various Artists";
+        return artist;
+    }
+    private static String getCurrentAlbum() {
+        if (currentTrackData == null)
+            refreshMetadata();
+        String album = currentTrackData.getAlbum();
+        if (album == null || album.isEmpty())
+            album = "?";
+        return album;
+    }
+    private static long getCurrentDuration() {
+        if (currentTrackData == null)
+            refreshMetadata();
+        long duration = 0;
+        try {
+            duration = Long.valueOf(currentTrackData.getDuration());
+        } catch (Exception e) {
+            Log.e("MusicPlayer", "Failed to retrieve track duration from metadata");
+        }
+        return duration;
+    }
 
+    private static void refreshNotificationAndSession(boolean isPlaying) {
+        setSessionState(isPlaying);
+        showNotification(isPlaying);
+    }
     private static void hideNotification() {
         // Get the NotificationManager.
         NotificationManager notificationManager = OxShellApp.getContext().getSystemService(NotificationManager.class);
@@ -222,27 +283,6 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         Intent stopIntent = new Intent(STOP_INTENT);
         PendingIntent stopPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, stopIntent, PendingIntent.FLAG_MUTABLE);
 
-        // Create the notification using the builder.
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(OxShellApp.getContext(), CHANNEL_ID)
-                .setSmallIcon(R.drawable.baseline_library_music_24)
-                .setLargeIcon(currentTrackData.getAlbumArt())
-                .setContentTitle("Music Player")
-                .setContentText("Now playing: " + getCurrentTitle())
-                //.setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                //.setAutoCancel(false)
-                .setSilent(true)
-                //.setDeleteIntent(stopPendingIntent)
-                .setOngoing(true);
-
-        // Create a NotificationCompat.MediaStyle object and set its properties
-        androidx.media.app.NotificationCompat.MediaStyle mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle()
-                .setMediaSession(session.getSessionToken())
-                .setShowActionsInCompactView(0, 1, 2) // Show prev, play, and next buttons in compact view
-                .setShowCancelButton(true)
-                .setCancelButtonIntent(stopPendingIntent);
-        builder.setStyle(mediaStyle);
-
 //        NotificationCompat.Action prevAction = new NotificationCompat.Action(R.drawable.baseline_skip_previous_24, "Previous", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
 //        NotificationCompat.Action playAction = new NotificationCompat.Action(R.drawable.baseline_play_arrow_24, "Play", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_PLAY));
 //        NotificationCompat.Action pauseAction = new NotificationCompat.Action(R.drawable.baseline_pause_24, "Pause", MediaButtonReceiver.buildMediaButtonPendingIntent(OxShellApp.getContext(), PlaybackStateCompat.ACTION_PAUSE));
@@ -257,32 +297,60 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         Intent prevIntent = new Intent(PREV_INTENT);
         PendingIntent prevPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, prevIntent, PendingIntent.FLAG_MUTABLE);
         // Add the prev button action to the notification.
-        builder.addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent);
+        //builder.addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent);
 
-        if (isPlaying) {
+        //if (isPlaying) {
             // Create a pause button action.
             Intent pauseIntent = new Intent(PAUSE_INTENT);
             PendingIntent pausePendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, pauseIntent, PendingIntent.FLAG_MUTABLE);
             // Add the pause button action to the notification.
-            builder.addAction(R.drawable.baseline_pause_24, "Pause", pausePendingIntent);
-        } else {
+            //builder.addAction(R.drawable.baseline_pause_24, "Pause", pausePendingIntent);
+        //} else {
             // Create a play button action.
             Intent playIntent = new Intent(PLAY_INTENT);
             PendingIntent playPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, playIntent, PendingIntent.FLAG_MUTABLE);
             // Add the play button action to the notification.
-            builder.addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent);
-        }
+            //builder.addAction(R.drawable.baseline_play_arrow_24, "Play", playPendingIntent);
+        //}
 
         // Create a next button action.
         Intent nextIntent = new Intent(NEXT_INTENT);
         PendingIntent nextPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, nextIntent, PendingIntent.FLAG_MUTABLE);
         // Add the next button action to the notification.
-        builder.addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent);
+        //builder.addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent);
 
         // Add the cancel button action to the notification.
+        //builder.addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent);
+
+        // Create a NotificationCompat.MediaStyle object and set its properties
+        androidx.media.app.NotificationCompat.MediaStyle mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle()
+                .setMediaSession(session.getSessionToken())
+                .setShowActionsInCompactView(0, 1, 2) // Show prev, play, and next buttons in compact view
+                .setShowCancelButton(true)
+                .setCancelButtonIntent(stopPendingIntent);
+
+        // Create the notification using the builder.
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(OxShellApp.getContext(), CHANNEL_ID)
+                //.setSmallIcon(R.drawable.baseline_library_music_24)
+                .setSmallIcon(BuildConfig.GOLD ? R.drawable.icon_xhdpi : R.drawable.icon_free_xhdpi) // TODO: turn into black&white version
+                .setLargeIcon(currentTrackData.getAlbumArt())
+                .setContentTitle(getCurrentTitle())
+                .setContentText(getCurrentArtist() + " - " + getCurrentAlbum())
+                //.setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                //.setAutoCancel(false)
+                .setSilent(true)
+                //.setDeleteIntent(stopPendingIntent)
+                .setStyle(mediaStyle)
+                .setOngoing(true);
+        if (hasPrev())
+            builder.addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent);
+        builder.addAction(isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24, isPlaying ? "Pause" : "Play", isPlaying ? pausePendingIntent : playPendingIntent);
+        if (hasNext())
+            builder.addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent);
         builder.addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent);
 
-        //setSessionButtons(prevPendingIntent, playPendingIntent, nextPendingIntent);
+        //builder.setStyle(mediaStyle);
 
         //NotificationManager notificationManager = OxShellApp.getContext().getSystemService(NotificationManager.class);
         notificationManager.notify(NOTIFICATION_ID, builder.build());
@@ -298,16 +366,39 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         }
     }
     private static void setSessionState(boolean isPlaying) {
-        PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
-        playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
-        playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
-        session.setPlaybackState(playbackState.build());
+        // source: https://android-developers.googleblog.com/2020/08/playing-nicely-with-media-controls.html
+        session.setMetadata(new MediaMetadataCompat.Builder()
+                // Title.
+                .putString(MediaMetadata.METADATA_KEY_TITLE, currentTrackData.getTitle())
+                // Artist.
+                // Could also be the channel name or TV series.
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, currentTrackData.getArtist())
+                // Album art.
+                // Could also be a screenshot or hero image for video content
+                // The URI scheme needs to be "content", "file", or "android.resource".
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentTrackData.getAlbumArt())
+                // Duration.
+                // If duration isn't set, such as for live broadcasts, then the progress
+                // indicator won't be shown on the seekbar.
+                .putLong(MediaMetadata.METADATA_KEY_DURATION, getCurrentDuration())
+                .build());
+        getCurrentTrack().getCurrentPosition(position -> {
+            Log.d("MusicPlayer", "Received position as " + position);
+//            PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
+//            playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO);
+//            playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f);
+//            session.setPlaybackState(playbackState.build());
+            session.setPlaybackState(new PlaybackStateCompat.Builder()
+                    .setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO)
+                    .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f)
+                    .build());
+        });
     }
-    private static void setSessionButtons(PendingIntent prevButton, PendingIntent playButton, PendingIntent nextButton) {
-        session.setMediaButtonReceiver(prevButton);
-        session.setMediaButtonReceiver(playButton);
-        session.setMediaButtonReceiver(nextButton);
-    }
+//    private static void setSessionButtons(PendingIntent prevButton, PendingIntent playButton, PendingIntent nextButton) {
+//        session.setMediaButtonReceiver(prevButton);
+//        session.setMediaButtonReceiver(playButton);
+//        session.setMediaButtonReceiver(nextButton);
+//    }
     private static void prepareSession() {
         session = new MediaSessionCompat(OxShellApp.getContext(), BuildConfig.APP_LABEL);
         session.setCallback(new MediaSessionCompat.Callback() {
@@ -375,6 +466,8 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
             public void onSeekTo(long pos) {
                 super.onSeekTo(pos);
                 Log.d("MusicPlayer", "onSeekTo " + pos);
+                seekTo((int)pos);
+                refreshNotificationAndSession(getCurrentTrack().isAnyPlaying());
             }
         });
         session.setActive(true);

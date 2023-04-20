@@ -80,18 +80,28 @@ public class AudioPool {
     public void getDuration(Consumer<Integer> onValueReceived) {
         actionOnAnyPlayer(player -> onValueReceived.accept(player.getDuration()));
     }
+    public void getCurrentPosition(Consumer<Integer> onValueReceived) {
+        actionOnPlayingPlayer(player -> onValueReceived.accept(player.getCurrentPosition()));
+    }
     private void actionOnAnyPlayer(Consumer<MediaPlayer> action) {
-        Runnable returnDuration = () -> {
+        Runnable achieveAction = () -> {
             if (isPlayerAvailable())
                 action.accept(unusedPlayers.peek());
             else if (playingPlayers.size() > 0)
-                action.accept(playingPlayers.peek().player);
+                action.accept(playingPlayers.getLast().player);
         };
         if (!isPlayerAvailable() && playingPlayers.size() <= 0) {
             setPoolSize(getPoolSize() + 5);
-            onUnusedPopulated(returnDuration);
+            onUnusedPopulated(achieveAction);
         } else
-            returnDuration.run();
+            achieveAction.run();
+    }
+    private void actionOnPlayingPlayer(Consumer<MediaPlayer> action) {
+        Runnable achieveAction = () -> action.accept(playingPlayers.getLast().player);
+        if (playingPlayers.size() > 0)
+            achieveAction.run();
+        else
+            onPlayerPlaying(achieveAction);
     }
 
     public void setVolume(float volume) {
@@ -108,7 +118,7 @@ public class AudioPool {
         return Math.max(0, Math.min(1, (float)(1 - Math.log(maxVolume - (maxVolume * linearValue)) / Math.log(maxVolume))));
     }
 
-    public void play(boolean loop) {
+    public void playNew(boolean loop) {
         this.looping = loop;
         Runnable play = () -> {
             //MediaPlayer player = unusedPlayers.poll();
@@ -153,7 +163,7 @@ public class AudioPool {
                                             if (listener != null)
                                                 listener.run();
                                     } else
-                                        play(true);
+                                        playNew(true);
                                     playingPlayers.remove(mpr);
                                 }
                                 if (position >= (duration - STOP_MILLIS)) {
@@ -193,6 +203,21 @@ public class AudioPool {
             }
         }).start();
     }
+    private void onPlayerPlaying(Runnable onPlayed) {
+        new Thread(() -> {
+            try {
+                long startTime = SystemClock.uptimeMillis();
+                while (playingPlayers.size() <= 0) {
+                    if ((SystemClock.uptimeMillis() - startTime) / 1000f > 10)
+                        throw new TimeoutException("Failed to play, no audio prepared within 10s");
+                    Thread.sleep(10);
+                }
+                onPlayed.run();
+            } catch (Exception e) {
+                Log.e("AudioPool", "Failed to play audio " + dataRef.getLoc() + ": " + e);
+            }
+        }).start();
+    }
 
     public void setLooping(boolean onOff) {
         looping = onOff;
@@ -222,12 +247,18 @@ public class AudioPool {
         }
     }
     public void stopActive() {
-        for (MPR mpr : playingPlayers) {
+        for (int i = 0; i < playingPlayers.size(); i++) {
+            MPR mpr = playingPlayers.removeLast();
             mpr.player.pause();
             mpr.player.seekTo(0);
-            playingPlayers.remove(mpr);
             unusedPlayers.add(mpr.player);
         }
+    }
+    public void seekTo(int ms) {
+        if (playingPlayers.size() > 0)
+            playingPlayers.getLast().player.seekTo(ms);
+        else
+            Log.e("AudioPool", "Failed to seek to " + ms + " ms, no active players");
     }
 
     public int getPoolSize() {
