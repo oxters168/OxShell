@@ -1,6 +1,7 @@
 package com.OxGames.OxShell.Helpers;
 
 import android.content.res.AssetFileDescriptor;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -22,14 +23,17 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 public class AudioPool {
-    private static final int COMPLETE_MILLIS = 500; // Through multiple tests, these values seemed to work well to remove the weird clicks/gaps between audio playback
-    private static final int STOP_MILLIS = 300;
+    private static final int COMPLETE_MILLIS = 265; // Through multiple tests, these values seemed to work well to remove the weird clicks/gaps between audio playback
+    private static final int STOP_MILLIS = 100;
+    //private static final int COMPLETE_MILLIS = 340; // for some reason, sometimes when playing a track, the position does not pass duration - aSmallMs. It never reaches the full duration and so my custom complete and loop don't work
+    //private static final int STOP_MILLIS = 175;
     private DataRef dataRef;
     private final List<MediaPlayer> beingPrepped;
     private final Queue<MediaPlayer> unusedPlayers;
     private final LinkedList<MPR> playingPlayers;
 
     private final List<Runnable> completedListeners;
+    private final List<Runnable> onLoopListeners;
 
     private final Handler completionHandler;
     //private Runnable currentRunnable;
@@ -40,6 +44,7 @@ public class AudioPool {
     private class MPR {
         MediaPlayer player;
         Runnable runnable;
+        boolean firedCompleted;
         MPR(MediaPlayer player) {
             this.player = player;
         }
@@ -51,6 +56,7 @@ public class AudioPool {
         playingPlayers = new LinkedList<>();
 
         completedListeners = new ArrayList<>();
+        onLoopListeners = new ArrayList<>();
 
         completionHandler = new Handler(Looper.getMainLooper());
 
@@ -72,6 +78,15 @@ public class AudioPool {
     }
     public void clearOnCompletedListeners() {
         completedListeners.clear();
+    }
+    public void addOnLoopListener(Runnable listener) {
+        onLoopListeners.add(listener);
+    }
+    public void removeOnLoopListener(Runnable listener) {
+        onLoopListeners.remove(listener);
+    }
+    public void clearOnLoopListeners() {
+        onLoopListeners.clear();
     }
 
     public boolean isPlayerAvailable() {
@@ -121,6 +136,7 @@ public class AudioPool {
     public void playNew(boolean loop) {
         this.looping = loop;
         Runnable play = () -> {
+            Log.d("AudioPool", "Playing new MediaPlayer for " + dataRef.getLoc());
             //MediaPlayer player = unusedPlayers.poll();
             MPR mpr = new MPR(unusedPlayers.poll());
             playingPlayers.add(mpr);
@@ -136,6 +152,7 @@ public class AudioPool {
                         playingPlayers.remove(mpr);
                         unusedPlayers.add(mpr.player);
                     }
+                    mpr.player.setOnCompletionListener(null);
                 });
                 mpr.player.setLooping(AudioPool.this.looping);
             }
@@ -148,33 +165,62 @@ public class AudioPool {
             if (duration > COMPLETE_MILLIS) {
                 // if the duration of the audio is long enough, then use the better way of checking for completion
                 //final Handler completionHandler = new Handler(Looper.getMainLooper());
+                mpr.player.setLooping(false);
                 mpr.runnable = new Runnable() {
                     @Override
                     public void run() {
-                        if (mpr.player.isPlaying()) {
+                        if (playingPlayers.contains(mpr)) {
                             int position = mpr.player.getCurrentPosition();
                             //Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
                             //Log.d("AudioPool", "isMusicActive: " + OxShellApp.getAudioManager().isMusicActive());
                             if (position >= (duration - COMPLETE_MILLIS)) {
-                                if (playingPlayers.contains(mpr)) {
-                                    // ready for loop
-                                    if (!AudioPool.this.looping) {
-                                        for (Runnable listener : completedListeners)
-                                            if (listener != null)
-                                                listener.run();
-                                    } else
-                                        playNew(true);
-                                    playingPlayers.remove(mpr);
-                                }
                                 if (position >= (duration - STOP_MILLIS)) {
                                     //player.stop(); // can't play again after stop
-                                    mpr.player.pause();
-                                    mpr.player.seekTo(0);
-                                    unusedPlayers.add(mpr.player);
-                                } else
+                                    Log.d("AudioPool", "Pausing and seeking to start due to completion " + dataRef.getLoc());
+                                    playingPlayers.remove(mpr);
+                                    try {
+                                        if (mpr.player.isPlaying())
+                                            mpr.player.pause();
+                                        mpr.player.seekTo(0);
+                                    } catch(Exception e) {
+                                        Log.e("AudioPool", "Failed to stop on completion: " + e);
+                                    }
+                                    //if (!AudioPool.this.looping) {
+                                        unusedPlayers.add(mpr.player);
+//                                        for (Runnable listener : completedListeners)
+//                                            if (listener != null)
+//                                                listener.run();
+                                    //}
+//                                    else {
+//                                        for (Runnable listener : onLoopListeners)
+//                                            if (listener != null)
+//                                                listener.run();
+//                                        completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+//                                    }
+                                } else {
+                                    Log.d("AudioPool", "Reached completion pre-stop of " + dataRef.getLoc());
+                                    if (!AudioPool.this.looping) {//playingPlayers.contains(mpr)) {
+                                        // ready for loop
+                                        if (!mpr.firedCompleted) {
+                                            Log.d("AudioPool", "Firing on complete for " + dataRef.getLoc());
+                                            mpr.firedCompleted = true;
+                                            for (Runnable listener : completedListeners)
+                                                if (listener != null)
+                                                    listener.run();
+                                            //playingPlayers.remove(mpr);
+                                        }
+                                    } else {
+                                        mpr.player.seekTo(0);
+                                        for (Runnable listener : onLoopListeners)
+                                            if (listener != null)
+                                                listener.run();
+                                    }
                                     completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
-                            } else if (playingPlayers.contains(mpr))
+                                }
+                            } else if (playingPlayers.contains(mpr)) {
+                                Log.d("AudioPool", position + " >= " + duration + " - " + COMPLETE_MILLIS);
                                 completionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+                            }
                         }
                     }
                 };
@@ -183,7 +229,8 @@ public class AudioPool {
         };
 
         if (!isPlayerAvailable()) {
-            setPoolSize(getPoolSize() + 5);
+            if (beingPrepped.size() <= 0)
+                setPoolSize(getPoolSize() + 5);
             onUnusedPopulated(play);
         } else
             play.run();
@@ -237,27 +284,43 @@ public class AudioPool {
         return playingPlayers.size();
     }
     public void pauseActive() {
+        Log.d("AudioPool", "Pausing active for " + dataRef.getLoc());
         for (MPR mpr : playingPlayers)
             mpr.player.pause();
     }
     public void resumeActive() {
+        Log.d("AudioPool", "Resuming active for " + dataRef.getLoc());
         for (MPR mpr : playingPlayers) {
             mpr.player.start();
             completionHandler.post(mpr.runnable);
         }
     }
     public void stopActive() {
+        Log.d("AudioPool", "Stopping active for " + dataRef.getLoc());
         for (int i = 0; i < playingPlayers.size(); i++) {
             MPR mpr = playingPlayers.removeLast();
-            mpr.player.pause();
-            mpr.player.seekTo(0);
+            if (!mpr.firedCompleted) {
+                // only stop if its not already about to stop
+                try {
+                    if (mpr.player.isPlaying())
+                        mpr.player.pause();
+                    mpr.player.seekTo(0);
+                } catch (Exception e) {
+                    Log.e("AudioPool", "Failed to stop current active: " + e);
+                }
+            }
             unusedPlayers.add(mpr.player);
         }
     }
     public void seekTo(int ms) {
-        if (playingPlayers.size() > 0)
-            playingPlayers.getLast().player.seekTo(ms);
-        else
+        Log.d("AudioPool", "Seeking to " + ms + " for " + dataRef.getLoc());
+        if (playingPlayers.size() > 0) {
+            try {
+                playingPlayers.getLast().player.seekTo(ms);
+            } catch (Exception e) {
+                Log.e("AudioPool", "Failed to seek to " + ms + " ms: " + e);
+            }
+        } else
             Log.e("AudioPool", "Failed to seek to " + ms + " ms, no active players");
     }
 
@@ -265,6 +328,7 @@ public class AudioPool {
         return beingPrepped.size() + unusedPlayers.size() + playingPlayers.size();
     }
     public void setPoolSize(int size) {
+        Log.d("AudioPool", "Pool size set to " + size + " for " + dataRef.getLoc());
         DebugView.print(dataRef.getLoc().toString(), dataRef.getLoc() + ": " + size, size <= 0 ? 3 : DebugView.TTL_INDEFINITE);
         int diff = size - getPoolSize();
         if (diff > 0) {
@@ -276,6 +340,10 @@ public class AudioPool {
                         afd = OxShellApp.getContext().getAssets().openFd((String)dataRef.getLoc());
                     for (int i = 0; i < diff; i++) {
                         MediaPlayer player = new MediaPlayer();
+                        player.setAudioAttributes(new AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_MEDIA)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                .build());
                         try {
                             if (dataRef.getLocType() == DataLocation.asset)
                                 player.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
@@ -288,11 +356,16 @@ public class AudioPool {
                             beingPrepped.add(player);
                             new Thread(() -> {
                                 try {
+                                    Log.d("AudioPool", "Preparing player for " + dataRef.getLoc());
                                     player.prepare();
                                     if (beingPrepped.contains(player)) {
+                                        Log.d("AudioPool", "Player prepared, placed into ready for " + dataRef.getLoc());
                                         // if its not in beingPrepped, that means its been 'cancelled'
                                         beingPrepped.remove(player);
                                         unusedPlayers.add(player);
+                                    } else {
+                                        Log.d("AudioPool", "Player prepared, cancelled, already expected to be released for " + dataRef.getLoc());
+                                        player.release();
                                     }
                                 } catch (Exception e) {
                                     Log.e("AudioHelper", "Failed to prepare MediaPlayer: " + e);

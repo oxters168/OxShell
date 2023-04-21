@@ -159,7 +159,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             innerItemsLoaded = true;
             innerItems = new ArrayList<>();
             // TODO: clear cached images of previous inner items before reloading
-            innerItems.add(new HomeItem(Type.placeholder, "Loading...", DataRef.from(ResImage.get(R.drawable.ic_baseline_block_24).getId(), DataLocation.resource)));
+            innerItems.add(new HomeItem(Type.placeholder, "Loading...", DataRef.from(ResImage.get(R.drawable.baseline_hourglass_empty_24).getId(), DataLocation.resource)));
             generateMusicTree(musicItems -> {
                 innerItems = musicItems;
                 if (onReloaded != null)

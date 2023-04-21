@@ -9,8 +9,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.AudioManager;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -56,9 +54,9 @@ public class OxShellApp extends Application {
         public void onReceive(Context ctxt, Intent intent) {
             Log.d("OxShellApp", "Music action receiver: " + intent + ", " + (intent != null ? intent.getExtras() : "no extras"));
             if (intent.getAction().equals(MusicPlayer.PREV_INTENT)) {
-                MusicPlayer.playPrev();
+                MusicPlayer.seekToPrev();
             } else if (intent.getAction().equals(MusicPlayer.NEXT_INTENT)) {
-                MusicPlayer.playNext();
+                MusicPlayer.seekToNext();
             } else if (intent.getAction().equals(MusicPlayer.PLAY_INTENT)) {
                 MusicPlayer.play();
             } else if (intent.getAction().equals(MusicPlayer.PAUSE_INTENT)) {

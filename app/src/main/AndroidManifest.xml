@@ -130,11 +130,11 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <service android:name=".Helpers.MusicPlayer"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.media.browse.MediaBrowserService"/>
-            </intent-filter>
-        </service>
+<!--        <service android:name=".Helpers.MusicPlayer"-->
+<!--            android:exported="false">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.media.browse.MediaBrowserService"/>-->
+<!--            </intent-filter>-->
+<!--        </service>-->
     </application>
 </manifest>

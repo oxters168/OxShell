@@ -9,13 +9,18 @@ import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
+import android.net.Uri;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Player;
+import androidx.media3.exoplayer.ExoPlayer;
 //import androidx.media.app.NotificationCompat;
 
 import com.OxGames.OxShell.BuildConfig;
@@ -26,7 +31,6 @@ import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.File;
-import java.util.LinkedList;
 
 public class MusicPlayer {// extends MediaBrowserServiceCompat {
     public static final String PREV_INTENT = "ACTION_SKIP_TO_PREVIOUS";
@@ -35,16 +39,35 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
     public static final String PAUSE_INTENT = "ACTION_PAUSE";
     public static final String STOP_INTENT = "ACTION_STOP";
 
-    private static final LinkedList<AudioPool> playlist = new LinkedList<>();
+    //private static final LinkedList<AudioPool> playlist = new LinkedList<>();
     private static Metadata currentTrackData;
     private static int trackIndex = 0;
     private static MediaSessionCompat session = null;
+    private static DataRef[] refs = null;
 
-    private static Runnable currentCompletedListener = null;
+//    private static Runnable currentCompletedListener = null;
+//    private static Runnable currentLoopListener = null;
+    private static final Player.Listener exoListener = new Player.Listener() {
+        @Override
+        public void onPlaybackStateChanged(int playbackState) {
+            Player.Listener.super.onPlaybackStateChanged(playbackState);
+            Log.d("MusicPlayer", "Exo playback state changed: " + playbackState);
+            setTrackIndex(exo.getCurrentMediaItemIndex());
+            refreshNotificationAndSession(exo.isPlaying());
+        }
+        @Override
+        public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
+            Player.Listener.super.onMediaItemTransition(mediaItem, reason);
+            Log.d("MusicPlayer", "Exo media item transitioned: " + reason);
+            setTrackIndex(exo.getCurrentMediaItemIndex());
+            refreshNotificationAndSession(exo.isPlaying());
+        }
+    };
     private static AudioFocusRequest audioFocusRequest = null;
 
     private static final int NOTIFICATION_ID = 12345;
     private static final String CHANNEL_ID = "54321";
+    private static ExoPlayer exo = null;//new ExoPlayer.Builder(OxShellApp.getCurrentActivity()).build();
 
     //private static MusicPlayer instance = null;
 
@@ -76,9 +99,18 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         clearPlaylist();
         boolean hasTracks = trackLocs != null && trackLocs.length > 0;
         if (hasTracks) {
-
+            //MediaItem mediaItem = MediaItem.fromUri()
+            exo = new ExoPlayer.Builder(OxShellApp.getContext()).build();
+            refs = trackLocs;
             for (DataRef trackLoc : trackLocs)
-                playlist.add(AudioPool.from(trackLoc, 2));
+                if (trackLoc.getLocType() == DataLocation.file)
+                    exo.addMediaItem(MediaItem.fromUri((String)trackLoc.getLoc()));
+                else if (trackLoc.getLocType() == DataLocation.resolverUri)
+                    exo.addMediaItem(MediaItem.fromUri((Uri)trackLoc.getLoc()));
+                //playlist.add(AudioPool.from(trackLoc, 1)); // had to set pool size to 1 since some files had an issue if more than one was loaded (maybe waiting until all are prepped would be worth trying)
+            exo.prepare();
+            exo.seekTo(startPos, 0);
+            exo.addListener(exoListener);
             setTrackIndex(startPos);
             Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
             refreshMetadata();
@@ -87,11 +119,21 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         }
     }
     public static void clearPlaylist() {
-        if (playlist.size() > 0 && getCurrentTrack().isAnyPlaying())
-            getCurrentTrack().stopActive();
-        for (AudioPool track : playlist)
-            track.setPoolSize(0);
-        playlist.clear();
+//        if (playlist.size() > 0 && getCurrentTrack().isAnyPlaying()) {
+//            getCurrentTrack().stopActive();
+//            getCurrentTrack().removeOnCompletedListener(currentCompletedListener);
+//            getCurrentTrack().removeOnLoopListener(currentLoopListener);
+//        }
+//        for (AudioPool track : playlist)
+//            track.setPoolSize(0);
+//        playlist.clear();
+        if (exo != null) {
+            exo.stop();
+            exo.clearMediaItems();
+            exo.removeListener(exoListener);
+            exo.release();
+            exo = null;
+        }
         currentTrackData = null;
 
         abandonAudioFocus();
@@ -111,67 +153,78 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
 //        }
 //    }
     public static void play(int index) {
-        if (playlist.size() > 0) {
-            boolean differentTrack = index != trackIndex;
-            if (currentCompletedListener != null)
-                getCurrentTrack().removeOnCompletedListener(currentCompletedListener);
-            if (differentTrack && getCurrentTrack().getActiveCount() > 0) {
-                Log.d("MusicPlayer", "Stopping current track since " + index + " != " + trackIndex);
-                getCurrentTrack().stopActive();
-            }
+        if (exo.getMediaItemCount() > 0) {
+//            boolean differentTrack = index != trackIndex;
+//            if (currentCompletedListener != null)
+//                getCurrentTrack().removeOnCompletedListener(currentCompletedListener);
+//            if (currentLoopListener != null)
+//                getCurrentTrack().removeOnLoopListener(currentLoopListener);
+//            if (differentTrack && getCurrentTrack().getActiveCount() > 0) {
+//                Log.d("MusicPlayer", "Stopping current track since " + index + " != " + trackIndex);
+//                getCurrentTrack().stopActive();
+//            }
 
             requestAudioFocus();
 
             setTrackIndex(index);
-            AudioPool currentTrack = getCurrentTrack();
-            currentCompletedListener = MusicPlayer::playNext;
-            currentTrack.addOnCompletedListener(currentCompletedListener);
-            if (currentTrack.getActiveCount() > 0)
-                currentTrack.resumeActive();
-            else
-                currentTrack.playNew(false);
+            exo.seekTo(index, 0);
+            if (!exo.isPlaying())
+                exo.play();
+//            AudioPool currentTrack = getCurrentTrack();
+//            currentCompletedListener = MusicPlayer::playNext;
+//            currentLoopListener = () -> refreshNotificationAndSession(true);
+//            currentTrack.addOnCompletedListener(currentCompletedListener);
+//            currentTrack.addOnLoopListener(currentLoopListener);
+//            if (currentTrack.getActiveCount() > 0)
+//                currentTrack.resumeActive();
+//            else
+//                currentTrack.playNew(false);
 
             refreshMetadata();
             refreshNotificationAndSession(true);
         }
     }
-    public static boolean hasNext() {
-        return trackIndex + 1 < playlist.size();
+//    public static boolean hasNext() {
+//        return trackIndex + 1 < playlist.size();
+//    }
+//    public static boolean hasPrev() {
+//        return trackIndex - 1 >= 0;
+//    }
+    public static void seekToNext() {
+        exo.seekToNext();
+//        if (hasNext())
+//            play(trackIndex + 1);
+//        else {
+//            pause();
+//            seekTo(0);
+//            //refreshNotificationAndSession(false);
+//        }
     }
-    public static boolean hasPrev() {
-        return trackIndex - 1 >= 0;
-    }
-    public static void playNext() {
-        if (hasNext())
-            play(trackIndex + 1);
-        else {
-            pause();
-            seekTo(0);
-            //refreshNotificationAndSession(false);
-        }
-    }
-    public static void playPrev() {
-        if (hasPrev())
-            play(trackIndex - 1);
-        else {
-            pause();
-            seekTo(0);
-            //refreshNotificationAndSession(false);
-        }
+    public static void seekToPrev() {
+//        if (hasPrev())
+//            play(trackIndex - 1);
+//        else {
+//            pause();
+//            seekTo(0);
+//            //refreshNotificationAndSession(false);
+//        }
+        exo.seekToPrevious();
     }
     public static void pause() {
-        getCurrentTrack().pauseActive();
+        //getCurrentTrack().pauseActive();
+        exo.pause();
         abandonAudioFocus();
         refreshNotificationAndSession(false);
     }
     public static void stop() {
         clearPlaylist();
     }
-    public static void seekTo(int ms) {
-        if (playlist.size() > 0)
-            getCurrentTrack().seekTo(ms);
-        else
-            Log.e("MusicPlayer", "Failed to seek to " + ms + " ms, playlist is empty");
+    public static void seekTo(long ms) {
+        exo.seekTo(ms);
+//        if (playlist.size() > 0)
+//            getCurrentTrack().seekTo(ms);
+//        else
+//            Log.e("MusicPlayer", "Failed to seek to " + ms + " ms, playlist is empty");
     }
 
     private static void requestAudioFocus() {
@@ -193,11 +246,14 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         trackIndex = clampTrackIndex(index);
     }
     private static int clampTrackIndex(int index) {
-        return Math.min(Math.max(0, index), playlist.size() - 1);
+        return Math.min(Math.max(0, index), exo.getMediaItemCount() - 1);
     }
-    private static AudioPool getCurrentTrack() {
-        return playlist.get(trackIndex);
+    private static DataRef getCurrentDataRef() {
+        return refs[exo.getCurrentMediaItemIndex()];
     }
+//    private static AudioPool getCurrentTrack() {
+//        return playlist.get(trackIndex);
+//    }
 //    private static AudioPool getNextTrack() {
 //        return playlist.get(clampPos(currentPos + 1));
 //    }
@@ -205,7 +261,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
 //        return playlist.get(clampPos(currentPos - 1));
 //    }
     private static void refreshMetadata() {
-        currentTrackData = Metadata.getMediaMetadata(getCurrentTrack().getDataRef());
+        currentTrackData = Metadata.getMediaMetadata(getCurrentDataRef());
     }
     private static String getCurrentTitle() {
         if (currentTrackData == null)
@@ -213,7 +269,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
 
         String title = currentTrackData.getTitle();
         if (title == null || title.isEmpty()) {
-            DataRef dataRef = getCurrentTrack().getDataRef();
+            DataRef dataRef = getCurrentDataRef();
             if (dataRef.getLocType() == DataLocation.file)
                 title = AndroidHelpers.removeExtension((new File((String)dataRef.getLoc())).getName());
             else
@@ -342,13 +398,17 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
                 .setSilent(true)
                 //.setDeleteIntent(stopPendingIntent)
                 .setStyle(mediaStyle)
+                .addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent)
+                .addAction(isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24, isPlaying ? "Pause" : "Play", isPlaying ? pausePendingIntent : playPendingIntent)
+                .addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent)
+                .addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent)
                 .setOngoing(true);
-        if (hasPrev())
-            builder.addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent);
-        builder.addAction(isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24, isPlaying ? "Pause" : "Play", isPlaying ? pausePendingIntent : playPendingIntent);
-        if (hasNext())
-            builder.addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent);
-        builder.addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent);
+//        if (hasPrev())
+//            builder.addAction(R.drawable.baseline_skip_previous_24, "Prev", prevPendingIntent);
+//        builder.addAction(isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24, isPlaying ? "Pause" : "Play", isPlaying ? pausePendingIntent : playPendingIntent);
+//        if (hasNext())
+//            builder.addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent);
+//        builder.addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent);
 
         //builder.setStyle(mediaStyle);
 
@@ -382,17 +442,21 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
                 // indicator won't be shown on the seekbar.
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, getCurrentDuration())
                 .build());
-        getCurrentTrack().getCurrentPosition(position -> {
-            Log.d("MusicPlayer", "Received position as " + position);
-//            PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
-//            playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO);
-//            playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f);
-//            session.setPlaybackState(playbackState.build());
-            session.setPlaybackState(new PlaybackStateCompat.Builder()
-                    .setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO)
-                    .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f)
-                    .build());
-        });
+        session.setPlaybackState(new PlaybackStateCompat.Builder()
+                .setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO)
+                .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, exo.getCurrentPosition(), 1.0f)
+                .build());
+//        getCurrentTrack().getCurrentPosition(position -> {
+//            Log.d("MusicPlayer", "Received position as " + position);
+////            PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
+////            playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO);
+////            playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f);
+////            session.setPlaybackState(playbackState.build());
+//            session.setPlaybackState(new PlaybackStateCompat.Builder()
+//                    .setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO)
+//                    .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f)
+//                    .build());
+//        });
     }
 //    private static void setSessionButtons(PendingIntent prevButton, PendingIntent playButton, PendingIntent nextButton) {
 //        session.setMediaButtonReceiver(prevButton);
@@ -433,14 +497,14 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
             public void onSkipToNext() {
                 super.onSkipToNext();
                 Log.d("MusicPlayer", "onSkipToNext");
-                playNext();
+                seekToNext();
             }
 
             @Override
             public void onSkipToPrevious() {
                 super.onSkipToPrevious();
                 Log.d("MusicPlayer", "onSkipToPrevious");
-                playPrev();
+                seekToPrev();
             }
 
             @Override
@@ -467,7 +531,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
                 super.onSeekTo(pos);
                 Log.d("MusicPlayer", "onSeekTo " + pos);
                 seekTo((int)pos);
-                refreshNotificationAndSession(getCurrentTrack().isAnyPlaying());
+                refreshNotificationAndSession(exo.isPlaying());
             }
         });
         session.setActive(true);

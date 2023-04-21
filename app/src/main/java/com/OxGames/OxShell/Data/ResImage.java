@@ -67,6 +67,7 @@ public class ResImage {
             resources.put(R.drawable.baseline_skip_next_24, new ResImage("com.OxGames.OxShell:drawable/baseline_skip_next_24", "Skip Next"));
             resources.put(R.drawable.baseline_skip_previous_24, new ResImage("com.OxGames.OxShell:drawable/baseline_skip_previous_24", "Skip Previous"));
             resources.put(R.drawable.baseline_close_24, new ResImage("com.OxGames.OxShell:drawable/baseline_close_24", "Cross"));
+            resources.put(R.drawable.baseline_hourglass_empty_24, new ResImage("com.OxGames.OxShell:drawable/baseline_hourglass_empty_24", "Hourglass Empty"));
         }
     }
 }
