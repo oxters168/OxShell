@@ -53,6 +53,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
             Player.Listener.super.onPlaybackStateChanged(playbackState);
             Log.d("MusicPlayer", "Exo playback state changed: " + playbackState);
             setTrackIndex(exo.getCurrentMediaItemIndex());
+            refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
         }
         @Override
@@ -60,6 +61,7 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
             Player.Listener.super.onMediaItemTransition(mediaItem, reason);
             Log.d("MusicPlayer", "Exo media item transitioned: " + reason);
             setTrackIndex(exo.getCurrentMediaItemIndex());
+            refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
         }
     };
@@ -96,12 +98,18 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         setPlaylist(0, trackLocs);
     }
     public static void setPlaylist(int startPos, DataRef... trackLocs) {
-        clearPlaylist();
         boolean hasTracks = trackLocs != null && trackLocs.length > 0;
         if (hasTracks) {
-            //MediaItem mediaItem = MediaItem.fromUri()
-            exo = new ExoPlayer.Builder(OxShellApp.getContext()).build();
             refs = trackLocs;
+
+            if (exo != null) {
+                exo.stop();
+                exo.clearMediaItems();
+            } else {
+                exo = new ExoPlayer.Builder(OxShellApp.getContext()).build();
+                exo.addListener(exoListener);
+            }
+
             for (DataRef trackLoc : trackLocs)
                 if (trackLoc.getLocType() == DataLocation.file)
                     exo.addMediaItem(MediaItem.fromUri((String)trackLoc.getLoc()));
@@ -110,13 +118,14 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
                 //playlist.add(AudioPool.from(trackLoc, 1)); // had to set pool size to 1 since some files had an issue if more than one was loaded (maybe waiting until all are prepped would be worth trying)
             exo.prepare();
             exo.seekTo(startPos, 0);
-            exo.addListener(exoListener);
             setTrackIndex(startPos);
             Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
             refreshMetadata();
-            prepareSession();
-            showNotification(false);
-        }
+            refreshNotificationAndSession(false);
+            //prepareSession();
+            //showNotification(false);
+        } else
+            clearPlaylist();
     }
     public static void clearPlaylist() {
 //        if (playlist.size() > 0 && getCurrentTrack().isAnyPlaying()) {
@@ -167,7 +176,8 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
             requestAudioFocus();
 
             setTrackIndex(index);
-            exo.seekTo(index, 0);
+            if (index != exo.getCurrentMediaItemIndex())
+                exo.seekTo(index, 0);
             if (!exo.isPlaying())
                 exo.play();
 //            AudioPool currentTrack = getCurrentTrack();
@@ -426,43 +436,20 @@ public class MusicPlayer {// extends MediaBrowserServiceCompat {
         }
     }
     private static void setSessionState(boolean isPlaying) {
+        if (session == null)
+            prepareSession();
         // source: https://android-developers.googleblog.com/2020/08/playing-nicely-with-media-controls.html
         session.setMetadata(new MediaMetadataCompat.Builder()
-                // Title.
                 .putString(MediaMetadata.METADATA_KEY_TITLE, currentTrackData.getTitle())
-                // Artist.
-                // Could also be the channel name or TV series.
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, currentTrackData.getArtist())
-                // Album art.
-                // Could also be a screenshot or hero image for video content
-                // The URI scheme needs to be "content", "file", or "android.resource".
                 .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentTrackData.getAlbumArt())
-                // Duration.
-                // If duration isn't set, such as for live broadcasts, then the progress
-                // indicator won't be shown on the seekbar.
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, getCurrentDuration())
                 .build());
         session.setPlaybackState(new PlaybackStateCompat.Builder()
                 .setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO)
                 .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, exo.getCurrentPosition(), 1.0f)
                 .build());
-//        getCurrentTrack().getCurrentPosition(position -> {
-//            Log.d("MusicPlayer", "Received position as " + position);
-////            PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
-////            playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO);
-////            playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f);
-////            session.setPlaybackState(playbackState.build());
-//            session.setPlaybackState(new PlaybackStateCompat.Builder()
-//                    .setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO)
-//                    .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, position, 1.0f)
-//                    .build());
-//        });
     }
-//    private static void setSessionButtons(PendingIntent prevButton, PendingIntent playButton, PendingIntent nextButton) {
-//        session.setMediaButtonReceiver(prevButton);
-//        session.setMediaButtonReceiver(playButton);
-//        session.setMediaButtonReceiver(nextButton);
-//    }
     private static void prepareSession() {
         session = new MediaSessionCompat(OxShellApp.getContext(), BuildConfig.APP_LABEL);
         session.setCallback(new MediaSessionCompat.Callback() {
