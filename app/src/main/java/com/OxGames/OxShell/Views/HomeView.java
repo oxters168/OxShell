@@ -283,7 +283,7 @@ public class HomeView extends XMBView implements Refreshable {
                     });
                     DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
                         // TODO: show some kind of error when input is invalid
-                        HomeItem musicHead = new HomeItem(HomeItem.Type.musicTree, "Music", DataRef.from(ResImage.get(R.drawable.ic_baseline_headphones_24).getId(), DataLocation.resource));
+                        HomeItem musicHead = new HomeItem(HomeItem.Type.musicTree, "Music", DataRef.from(ResImage.get(R.drawable.baseline_library_music_24).getId(), DataLocation.resource));
                         musicHead.addToDirsList(titleInput.getText());
                         getAdapter().createColumnAt(getAdapter().getColumnCount(), musicHead);
                         musicHead.reload(() -> {

@@ -1,10 +1,8 @@
 package com.OxGames.OxShell.Data;
 
-import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.util.Log;
 
 import androidx.core.content.ContextCompat;
@@ -12,21 +10,20 @@ import androidx.core.content.ContextCompat;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Interfaces.DirsCarrier;
-import com.OxGames.OxShell.Interfaces.QuadConsumer;
-import com.OxGames.OxShell.Interfaces.TriConsumer;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import kotlin.jvm.functions.Function2;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, addMusicFolder, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, placeholder, }
@@ -249,49 +246,87 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
 
             // sorted by folder by default
             List<XMBItem> innerMusic = new ArrayList<>();
+            class Track {
+                String trackName;
+                String trackPath;
+                int trackIndex;
+                Track(String trackPath, String name, int index) {
+                    this.trackPath = trackPath;
+                    this.trackName = name;
+                    this.trackIndex = index;
+                }
+            }
+            class Album {
+                String albumName;
+                String albumArtPath;
+                int year;
+                List<Track> tracks;
+                Album(String name, int year) {
+                    this.albumName = name;
+                    this.year = year;
+                    this.tracks = new ArrayList<>();
+                }
+                void addTrack(Track track) {
+                    tracks.add(track);
+                }
+            }
+            class Artist {
+                String artistName;
+                HashMap<String, Album> albums;
+                Artist(String name) {
+                    this.artistName = name;
+                    albums = new HashMap<>();
+                }
+                Album addOrGetAlbum(Album album) {
+                    if (!albums.containsKey(album.albumName))
+                        albums.put(album.albumName, album);
+                    return albums.get(album.albumName);
+                }
+            }
+            HashMap<String, Artist> artists = new HashMap<>();
             try {
-                // TODO: sort artists by name, sort albums by year, sort tracks by number
-                HashMap<String, HomeItem> albums = new HashMap<>();
-                HashMap<String, HomeItem> artists = new HashMap<>();
-                BiConsumer<String, HomeItem> placeIntoArtist = (artist, item) -> {
-                    if (!artists.containsKey(artist)) {
-                        HomeItem artistItem = new HomeItem(Type.musicArtist, artist, DataRef.from(ResImage.get(R.drawable.baseline_person_24).getId(), DataLocation.resource));
-                        artists.put(artist, artistItem);
-                        innerMusic.add(artistItem);
-                    }
-                    artists.get(artist).add(item);
-                };
-                QuadConsumer<Bitmap, String, String, HomeItem> placeIntoAlbum = (albumArt, artist, album, track) -> {
-                    if (!albums.containsKey(album)) {
-                        String albumArtPath = null;
-                        if (albumArt != null) {
-                            UUID uuid = UUID.randomUUID();
-                            AndroidHelpers.saveBitmapToFile(albumArt, albumArtPath = AndroidHelpers.combinePaths(Paths.HOME_ITEMS_DIR_INTERNAL, uuid.toString()));
-                            //Log.d("HomeItem", album + " has album art, saving to " + albumArtPath);
-                        }
-                        HomeItem albumItem = new HomeItem(Type.musicAlbum, album, DataRef.from(albumArtPath != null ? albumArtPath : ResImage.get(R.drawable.baseline_library_music_24).getId(), albumArtPath != null ? DataLocation.file : DataLocation.resource));
-                        albums.put(album, albumItem);
-                        placeIntoArtist.accept(artist, albumItem);
-                    }
-                    albums.get(album).add(track);
+                Function2<String, Metadata, String> getTrackName = (trackPath, metadata) -> metadata == null || metadata.getTitle() == null || metadata.getTitle().isEmpty() ? AndroidHelpers.removeExtension((new File(trackPath)).getName()) : metadata.getTitle();
+                Function<Metadata, String> getAlbumName = metadata -> metadata == null || metadata.getAlbum() == null || metadata.getAlbum().isEmpty() ? "Other" : metadata.getAlbum();
+                Function<Metadata, String> getArtistName = metadata -> metadata == null || metadata.getArtist() == null || metadata.getArtist().isEmpty() ? "Various Artists" : metadata.getArtist();
+                Function<String, Artist> addOrGetArtist = artistName -> {
+                    if (!artists.containsKey(artistName))
+                        artists.put(artistName, new Artist(artistName));
+                    return artists.get(artistName);
                 };
                 for (String trackPath : allMusicPaths) {
                     Thread.sleep(MathHelpers.calculateMillisForFps(30));
-                    //Log.d("HomeItem", "Looking into " + trackPath);
                     Metadata metadata = Metadata.getMediaMetadata(DataRef.from(trackPath, DataLocation.file));
-                    HomeItem track = new HomeItem(trackPath, Type.musicTrack, (metadata.getTitle() == null || metadata.getTitle().isEmpty()) ? AndroidHelpers.removeExtension((new File(trackPath)).getName()) : metadata.getTitle(), DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource));
-                    String artist = metadata.getArtist() == null || metadata.getArtist().isEmpty() ? "Various Artists" : metadata.getArtist();
-                    if (metadata.getAlbum() != null && !metadata.getAlbum().isEmpty()) {
-                        //Log.d("HomeItem", "Placing " + trackPath + " into album: " + metadata.getAlbum());
-                        placeIntoAlbum.accept(metadata.getAlbumArt(), artist, metadata.getAlbum(), track);
-                    } else {
-                        //Log.d("HomeItem", "Placing " + trackPath + " into artist: " + artist);
-                        placeIntoArtist.accept(artist, track);
+                    String artist = getArtistName.apply(metadata);
+                    int trackNum = -1;
+                    try {
+                        String firstPortion = metadata.getTrackNumber();
+                        if (firstPortion.contains("/"))
+                            firstPortion = firstPortion.substring(0, firstPortion.indexOf("/"));
+                        trackNum = Integer.parseInt(firstPortion);
+                    } catch (Exception e) {}
+                    int year = -1;
+                    try {
+                        year = Integer.parseInt(metadata.getYear());
+                    } catch (Exception e) {}
+                    Album album = addOrGetArtist.apply(artist).addOrGetAlbum(new Album(getAlbumName.apply(metadata), year));
+                    Log.d("HomeItem", artist + ", " + album.albumName + ", (" + metadata.getTrackNumber() + " => " + trackNum + "), " + year + ", " + trackPath);
+                    Bitmap albumArt;
+                    if (album.albumArtPath == null && (albumArt = metadata.getAlbumArt()) != null) {
+                        String albumArtPath = AndroidHelpers.combinePaths(Paths.HOME_ITEMS_DIR_INTERNAL, UUID.randomUUID().toString());
+                        AndroidHelpers.saveBitmapToFile(albumArt, albumArtPath);
+                        album.albumArtPath = albumArtPath;
                     }
+                    album.addTrack(new Track(trackPath, getTrackName.invoke(trackPath, metadata), trackNum));
                 }
             } catch (Exception e) {
                 Log.e("HomeItem", "Failed to read all music: " + e);
             }
+            innerMusic.addAll(
+                artists.values().stream().sorted(Comparator.comparing(artist -> artist.artistName)).map(artist ->
+                    new HomeItem(Type.musicArtist, artist.artistName, DataRef.from(ResImage.get(R.drawable.baseline_person_24).getId(), DataLocation.resource), artist.albums.values().stream().sorted(Comparator.comparingInt(album -> album.year)).map(album ->
+                        new HomeItem(Type.musicAlbum, album.albumName, DataRef.from(album.albumArtPath != null ? album.albumArtPath : ResImage.get(R.drawable.ic_baseline_hide_image_24).getId(), album.albumArtPath != null ? DataLocation.file : DataLocation.resource), album.tracks.stream().sorted(Comparator.comparingInt(track -> track.trackIndex)).map(track ->
+                            new HomeItem(track.trackPath, Type.musicTrack, track.trackName, DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource))).toArray(HomeItem[]::new))).toArray(HomeItem[]::new))).collect(Collectors.toList())
+            );
 
             //return innerMusic;
             OxShellApp.getCurrentActivity().runOnUiThread(() -> {
