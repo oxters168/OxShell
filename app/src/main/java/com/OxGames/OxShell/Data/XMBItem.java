@@ -22,6 +22,7 @@ public class XMBItem<T> implements Serializable {
     protected List<XMBItem> innerItems;
 
     protected transient Drawable icon;
+    private transient List<Runnable> valuesChangedListeners;
 
     public XMBItem(T _obj, String _title, DataRef _iconLoc, XMBItem... innerItems) {
         obj = _obj;
@@ -36,6 +37,27 @@ public class XMBItem<T> implements Serializable {
     }
     public XMBItem(T _obj, String _title, XMBItem... innerItems) {
         this(_obj, _title, null, innerItems);
+    }
+
+    public void addValuesChangedListener(Runnable listener) {
+        if (valuesChangedListeners == null)
+            valuesChangedListeners = new ArrayList<>();
+        valuesChangedListeners.add(listener);
+    }
+    public void removeValuesChangedListener(Runnable listener) {
+        if (valuesChangedListeners != null)
+            valuesChangedListeners.remove(listener);
+    }
+    public void clearValuesChangedListeners() {
+        if (valuesChangedListeners != null)
+            valuesChangedListeners.clear();
+    }
+    private void fireValuesChanged() {
+        OxShellApp.getCurrentActivity().runOnUiThread(() -> {
+            if (valuesChangedListeners != null)
+                for (Runnable listener : valuesChangedListeners)
+                    listener.run();
+        });
     }
 
     public void getIcon(Consumer<Drawable> onIconLoaded) {
@@ -63,6 +85,11 @@ public class XMBItem<T> implements Serializable {
                     innerItem.applyToInnerItems(action, true);
             }
         }
+    }
+    public void release() {
+        clearValuesChangedListeners();
+        clearImgCache();
+        clearInnerItemImgCache(true);
     }
     public void clearImgCache() {
         //Log.d("XMBItem", "Attempting to clear image of " + title);
@@ -113,9 +140,11 @@ public class XMBItem<T> implements Serializable {
     }
     public void setImgRef(DataRef imgRef) {
         iconLoc = imgRef;
+        fireValuesChanged();
     }
     public void setTitle(String title) {
         this.title = title;
+        fireValuesChanged();
     }
 
     public void add(int localIndex, XMBItem item) {

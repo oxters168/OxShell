@@ -357,15 +357,15 @@ public class AudioPool {
                             beingPrepped.add(player);
                             new Thread(() -> {
                                 try {
-                                    Log.d("AudioPool", "Preparing player for " + dataRef.getLoc());
+                                    //Log.d("AudioPool", "Preparing player for " + dataRef.getLoc());
                                     player.prepare();
                                     if (beingPrepped.contains(player)) {
-                                        Log.d("AudioPool", "Player prepared, placed into ready for " + dataRef.getLoc());
+                                        //Log.d("AudioPool", "Player prepared, placed into ready for " + dataRef.getLoc());
                                         // if its not in beingPrepped, that means its been 'cancelled'
                                         beingPrepped.remove(player);
                                         unusedPlayers.add(player);
                                     } else {
-                                        Log.d("AudioPool", "Player prepared, cancelled, already expected to be released for " + dataRef.getLoc());
+                                        //Log.d("AudioPool", "Player prepared, cancelled, already expected to be released for " + dataRef.getLoc());
                                         player.release();
                                     }
                                 } catch (Exception e) {

@@ -165,20 +165,13 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
     public class XMBViewHolder extends XMBView.ViewHolder {
         XMBItem prevItem;
-        public XMBViewHolder(@NonNull View itemView) {
-            super(itemView);
-        }
-        public void bindItem(XMBItem item) {
-            if (isDirty || item != prevItem || item == null) {
-                isDirty = false;
-                prevItem = item;
-
+        private final Runnable drawItem = () -> {
                 TextView title = itemView.findViewById(TITLE_ID);
                 title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
                 title.setSelected(true);
                 title.setTypeface(font);
                 //AndroidHelpers.setTextAsync(title, item != null ? item.getTitle() : "Empty");
-                title.setText(item != null ? item.getTitle() : "Empty");
+                title.setText(prevItem != null ? prevItem.getTitle() : "Empty");
 
                 //ImageView superIcon = itemView.findViewById(R.id.typeSuperIcon);
                 //superIcon.setVisibility(View.GONE);
@@ -187,10 +180,10 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 ImageView img = itemView.findViewById(ICON_ID);
                 ImageView highlight = itemView.findViewById(ICON_HIGHLIGHT_ID);
                 //Drawable icon = null;
-                if (item != null) {
+                if (prevItem != null) {
 //                img.setImageDrawable(QUESTION_MARK_DRAWABLE);
 //                highlight.setImageDrawable(QUESTION_MARK_DRAWABLE);
-                    item.getIcon((Consumer<Drawable>) drawable -> {
+                    prevItem.getIcon((Consumer<Drawable>) drawable -> {
                         if (drawable != null) {
                             //img.setBackground(drawable);
                             img.setImageDrawable(drawable);
@@ -209,6 +202,19 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 //if (isHighlighted())
                 //    Log.d("XMBAdapter", "Highlighting " + item.getTitle());
                 highlight.setVisibility(isHighlighted() ? View.VISIBLE : View.INVISIBLE);
+        };
+        public XMBViewHolder(@NonNull View itemView) {
+            super(itemView);
+        }
+        public void bindItem(XMBItem item) {
+            if (isDirty || item != prevItem || item == null) {
+                if (prevItem != null)
+                    prevItem.removeValuesChangedListener(drawItem);
+                if (item != null)
+                    item.addValuesChangedListener(drawItem);
+                isDirty = false;
+                prevItem = item;
+                drawItem.run();
             }
         }
     }
@@ -259,8 +265,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         if (localIndex > 0) {
             XMBItem toBeRemoved = items.get(columnIndex).getInnerItem(localIndex - 1);
             if (toBeRemoved != null) {
-                toBeRemoved.clearImgCache();
-                toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
+                //toBeRemoved.clearImgCache();
+                //toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
+                toBeRemoved.release();
             }
             items.get(columnIndex).remove(localIndex - 1);
             fireSubItemRemovedEvent(columnIndex, localIndex);
@@ -281,8 +288,9 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     public void removeColumnAt(int columnIndex) {
         XMBItem toBeRemoved = items.get(columnIndex);
         if (toBeRemoved != null) {
-            toBeRemoved.clearImgCache();
-            toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
+            //toBeRemoved.clearImgCache();
+            //toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
+            toBeRemoved.release();
         }
         items.remove(columnIndex);
         fireColumnRemovedEvent(columnIndex);
