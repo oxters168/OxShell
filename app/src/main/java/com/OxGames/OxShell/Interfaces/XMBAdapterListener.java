@@ -6,4 +6,5 @@ public interface XMBAdapterListener {
     void onColumnShifted(int fromColIndex, int toColIndex);
     void onSubItemAdded(int columnIndex, int localIndex);
     void onSubItemRemoved(int columnIndex, int localIndex);
+    void onInnerItemsChanged(Integer... position);
 }

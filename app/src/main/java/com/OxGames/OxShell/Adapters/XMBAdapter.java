@@ -30,8 +30,10 @@ import com.OxGames.OxShell.Views.BetterTextView;
 import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     private Context context;
@@ -134,6 +136,48 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     @Override
+    public Integer[] getPosition(Object item) {
+        List<Integer> position = new ArrayList<>();
+        Function<XMBItem, Boolean> findInnerItem = new Function<XMBItem, Boolean>() {
+            @Override
+            public Boolean apply(XMBItem entryPoint) {
+                boolean output = false;
+                for (int i = 0; i < entryPoint.getInnerItemCount(); i++) {
+                    XMBItem currentItem = entryPoint.getInnerItem(i);
+                    if (currentItem == item) {
+                        output = true;
+                        position.add(i);
+                        break;
+                    } else {
+                        output = apply(currentItem);
+                        if (output) {
+                            position.add(i);
+                            break;
+                        }
+                    }
+                }
+                return output;
+            }
+        };
+        for (int i = 0; i < items.size(); i++) {
+            XMBItem currentItem = items.get(i);
+            if (currentItem == item) {
+                position.add(i);
+                position.add(0);
+                break;
+            } else {
+                boolean foundItem = findInnerItem.apply(currentItem);
+                if (foundItem) {
+                    position.add(i);
+                    Collections.reverse(position);
+                    break;
+                }
+            }
+        }
+        return position.size() > 0 ? position.toArray(new Integer[0]) : null;
+    }
+
+    @Override
     public ArrayList<Object> getItems() {
         return new ArrayList<>(items);
     }
@@ -165,6 +209,13 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
 
     public class XMBViewHolder extends XMBView.ViewHolder {
         XMBItem prevItem;
+        private final Runnable requestXmbRedraw = () -> {
+            Integer[] position = getPosition(prevItem);
+            if (position != null)
+                fireInnerItemsChangedEvent(position);
+            else
+                Log.w("XMBAdapter", "Received inner items changed event for non-existent item");
+        };
         private final Runnable drawItem = () -> {
                 TextView title = itemView.findViewById(TITLE_ID);
                 title.setVisibility(isHideTitleRequested() ? View.GONE : View.VISIBLE);
@@ -208,10 +259,14 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         }
         public void bindItem(XMBItem item) {
             if (isDirty || item != prevItem || item == null) {
-                if (prevItem != null)
+                if (prevItem != null) {
                     prevItem.removeValuesChangedListener(drawItem);
-                if (item != null)
+                    prevItem.removeInnerItemsChangedListener(requestXmbRedraw);
+                }
+                if (item != null) {
                     item.addValuesChangedListener(drawItem);
+                    item.addInnerItemsChangedListener(requestXmbRedraw);
+                }
                 isDirty = false;
                 prevItem = item;
                 drawItem.run();
@@ -337,6 +392,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         for (XMBAdapterListener listener : listeners)
             if (listener != null)
                 listener.onColumnShifted(fromColIndex, toColIndex);
+    }
+    private void fireInnerItemsChangedEvent(Integer... position) {
+        for (XMBAdapterListener listener : listeners)
+            if (listener != null)
+                listener.onInnerItemsChanged(position);
     }
 
     private View createCatView() {

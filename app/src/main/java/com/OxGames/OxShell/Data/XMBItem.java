@@ -23,6 +23,7 @@ public class XMBItem<T> implements Serializable {
 
     protected transient Drawable icon;
     private transient List<Runnable> valuesChangedListeners;
+    private transient List<Runnable> innerItemsChangedListeners;
 
     public XMBItem(T _obj, String _title, DataRef _iconLoc, XMBItem... innerItems) {
         obj = _obj;
@@ -56,6 +57,26 @@ public class XMBItem<T> implements Serializable {
         OxShellApp.getCurrentActivity().runOnUiThread(() -> {
             if (valuesChangedListeners != null)
                 for (Runnable listener : valuesChangedListeners)
+                    listener.run();
+        });
+    }
+    public void addInnerItemsChangedListener(Runnable listener) {
+        if (innerItemsChangedListeners == null)
+            innerItemsChangedListeners = new ArrayList<>();
+        innerItemsChangedListeners.add(listener);
+    }
+    public void removeInnerItemsChangedListener(Runnable listener) {
+        if (innerItemsChangedListeners != null)
+            innerItemsChangedListeners.remove(listener);
+    }
+    public void clearInnerItemsChangedListeners() {
+        if (innerItemsChangedListeners != null)
+            innerItemsChangedListeners.clear();
+    }
+    private void fireInnerItemsChanged() {
+        OxShellApp.getCurrentActivity().runOnUiThread(() -> {
+            if (innerItemsChangedListeners != null)
+                for (Runnable listener : innerItemsChangedListeners)
                     listener.run();
         });
     }
@@ -150,15 +171,19 @@ public class XMBItem<T> implements Serializable {
 
     public void add(int localIndex, XMBItem item) {
         this.innerItems.add(localIndex, item);
+        fireInnerItemsChanged();
     }
     public void add(XMBItem item) {
         this.innerItems.add(item);
+        fireInnerItemsChanged();
     }
     public void remove(int localIndex) {
         this.innerItems.remove(localIndex);
+        fireInnerItemsChanged();
     }
     public void setInnerItems(XMBItem... innerItems) {
         this.innerItems = new ArrayList<>(Arrays.asList(innerItems));
+        fireInnerItemsChanged();
     }
     public boolean hasInnerItems() {
         return innerItems != null && innerItems.size() > 0;
@@ -173,8 +198,10 @@ public class XMBItem<T> implements Serializable {
         return innerItems.get(index);
     }
     public void clearInnerItems() {
-        if (innerItems != null)
+        if (innerItems != null) {
             innerItems.clear();
+            fireInnerItemsChanged();
+        }
     }
     public String getTitle() {
         return title;

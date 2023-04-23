@@ -180,9 +180,8 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             stopMusicTreeGen();
             clearImgCache();
             applyToInnerItems(XMBItem::release, false);
-            innerItems = new ArrayList<>();
             HomeItem loadingItem = new HomeItem(Type.placeholder, "Loading...", DataRef.from(ResImage.get(R.drawable.baseline_hourglass_empty_24).getId(), DataLocation.resource));
-            innerItems.add(loadingItem);
+            setInnerItems(loadingItem);
             musicGenThread = generateMusicTree((currentIndex, totalTracks, musicItems) -> {
                 int percent = Math.round((currentIndex / (float)(totalTracks - 1)) * 100);
                 loadingItem.setTitle("Loading (" + percent + "%)");

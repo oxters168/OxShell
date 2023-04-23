@@ -138,6 +138,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             //    getViewHolder(columnIndex, localIndex).setDirty();
             setViews(false, false);
         }
+        @Override
+        public void onInnerItemsChanged(Integer... position) {
+            setViews(false, false);
+        }
     };
 
     public XMBView(Context context) {
@@ -202,6 +206,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         public abstract int getColumnSize(int columnIndex);
         public abstract void onViewAttachedToWindow(@NonNull T holder);
         public abstract Object getItem(Integer... position);
+        public abstract Integer[] getPosition(Object item);
         public abstract ArrayList<Object> getItems();
         public abstract void setItems(ArrayList<Object> items);
         public abstract boolean hasInnerItems(Integer... position);
