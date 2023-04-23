@@ -832,29 +832,30 @@ public class HomeView extends XMBView implements Refreshable {
                     parentHomeItem = (HomeItem)parentItem;
                 boolean isNotSettings = homeItem == null || !HomeItem.isSetting(homeItem.type);
                 boolean isNotInnerSettings = homeItem == null || (homeItem.type != HomeItem.Type.nonDescriptSetting && !HomeItem.isInnerSettingType(homeItem.type));
+                boolean isPlaceholder = homeItem != null && homeItem.type == HomeItem.Type.placeholder;
 
                 ArrayList<SettingsDrawer.ContextBtn> btns = new ArrayList<>();
-                if (isNotInnerSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
+                if (!isPlaceholder && isNotInnerSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(moveItemBtn);
                 if (hasColumnHead && !isInnerItem)
                     btns.add(moveColumnBtn);
-                if ((homeItem != null && (homeItem.type == HomeItem.Type.assoc)) || (parentHomeItem != null && (parentHomeItem.type == HomeItem.Type.assoc)))
+                if (isNotSettings && ((homeItem != null && homeItem.isReloadable()) || (parentHomeItem != null && parentHomeItem.isReloadable())))
                     btns.add(reloadBtn);
                 if (!isInnerItem)
                     btns.add(createColumnBtn);
-                if (isNotInnerSettings)
+                if (!isPlaceholder && isNotInnerSettings)
                     btns.add(editItemBtn);
                 if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc || homeItem.type == HomeItem.Type.assocExe))
                     btns.add(editAssocBtn);
                 if (hasColumnHead && !isInnerItem)// && parentHomeItem == null)
                     btns.add(editColumnBtn);
-                if (isNotSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
+                if (!isPlaceholder && isNotSettings && !isInnerItem)// && (parentHomeItem == null || parentHomeItem.type != HomeItem.Type.assoc))
                     btns.add(deleteBtn);
                 if (isNotSettings && hasColumnHead && !isInnerItem)
                     btns.add(deleteColumnBtn);
                 if (homeItem != null && homeItem.type == HomeItem.Type.addAssoc)
                     btns.add(deleteAssocBtn);
-                if (isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && homeItem.type != HomeItem.Type.explorer)
+                if (!isPlaceholder && isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && homeItem.type != HomeItem.Type.explorer)
                     btns.add(uninstallBtn);
                 btns.add(cancelBtn);
 
@@ -1476,18 +1477,26 @@ public class HomeView extends XMBView implements Refreshable {
         for (int i = 0; i < parentPos.length; i++)
             parentPos[i] = position[i];
 
-        Object currentItem = getAdapter().getItem(position);
+        Runnable reloadCurrent = () -> {
+            Object currentItem = getAdapter().getItem(position);
+            if (currentItem instanceof HomeItem  && ((HomeItem)currentItem).isReloadable())
+                ((HomeItem) currentItem).reload(() -> {
+                    save(getItems());
+                    refresh();
+                });
+        };
+
         Object parentItem = getAdapter().getItem(parentPos);
-        if (currentItem instanceof HomeItem)
-            ((HomeItem)currentItem).reload(() -> {
+        if (parentItem instanceof HomeItem && ((HomeItem)parentItem).isReloadable()) {
+            ((HomeItem) parentItem).reload(() -> {
                 save(getItems());
                 refresh();
+
+                reloadCurrent.run();
             });
-        if (parentItem instanceof HomeItem)
-            ((HomeItem)parentItem).reload(() -> {
-                save(getItems());
-                refresh();
-            });
+        } else
+            reloadCurrent.run();
+
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn moveColumnBtn = new SettingsDrawer.ContextBtn("Move Column", () ->

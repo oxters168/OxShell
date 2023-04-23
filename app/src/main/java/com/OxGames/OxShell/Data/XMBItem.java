@@ -87,9 +87,10 @@ public class XMBItem<T> implements Serializable {
         }
     }
     public void release() {
+        applyToInnerItems(XMBItem::release, false); // this call is inherently recursive
         clearValuesChangedListeners();
         clearImgCache();
-        clearInnerItemImgCache(true);
+        //clearInnerItemImgCache(true);
     }
     public void clearImgCache() {
         //Log.d("XMBItem", "Attempting to clear image of " + title);

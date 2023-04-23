@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -154,8 +155,16 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     }
 
     private void stopMusicTreeGen() {
-        if (musicGenThread != null && musicGenThread.isAlive())
+        //Log.d("HomeItem", "Attempting to interrupt music gen for " + title);
+        if (musicGenThread != null && musicGenThread.isAlive()) {
+            Log.d("HomeItem", "Interrupting music gen for " + title);
             musicGenThread.interrupt();
+        } else
+            Log.d("HomeItem", "No music gen thread found for " + title);
+    }
+
+    public boolean isReloadable() {
+        return type == Type.assoc || type == Type.musicTree || type == Type.settings;
     }
     public void reload(Runnable onReloaded) {
         //Log.d("HomeItem", "reload " + title);
@@ -170,10 +179,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             //innerItemsLoaded = true;
             stopMusicTreeGen();
             clearImgCache();
-            applyToInnerItems(item -> {
-                item.clearImgCache();
-                item.clearValuesChangedListeners();
-            }, true);
+            applyToInnerItems(XMBItem::release, false);
             innerItems = new ArrayList<>();
             HomeItem loadingItem = new HomeItem(Type.placeholder, "Loading...", DataRef.from(ResImage.get(R.drawable.baseline_hourglass_empty_24).getId(), DataLocation.resource));
             innerItems.add(loadingItem);
@@ -181,6 +187,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 int percent = Math.round((currentIndex / (float)(totalTracks - 1)) * 100);
                 loadingItem.setTitle("Loading (" + percent + "%)");
                 if (musicItems != null) {
+                    musicGenThread = null;
                     innerItems = musicItems;
                     if (onReloaded != null)
                         onReloaded.run();
@@ -309,8 +316,18 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 }
             }
             HashMap<String, Artist> artists = new HashMap<>();
+            Runnable deleteAlbumArt = () -> {
+                // since music gen was interrupted, we are assuming the results will not be used
+                artists.values().forEach(artist -> artist.albums.values().forEach(album -> {
+                    if (album.albumArtPath != null) {
+                        //Log.d("HomeItem", "Deleting " + album.albumArtPath);
+                        ExplorerBehaviour.delete(album.albumArtPath);
+                    }
+                }));
+            };
             int trackIndex = 0;
             int totalTracks = allMusicPaths.size();
+            AtomicBoolean cancelled = new AtomicBoolean(false);
             try {
                 Function2<String, Metadata, String> getTrackName = (trackPath, metadata) -> metadata == null || metadata.getTitle() == null || metadata.getTitle().isEmpty() ? AndroidHelpers.removeExtension((new File(trackPath)).getName()) : metadata.getTitle();
                 Function<Metadata, String> getAlbumName = metadata -> metadata == null || metadata.getAlbum() == null || metadata.getAlbum().isEmpty() ? "Other" : metadata.getAlbum();
@@ -321,7 +338,8 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                     return artists.get(artistName);
                 };
                 for (; trackIndex < totalTracks; trackIndex++) {
-                    if (!Thread.interrupted()) {
+                    cancelled.set(Thread.interrupted());
+                    if (!cancelled.get()) {
                         if (onGenerated != null)
                             onGenerated.accept(trackIndex, totalTracks, null);
                         String trackPath = allMusicPaths.get(trackIndex);
@@ -353,26 +371,25 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 }
             } catch (Exception e) {
                 Log.e("HomeItem", "Failed to read all music: " + e);
-                // since music gen was interrupted, we are assuming the results will not be used
-                artists.values().forEach(artist -> artist.albums.values().forEach(album -> {
-                    if (album.albumArtPath != null) {
-                        //Log.d("HomeItem", "Deleting " + album.albumArtPath);
-                        ExplorerBehaviour.delete(album.albumArtPath);
-                    }
-                }));
+                cancelled.set(true);
+                deleteAlbumArt.run();
             }
-            if (!Thread.interrupted()) {
+            if (!cancelled.get()) {
+                Log.d("HomeItem", "Music gen thread sending back inner items since it was not interrupted");
                 innerMusic.addAll(
-                        artists.values().stream().sorted(Comparator.comparing(artist -> artist.artistName)).map(artist ->
-                                new HomeItem(Type.musicArtist, artist.artistName, DataRef.from(ResImage.get(R.drawable.baseline_person_24).getId(), DataLocation.resource), artist.albums.values().stream().sorted(Comparator.comparingInt(album -> album.year)).map(album ->
-                                        new HomeItem(Type.musicAlbum, album.albumName, DataRef.from(album.albumArtPath != null ? album.albumArtPath : ResImage.get(R.drawable.ic_baseline_hide_image_24).getId(), album.albumArtPath != null ? DataLocation.file : DataLocation.resource), album.tracks.stream().sorted(Comparator.comparingInt(track -> track.trackIndex)).map(track ->
-                                                new HomeItem(track.trackPath, Type.musicTrack, track.trackName, DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource))).toArray(HomeItem[]::new))).toArray(HomeItem[]::new))).collect(Collectors.toList())
+                    artists.values().stream().sorted(Comparator.comparing(artist -> artist.artistName)).map(artist ->
+                        new HomeItem(Type.musicArtist, artist.artistName, DataRef.from(ResImage.get(R.drawable.baseline_person_24).getId(), DataLocation.resource), artist.albums.values().stream().sorted(Comparator.comparingInt(album -> album.year)).map(album ->
+                        new HomeItem(Type.musicAlbum, album.albumName, DataRef.from(album.albumArtPath != null ? album.albumArtPath : ResImage.get(R.drawable.ic_baseline_hide_image_24).getId(), album.albumArtPath != null ? DataLocation.file : DataLocation.resource), album.tracks.stream().sorted(Comparator.comparingInt(track -> track.trackIndex)).map(track ->
+                        new HomeItem(track.trackPath, Type.musicTrack, track.trackName, DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource))).toArray(HomeItem[]::new))).toArray(HomeItem[]::new))).collect(Collectors.toList())
                 );
                 int returnIndex = trackIndex;
                 OxShellApp.getCurrentActivity().runOnUiThread(() -> {
                     if (onGenerated != null)
                         onGenerated.accept(returnIndex, totalTracks, innerMusic);
                 });
+            } else {
+                Log.d("HomeItem", "Music gen thread interrupted");
+                deleteAlbumArt.run();
             }
         });//.start();
     }
