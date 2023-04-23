@@ -56,8 +56,8 @@ public class XMBItem<T> implements Serializable {
     private void fireValuesChanged() {
         OxShellApp.getCurrentActivity().runOnUiThread(() -> {
             if (valuesChangedListeners != null)
-                for (Runnable listener : valuesChangedListeners)
-                    listener.run();
+                for (int i = 0; i < valuesChangedListeners.size(); i++)
+                    valuesChangedListeners.get(i).run();
         });
     }
     public void addInnerItemsChangedListener(Runnable listener) {
@@ -76,8 +76,8 @@ public class XMBItem<T> implements Serializable {
     private void fireInnerItemsChanged() {
         OxShellApp.getCurrentActivity().runOnUiThread(() -> {
             if (innerItemsChangedListeners != null)
-                for (Runnable listener : innerItemsChangedListeners)
-                    listener.run();
+                for (int i = 0; i < innerItemsChangedListeners.size(); i++)
+                    innerItemsChangedListeners.get(i).run();
         });
     }
 

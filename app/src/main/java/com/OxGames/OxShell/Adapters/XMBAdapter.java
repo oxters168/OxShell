@@ -290,11 +290,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         //XMBItem toBeMoved = items.get(toBeMovedColIndex).getInnerItem(toBeMovedLocalIndex - 1);
         XMBItem toBeMoved = (XMBItem)getItem(toBeMovedColIndex, toBeMovedLocalIndex);
         if (createColumn) {
-            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex);
+            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex, false);
             createColumnAt(moveToColIndex, toBeMoved);
         } else {
             addSubItem(moveToColIndex, moveToLocalIndex, toBeMoved);
-            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex);
+            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex, false);
         }
     }
     @Override
@@ -315,11 +315,14 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public void removeSubItem(int columnIndex, int localIndex) {
+        removeSubItem(columnIndex, localIndex, true);
+    }
+    private void removeSubItem(int columnIndex, int localIndex, boolean dispose) {
         //Log.d("XMBAdapter", "Attempting to remove sub item from [" + columnIndex + ", " + localIndex + "]");
         // the local index is expected to be 0 for the column head then anything greater is an inner item, and since they are in a list of their own, we need to subtract by 1 to account for that
         if (localIndex > 0) {
             XMBItem toBeRemoved = items.get(columnIndex).getInnerItem(localIndex - 1);
-            if (toBeRemoved != null) {
+            if (toBeRemoved != null && dispose) {
                 //toBeRemoved.clearImgCache();
                 //toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
                 toBeRemoved.release();
@@ -328,7 +331,7 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
             fireSubItemRemovedEvent(columnIndex, localIndex);
         }
         if (localIndex == 0)
-            removeColumnAt(columnIndex);
+            removeColumnAt(columnIndex, dispose);
             //removeColIfEmpty(columnIndex);
     }
     @Override
@@ -341,8 +344,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public void removeColumnAt(int columnIndex) {
+        removeColumnAt(columnIndex, true);
+    }
+    private void removeColumnAt(int columnIndex, boolean dispose) {
         XMBItem toBeRemoved = items.get(columnIndex);
-        if (toBeRemoved != null) {
+        if (toBeRemoved != null && dispose) {
             //toBeRemoved.clearImgCache();
             //toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
             toBeRemoved.release();
@@ -351,23 +357,24 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         fireColumnRemovedEvent(columnIndex);
     }
 
-    @Override
-    public void shiftColumnTo(int fromColIndex, int toColIndex) {
-        XMBItem origItems = items.get(fromColIndex);
-        if (toColIndex > fromColIndex) {
-            items.add(toColIndex + 1, origItems);
-            items.remove(fromColIndex);
-        } else {
-            items.remove(fromColIndex);
-            items.add(toColIndex, origItems);
-        }
-        fireColumnShiftedEvent(fromColIndex, toColIndex);
-    }
+//    @Override
+//    public void shiftColumnTo(int fromColIndex, int toColIndex) {
+//        Log.d("XMBAdapter", "Shifting " + fromColIndex + " => " + toColIndex);
+//        XMBItem origItems = items.get(fromColIndex);
+//        if (toColIndex > fromColIndex) {
+//            items.add(toColIndex + 1, origItems);
+//            items.remove(fromColIndex);
+//        } else {
+//            items.remove(fromColIndex);
+//            items.add(toColIndex, origItems);
+//        }
+//        fireColumnShiftedEvent(fromColIndex, toColIndex);
+//    }
 
-    private void removeColIfEmpty(int columnIndex) {
-        if (items.get(columnIndex).getInnerItemCount() <= 0)
-            removeColumnAt(columnIndex);
-    }
+//    private void removeColIfEmpty(int columnIndex) {
+//        if (items.get(columnIndex).getInnerItemCount() <= 0)
+//            removeColumnAt(columnIndex);
+//    }
     private void fireColumnAddedEvent(int columnIndex) {
         for (XMBAdapterListener listener : listeners)
             if (listener != null)

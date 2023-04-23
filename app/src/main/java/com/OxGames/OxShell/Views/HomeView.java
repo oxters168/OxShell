@@ -915,7 +915,7 @@ public class HomeView extends XMBView implements Refreshable {
 
     @Override
     public void refresh() {
-        //Log.d("HomeView", "Refreshing home view");
+        Log.d("HomeView", "Refreshing home view");
 //        Consumer<ArrayList<ArrayList<XMBItem>>> prosumer = items -> {
 //
 ////            createSettingsColumn(settings -> {

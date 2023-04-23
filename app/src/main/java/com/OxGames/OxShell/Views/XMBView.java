@@ -221,7 +221,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         public abstract void removeSubItem(int columnIndex, int localIndex);
         public abstract void createColumnAt(int columnIndex, Object head);
         public abstract void removeColumnAt(int columnIndex);
-        public abstract void shiftColumnTo(int fromColIndex, int toColIndex);
+        //public abstract void shiftColumnTo(int fromColIndex, int toColIndex);
     }
     public abstract static class ViewHolder {
         protected View itemView;

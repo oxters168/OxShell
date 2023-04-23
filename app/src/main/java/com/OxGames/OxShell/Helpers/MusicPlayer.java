@@ -117,7 +117,7 @@ public class MusicPlayer {
         play(trackIndex);
     }
     public static void play(int index) {
-        if (exo.getMediaItemCount() > 0) {
+        if (exo != null && exo.getMediaItemCount() > 0) {
             requestAudioFocus();
 
             setTrackIndex(index);
