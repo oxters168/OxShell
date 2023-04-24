@@ -892,6 +892,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 continue;
             // start from one since the 0th item will always be the column head
             for (int itemRowIndex = 1; itemRowIndex < adapter.getColumnSize(itemColIndex) + 1; itemRowIndex++) {
+                //Log.d("XMBView", "Checking [" + itemColIndex + ", " + itemRowIndex + "]");
                 calcItemRect(startXInt, startYInt, horShiftOffsetInt, verShiftOffsetInt, itemColIndex, itemRowIndex, reusableRect);
 
                 boolean inBounds = inView(reusableRect, viewWidth, viewHeight);
@@ -918,12 +919,6 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     drawInnerItems(usedHashes, instant, currentEntry, itemColIndex, itemRowIndex);
     }
     private void drawInnerItems(List<Integer> usedHashes, boolean instant, Integer[] currentEntry, Integer... position) {
-        // the issue with the app list staying after leaving 'add app to home' item after adding item to home
-        // when an item is added to home, the items get saved, when they are saved, settings are cleared
-        // when the settings are cleared, 'add app to home' does not have inner items anymore
-        // so because 'add app to home' does not have inner items anymore, we cannot traverse them to return them
-        // I believe a good solution could be to go through all items get all their hashes, then get all used views hashes
-        // check which used view hashes do not exist anymore and remove them
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         Integer[] innerPosition = Arrays.copyOf(position, position.length + 1);
@@ -962,11 +957,16 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         ViewHolder viewHolder = getViewHolder(itemPosition);
         boolean isCat = itemPosition.length == 2 && itemPosition[1] == 0;
         boolean isInnerItem = itemPosition.length > 2;
-        //if (isInnerItem)
-        //    Log.d("XMBView", "Drawing " + Arrays.toString(itemPosition));
+//        if (isInnerItem)
+//            Log.d("XMBView", "Drawing inner item " + Arrays.toString(itemPosition));
+//        else if (isCat)
+//            Log.d("XMBView", "Drawing cat " + Arrays.toString(itemPosition));
+//        else
+//            Log.d("XMBView", "Drawing sub item " + Arrays.toString(itemPosition));
         viewHolder.setX(itemBounds.left);
         viewHolder.setY(itemBounds.top);
         Integer[] currentPosition = getPosition();
+        //Log.d("XMBView", "Comparing " + Arrays.toString(currentPosition) + " to " + Arrays.toString(itemPosition));
         boolean isSelection = isSamePosition(currentPosition, itemPosition);//getTotalIndexFromTraversable(currentIndex) == totalIndex;
         boolean isPartOfPosition = isPartOfPosition(currentPosition, itemPosition);
         // set z positions
@@ -1022,7 +1022,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             return false;
         else
             for (int i = 0; i < position.length; i++)
-                if (position[i] != position2[i])
+                if (!position[i].equals(position2[i]))
                     return false;
         return true;
     }
@@ -1031,7 +1031,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             return false;
         else
             for (int i = 0; i < part.length; i++)
-                if (fullPosition[i] != part[i])
+                if (!fullPosition[i].equals(part[i]))
                     return false;
         return true;
     }

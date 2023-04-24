@@ -214,6 +214,7 @@ public class HomeView extends XMBView implements Refreshable {
         playMoveSfx();
 
         if (!isInMoveMode()) {
+            Log.d("HomeView", "Pressed on item with " + ((XMBItem)getSelectedItem()).getInnerItemCount() + " inner item(s)");
             if (getSelectedItem() instanceof HomeItem) {
                 HomeItem selectedItem = (HomeItem)getSelectedItem();
                 //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");

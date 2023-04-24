@@ -173,10 +173,11 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     private void stopMusicTreeGen() {
         //Log.d("HomeItem", "Attempting to interrupt music gen for " + title);
         if (musicGenThread != null && musicGenThread.isAlive()) {
-            Log.d("HomeItem", "Interrupting music gen for " + title);
+            //Log.d("HomeItem", "Interrupting music gen for " + title);
             musicGenThread.interrupt();
-        } else
-            Log.d("HomeItem", "No music gen thread found for " + title);
+        }
+        //else
+        //    Log.d("HomeItem", "No music gen thread found for " + title);
     }
 
     public boolean isReloadable() {
@@ -332,6 +333,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             }
             HashMap<String, Artist> artists = new HashMap<>();
             Runnable deleteAlbumArt = () -> {
+                Log.d("HomeItem", "Music gen thread interrupted, deleting album art");
                 // since music gen was interrupted, we are assuming the results will not be used
                 artists.values().forEach(artist -> artist.albums.values().forEach(album -> {
                     if (album.albumArtPath != null) {
@@ -403,7 +405,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                         onGenerated.accept(returnIndex, totalTracks, innerMusic);
                 });
             } else {
-                Log.d("HomeItem", "Music gen thread interrupted");
+                //Log.d("HomeItem", "Music gen thread interrupted");
                 deleteAlbumArt.run();
             }
         });//.start();
