@@ -424,7 +424,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         innerSettings.add(new HomeItem(Type.addExplorer, "Add explorer item to home"));
         innerSettings.add(new HomeItem(Type.addAppOuter, "Add application to home"));
         innerSettings.add(new HomeItem(Type.addMusicFolder, "Add music from directory to home"));
-        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Home", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Home", DataRef.from(ResImage.get(R.drawable.ic_baseline_home_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
@@ -433,12 +433,12 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         innerSettings.add(new HomeItem(Type.setUiScale, "Change UI scale"));
         if (!AndroidHelpers.isRunningOnTV())
             innerSettings.add(new HomeItem(Type.setSystemUi, "Change system UI visibility"));
-        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Display", DataRef.from("ic_baseline_image_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Display", DataRef.from(ResImage.get(R.drawable.ic_baseline_image_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerSettings.add(new HomeItem(Type.setAudioVolume, "Set volume levels"));
-        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Audio", DataRef.from("ic_baseline_headphones_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Audio", DataRef.from(ResImage.get(R.drawable.ic_baseline_headphones_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
@@ -452,30 +452,38 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_LEFT, Type.setControls, "Change navigate left input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.NAVIGATE_RIGHT, Type.setControls, "Change navigate right input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.SHOW_DEBUG_INPUT, Type.setControls, "Change show debug view input"));
-        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "General", DataRef.from("ic_baseline_home_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "General", DataRef.from(ResImage.get(R.drawable.ic_baseline_home_24).getId(), DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerInnerSettings.clear();
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_TOGGLE_PLAY_INPUT, Type.setControls, "Change play/pause input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_STOP_INPUT, Type.setControls, "Change stop input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_SKIP_NEXT_INPUT, Type.setControls, "Change skip to next input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_SKIP_PREV_INPUT, Type.setControls, "Change skip to previous input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_SEEK_FORWARD_INPUT, Type.setControls, "Change seek forward input"));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_SEEK_BACK_INPUT, Type.setControls, "Change seek back input"));
+        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "Music Player", DataRef.from(ResImage.get(R.drawable.ic_baseline_headphones_24).getId(), DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         innerInnerSettings.clear();
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, Type.setControls, "Change go up input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, Type.setControls, "Change go back input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_HIGHLIGHT_INPUT, Type.setControls, "Change highlight input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_EXIT_INPUT, Type.setControls, "Change exit input"));
-        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "File Explorer", DataRef.from("ic_baseline_source_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "File Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         innerInnerSettings.clear();
         innerInnerSettings.add(new HomeItem(SettingsKeeper.HOME_COMBOS, Type.setControls, "Change go home input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.RECENTS_COMBOS, Type.setControls, "Change view recent apps input"));
-        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "Android System", DataRef.from("baseline_adb_24", DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
-        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Controls", DataRef.from("ic_baseline_games_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "Android System", DataRef.from(ResImage.get(R.drawable.baseline_adb_24).getId(), DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Controls", DataRef.from(ResImage.get(R.drawable.ic_baseline_games_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerSettings.add(new HomeItem(Type.addAssocOuter, "Add association to home"));
         innerSettings.add(new HomeItem(Type.createAssoc, "Create new association"));
-        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Associations", DataRef.from("ic_baseline_send_time_extension_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Associations", DataRef.from(ResImage.get(R.drawable.ic_baseline_send_time_extension_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
         innerSettings.clear();
         innerSettings.add(new HomeItem(Type.appInfo, "App info"));
         innerSettings.add(new HomeItem(Type.saveLogs, "Save logs to file"));
-        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "About", DataRef.from("baseline_info_24", DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
+        currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "About", DataRef.from(ResImage.get(R.drawable.baseline_info_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
         return settingsItems;
     }
