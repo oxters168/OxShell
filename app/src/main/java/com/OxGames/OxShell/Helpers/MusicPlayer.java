@@ -164,13 +164,10 @@ public class MusicPlayer {
     }
 
     private static void setTrackIndex(int index) {
-        trackIndex = clampTrackIndex(index);
-    }
-    private static int clampTrackIndex(int index) {
-        return Math.min(Math.max(0, index), exo.getMediaItemCount() - 1);
+        trackIndex = MathHelpers.clamp(index, 0, exo.getMediaItemCount() - 1);
     }
     private static DataRef getCurrentDataRef() {
-        return refs[exo.getCurrentMediaItemIndex()];
+        return refs[MathHelpers.clamp(exo.getCurrentMediaItemIndex(), 0, refs.length - 1)];
     }
     private static void refreshMetadata() {
         currentTrackData = Metadata.getMediaMetadata(getCurrentDataRef());

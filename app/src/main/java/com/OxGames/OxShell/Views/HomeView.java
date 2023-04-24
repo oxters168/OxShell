@@ -214,7 +214,7 @@ public class HomeView extends XMBView implements Refreshable {
         playMoveSfx();
 
         if (!isInMoveMode()) {
-            Log.d("HomeView", "Pressed on item with " + ((XMBItem)getSelectedItem()).getInnerItemCount() + " inner item(s)");
+            //Log.d("HomeView", "Pressed on item with " + ((XMBItem)getSelectedItem()).getInnerItemCount() + " inner item(s)");
             if (getSelectedItem() instanceof HomeItem) {
                 HomeItem selectedItem = (HomeItem)getSelectedItem();
                 //Log.d("HomeView", currentIndex + " selected " + selectedItem.title + " @(" + selectedItem.colIndex + ", " + selectedItem.localIndex + ")");
@@ -230,20 +230,31 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.musicTrack) {
                     Integer[] position = getPosition();
                     int initialPos = position[position.length - 1];
-                    Integer[] parent = new Integer[position.length - 1];
-                    for (int i = 0; i < parent.length; i++)
-                        parent[i] = position[i];
-                    int count = getAdapter().getInnerItemCount(parent);
                     List<DataRef> trackLocs = new ArrayList<>();
-                    for (int i = 0; i < count; i++) {
-                        position[position.length - 1] = i;
-                        Object item = getAdapter().getItem(position);
-                        if (item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.musicTrack) {
-                            if (i == initialPos) // this should be fine since we are ++ and we can only be losing items, not gaining
-                                initialPos = trackLocs.size(); // so it should only set once and it will either be the same or a lesser than value
-                            trackLocs.add(DataRef.from((String)((HomeItem)item).obj, DataLocation.file));
+                    if (position.length > 2 || position[1] != 0) {
+                        Integer[] parent;
+                        if (position.length > 2) {
+                            parent = new Integer[position.length - 1];
+                            for (int i = 0; i < parent.length; i++)
+                                parent[i] = position[i];
+                        } else {
+                            parent = new Integer[2];
+                            parent[0] = position[0];
+                            parent[1] = 0;
                         }
-                    }
+                        int count = position.length > 2 ? getAdapter().getInnerItemCount(parent) : getAdapter().getColumnSize(parent[0]);
+                        //List<DataRef> trackLocs = new ArrayList<>();
+                        for (int i = position.length > 2 ? 0 : 1; i < count + (position.length > 2 ? 0 : 1); i++) {
+                            position[position.length - 1] = i;
+                            Object item = getAdapter().getItem(position);
+                            if (item instanceof HomeItem && ((HomeItem) item).type == HomeItem.Type.musicTrack) {
+                                if (i == initialPos) // this should be fine since we are ++ and we can only be losing items, not gaining
+                                    initialPos = trackLocs.size(); // so it should only set once and it will either be the same or a lesser than value
+                                trackLocs.add(DataRef.from(((HomeItem)item).obj, DataLocation.file));
+                            }
+                        }
+                    } else
+                        trackLocs.add(DataRef.from(selectedItem.obj, DataLocation.file));
                     //String trackPath = (String)selectedItem.obj;
                     //AudioPool.fromFile(trackPath, 1).play(false);
                     MusicPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));

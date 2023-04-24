@@ -40,4 +40,7 @@ public class MathHelpers {
     public static float roundTo(float value, int places) {
         return (float)roundTo((double)value, places);
     }
+    public static int clamp(int value, int min, int max) {
+        return Math.min(Math.max(min, value), max);
+    }
 }
