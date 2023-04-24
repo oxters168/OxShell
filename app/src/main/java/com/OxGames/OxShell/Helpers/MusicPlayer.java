@@ -114,6 +114,12 @@ public class MusicPlayer {
         releaseSession();
     }
 
+    public static void togglePlay() {
+        if (isPlaying())
+            pause();
+        else
+            play();
+    }
     public static void play() {
         play(trackIndex);
     }
@@ -137,15 +143,23 @@ public class MusicPlayer {
         return exo != null && exo.isPlaying();
     }
     public static void seekToNext() {
-        if (exo != null)
+        if (exo != null) {
             exo.seekToNext();
-        else
+
+            setTrackIndex(exo.getPreviousMediaItemIndex());
+            refreshMetadata();
+            refreshNotificationAndSession(exo.isPlaying());
+        } else
             Log.e("MusicPlayer", "Failed to seek to next, exoplayer is null");
     }
     public static void seekToPrev() {
-        if (exo != null)
+        if (exo != null) {
             exo.seekToPrevious();
-        else
+
+            setTrackIndex(exo.getPreviousMediaItemIndex());
+            refreshMetadata();
+            refreshNotificationAndSession(exo.isPlaying());
+        } else
             Log.e("MusicPlayer", "Failed to seek to previous, exoplayer is null");
     }
     public static void pause() {
@@ -160,21 +174,24 @@ public class MusicPlayer {
         clearPlaylist();
     }
     public static void seekTo(long ms) {
-        if (exo != null)
+        if (exo != null) {
             exo.seekTo(ms);
-        else
+            refreshNotificationAndSession(isPlaying());
+        } else
             Log.e("MusicPlayer", "Failed to seek, exoplayer is null");
     }
     public static void seekForward() {
-        if (exo != null)
+        if (exo != null) {
             exo.seekForward();
-        else
+            refreshNotificationAndSession(isPlaying());
+        } else
             Log.e("MusicPlayer", "Failed to seek forward, exoplayer is null");
     }
     public static void seekBack() {
-        if (exo != null)
+        if (exo != null) {
             exo.seekBack();
-        else
+            refreshNotificationAndSession(isPlaying());
+        } else
             Log.e("MusicPlayer", "Failed to seek back, exoplayer is null");
     }
     public static void setVolume(float value) {

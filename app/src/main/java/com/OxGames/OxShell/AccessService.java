@@ -10,6 +10,7 @@ import android.view.accessibility.AccessibilityEvent;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.InputHandler;
+import com.OxGames.OxShell.Helpers.MusicPlayer;
 
 import java.util.Arrays;
 
@@ -32,6 +33,12 @@ public class AccessService extends AccessibilityService {
             instance.inputHandler.clearKeyComboActions();
             instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
             instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::togglePlay)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::stop)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToNext)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekForward)).toArray(KeyComboAction[]::new));
+            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekBack)).toArray(KeyComboAction[]::new));
             //}
         }
     }

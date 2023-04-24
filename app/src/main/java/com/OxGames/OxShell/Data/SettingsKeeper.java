@@ -31,6 +31,12 @@ public class SettingsKeeper {
     public static final String EXPLORER_GO_UP_INPUT = "explorer_go_up_input";
     public static final String EXPLORER_GO_BACK_INPUT = "explorer_go_back_input";
     public static final String EXPLORER_EXIT_INPUT = "explorer_exit_input";
+    public static final String MUSIC_PLAYER_TOGGLE_PLAY_INPUT = "music_player_toggle_play_input";
+    public static final String MUSIC_PLAYER_STOP_INPUT = "music_player_stop_input";
+    public static final String MUSIC_PLAYER_SKIP_NEXT_INPUT = "music_player_skip_next_input";
+    public static final String MUSIC_PLAYER_SKIP_PREV_INPUT = "music_player_skip_prev_input";
+    public static final String MUSIC_PLAYER_SEEK_FORWARD_INPUT = "music_player_seek_forward_input";
+    public static final String MUSIC_PLAYER_SEEK_BACK_INPUT = "music_player_seek_back_input";
     public static final String NAVIGATE_UP = "navigate_up";
     public static final String NAVIGATE_DOWN = "navigate_down";
     public static final String NAVIGATE_LEFT = "navigate_left";
@@ -296,6 +302,18 @@ public class SettingsKeeper {
                 return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_B) };
             case (EXPLORER_EXIT_INPUT):
                 return new KeyCombo[] { KeyCombo.createUpCombo(false, KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK) };
+            case (MUSIC_PLAYER_TOGGLE_PLAY_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_A) };
+            case (MUSIC_PLAYER_STOP_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_Y) };
+            case (MUSIC_PLAYER_SKIP_NEXT_INPUT):
+                return new KeyCombo[] { KeyCombo.createDownCombo(KeyCombo.longHoldTime, KeyCombo.longHoldTime, KeyCombo.longHoldTime, true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_B) };
+            case (MUSIC_PLAYER_SKIP_PREV_INPUT):
+                return new KeyCombo[] { KeyCombo.createDownCombo(KeyCombo.longHoldTime, KeyCombo.longHoldTime, KeyCombo.longHoldTime, true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_X) };
+            case (MUSIC_PLAYER_SEEK_FORWARD_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_B) };
+            case (MUSIC_PLAYER_SEEK_BACK_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_X) };
             case (CANCEL_INPUT):
                 return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_B), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ESCAPE) };
             case (HOME_COMBOS):
@@ -363,6 +381,48 @@ public class SettingsKeeper {
             setValueAndSave(EXPLORER_EXIT_INPUT, getDefaultInputValueFor(EXPLORER_EXIT_INPUT));
 
         return ((KeyCombo[])getValue(EXPLORER_EXIT_INPUT));
+    }
+    public static KeyCombo[] getMusicPlayerTogglePlayInput() {
+        // create default if not existing
+        if (!hasValue(MUSIC_PLAYER_TOGGLE_PLAY_INPUT))
+            setValueAndSave(MUSIC_PLAYER_TOGGLE_PLAY_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_TOGGLE_PLAY_INPUT));
+
+        return ((KeyCombo[])getValue(MUSIC_PLAYER_TOGGLE_PLAY_INPUT));
+    }
+    public static KeyCombo[] getMusicPlayerStopInput() {
+        // create default if not existing
+        if (!hasValue(MUSIC_PLAYER_STOP_INPUT))
+            setValueAndSave(MUSIC_PLAYER_STOP_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_STOP_INPUT));
+
+        return ((KeyCombo[])getValue(MUSIC_PLAYER_STOP_INPUT));
+    }
+    public static KeyCombo[] getMusicPlayerSkipNextInput() {
+        // create default if not existing
+        if (!hasValue(MUSIC_PLAYER_SKIP_NEXT_INPUT))
+            setValueAndSave(MUSIC_PLAYER_SKIP_NEXT_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_SKIP_NEXT_INPUT));
+
+        return ((KeyCombo[])getValue(MUSIC_PLAYER_SKIP_NEXT_INPUT));
+    }
+    public static KeyCombo[] getMusicPlayerSkipPrevInput() {
+        // create default if not existing
+        if (!hasValue(MUSIC_PLAYER_SKIP_PREV_INPUT))
+            setValueAndSave(MUSIC_PLAYER_SKIP_PREV_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_SKIP_PREV_INPUT));
+
+        return ((KeyCombo[])getValue(MUSIC_PLAYER_SKIP_PREV_INPUT));
+    }
+    public static KeyCombo[] getMusicPlayerSeekForwardInput() {
+        // create default if not existing
+        if (!hasValue(MUSIC_PLAYER_SEEK_FORWARD_INPUT))
+            setValueAndSave(MUSIC_PLAYER_SEEK_FORWARD_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_SEEK_FORWARD_INPUT));
+
+        return ((KeyCombo[])getValue(MUSIC_PLAYER_SEEK_FORWARD_INPUT));
+    }
+    public static KeyCombo[] getMusicPlayerSeekBackInput() {
+        // create default if not existing
+        if (!hasValue(MUSIC_PLAYER_SEEK_BACK_INPUT))
+            setValueAndSave(MUSIC_PLAYER_SEEK_BACK_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_SEEK_BACK_INPUT));
+
+        return ((KeyCombo[])getValue(MUSIC_PLAYER_SEEK_BACK_INPUT));
     }
     public static KeyCombo[] getCancelInput() {
         // create default if not existing

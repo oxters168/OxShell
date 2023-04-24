@@ -7,9 +7,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 public class KeyCombo implements Serializable {
-    public static final int shortHoldTime = 50;
-    public static final int mediumHoldTime = 100;
-    public static final int longHoldTime = 150;
+    public static final int shortHoldTime = 200;
+    public static final int mediumHoldTime = 400;
+    public static final int longHoldTime = 800;
     private static HashMap<String, Integer> allKeyCodesStringMap;
     private static HashMap<Integer, String> allKeyCodesIntMap;
     public static final int defaultRepeatStartDelay = 200;

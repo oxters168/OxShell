@@ -783,6 +783,7 @@ public class HomeView extends XMBView implements Refreshable {
                         if (OxShellApp.getCurrentActivity() instanceof HomeActivity)
                             ((HomeActivity)OxShellApp.getCurrentActivity()).refreshXMBInput();
                         OxShellApp.getCurrentActivity().refreshAccessibilityInput();
+                        OxShellApp.getCurrentActivity().refreshMusicPlayerInput();
                         OxShellApp.getCurrentActivity().refreshShowDebugInput();
                         AccessService.refreshInputCombos();
                     }, SettingsKeeper.getSuperPrimaryInput());

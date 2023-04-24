@@ -30,6 +30,7 @@ import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
+import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.OxGames.OxShell.Views.DebugView;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
@@ -146,6 +147,7 @@ public class PagedActivity extends AppCompatActivity {
     //private boolean isKeyboardShown;
     //private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
     private List<KeyComboAction> accessPopupComboActions;
+    private List<KeyComboAction> musicPlayerActions;
     KeyComboAction[] showDebugAction;
 
     private static final String homeAccessMsg = "Please enable Ox Shell as an accessibility service. Ox Shell uses your key presses to let you go home even when the app is not in use.";//"Ox Shell needs accessibility permission in order to go home when pressing this key combo";
@@ -179,6 +181,42 @@ public class PagedActivity extends AppCompatActivity {
         OxShellApp.getInputHandler().addKeyComboActions(recentsComboAction);
         OxShellApp.getInputHandler().addKeyComboActions(homeComboAction);
     }
+    public void refreshMusicPlayerInput() {
+        if (musicPlayerActions != null)
+            OxShellApp.getInputHandler().removeKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
+        KeyComboAction[] musicTogglePlayAction = Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (!AccessService.isEnabled())
+                MusicPlayer.togglePlay();
+        })).toArray(KeyComboAction[]::new);
+        KeyComboAction[] musicStopAction = Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (!AccessService.isEnabled())
+                MusicPlayer.stop();
+        })).toArray(KeyComboAction[]::new);
+        KeyComboAction[] musicSkipNextAction = Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (!AccessService.isEnabled())
+                MusicPlayer.seekToNext();
+        })).toArray(KeyComboAction[]::new);
+        KeyComboAction[] musicSkipPrevAction = Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (!AccessService.isEnabled())
+                MusicPlayer.seekToPrev();
+        })).toArray(KeyComboAction[]::new);
+        KeyComboAction[] musicSeekForwardAction = Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (!AccessService.isEnabled())
+                MusicPlayer.seekForward();
+        })).toArray(KeyComboAction[]::new);
+        KeyComboAction[] musicSeekBackAction = Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, () -> {
+            if (!AccessService.isEnabled())
+                MusicPlayer.seekBack();
+        })).toArray(KeyComboAction[]::new);
+        musicPlayerActions = new ArrayList<>();
+        Collections.addAll(musicPlayerActions, musicTogglePlayAction);
+        Collections.addAll(musicPlayerActions, musicStopAction);
+        Collections.addAll(musicPlayerActions, musicSkipNextAction);
+        Collections.addAll(musicPlayerActions, musicSkipPrevAction);
+        Collections.addAll(musicPlayerActions, musicSeekForwardAction);
+        Collections.addAll(musicPlayerActions, musicSeekBackAction);
+        OxShellApp.getInputHandler().addKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
+    }
     public void refreshShowDebugInput() {
         if (showDebugAction != null)
             OxShellApp.getInputHandler().removeKeyComboActions(showDebugAction);
@@ -190,6 +228,7 @@ public class PagedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         OxShellApp.setCurrentActivity(this);
         refreshAccessibilityInput();
+        refreshMusicPlayerInput();
         refreshShowDebugInput();
 
         //trySetStartTime();
