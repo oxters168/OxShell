@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
@@ -61,6 +62,21 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public HomeItem(T _obj, Type _type, String _title, XMBItem... innerItems) {
         this(_obj, _type, _title, null, innerItems);
     }
+
+    @NonNull
+    @Override
+    public Object clone() {
+        DataRef origImg = getImgRef();
+        HomeItem<T> other = new HomeItem<>(obj, type, title, origImg != null ? DataRef.from(origImg.getLoc(), origImg.getLocType()) : null);
+        if (innerItems != null) {
+            List<XMBItem> clonedItems = new ArrayList<>();
+            for (int i = 0; i < innerItems.size(); i++)
+                clonedItems.add((XMBItem)getInnerItem(i).clone());
+            other.innerItems = clonedItems;
+        }
+        return other;
+    }
+
     @Override
     public void getIcon(Consumer<Drawable> onIconLoaded) {
         //Drawable icon = null;

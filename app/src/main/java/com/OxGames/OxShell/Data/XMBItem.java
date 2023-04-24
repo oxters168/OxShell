@@ -3,6 +3,8 @@ package com.OxGames.OxShell.Data;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.OxShellApp;
 
@@ -38,6 +40,28 @@ public class XMBItem<T> implements Serializable {
     }
     public XMBItem(T _obj, String _title, XMBItem... innerItems) {
         this(_obj, _title, null, innerItems);
+    }
+//    public XMBItem(XMBItem<? extends T> other) {
+//        if (other.innerItems != null) {
+//            innerItems = new ArrayList<>();
+//            for (int i = 0; i < other.innerItems.size(); i++)
+//                innerItems.add(new XMBItem(other.getInnerItem(i)));
+//        }
+//        obj = other.obj.clone();
+//    }
+
+    @NonNull
+    @Override
+    public Object clone() {
+        DataRef origImg = getImgRef();
+        XMBItem<T> other = new XMBItem<>(obj, title, origImg != null ? DataRef.from(origImg.getLoc(), origImg.getLocType()) : null);
+        if (innerItems != null) {
+            List<XMBItem> clonedItems = new ArrayList<>();
+            for (int i = 0; i < innerItems.size(); i++)
+                clonedItems.add((XMBItem)getInnerItem(i).clone());
+            other.innerItems = clonedItems;
+        }
+        return other;
     }
 
     public void addValuesChangedListener(Runnable listener) {
@@ -178,10 +202,26 @@ public class XMBItem<T> implements Serializable {
         fireInnerItemsChanged();
     }
     public void remove(int localIndex) {
+        remove(localIndex, true);
+    }
+    public void remove(XMBItem xmbItem) {
+        remove(xmbItem, true);
+    }
+    public void remove(int localIndex, boolean dispose) {
+        if (dispose)
+            this.innerItems.get(localIndex).release();
         this.innerItems.remove(localIndex);
         fireInnerItemsChanged();
     }
+    public void remove(XMBItem xmbItem, boolean dispose) {
+        if (dispose)
+            xmbItem.release();
+        this.innerItems.remove(xmbItem);
+        fireInnerItemsChanged();
+    }
     public void setInnerItems(XMBItem... innerItems) {
+        if (this.innerItems != null)
+            applyToInnerItems(XMBItem::release, false);
         this.innerItems = new ArrayList<>(Arrays.asList(innerItems));
         fireInnerItemsChanged();
     }
@@ -199,6 +239,7 @@ public class XMBItem<T> implements Serializable {
     }
     public void clearInnerItems() {
         if (innerItems != null) {
+            applyToInnerItems(XMBItem::release, false);
             innerItems.clear();
             fireInnerItemsChanged();
         }

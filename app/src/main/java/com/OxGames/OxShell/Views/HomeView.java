@@ -61,6 +61,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -958,11 +959,16 @@ public class HomeView extends XMBView implements Refreshable {
         ArrayList<Object> items = getAdapter().getItems();
         ArrayList<XMBItem> casted = new ArrayList<>();
         //items.remove(items.size() - 1); // remove the settings
-        Consumer<XMBItem> clearIfNeeded = xmbItem -> {
+        BiConsumer<XMBItem, XMBItem> clearIfNeeded = (xmbItem, parent) -> {
             if (xmbItem instanceof HomeItem) {
                 //Log.d("HomeView", "Clearing " + xmbItem.getTitle());
                 if (((HomeItem)xmbItem).type == HomeItem.Type.settings)// || ((HomeItem)xmbItem).type == HomeItem.Type.assoc)
                     xmbItem.clearInnerItems();
+                if (((HomeItem)xmbItem).type == HomeItem.Type.placeholder)
+                    if (parent != null)
+                        parent.remove(xmbItem);
+                    else
+                        casted.remove(xmbItem);
             }
         };
         Consumer<XMBItem> goInto = new Consumer<XMBItem>() {
@@ -973,7 +979,7 @@ public class HomeView extends XMBView implements Refreshable {
                     //Log.d("HomeView", "Found " + innerItem.getTitle() + ", " + (innerItem instanceof HomeItem ? ((HomeItem)innerItem).type : "xmbItem"));
                     if (innerItem.hasInnerItems())
                         accept(innerItem);
-                    clearIfNeeded.accept(innerItem); // call after to make sure not to recreate inner items
+                    clearIfNeeded.accept(innerItem, xmbItem); // call after to make sure not to recreate inner items
                 }
             }
         };
@@ -982,7 +988,7 @@ public class HomeView extends XMBView implements Refreshable {
             //Log.d("HomeView", "Found " + item.getTitle());
             casted.add(item);
             goInto.accept(item);
-            clearIfNeeded.accept(item); // call after to make sure not to recreate inner items
+            clearIfNeeded.accept(item, null); // call after to make sure not to recreate inner items
         }
         return casted;
     }
