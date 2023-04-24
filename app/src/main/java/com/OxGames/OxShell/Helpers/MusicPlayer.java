@@ -27,6 +27,7 @@ import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.Metadata;
+import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
@@ -121,6 +122,7 @@ public class MusicPlayer {
             requestAudioFocus();
 
             setTrackIndex(index);
+            setVolume(SettingsKeeper.getMusicVolume());
             if (index != exo.getCurrentMediaItemIndex())
                 exo.seekTo(index, 0);
             if (!exo.isPlaying())
@@ -128,24 +130,64 @@ public class MusicPlayer {
 
             refreshMetadata();
             refreshNotificationAndSession(true);
-        }
+        } else
+            Log.e("MusicPlayer", "Failed to play, exoplayer is null or has no tracks");
+    }
+    public static boolean isPlaying() {
+        return exo != null && exo.isPlaying();
     }
     public static void seekToNext() {
-        exo.seekToNext();
+        if (exo != null)
+            exo.seekToNext();
+        else
+            Log.e("MusicPlayer", "Failed to seek to next, exoplayer is null");
     }
     public static void seekToPrev() {
-        exo.seekToPrevious();
+        if (exo != null)
+            exo.seekToPrevious();
+        else
+            Log.e("MusicPlayer", "Failed to seek to previous, exoplayer is null");
     }
     public static void pause() {
-        exo.pause();
-        abandonAudioFocus();
-        refreshNotificationAndSession(false);
+        if (exo != null) {
+            exo.pause();
+            abandonAudioFocus();
+            refreshNotificationAndSession(false);
+        } else
+            Log.e("MusicPlayer", "Failed to pause, exoplayer is null");
     }
     public static void stop() {
         clearPlaylist();
     }
     public static void seekTo(long ms) {
-        exo.seekTo(ms);
+        if (exo != null)
+            exo.seekTo(ms);
+        else
+            Log.e("MusicPlayer", "Failed to seek, exoplayer is null");
+    }
+    public static void seekForward() {
+        if (exo != null)
+            exo.seekForward();
+        else
+            Log.e("MusicPlayer", "Failed to seek forward, exoplayer is null");
+    }
+    public static void seekBack() {
+        if (exo != null)
+            exo.seekBack();
+        else
+            Log.e("MusicPlayer", "Failed to seek back, exoplayer is null");
+    }
+    public static void setVolume(float value) {
+        if (exo != null)
+            exo.setVolume(value);
+        else
+            Log.e("MusicPlayer", "Failed to set volume, exoplayer is null");
+    }
+    public static long getCurrentPosition() {
+        if (exo != null)
+            return exo.getCurrentPosition();
+        else
+            return PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
     }
 
     private static void requestAudioFocus() {
@@ -288,7 +330,7 @@ public class MusicPlayer {
                 .build());
         session.setPlaybackState(new PlaybackStateCompat.Builder()
                 .setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS | PlaybackStateCompat.ACTION_SEEK_TO)
-                .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, exo.getCurrentPosition(), 1.0f)
+                .setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, getCurrentPosition(), 1.0f)
                 .build());
     }
     private static void prepareSession() {
@@ -339,14 +381,14 @@ public class MusicPlayer {
             public void onFastForward() {
                 super.onFastForward();
                 //Log.d("MusicPlayer", "onFastForward");
-                exo.seekForward();
+                seekForward();
             }
 
             @Override
             public void onRewind() {
                 super.onRewind();
                 //Log.d("MusicPlayer", "onRewind");
-                exo.seekBack();
+                seekBack();
             }
 
             @Override
@@ -361,7 +403,7 @@ public class MusicPlayer {
                 super.onSeekTo(pos);
                 //Log.d("MusicPlayer", "onSeekTo " + pos);
                 seekTo((int)pos);
-                refreshNotificationAndSession(exo.isPlaying());
+                refreshNotificationAndSession(isPlaying());
             }
         });
         session.setActive(true);

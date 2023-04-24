@@ -139,7 +139,7 @@ public class SettingsKeeper {
     public static float getMusicVolume() {
         // create default if not existing
         if (!hasValue(MUSIC_VOLUME))
-            setMusicVolume(0.9f);
+            setMusicVolume(1.0f);
 
         return Float.parseFloat((String)getValue(MUSIC_VOLUME));
     }
@@ -149,7 +149,7 @@ public class SettingsKeeper {
     public static float getSfxVolume() {
         // create default if not existing
         if (!hasValue(SFX_VOLUME))
-            setSfxVolume(0.5f);
+            setSfxVolume(1.0f);
 
         return Float.parseFloat((String)getValue(SFX_VOLUME));
     }
