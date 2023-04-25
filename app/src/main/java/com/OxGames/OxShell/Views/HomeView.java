@@ -71,7 +71,7 @@ public class HomeView extends XMBView implements Refreshable {
     private AudioPool movePool;
     private Consumer<String> pkgInstalledListener = pkgName -> {
         if (pkgName != null) {
-            getAdapter().createColumnAt(getAdapter().getColumnCount() - 1, new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)));
+            getAdapter().createColumnAt(getAdapter().getColumnCount(), new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)));
             save(getItems());
         }
     };
