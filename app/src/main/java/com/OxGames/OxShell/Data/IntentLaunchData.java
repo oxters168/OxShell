@@ -141,6 +141,12 @@ public class IntentLaunchData implements Serializable {
         String[] extensions = new String[associatedExtensions.size()];
         return associatedExtensions.toArray(extensions);
     }
+    public void setFlags(int flags) {
+        this.flags = flags;
+    }
+    public int getFlags() {
+        return flags;
+    }
     public DataRef getImgRef() {
         if (iconLoc == null) {
             if (packageName != null && !packageName.isEmpty())

@@ -27,6 +27,7 @@ import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.Executable;
+import com.OxGames.OxShell.Data.IntentFlags;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.KeyCombo;
 import com.OxGames.OxShell.Data.PackagesCache;
@@ -60,6 +61,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -1354,6 +1356,32 @@ public class HomeView extends XMBView implements Refreshable {
         DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
         DynamicInputRow.TextInput mimeInput = new DynamicInputRow.TextInput("Mime Type");
         DynamicInputRow.ToggleInput normalizeToggle = new DynamicInputRow.ToggleInput("Normalize", "Normalize");
+        DynamicInputRow.Label flagsLabel = new DynamicInputRow.Label("Flags");
+        flagsLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+        HashMap<String, Integer> intentFlags = IntentFlags.getAllAsStrToInt();
+        String[] flagNames = intentFlags.keySet().toArray(new String[0]);
+        AtomicInteger flags = new AtomicInteger(0);
+        DynamicInputRow.Dropdown flagsDropdown = new DynamicInputRow.Dropdown(null, flagNames);
+        DynamicInputRow.Label flagsOutputLabel = new DynamicInputRow.Label("None set");
+        flagsOutputLabel.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+        Consumer<Integer> setFlagsOutputLabel = flagsValue -> {
+            String[] separateFlags = IntentFlags.separateAsStr(flagsValue);
+            if (separateFlags.length > 0) {
+                String output = "";
+                for (int i = 0; i < separateFlags.length; i++)
+                    output += separateFlags[i] + (i < separateFlags.length - 1 ? " | " : "");
+                flagsOutputLabel.setLabel(output);
+            } else
+                flagsOutputLabel.setLabel("None set");
+        };
+        DynamicInputRow.ButtonInput addFlagBtn = new DynamicInputRow.ButtonInput("Add", selfBtn -> {
+            flags.set(flags.get() | intentFlags.get(flagNames[flagsDropdown.getIndex()]));
+            setFlagsOutputLabel.accept(flags.get());
+        });
+        DynamicInputRow.ButtonInput removeFlagBtn = new DynamicInputRow.ButtonInput("Remove", selfBtn -> {
+            flags.set(flags.get() & ~intentFlags.get(flagNames[flagsDropdown.getIndex()]));
+            setFlagsOutputLabel.accept(flags.get());
+        });
         DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
         //errorLabel.setVisibility(GONE);
 
@@ -1376,7 +1404,6 @@ public class HomeView extends XMBView implements Refreshable {
             else if (extras.length % 2 != 0)
                 errorLabel.setLabel("Extras must be a multiple of two");
             else {
-                // TODO: add ability to choose flags
                 IntentLaunchData.DataType dataType = IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex()));
                 String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
                 IntentLaunchData newAssoc = toBeEdited;
@@ -1390,9 +1417,10 @@ public class HomeView extends XMBView implements Refreshable {
                     newAssoc.setMimeType(mimeInput.getText());
                     newAssoc.setNormalize(normalizeToggle.getOnOff());
                     newAssoc.setExtensions(extensions);
+                    newAssoc.setFlags(flags.get());
                     newAssoc.clearExtras();
                 } else
-                    newAssoc = new IntentLaunchData(displayName, imageDisplay.getImageRef(), actionName, pkgName, className, dataType, mimeInput.getText(), normalizeToggle.getOnOff(), extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    newAssoc = new IntentLaunchData(displayName, imageDisplay.getImageRef(), actionName, pkgName, className, dataType, mimeInput.getText(), normalizeToggle.getOnOff(), extensions, flags.get());
 
                 //newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
                 for (int i = 0; i < extras.length; i += 2)
@@ -1421,6 +1449,8 @@ public class HomeView extends XMBView implements Refreshable {
             mimeInput.setText(toBeEdited.getMimeType());
             normalizeToggle.setOnOff(toBeEdited.getNormalized(), true);
             extensionsInput.setText(Arrays.toString(toBeEdited.getExtensions()).replace("[", "").replace("]", ""));
+            flags.set(toBeEdited.getFlags());
+            setFlagsOutputLabel.accept(toBeEdited.getFlags());
             for (int i = 0; i < dataTypes.length; i++) {
                 if (dataTypes[i].equals(toBeEdited.getDataType().toString())) {
                     dataDropdown.setIndex(i);
@@ -1429,7 +1459,7 @@ public class HomeView extends XMBView implements Refreshable {
             }
             extrasInput.setText(Arrays.stream(toBeEdited.getExtras()).map(extra -> extra.getName() + ", " + (extra.getValue() != null ? extra.getValue() : extra.getExtraType())).collect(Collectors.joining(", ")));
         }
-        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(mimeInput), new DynamicInputRow(normalizeToggle), new DynamicInputRow(errorLabel), new DynamicInputRow(okBtn, cancelBtn));
+        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(mimeInput), new DynamicInputRow(normalizeToggle), new DynamicInputRow(flagsLabel), new DynamicInputRow(flagsDropdown, addFlagBtn, removeFlagBtn), new DynamicInputRow(flagsOutputLabel), new DynamicInputRow(errorLabel), new DynamicInputRow(okBtn, cancelBtn));
         dynamicInput.setShown(true);
     }
     private void showItemEditor(String title, XMBItem toBeEdited) {
