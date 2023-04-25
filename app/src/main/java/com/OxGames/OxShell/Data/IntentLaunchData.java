@@ -36,17 +36,21 @@ public class IntentLaunchData implements Serializable {
     private int flags;
 
     public IntentLaunchData() {
-        this(null, null, null, null, null, 0);
+        this(null, null, null, null, null, null, 0);
     }
 //    public IntentLaunchData(String _packageName) {
 //        this(null, null, _packageName, null, null, 0);
 //    }
     public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] _extensions) {
-        this(_displayName, _action, _packageName, _className, _extensions, 0);
+        this(_displayName, null, _action, _packageName, _className, _extensions, 0);
     }
     public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] _extensions, int _flags) {
+        this(_displayName, null, _action, _packageName, _className, _extensions, _flags);
+    }
+    public IntentLaunchData(String _displayName, DataRef _iconLoc, String _action, String _packageName, String _className, String[] _extensions, int _flags) {
         id = UUID.randomUUID();
         displayName = _displayName;
+        iconLoc = _iconLoc;
         action = _action;
         packageName = _packageName;
         className = _className;

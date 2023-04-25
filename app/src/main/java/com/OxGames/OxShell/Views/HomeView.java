@@ -1198,19 +1198,80 @@ public class HomeView extends XMBView implements Refreshable {
         PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle(title);
+
+        ResImage[] resourceImages = ResImage.getResourceImages();
+        List<String> dropdownItems = Arrays.stream(resourceImages).map(ResImage::getName).collect(Collectors.toList());
+        dropdownItems.add("From App");
+        dropdownItems.add("Custom");
+        //XMBItem colItem = toBeEdited;
+        DataRef origColIcon = toBeEdited != null ? toBeEdited.getImgRef() : null;
+        int origDropdownIndex = resourceImages.length + 1;
+        if (origColIcon != null && origColIcon.getLocType() == DataLocation.resource) {
+            for (int i = 0; i < resourceImages.length; i++) {
+                if (resourceImages[i].getId().equals(origColIcon.getLoc())) {
+                    origDropdownIndex = i;
+                    break;
+                }
+            }
+        } else if (origColIcon != null && origColIcon.getLocType() == DataLocation.pkg)
+            origDropdownIndex = resourceImages.length;
+
         DynamicInputRow.TextInput displayNameInput = new DynamicInputRow.TextInput("Display Name");
         List<ResolveInfo> pkgs = PackagesCache.getLaunchableInstalledPackages();
         pkgs.sort(Comparator.comparing(PackagesCache::getAppLabel));
         List<String> pkgNames = pkgs.stream().map(PackagesCache::getAppLabel).collect(Collectors.toList());
         pkgNames.add(0, "Unlisted");
         DynamicInputRow.TextInput pkgNameInput = new DynamicInputRow.TextInput("Package Name");
+        DynamicInputRow.ImageDisplay imageDisplay = new DynamicInputRow.ImageDisplay(DataRef.from(null, DataLocation.none));
+        Runnable setImgAsPkg = () -> {
+            Log.d("HomeView", "Setting pkg as icon " + pkgNameInput.getText());
+            if (PackagesCache.isPackageInstalled(pkgNameInput.getText()))
+                imageDisplay.setImage(DataRef.from(pkgNameInput.getText(), DataLocation.pkg));
+            else
+                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
+        };
+        AtomicReference<Uri> permittedUri = new AtomicReference<>();
+        Runnable setImgAsCustom = () -> {
+            if (permittedUri.get() != null)
+                imageDisplay.setImage(DataRef.from(permittedUri.get(), DataLocation.resolverUri));
+            else
+                imageDisplay.setImage(DataRef.from("ic_baseline_question_mark_24", DataLocation.resource));
+        };
+        DynamicInputRow.ButtonInput chooseFileBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
+            currentActivity.requestContent(uri -> {
+                permittedUri.set(uri);
+                setImgAsCustom.run();
+            }, "image/*");
+            setImgAsCustom.run();
+        });
+        DynamicInputRow.Dropdown resourcesDropdown = new DynamicInputRow.Dropdown(index -> {
+            Log.d("HomeView", "Resources dropdown index set to " + index);
+            boolean isResource = index < resourceImages.length;
+            boolean isPkg = index == dropdownItems.size() - 2;
+            if (!isResource) {
+                if (isPkg)
+                    setImgAsPkg.run();
+                else
+                    setImgAsCustom.run();
+            }
+            //pkgNameInput.setVisibility((!isResource && isPkg) ? VISIBLE : GONE);
+            //pkgsDropdown.setVisibility((!isResource && isPkg) ? VISIBLE : GONE);
+            //filePathInput.setVisibility(isResource ? GONE : VISIBLE);
+            chooseFileBtn.setVisibility((!isResource && !isPkg) ? VISIBLE : GONE);
+            if (index >= 0 && isResource)
+                imageDisplay.setImage(DataRef.from(resourceImages[index].getId(), DataLocation.resource));
+        }, dropdownItems.toArray(new String[0]));
         DynamicInputRow.Dropdown pkgsDropdown = new DynamicInputRow.Dropdown(index -> {
             //Log.d("HomeView", "Dropdown index changed to " + index);
             if (index >= 1) {
                 String pkgName = pkgs.get(index - 1).activityInfo.packageName;
                 pkgNameInput.setText(pkgName);
+                resourcesDropdown.setIndex(dropdownItems.size() - 2);
+                //setImgAsPkg.run();
             }
         });
+
+
         final String[][] classNames = new String[1][];
         DynamicInputRow.TextInput classNameInput = new DynamicInputRow.TextInput("Class Name");
         DynamicInputRow.Dropdown classesDropdown = new DynamicInputRow.Dropdown(index -> {
@@ -1318,13 +1379,14 @@ public class HomeView extends XMBView implements Refreshable {
                 IntentLaunchData newAssoc = toBeEdited;
                 if (newAssoc != null) {
                     newAssoc.setDisplayName(displayName);
+                    newAssoc.setImgRef(imageDisplay.getImageRef());
                     newAssoc.setAction(actionName);
                     newAssoc.setPackageName(pkgName);
                     newAssoc.setClassName(className);
                     newAssoc.setExtensions(extensions);
                     newAssoc.clearExtras();
                 } else
-                    newAssoc = new IntentLaunchData(displayName, actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    newAssoc = new IntentLaunchData(displayName, imageDisplay.getImageRef(), actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
 
                 newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
                 for (int i = 0; i < extras.length; i += 2)
@@ -1345,6 +1407,8 @@ public class HomeView extends XMBView implements Refreshable {
         if (toBeEdited != null) {
             // set values to assoc being edited
             displayNameInput.setText(toBeEdited.getDisplayName());
+            resourcesDropdown.setIndex(origDropdownIndex);
+            imageDisplay.setImage(toBeEdited.getImgRef());
             pkgNameInput.setText(toBeEdited.getPackageName());
             classNameInput.setText(toBeEdited.getClassName());
             actionInput.setText(toBeEdited.getAction());
@@ -1357,7 +1421,7 @@ public class HomeView extends XMBView implements Refreshable {
             }
             extrasInput.setText(Arrays.stream(toBeEdited.getExtras()).map(extra -> extra.getName() + ", " + (extra.getValue() != null ? extra.getValue() : extra.getExtraType())).collect(Collectors.joining(", ")));
         }
-        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(errorLabel), new DynamicInputRow(okBtn, cancelBtn));
+        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(errorLabel), new DynamicInputRow(okBtn, cancelBtn));
         dynamicInput.setShown(true);
     }
     private void showItemEditor(String title, XMBItem toBeEdited) {
