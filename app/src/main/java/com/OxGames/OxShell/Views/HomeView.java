@@ -1352,6 +1352,8 @@ public class HomeView extends XMBView implements Refreshable {
         dataLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
         DynamicInputRow.Dropdown dataDropdown = new DynamicInputRow.Dropdown(null, dataTypes);
         DynamicInputRow.TextInput extrasInput = new DynamicInputRow.TextInput("Extras (comma separated pairs, second values can be same as data type [case sensitive])");
+        DynamicInputRow.TextInput mimeInput = new DynamicInputRow.TextInput("Mime Type");
+        DynamicInputRow.ToggleInput normalizeToggle = new DynamicInputRow.ToggleInput("Normalize", "Normalize");
         DynamicInputRow.Label errorLabel = new DynamicInputRow.Label("");
         //errorLabel.setVisibility(GONE);
 
@@ -1383,10 +1385,12 @@ public class HomeView extends XMBView implements Refreshable {
                     newAssoc.setAction(actionName);
                     newAssoc.setPackageName(pkgName);
                     newAssoc.setClassName(className);
+                    newAssoc.setMimeType(mimeInput.getText());
+                    newAssoc.setNormalize(normalizeToggle.getOnOff());
                     newAssoc.setExtensions(extensions);
                     newAssoc.clearExtras();
                 } else
-                    newAssoc = new IntentLaunchData(displayName, imageDisplay.getImageRef(), actionName, pkgName, className, extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    newAssoc = new IntentLaunchData(displayName, imageDisplay.getImageRef(), actionName, pkgName, className, mimeInput.getText(), normalizeToggle.getOnOff(), extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
 
                 newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
                 for (int i = 0; i < extras.length; i += 2)
@@ -1412,6 +1416,8 @@ public class HomeView extends XMBView implements Refreshable {
             pkgNameInput.setText(toBeEdited.getPackageName());
             classNameInput.setText(toBeEdited.getClassName());
             actionInput.setText(toBeEdited.getAction());
+            mimeInput.setText(toBeEdited.getMimeType());
+            normalizeToggle.setOnOff(toBeEdited.getNormalized(), true);
             extensionsInput.setText(Arrays.toString(toBeEdited.getExtensions()).replace("[", "").replace("]", ""));
             for (int i = 0; i < dataTypes.length; i++) {
                 if (dataTypes[i].equals(toBeEdited.getDataType().toString())) {
@@ -1421,7 +1427,7 @@ public class HomeView extends XMBView implements Refreshable {
             }
             extrasInput.setText(Arrays.stream(toBeEdited.getExtras()).map(extra -> extra.getName() + ", " + (extra.getValue() != null ? extra.getValue() : extra.getExtraType())).collect(Collectors.joining(", ")));
         }
-        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(errorLabel), new DynamicInputRow(okBtn, cancelBtn));
+        dynamicInput.setItems(new DynamicInputRow(displayNameInput), new DynamicInputRow(imageDisplay, resourcesDropdown), new DynamicInputRow(chooseFileBtn), new DynamicInputRow(pkgNameInput, pkgsDropdown), new DynamicInputRow(classNameInput, classesDropdown), new DynamicInputRow(actionInput, actionsDropdown), new DynamicInputRow(extensionsInput), new DynamicInputRow(dataLabel), new DynamicInputRow(dataDropdown), new DynamicInputRow(extrasInput), new DynamicInputRow(mimeInput), new DynamicInputRow(normalizeToggle), new DynamicInputRow(errorLabel), new DynamicInputRow(okBtn, cancelBtn));
         dynamicInput.setShown(true);
     }
     private void showItemEditor(String title, XMBItem toBeEdited) {

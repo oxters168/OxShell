@@ -33,21 +33,23 @@ public class IntentLaunchData implements Serializable {
     private String className;
     private ArrayList<IntentPutExtra> extras;
     private DataType dataType = DataType.None;
+    private String mimeType;
+    private boolean normalize;
     private int flags;
 
     public IntentLaunchData() {
-        this(null, null, null, null, null, null, 0);
+        this(null, null, null, null, null, null, false, null, 0);
     }
 //    public IntentLaunchData(String _packageName) {
 //        this(null, null, _packageName, null, null, 0);
 //    }
     public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] _extensions) {
-        this(_displayName, null, _action, _packageName, _className, _extensions, 0);
+        this(_displayName, null, _action, _packageName, _className, null, false, _extensions, 0);
     }
     public IntentLaunchData(String _displayName, String _action, String _packageName, String _className, String[] _extensions, int _flags) {
-        this(_displayName, null, _action, _packageName, _className, _extensions, _flags);
+        this(_displayName, null, _action, _packageName, _className, null, false, _extensions, _flags);
     }
-    public IntentLaunchData(String _displayName, DataRef _iconLoc, String _action, String _packageName, String _className, String[] _extensions, int _flags) {
+    public IntentLaunchData(String _displayName, DataRef _iconLoc, String _action, String _packageName, String _className, String _mimeType, boolean _normalize, String[] _extensions, int _flags) {
         id = UUID.randomUUID();
         displayName = _displayName;
         iconLoc = _iconLoc;
@@ -55,6 +57,8 @@ public class IntentLaunchData implements Serializable {
         packageName = _packageName;
         className = _className;
         extras = new ArrayList<>();
+        mimeType = _mimeType;
+        normalize = _normalize;
         associatedExtensions = new ArrayList<>();
         if (_extensions != null && _extensions.length > 0)
             for (int i = 0; i < _extensions.length; i++)
@@ -117,6 +121,18 @@ public class IntentLaunchData implements Serializable {
     public String getDisplayName() {
         return displayName;
     }
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
+    public String getMimeType() {
+        return mimeType;
+    }
+    public void setNormalize(boolean onOff) {
+        normalize = onOff;
+    }
+    public boolean getNormalized() {
+        return normalize;
+    }
     public void setExtensions(String[] values) {
         associatedExtensions = new ArrayList<>(Arrays.asList(values));
     }
@@ -167,9 +183,10 @@ public class IntentLaunchData implements Serializable {
         for (IntentPutExtra extra : extras) {
             DataType extraType = extra.getExtraType();
             if (extraType != DataType.None) {
-                if (extraType == DataType.Uri || extraType == DataType.AbsolutePath || extraType == DataType.FileNameWithExt || extraType == DataType.FileNameWithoutExt)
-                    intent.putExtra(extra.getName(), formatData(path, extra.getExtraType()));
-                else
+                if (extraType == DataType.Uri || extraType == DataType.AbsolutePath || extraType == DataType.FileNameWithExt || extraType == DataType.FileNameWithoutExt) {
+                    Uri uri = formatData(path, extra.getExtraType());
+                    intent.putExtra(extra.getName(), uri != null && normalize ? uri.normalizeScheme() : uri);
+                } else
                     extra.putExtraInto(intent);
             }
         }
@@ -183,8 +200,15 @@ public class IntentLaunchData implements Serializable {
 //                    .build();
 //            intent.setData(fileUri);
             //intent.setDataAndType(formatData(path, dataType), "application/octet-stream");
-            //intent.setDataAndType(formatData(path, dataType), "video/*");
-            intent.setData(formatData(path, dataType));
+            if (mimeType != null && !mimeType.isEmpty()) {
+                if (normalize)
+                    intent.setDataAndTypeAndNormalize(formatData(path, dataType), mimeType);
+                else
+                    intent.setDataAndType(formatData(path, dataType), mimeType);
+            } else if (normalize)
+                intent.setDataAndNormalize(formatData(path, dataType));
+            else
+                intent.setData(formatData(path, dataType));
             //intent.setData(Uri.parse(data));
         }
         if (flags > 0)

@@ -135,7 +135,7 @@ public class DynamicInputRow {
 
         public void setText(String value) {
             //Log.d("TextInput", "Comparing " + text + " and " + value);
-            if (!text.equals(value)) {
+            if (value != null && (text == null || !text.equals(value))) {
                 //Log.d("TextInput", "They are different");
                 text = value;
                 valuesChanged();
