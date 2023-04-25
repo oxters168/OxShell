@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.OxShellApp;
+import com.OxGames.OxShell.R;
 
 import java.io.File;
 import java.io.Serializable;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class IntentLaunchData implements Serializable {
     //Might be best to implement a guid that other data structures can identify by so they don't store copies
     private UUID id;
+    private DataRef iconLoc;
 
     public enum DataType { None, Uri, AbsolutePath, FileNameWithExt, FileNameWithoutExt, Integer, Boolean, Float, String }
     private String displayName;
@@ -118,6 +120,18 @@ public class IntentLaunchData implements Serializable {
         String[] extensions = new String[associatedExtensions.size()];
         return associatedExtensions.toArray(extensions);
     }
+    public DataRef getImgRef() {
+        if (iconLoc == null) {
+            if (packageName != null && !packageName.isEmpty())
+                iconLoc = DataRef.from(packageName, DataLocation.pkg);
+            else
+                iconLoc = DataRef.from(ResImage.get(R.drawable.ic_baseline_question_mark_24).getId(), DataLocation.resource);
+        }
+        return iconLoc;
+    }
+    public void setImgRef(DataRef imgRef) {
+        iconLoc = imgRef;
+    }
 
 //    public Intent buildIntent(String[] extrasValues) {
 //        return buildIntent(null, extrasValues);
@@ -208,7 +222,7 @@ public class IntentLaunchData implements Serializable {
         Log.i("IntentLaunchData", intent + ", " + intent.getExtras());
         try {
             startActivity(OxShellApp.getContext(), intent, null);
-        } catch (Exception e) { Log.e("IntentLaunchData", "Failed to launch " + getPackageName() + ": " + e); }
+        } catch (Exception e) { Log.e("IntentLaunchData", "Failed to launch " + getDisplayName() + ": " + e); }
     }
     public void launch() {
         launch(null);

@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ExplorerView extends SlideTouchListView {//implements PermissionsListener {
     private ExplorerBehaviour explorerBehaviour;
@@ -351,21 +352,36 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 sortedFiles.toArray(files);
                 for (int i = 0; i < files.length; i++) {
                     String absolutePath = files[i].getAbsolutePath();
-                    Drawable icon = null;
+                    //Drawable icon = null;
+                    int index = i;
+                    boolean addedItem = false;
+                    Consumer<Drawable> addItemToListWithIcon = drawable -> arrayList.add(new DetailItem(drawable, files[index].getName(), files[index].isDirectory() ? "<dir>" : null, new File(absolutePath)));
                     if (!files[i].isDirectory()) {
                         String extension = AndroidHelpers.getExtension(absolutePath);
                         if (extension != null) {
-                            String packageName = ShortcutsCache.getPackageNameForExtension(extension);
-                            if (packageName != null)
-                                icon = PackagesCache.getPackageIcon(packageName);
-                            else if (extension.contains("apk"))
-                                icon = AndroidHelpers.getApkIcon(absolutePath);
+                            IntentLaunchData launchData = ShortcutsCache.getLaunchDataForExtension(extension);
+//                            String packageName = ShortcutsCache.getPackageNameForExtension(extension);
+//                            if (packageName != null)
+//                                icon = PackagesCache.getPackageIcon(packageName);
+                            if (launchData != null) {
+                                launchData.getImgRef().getImage(addItemToListWithIcon);
+                                addedItem = true;
+                            } else if (extension.contains("apk")) {
+                                addItemToListWithIcon.accept(AndroidHelpers.getApkIcon(absolutePath));
+                                //icon = AndroidHelpers.getApkIcon(absolutePath);
+                                addedItem = true;
+                            }
                         }
                     }
-                    else
-                        icon = ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24);
+                    else {
+                        addItemToListWithIcon.accept(ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24));
+                        //icon = ContextCompat.getDrawable(getContext(), R.drawable.ic_baseline_folder_24);
+                        addedItem = true;
+                    }
 
-                    arrayList.add(new DetailItem(icon, files[i].getName(), files[i].isDirectory() ? "<dir>" : null, new File(absolutePath)));
+                    if (!addedItem)
+                        addItemToListWithIcon.accept(null);
+                    //arrayList.add(new DetailItem(icon, files[i].getName(), files[i].isDirectory() ? "<dir>" : null, new File(absolutePath)));
                 }
             }
             DetailAdapter customAdapter = new DetailAdapter(getContext(), arrayList);

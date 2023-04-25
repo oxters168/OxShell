@@ -93,7 +93,8 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         else if (type == Type.addAssoc) {// || type == Type.assoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent != null)
-                PackagesCache.requestPackageIcon(intent.getPackageName(), drawable -> onIconLoaded.accept(icon = drawable));
+                intent.getImgRef().getImage(onIconLoaded);
+                //PackagesCache.requestPackageIcon(intent.getPackageName(), drawable -> onIconLoaded.accept(icon = drawable));
                 //onIconLoaded.accept(icon = PackagesCache.getPackageIcon(intent.getPackageName()));
             else
                 onIconLoaded.accept(null);
@@ -111,7 +112,8 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             } else if (type == Type.assoc) {
                 IntentLaunchData launchData = ShortcutsCache.getIntent((UUID)obj);
                 if (launchData != null) {
-                    iconLoc = DataRef.from(launchData.getPackageName(), DataLocation.pkg);
+                    //iconLoc = DataRef.from(launchData.getPackageName(), DataLocation.pkg);
+                    iconLoc = launchData.getImgRef();
                     title = launchData.getDisplayName();
                 }
             } else if (type == Type.assocExe) {
@@ -151,13 +153,16 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent == null)
                 return "Missing";
-            ResolveInfo rsv = PackagesCache.getResolveInfo(intent.getPackageName());
-            String pkgLabel;
-            if (rsv != null)
-                pkgLabel = PackagesCache.getAppLabel(rsv);
-            else
-                pkgLabel = "not_installed";
-            return intent.getDisplayName() + " (" + pkgLabel + ")";
+            String pkgName = intent.getPackageName();
+            String pkgLabel = null;
+            if (pkgName != null && !pkgName.isEmpty()) {
+                ResolveInfo rsv = PackagesCache.getResolveInfo(pkgName);
+                if (rsv != null)
+                    pkgLabel = PackagesCache.getAppLabel(rsv);
+                else
+                    pkgLabel = "not_installed";
+            }
+            return intent.getDisplayName() + (pkgLabel != null ? " (" + pkgLabel + ")" : "");
         }
         return super.getTitle();
     }
