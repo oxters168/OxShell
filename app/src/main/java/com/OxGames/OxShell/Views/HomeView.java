@@ -1377,6 +1377,7 @@ public class HomeView extends XMBView implements Refreshable {
                 errorLabel.setLabel("Extras must be a multiple of two");
             else {
                 // TODO: add ability to choose flags
+                IntentLaunchData.DataType dataType = IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex()));
                 String[] extensions = Stream.of(extensionsRaw.split(",")).map(ext -> { String result = ext.trim(); if(result.charAt(0) == '.') result = result.substring(1, result.length() - 1); return result; }).toArray(String[]::new);
                 IntentLaunchData newAssoc = toBeEdited;
                 if (newAssoc != null) {
@@ -1385,14 +1386,15 @@ public class HomeView extends XMBView implements Refreshable {
                     newAssoc.setAction(actionName);
                     newAssoc.setPackageName(pkgName);
                     newAssoc.setClassName(className);
+                    newAssoc.setDataType(dataType);
                     newAssoc.setMimeType(mimeInput.getText());
                     newAssoc.setNormalize(normalizeToggle.getOnOff());
                     newAssoc.setExtensions(extensions);
                     newAssoc.clearExtras();
                 } else
-                    newAssoc = new IntentLaunchData(displayName, imageDisplay.getImageRef(), actionName, pkgName, className, mimeInput.getText(), normalizeToggle.getOnOff(), extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    newAssoc = new IntentLaunchData(displayName, imageDisplay.getImageRef(), actionName, pkgName, className, dataType, mimeInput.getText(), normalizeToggle.getOnOff(), extensions, Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
+                //newAssoc.setDataType(IntentLaunchData.DataType.valueOf(dataDropdown.getOption(dataDropdown.getIndex())));
                 for (int i = 0; i < extras.length; i += 2)
                     newAssoc.addExtra(IntentPutExtra.parseFrom(extras[i], extras[i + 1]));
                 ShortcutsCache.saveIntentAndReload(newAssoc);

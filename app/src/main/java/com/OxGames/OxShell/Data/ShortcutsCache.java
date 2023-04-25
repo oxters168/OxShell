@@ -6,6 +6,7 @@ import android.util.Log;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.Serialaver;
+import com.OxGames.OxShell.R;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,6 +52,13 @@ public class ShortcutsCache {
     }
     private static IntentLaunchData[] createDefaultLaunchIntents() {
         List<IntentLaunchData> defaults = new ArrayList<>();
+
+        IntentLaunchData videoLaunchIntent = new IntentLaunchData("Video", DataRef.from(ResImage.get(R.drawable.ic_baseline_video_file_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "video/*", true, new String[] { "mpeg", "mpg", "mp4", "m4v", "3gp", "3gpp", "3g2", "3gpp2", "mkv", "webm", "ts", "avi" }, Intent.FLAG_ACTIVITY_NEW_TASK);
+        defaults.add(videoLaunchIntent);
+        IntentLaunchData audioLaunchIntent = new IntentLaunchData("Audio", DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "audio/*", true, new String[] { "mp3", "mpga", "m4a", "wav", "amr", "awb", "ogg", "oga", "aac", "mka", "mid", "midi", "xmf", "rtttl", "smf", "imy", "rtx", "ota", "mxmf" }, Intent.FLAG_ACTIVITY_NEW_TASK);
+        defaults.add(audioLaunchIntent);
+        IntentLaunchData imageLaunchIntent = new IntentLaunchData("Image", DataRef.from(ResImage.get(R.drawable.ic_baseline_image_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "image/*", true, new String[] { "jpg", "jpeg", "png", "bmp", "webp", "wbmp" }, Intent.FLAG_ACTIVITY_NEW_TASK);
+        defaults.add(imageLaunchIntent);
 
         //Cheat sheet: http://p.cweiske.de/221
         String myBoyPkg = "com.fastemulator.gba";
