@@ -245,10 +245,10 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
                 if (fileLaunchIntents.size() > 0) {
                     // TODO: show options if more than one launch intent found and none are set as default
                     IntentLaunchData fileLaunchIntent = fileLaunchIntents.get(0);
-                    if (PackagesCache.isPackageInstalled(fileLaunchIntent.getPackageName()))
+                    //if (PackagesCache.isPackageInstalled(fileLaunchIntent.getPackageName()))
                         fileLaunchIntent.launch(absPath);
-                    else
-                        Log.e("Explorer", "Failed to launch, " + fileLaunchIntent.getPackageName() + " is not installed on the device");
+                    //else
+                    //    Log.e("Explorer", "Failed to launch, " + fileLaunchIntent.getPackageName() + " is not installed on the device");
                 } else if (extension.equalsIgnoreCase("apk") || extension.equalsIgnoreCase("xapk")) {
                     if (!AndroidHelpers.hasInstallPermission()) {
                         PromptView prompt = OxShellApp.getCurrentActivity().getPrompt();

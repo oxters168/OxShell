@@ -16,10 +16,10 @@ public class Executable implements Serializable {
     public void run() {
         IntentLaunchData launcher = getLaunchIntent();
         if (launcher != null) {
-            if (PackagesCache.isPackageInstalled(launcher.getPackageName()))
+            //if (PackagesCache.isPackageInstalled(launcher.getPackageName()))
                 launcher.launch(path);
-            else
-                Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
+            //else
+            //    Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
         } else
             Log.e("IntentShortcutsView", "Failed to launch, launch intent (" + launchDataRef + ") not found");
     }

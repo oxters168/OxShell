@@ -165,6 +165,7 @@ public class IntentLaunchData implements Serializable {
 //                    .build();
 //            intent.setData(fileUri);
             //intent.setDataAndType(formatData(path, dataType), "application/octet-stream");
+            //intent.setDataAndType(formatData(path, dataType), "video/*");
             intent.setData(formatData(path, dataType));
             //intent.setData(Uri.parse(data));
         }
@@ -239,8 +240,15 @@ public class IntentLaunchData implements Serializable {
             //final Uri uri = AndroidHelpers.uriFromPath(data);
             //OxShellApp.getCurrentActivity().grantUriPermission(targetPkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             return AndroidHelpers.uriFromPath(data);
-        } if (dataType == DataType.AbsolutePath)
+        }
+        if (dataType == DataType.AbsolutePath) {
+//            String updatedData = data;
+//            if (!updatedData.startsWith("file://"))
+//                updatedData = "file://" + updatedData;
+//            Log.d("IntentLaunchData", data + " => OldUri: " + Uri.decode(Uri.parse(data).toString()) + ", " + updatedData + " => NewUri: " + Uri.decode(Uri.parse(updatedData).toString()));
+
             return Uri.parse(data);
+        }
         if (dataType == DataType.FileNameWithoutExt)
             return Uri.parse(AndroidHelpers.removeExtension(new File(data).getName()));
         if (dataType == DataType.FileNameWithExt)

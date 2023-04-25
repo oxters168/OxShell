@@ -71,7 +71,7 @@ public class HomeView extends XMBView implements Refreshable {
     private AudioPool movePool;
     private Consumer<String> pkgInstalledListener = pkgName -> {
         if (pkgName != null) {
-            getAdapter().createColumnAt(getAdapter().getColumnCount() - 1, new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName)));
+            getAdapter().createColumnAt(getAdapter().getColumnCount() - 1, new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)));
             save(getItems());
         }
     };
@@ -303,7 +303,7 @@ public class HomeView extends XMBView implements Refreshable {
                         getAdapter().createColumnAt(getAdapter().getColumnCount(), musicHead);
                         musicHead.reload(() -> {
                             save(getItems());
-                            refresh();
+                            //refresh();
                         });
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
@@ -381,7 +381,8 @@ public class HomeView extends XMBView implements Refreshable {
                         HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc, launchData != null ? launchData.getDisplayName() : "Missing", launchData != null ? DataRef.from(launchData.getPackageName(), DataLocation.pkg) : null);
                         assocItem.addToDirsList(titleInput.getText());
                         adapter.createColumnAt(adapter.getColumnCount(), assocItem);
-                        save(getItems());
+                        assocItem.reload(() -> save(getItems()));
+                        //save(getItems());
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
@@ -861,7 +862,7 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(reloadBtn);
                 if (!isInnerItem)
                     btns.add(createColumnBtn);
-                if (!isPlaceholder && isNotInnerSettings)
+                if (!isPlaceholder && isNotInnerSettings && (homeItem == null || homeItem.type != HomeItem.Type.addAssoc))
                     btns.add(editItemBtn);
                 if (homeItem != null && (homeItem.type == HomeItem.Type.addAssoc || homeItem.type == HomeItem.Type.assoc || homeItem.type == HomeItem.Type.assocExe))
                     btns.add(editAssocBtn);
@@ -1300,11 +1301,11 @@ public class HomeView extends XMBView implements Refreshable {
             String className = classNameInput.getText();
             String extensionsRaw = extensionsInput.getText();
             String[] extras = !extrasInput.getText().isEmpty() ? Arrays.stream(extrasInput.getText().split(",")).map(String::trim).toArray(String[]::new) : new String[0];
-            if (pkgName.isEmpty())
-                errorLabel.setLabel("Must provide package name");
-            else if (className.isEmpty())
-                errorLabel.setLabel("Must provide class name");
-            else if (actionName.isEmpty())
+//            if (pkgName.isEmpty())
+//                errorLabel.setLabel("Must provide package name");
+//            else if (className.isEmpty())
+//                errorLabel.setLabel("Must provide class name");
+            if (actionName.isEmpty())
                 errorLabel.setLabel("Must provide action");
             else if (extensionsRaw.isEmpty())
                 errorLabel.setLabel("Must provide associated extensions");
@@ -1506,7 +1507,7 @@ public class HomeView extends XMBView implements Refreshable {
             if (currentItem instanceof HomeItem  && ((HomeItem)currentItem).isReloadable())
                 ((HomeItem) currentItem).reload(() -> {
                     save(getItems());
-                    refresh();
+                    //refresh();
                 });
         };
 
@@ -1514,7 +1515,7 @@ public class HomeView extends XMBView implements Refreshable {
         if (parentItem instanceof HomeItem && ((HomeItem)parentItem).isReloadable()) {
             ((HomeItem) parentItem).reload(() -> {
                 save(getItems());
-                refresh();
+                //refresh();
 
                 reloadCurrent.run();
             });

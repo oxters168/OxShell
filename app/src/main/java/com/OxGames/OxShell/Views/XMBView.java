@@ -140,6 +140,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
         @Override
         public void onInnerItemsChanged(Integer... position) {
+            Log.d("XMBView", "Inner items changed of " + Arrays.toString(position) + " current position is " + Arrays.toString(getPosition()));
+            // in case the column was empty and the user was on the column, change our position to be the first item of the column rather than the column head
+            if (!isInsideItem() && isSamePosition(position, getPosition()) && adapter.getColumnSize(position[0]) > 0)
+                rowIndex = 1;
             setViews(false, false);
         }
     };

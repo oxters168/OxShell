@@ -74,6 +74,8 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 clonedItems.add((XMBItem)getInnerItem(i).clone());
             other.innerItems = clonedItems;
         }
+        if (extraData != null)
+            other.extraData = new ArrayList<>(extraData);
         return other;
     }
 
@@ -188,8 +190,12 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         if (type == Type.assoc) {
             //innerItemsLoaded = true;
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID) obj);
-            if (intent != null)
-                innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
+            if (intent != null) {
+                Log.d("HomeItem", "Reloading from " + extraData.toString());
+                List<XMBItem> assocExecs = generateInnerItemsFrom(Type.assocExe, extraData, intent);
+                setInnerItems(assocExecs != null ? assocExecs.toArray(new XMBItem[0]) : null);
+                //innerItems = generateInnerItemsFrom(Type.assocExe, extraData, intent);
+            }
             if (onReloaded != null)
                 onReloaded.run();
         } else if (type == Type.musicTree) {
@@ -204,14 +210,16 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 loadingItem.setTitle("Loading (" + percent + "%)");
                 if (musicItems != null) {
                     musicGenThread = null;
-                    innerItems = musicItems;
+                    setInnerItems(musicItems.toArray(new XMBItem[0]));
+                    //innerItems = musicItems;
                     if (onReloaded != null)
                         onReloaded.run();
                 }
             }, getDirsList());
             musicGenThread.start();
         } else if (type == Type.settings) {
-            innerItems = generateSettings();
+            //innerItems = generateSettings();
+            setInnerItems(generateSettings().toArray(new XMBItem[0]));
             if (onReloaded != null)
                 onReloaded.run();
         }

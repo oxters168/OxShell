@@ -222,7 +222,7 @@ public class XMBItem<T> implements Serializable {
     public void setInnerItems(XMBItem... innerItems) {
         if (this.innerItems != null)
             applyToInnerItems(XMBItem::release, false);
-        this.innerItems = new ArrayList<>(Arrays.asList(innerItems));
+        this.innerItems = innerItems != null ? new ArrayList<>(Arrays.asList(innerItems)) : null;
         fireInnerItemsChanged();
     }
     public boolean hasInnerItems() {
