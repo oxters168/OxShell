@@ -77,7 +77,7 @@ public class XMBItem<T> implements Serializable {
         if (valuesChangedListeners != null)
             valuesChangedListeners.clear();
     }
-    private void fireValuesChanged() {
+    public void fireValuesChanged() {
         OxShellApp.getCurrentActivity().runOnUiThread(() -> {
             if (valuesChangedListeners != null)
                 for (int i = 0; i < valuesChangedListeners.size(); i++)

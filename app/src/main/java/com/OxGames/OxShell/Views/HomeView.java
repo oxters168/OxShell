@@ -426,7 +426,7 @@ public class HomeView extends XMBView implements Refreshable {
 //                        Log.e("IntentShortcutsView", "Failed to launch, " + launcher.getPackageName() + " is not installed on the device");
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.createAssoc) {
-                    showAssocEditor("Create Association", null);
+                    showAssocEditor("Create Association", null, null);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.setImageBg) {
                     PagedActivity currentActivity = OxShellApp.getCurrentActivity();
@@ -1223,7 +1223,7 @@ public class HomeView extends XMBView implements Refreshable {
 //    private void createAssocBtn() {
 //        showAssocEditor("Create Association", null);
 //    }
-    private void showAssocEditor(String title, IntentLaunchData toBeEdited) {
+    private void showAssocEditor(String title, IntentLaunchData toBeEdited, Runnable onFinishEdit) {
         PagedActivity currentActivity = OxShellApp.getCurrentActivity();
         DynamicInputView dynamicInput = currentActivity.getDynamicInput();
         dynamicInput.setTitle(title);
@@ -1454,6 +1454,8 @@ public class HomeView extends XMBView implements Refreshable {
                     newAssoc.addExtra(IntentPutExtra.parseFrom(extras[i], extras[i + 1]));
                 ShortcutsCache.saveIntentAndReload(newAssoc);
                 dynamicInput.setShown(false);
+                if (onFinishEdit != null)
+                    onFinishEdit.run();
             }
 //                        String path = displayNameInput.getText();
 //                        if (path != null && AndroidHelpers.fileExists(path)) {
@@ -1463,6 +1465,8 @@ public class HomeView extends XMBView implements Refreshable {
         }, SettingsKeeper.getSuperPrimaryInput());
         DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
             dynamicInput.setShown(false);
+            if (onFinishEdit != null)
+                onFinishEdit.run();
         }, SettingsKeeper.getCancelInput());
 
         if (toBeEdited != null) {
@@ -1688,7 +1692,8 @@ public class HomeView extends XMBView implements Refreshable {
     SettingsDrawer.ContextBtn editAssocBtn = new SettingsDrawer.ContextBtn("Edit Association", () ->
     {
         HomeItem assocItem = (HomeItem)getSelectedItem();
-        showAssocEditor("Edit Association", ShortcutsCache.getIntent(assocItem.type == HomeItem.Type.assocExe ? ((Executable)assocItem.obj).getLaunchIntent().getId() : (UUID)assocItem.obj));
+        showAssocEditor("Edit Association", ShortcutsCache.getIntent(assocItem.type == HomeItem.Type.assocExe ? ((Executable)assocItem.obj).getLaunchIntent().getId() : (UUID)assocItem.obj), assocItem::fireValuesChanged);
+        //assocItem.fireValuesChanged();
         //refresh();
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
