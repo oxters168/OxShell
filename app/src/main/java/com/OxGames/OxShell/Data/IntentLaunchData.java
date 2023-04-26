@@ -10,6 +10,8 @@ import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
@@ -21,7 +23,6 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public class IntentLaunchData implements Serializable {
-    //Might be best to implement a guid that other data structures can identify by so they don't store copies
     private UUID id;
     private DataRef iconLoc;
 
@@ -31,8 +32,8 @@ public class IntentLaunchData implements Serializable {
     private String action;
     private String packageName;
     private String className;
-    private ArrayList<IntentPutExtra> extras;
-    private DataType dataType = DataType.None;
+    private final ArrayList<IntentPutExtra> extras;
+    private DataType dataType;
     private String mimeType;
     private boolean normalize;
     private int flags;
@@ -51,6 +52,7 @@ public class IntentLaunchData implements Serializable {
     }
     public IntentLaunchData(String _displayName, DataRef _iconLoc, String _action, String _packageName, String _className, DataType _dataType, String _mimeType, boolean _normalize, String[] _extensions, int _flags) {
         id = UUID.randomUUID();
+        Log.d("IntentLaunchData", "created intent with id: " + id);
         displayName = _displayName;
         iconLoc = _iconLoc;
         action = _action;
@@ -62,9 +64,9 @@ public class IntentLaunchData implements Serializable {
         normalize = _normalize;
         associatedExtensions = new ArrayList<>();
         if (_extensions != null && _extensions.length > 0)
-            for (int i = 0; i < _extensions.length; i++)
-                if (_extensions[i] != null && !_extensions[i].isEmpty())
-                    associatedExtensions.add(_extensions[i].toLowerCase());
+            for (String extension : _extensions)
+                if (extension != null && !extension.isEmpty())
+                    associatedExtensions.add(extension.toLowerCase());
 //            Collections.addAll(associatedExtensions, extensions);
         flags = _flags;
     }
@@ -81,6 +83,7 @@ public class IntentLaunchData implements Serializable {
     public static IntentLaunchData createFromAction(String action, int flags) {
         return new IntentLaunchData(null, action, null, null, null, flags);
     }
+    @NonNull
     @Override
     public String toString() {
         return "IntentLaunchData{" +
@@ -95,6 +98,9 @@ public class IntentLaunchData implements Serializable {
                 '}';
     }
 
+    protected void setId(UUID id) {
+        this.id = id;
+    }
     public UUID getId() {
         return id;
     }

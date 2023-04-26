@@ -327,8 +327,10 @@ public class HomeView extends XMBView implements Refreshable {
                     IntentLaunchData[] intents = ShortcutsCache.getStoredIntents();
                     if (intents.length > 0) {
                         intentItems = new XMBItem[intents.length];
-                        for (int i = 0; i < intents.length; i++)
+                        for (int i = 0; i < intents.length; i++) {
+                            //Log.d("HomeView", "[" + i + "/" + intents.length + "] Placing " + intents[i].getDisplayName() + " into addAssocOuter");
                             intentItems[i] = new HomeItem(intents[i].getId(), HomeItem.Type.addAssoc);
+                        }
                     } else {
                         intentItems = new XMBItem[1];
                         intentItems[0] = new XMBItem(null, "None created", DataRef.from("ic_baseline_block_24", DataLocation.resource));
@@ -1078,6 +1080,7 @@ public class HomeView extends XMBView implements Refreshable {
         int prevVersion = SettingsKeeper.getPrevVersionCode();
         // load items the old way and save them in the new way
         if (prevVersion < 7 && !loadedOldItems) {
+            ShortcutsCache.saveIntentAndReload(ShortcutsCache.getDefaultVideoIntent(), ShortcutsCache.getDefaultAudioIntent(), ShortcutsCache.getDefaultImageIntent());
             ArrayList<XMBItem> homeItems = oldLoadHomeItemsFromFile(Paths.HOME_ITEMS_DIR_INTERNAL, Paths.HOME_ITEMS_FILE_NAME);
             save(homeItems);
             loadedOldItems = true;

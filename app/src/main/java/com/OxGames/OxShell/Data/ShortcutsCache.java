@@ -16,16 +16,23 @@ import java.util.UUID;
 
 public class ShortcutsCache {
     private static HashMap<UUID, IntentLaunchData> intents = new HashMap<>();
+    private static final UUID BAD_ID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     public static void readIntentsFromDisk() {
         //HashMap<UUID, IntentLaunchData> intents = new HashMap<>();
         if (AndroidHelpers.dirExists(Paths.SHORTCUTS_DIR_INTERNAL)) {
-            intents = new HashMap<>();
+            if (intents == null)
+                intents = new HashMap<>();
+            intents.clear();
             File[] files = AndroidHelpers.listContents(Paths.SHORTCUTS_DIR_INTERNAL);
             for (File file : files) {
+                //Log.d("ShortcutsCache", "Found launch intent: " + file);
                 try {
-                    IntentLaunchData intent = (IntentLaunchData) Serialaver.loadFromFSTJSON(file.getAbsolutePath());
+                    IntentLaunchData intent = (IntentLaunchData)Serialaver.loadFromFSTJSON(file.getAbsolutePath());
+                    if (intent.getId().equals(BAD_ID))
+                        intent.setId(UUID.fromString(file.getName())); // apparently uuid is not being serialized properly (on some devices? tested in emulator)
                     intents.put(intent.getId(), intent);
+                    Log.d("ShortcutsCache", "Intents count: " + intents.values().size() + " id: " + intent.getId());
                 } catch (Exception e) {
                     Log.e("ShortcutsCache", "Failed to read intent from file: " + e);
                 }
@@ -36,29 +43,36 @@ public class ShortcutsCache {
     public static void createAndStoreDefaults() {
         //for (IntentLaunchData intent : createDefaultLaunchIntents())
         //    intents.put(intent.getId(), intent);
-        writeIntentsToDisk(createDefaultLaunchIntents());
+        saveIntentAndReload(getDefaultLaunchIntents());
     }
-    public static void saveIntentAndReload(IntentLaunchData intent) {
+    public static void saveIntentAndReload(IntentLaunchData... intents) {
         //intents.put(intent.getId(), intent);
-        saveIntentData(intent);
-        readIntentsFromDisk();
-    }
-    private static void writeIntentsToDisk(IntentLaunchData... intents) {
         for (IntentLaunchData intent : intents)
             saveIntentData(intent);
-            //if (AndroidHelpers.hasWriteStoragePermission())
-            //    saveIntentData(intent, Paths.SHORTCUTS_DIR_EXTERNAL);
         readIntentsFromDisk();
     }
-    private static IntentLaunchData[] createDefaultLaunchIntents() {
+//    private static void writeIntentsToDisk(IntentLaunchData... intents) {
+//        for (IntentLaunchData intent : intents)
+//            saveIntentData(intent);
+//            //if (AndroidHelpers.hasWriteStoragePermission())
+//            //    saveIntentData(intent, Paths.SHORTCUTS_DIR_EXTERNAL);
+//        readIntentsFromDisk();
+//    }
+    public static IntentLaunchData getDefaultVideoIntent() {
+        return new IntentLaunchData("Video", DataRef.from(ResImage.get(R.drawable.ic_baseline_video_file_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "video/*", true, new String[] { "mpeg", "mpg", "mp4", "m4v", "3gp", "3gpp", "3g2", "3gpp2", "mkv", "webm", "ts", "avi" }, Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+    public static IntentLaunchData getDefaultAudioIntent() {
+        return new IntentLaunchData("Audio", DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "audio/*", true, new String[] { "mp3", "mpga", "m4a", "wav", "amr", "awb", "ogg", "oga", "aac", "mka", "mid", "midi", "xmf", "rtttl", "smf", "imy", "rtx", "ota", "mxmf" }, Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+    public static IntentLaunchData getDefaultImageIntent() {
+        return new IntentLaunchData("Image", DataRef.from(ResImage.get(R.drawable.ic_baseline_image_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "image/*", true, new String[] { "jpg", "jpeg", "png", "bmp", "webp", "wbmp" }, Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+    private static IntentLaunchData[] getDefaultLaunchIntents() {
         List<IntentLaunchData> defaults = new ArrayList<>();
 
-        IntentLaunchData videoLaunchIntent = new IntentLaunchData("Video", DataRef.from(ResImage.get(R.drawable.ic_baseline_video_file_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "video/*", true, new String[] { "mpeg", "mpg", "mp4", "m4v", "3gp", "3gpp", "3g2", "3gpp2", "mkv", "webm", "ts", "avi" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        defaults.add(videoLaunchIntent);
-        IntentLaunchData audioLaunchIntent = new IntentLaunchData("Audio", DataRef.from(ResImage.get(R.drawable.ic_baseline_audio_file_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "audio/*", true, new String[] { "mp3", "mpga", "m4a", "wav", "amr", "awb", "ogg", "oga", "aac", "mka", "mid", "midi", "xmf", "rtttl", "smf", "imy", "rtx", "ota", "mxmf" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        defaults.add(audioLaunchIntent);
-        IntentLaunchData imageLaunchIntent = new IntentLaunchData("Image", DataRef.from(ResImage.get(R.drawable.ic_baseline_image_24).getId(), DataLocation.resource), Intent.ACTION_VIEW, null, null, IntentLaunchData.DataType.Uri, "image/*", true, new String[] { "jpg", "jpeg", "png", "bmp", "webp", "wbmp" }, Intent.FLAG_ACTIVITY_NEW_TASK);
-        defaults.add(imageLaunchIntent);
+        defaults.add(getDefaultVideoIntent());
+        defaults.add(getDefaultAudioIntent());
+        defaults.add(getDefaultImageIntent());
 
         //Cheat sheet: http://p.cweiske.de/221
         String myBoyPkg = "com.fastemulator.gba";
@@ -127,6 +141,7 @@ public class ShortcutsCache {
         return intents.containsKey(id) ? intents.get(id) : null;
     }
     public static IntentLaunchData[] getStoredIntents() {
+        //Log.d("ShortcutsCache", "Taking " + intents.values().size() + " (vs " + intents.size() + ") intent(s) and turning into array");
         return intents.values().toArray(new IntentLaunchData[0]);
     }
     public static IntentLaunchData getLaunchDataForExtension(String extension) {

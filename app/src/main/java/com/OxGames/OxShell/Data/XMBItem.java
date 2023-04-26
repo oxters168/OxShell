@@ -161,7 +161,7 @@ public class XMBItem<T> implements Serializable {
                 String resName;
                 if (prevVersion < 5) {
                     int oldIndex = (int)imgRef.imageLoc;
-                    int newIndex = oldIndex + (prevVersion > 1 ? 2 : 3);
+                    int newIndex = oldIndex + (prevVersion > 1 ? 10 : 11);
                     resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
                     Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
                 } else {
