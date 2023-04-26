@@ -19,6 +19,8 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
+import androidx.media3.common.MediaItem;
+import androidx.media3.exoplayer.ExoPlayer;
 
 import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.Adapters.XMBAdapter;
@@ -41,7 +43,6 @@ import com.OxGames.OxShell.FileChooserActivity;
 import com.OxGames.OxShell.Data.HomeItem;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
-import com.OxGames.OxShell.Helpers.AudioPool;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
@@ -69,8 +70,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
-    private AudioPool musicPool;
-    private AudioPool movePool;
+//    private AudioPool musicPool;
+//    private AudioPool movePool;
+    private ExoPlayer moveSfx;
     private Consumer<String> pkgInstalledListener = pkgName -> {
         if (pkgName != null) {
             getAdapter().createColumnAt(getAdapter().getColumnCount(), new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)));
@@ -93,8 +95,11 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     private void init() {
-        musicPool = AudioPool.fromAsset("Audio/xmb_musac.mp3", 2);
-        movePool = AudioPool.fromAsset("Audio/cow_G7.wav", 5);
+//        musicPool = AudioPool.fromAsset("Audio/xmb_musac.mp3", 2);
+//        movePool = AudioPool.fromAsset("Audio/cow_G7.wav", 5);
+        moveSfx = new ExoPlayer.Builder(OxShellApp.getContext()).build();
+        moveSfx.addMediaItem(MediaItem.fromUri("asset:///Audio/cow_G7.wav"));
+        moveSfx.prepare();
         OxShellApp.addPkgInstalledListener(pkgInstalledListener);
         refresh();
     }
@@ -166,25 +171,26 @@ public class HomeView extends XMBView implements Refreshable {
 //            }
 //        }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
     }
-    private void playBgMusic() {
-        //refreshAudioVolumes();
-        //musicPool.setVolume(SettingsKeeper.getMusicVolume());
-        if (musicPool.getActiveCount() > 0)
-            musicPool.resumeActive();
-        else
-            musicPool.playNew(true);
-    }
-    private void pauseBgMusic() {
-        musicPool.pauseActive();
-    }
+//    private void playBgMusic() {
+//        //refreshAudioVolumes();
+//        //musicPool.setVolume(SettingsKeeper.getMusicVolume());
+//        if (musicPool.getActiveCount() > 0)
+//            musicPool.resumeActive();
+//        else
+//            musicPool.playNew(true);
+//    }
+//    private void pauseBgMusic() {
+//        musicPool.pauseActive();
+//    }
     public void onPause() {
         //isInHome = false;
-        pauseBgMusic();
+        //pauseBgMusic();
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
-        musicPool.setPoolSize(0);
-        movePool.setPoolSize(0);
+//        musicPool.setPoolSize(0);
+//        movePool.setPoolSize(0);
+        moveSfx.release();
         MusicPlayer.clearPlaylist();
     }
 //    public void refreshAudioVolumes() {
@@ -637,7 +643,8 @@ public class HomeView extends XMBView implements Refreshable {
                         SettingsKeeper.setSfxVolume(sfxSlider.getValue());
                         //refreshAudioVolumes();
                         MusicPlayer.setVolume(SettingsKeeper.getMusicVolume());
-                        movePool.setVolume(SettingsKeeper.getSfxVolume());
+                        moveSfx.setVolume(SettingsKeeper.getSfxVolume());
+                        //movePool.setVolume(SettingsKeeper.getSfxVolume());
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", (selfBtn) -> {
@@ -929,10 +936,14 @@ public class HomeView extends XMBView implements Refreshable {
         playMoveSfx();
     }
     private void playMoveSfx() {
-        if (musicPool.isAnyPlaying() || movePool.isAnyPlaying() || !OxShellApp.getAudioManager().isMusicActive()) {
+        if (moveSfx.isPlaying() || !OxShellApp.getAudioManager().isMusicActive()) {
             //refreshAudioVolumes();
-            movePool.setVolume(SettingsKeeper.getSfxVolume());
-            movePool.playNew(false);
+            moveSfx.setVolume(SettingsKeeper.getSfxVolume());
+            moveSfx.seekTo(0);
+            if (!moveSfx.isPlaying())
+                moveSfx.play();
+            //movePool.setVolume(SettingsKeeper.getSfxVolume());
+            //movePool.playNew(false);
         }
     }
 
