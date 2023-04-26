@@ -334,6 +334,19 @@ public class HomeView extends XMBView implements Refreshable {
                         intentItems[0] = new XMBItem(null, "None created", DataRef.from("ic_baseline_block_24", DataLocation.resource));
                     }
                     selectedItem.setInnerItems(intentItems);
+                } else if (selectedItem.type == HomeItem.Type.resetHomeItems) {
+                    PromptView prompt = OxShellApp.getCurrentActivity().getPrompt();
+                    prompt.setMessage("This will remove any changes you've made to your home menu. Are you sure you'd like to continue?");
+                    prompt.setStartBtn("Yes", () -> {
+                        save(createDefaultItems());
+                        refresh();
+                        prompt.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    prompt.setEndBtn("No", () -> {
+                        prompt.setShown(false);
+                    }, SettingsKeeper.getCancelInput());
+                    prompt.setCenterOfScreen();
+                    prompt.setShown(true);
                 } else if (selectedItem.type == HomeItem.Type.appInfo) {
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
                     dynamicInput.setTitle("Ox Shell Info");
@@ -1161,7 +1174,7 @@ public class HomeView extends XMBView implements Refreshable {
                 catIndex = categories.length - 1;
             //ArrayList<XMBItem> column = new ArrayList<>();
             // add the category item at the top
-            XMBItem columnHead = new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource), sortedApps.get(existingCategories.get(index)).toArray(new XMBItem[0]));
+            XMBItem columnHead = new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource), sortedApps.get(existingCategories.get(index)).stream().sorted(Comparator.comparing(XMBItem::getTitle)).toArray(XMBItem[]::new));
             //column.add(new XMBItem(null, categories[catIndex], DataRef.from(getDefaultIconForCategory(catIndex), DataLocation.resource)));
             //column.addAll(sortedApps.get(existingCategories.get(index)));
             defaultItems.add(columnHead);

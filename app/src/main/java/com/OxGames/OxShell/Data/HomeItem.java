@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import kotlin.jvm.functions.Function2;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, addMusicFolder, addExplorer, app, addAppOuter, addApp, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, placeholder, }
+    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, addMusicFolder, addExplorer, app, addAppOuter, addApp, resetHomeItems, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, placeholder, }
     public Type type;
     public ArrayList<String> extraData;
     //private boolean innerItemsLoaded;
@@ -129,6 +129,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 type == Type.saveLogs ||
                 type == Type.addExplorer ||
                 type == Type.addAppOuter ||
+                type == Type.resetHomeItems ||
                 type == Type.addMusicFolder ||
                 type == Type.setImageBg ||
                 type == Type.setShaderBg ||
@@ -437,6 +438,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         innerSettings.add(new HomeItem(Type.addExplorer, "Add explorer item to home"));
         innerSettings.add(new HomeItem(Type.addAppOuter, "Add application to home"));
         innerSettings.add(new HomeItem(Type.addMusicFolder, "Add music from directory to home"));
+        innerSettings.add(new HomeItem(Type.resetHomeItems, "Reset home items to default"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Home", DataRef.from(ResImage.get(R.drawable.ic_baseline_home_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
 
