@@ -199,6 +199,12 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     @Override
+    public boolean canPlaceItemsIn(Integer... position) {
+        XMBItem item = (XMBItem)getItem(position);
+        return item != null && (!(item instanceof HomeItem) || (((HomeItem)item).isColumnHead() && ((HomeItem)item).type != HomeItem.Type.settings));
+    }
+
+    @Override
     public boolean hasInnerItems(Integer... position) {
         XMBItem current = (XMBItem)getItem(position);
         //Log.d("XMBView", "Checking if " + current.title + " has inner items? " + current.hasInnerItems());

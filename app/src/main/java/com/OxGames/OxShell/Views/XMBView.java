@@ -216,6 +216,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         public abstract boolean hasInnerItems(Integer... position);
         public abstract int getInnerItemCount(Integer... position);
         public abstract boolean isColumnHead(Integer... position);
+        public abstract boolean canPlaceItemsIn(Integer... position);
 
         public abstract void setFont(Typeface font);
         protected abstract int getTextSize();
@@ -1405,7 +1406,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
                 if (fromColIndex != nextColIndex) {
                     nextColIndex = Math.max(nextColIndex, 0);
-                    boolean nextIsColumn = adapter.isColumnHead(nextColIndex, 0);
+                    boolean nextIsColumn = adapter.canPlaceItemsIn(nextColIndex, 0);//adapter.isColumnHead(nextColIndex, 0);
                     boolean isGoingRight = nextColIndex > fromColIndex;
                     int nextLocalIndex = isInColumn ? 0 : getCachedIndexOfCat(nextColIndex);
                     // the index we will set the XMBView to once the shift is done
@@ -1428,7 +1429,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     //getViewHolder(nextColIndex, nextLocalIndex).setDirty();
                     //Log.d("XMBView", "[" + fromColIndex + ", " + moveLocalIndex + "] => [" + nextColIndex + ", " + nextLocalIndex + "]");
                     adapter.shiftItemHorizontally(fromColIndex, moveLocalIndex, nextColIndex, nextLocalIndex, isInColumn || !nextIsColumn);
-                    moveLocalIndex = !isInColumn ? nextLocalIndex : 0;
+                    moveLocalIndex = nextIsColumn ? nextLocalIndex : 0;
 
                     this.colIndex = setColIndex;
                 } else
