@@ -50,6 +50,7 @@ import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Interfaces.Refreshable;
+import com.OxGames.OxShell.MusicPlayerActivity;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
@@ -269,6 +270,7 @@ public class HomeView extends XMBView implements Refreshable {
                     //AudioPool.fromFile(trackPath, 1).play(false);
                     MusicPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
                     MusicPlayer.play();
+                    AndroidHelpers.startActivity(MusicPlayerActivity.class);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addAppOuter) {
                     List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();

@@ -117,6 +117,18 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".MusicPlayerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT"/>
+                <action android:name="android.intent.action.OPEN_DOCUMENT"/>
+                <category android:name="android.intent.category.OPENABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <!--                <data android:mimeType="image/*"/>-->
+                <data android:mimeType="audio/*"/>
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".HomeActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:exported="true">
