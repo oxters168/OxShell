@@ -120,11 +120,9 @@
             android:name=".MusicPlayerActivity"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.GET_CONTENT"/>
-                <action android:name="android.intent.action.OPEN_DOCUMENT"/>
-                <category android:name="android.intent.category.OPENABLE"/>
+                <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
-                <!--                <data android:mimeType="image/*"/>-->
+                <data android:scheme="content"/>
                 <data android:mimeType="audio/*"/>
             </intent-filter>
         </activity>
