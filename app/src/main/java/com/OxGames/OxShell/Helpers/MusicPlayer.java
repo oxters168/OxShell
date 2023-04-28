@@ -224,21 +224,32 @@ public class MusicPlayer {
     }
 
     private static void setTrackIndex(int index) {
-        trackIndex = MathHelpers.clamp(index, 0, exo.getMediaItemCount() - 1);
+        if (exo == null)
+            trackIndex = -1;
+        else
+            trackIndex = MathHelpers.clamp(index, 0, exo.getMediaItemCount() - 1);
     }
     private static DataRef getCurrentDataRef() {
+        if (exo == null)
+            return null;
         return refs[MathHelpers.clamp(exo.getCurrentMediaItemIndex(), 0, refs.length - 1)];
     }
     private static void refreshMetadata() {
-        currentTrackData = Metadata.getMediaMetadata(getCurrentDataRef());
+        if (exo == null)
+            currentTrackData = null;
+        else
+            currentTrackData = Metadata.getMediaMetadata(getCurrentDataRef());
     }
     public static String getCurrentTitle() {
+        if (exo == null)
+            return null;
         if (currentTrackData == null)
             refreshMetadata();
 
         String title = currentTrackData.getTitle();
         if (title == null || title.isEmpty()) {
             DataRef dataRef = getCurrentDataRef();
+            // TODO: get name from Uri
             if (dataRef.getLocType() == DataLocation.file)
                 title = AndroidHelpers.removeExtension((new File((String)dataRef.getLoc())).getName());
             else
@@ -247,6 +258,8 @@ public class MusicPlayer {
         return title;
     }
     public static String getCurrentArtist() {
+        if (exo == null)
+            return null;
         if (currentTrackData == null)
             refreshMetadata();
         String artist = currentTrackData.getArtist();
@@ -255,19 +268,25 @@ public class MusicPlayer {
         return artist;
     }
     public static String getCurrentAlbum() {
+        if (exo == null)
+            return null;
         if (currentTrackData == null)
             refreshMetadata();
         String album = currentTrackData.getAlbum();
         if (album == null || album.isEmpty())
-            album = "?";
+            album = "Other";
         return album;
     }
     public static Bitmap getCurrentAlbumArt() {
+        if (exo == null)
+            return null;
         if (currentTrackData == null)
             refreshMetadata();
         return currentTrackData.getAlbumArt();
     }
     public static long getCurrentDuration() {
+        if (exo == null)
+            return 0;
         if (currentTrackData == null)
             refreshMetadata();
         long duration = 0;
@@ -346,9 +365,9 @@ public class MusicPlayer {
             prepareSession();
         // source: https://android-developers.googleblog.com/2020/08/playing-nicely-with-media-controls.html
         session.setMetadata(new MediaMetadataCompat.Builder()
-                .putString(MediaMetadata.METADATA_KEY_TITLE, currentTrackData.getTitle())
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, currentTrackData.getArtist())
-                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentTrackData.getAlbumArt())
+                .putString(MediaMetadata.METADATA_KEY_TITLE, getCurrentTitle())
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, getCurrentArtist())
+                .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, getCurrentAlbumArt())
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, getCurrentDuration())
                 .build());
         session.setPlaybackState(new PlaybackStateCompat.Builder()

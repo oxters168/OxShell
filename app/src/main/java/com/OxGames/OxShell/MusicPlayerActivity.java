@@ -1,6 +1,5 @@
 package com.OxGames.OxShell;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -30,6 +29,7 @@ public class MusicPlayerActivity extends PagedActivity {
 
         parentView.addView(mpv = new MediaPlayerView(this));
         mpv.addMediaBtnListener(this::onMediaButtonPressed);
+        mpv.addSeekBarListener(this::onSeekBarSuk);
         mpv.setIsPlaying(MusicPlayer.isPlaying());
         mpv.setTitle(MusicPlayer.getCurrentTitle());
 
@@ -80,5 +80,8 @@ public class MusicPlayerActivity extends PagedActivity {
                 MusicPlayer.seekBack();
                 break;
         }
+    }
+    private void onSeekBarSuk(float value) {
+        MusicPlayer.seekTo((long)(MusicPlayer.getCurrentDuration() * value));
     }
 }
