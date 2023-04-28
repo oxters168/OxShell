@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
@@ -21,6 +22,7 @@ import androidx.core.content.ContextCompat;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.R;
+import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 
 import java.util.ArrayList;
@@ -129,6 +131,7 @@ public class MediaPlayerView extends FrameLayout {
         int titleTextSize = Math.round(AndroidHelpers.getScaledSpToPixels(context, 16));
         int smallCushion = Math.round(AndroidHelpers.getScaledDpToPixels(context, 16));
         int btnSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 32));
+        int seekBarThumbSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 5));
         int btnEdgeMargin = (actionBarHeight - btnSize) / 2;
 
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -250,10 +253,14 @@ public class MediaPlayerView extends FrameLayout {
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
-                //Log.d("DynamicInputItemView", "onStopTrackingTouch: " + slider.getValue());
                 fireSeekBarEvent(slider.getValue());
             }
         });
+        seekBar.setLabelBehavior(LabelFormatter.LABEL_GONE);
+        seekBar.setTrackActiveTintList(ColorStateList.valueOf(Color.WHITE));
+        seekBar.setThumbTintList(ColorStateList.valueOf(Color.WHITE));
+        seekBar.setThumbRadius(seekBarThumbSize);
+        seekBar.setHaloRadius(seekBarThumbSize);
         controlsBar.addView(seekBar);
     }
 }
