@@ -269,7 +269,7 @@ public class MusicPlayer {
             Log.w("MusicPlayer", "Failed to set volume, exoplayer is null");
     }
     public static long getCurrentPosition() {
-        if (exo != null)
+        if (exo != null && (exo.getPlaybackState() == ExoPlayer.STATE_READY || exo.getPlaybackState() == Player.STATE_BUFFERING))
             return exo.getCurrentPosition();
         else
             return PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;

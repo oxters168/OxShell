@@ -15,16 +15,21 @@ import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.OxGames.OxShell.Views.MediaPlayerView;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class MusicPlayerActivity extends PagedActivity {
     private MediaPlayerView mpv;
     private Handler trackPositionHandler;
-    private Runnable trackPositionListener = new Runnable() {
+    private final AtomicBoolean isTrackingPosition = new AtomicBoolean(false);
+    private final Runnable trackPositionListener = new Runnable() {
         @Override
         public void run() {
             if (MusicPlayer.isPlaying()) {
+                isTrackingPosition.set(true);
                 setMediaPlayerViewPosition();
                 trackPositionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
-            }
+            } else
+                isTrackingPosition.set(false);
         }
     };
 
@@ -48,7 +53,7 @@ public class MusicPlayerActivity extends PagedActivity {
         MusicPlayer.addIsPlayingListener(this::onMusicPlayerIsPlaying);
         MusicPlayer.addMediaItemChangedListener(this::onMusicPlayerMediaChanged);
         MusicPlayer.addSeekEventListener(this::onSeekEvent);
-        trackPositionHandler = new Handler();
+        startTrackingPosition();
 
         Log.i("MusicPlayerActivity", "Received data: " + (getIntent() != null ? getIntent().getData() : "null") + " extras: " + (getIntent() != null ? getIntent().getExtras() : "null"));
     }
@@ -71,7 +76,7 @@ public class MusicPlayerActivity extends PagedActivity {
     }
 
     private void setMediaPlayerViewPosition() {
-        Log.d("MusicPlayerActivity", "Setting position of seekbar");
+        //Log.d("MusicPlayerActivity", "Setting position of seekbar");
         long currentPosition = MusicPlayer.getCurrentPosition();
         long currentDuration = MusicPlayer.getCurrentDuration();
         if (currentDuration > 0 && currentPosition != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN)
@@ -81,6 +86,12 @@ public class MusicPlayerActivity extends PagedActivity {
     private void onMusicPlayerIsPlaying(boolean onOff) {
         mpv.setIsPlaying(onOff);
         if (onOff)
+            startTrackingPosition();
+    }
+    private void startTrackingPosition() {
+        if (trackPositionHandler == null)
+            trackPositionHandler = new Handler();
+        if (!isTrackingPosition.get())
             trackPositionHandler.post(trackPositionListener);
     }
     private void onMusicPlayerMediaChanged(int index) {
