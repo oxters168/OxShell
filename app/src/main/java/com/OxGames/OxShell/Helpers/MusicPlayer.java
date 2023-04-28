@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 //import android.media.session.MediaSession;
+import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
@@ -231,7 +232,7 @@ public class MusicPlayer {
     private static void refreshMetadata() {
         currentTrackData = Metadata.getMediaMetadata(getCurrentDataRef());
     }
-    private static String getCurrentTitle() {
+    public static String getCurrentTitle() {
         if (currentTrackData == null)
             refreshMetadata();
 
@@ -245,7 +246,7 @@ public class MusicPlayer {
         }
         return title;
     }
-    private static String getCurrentArtist() {
+    public static String getCurrentArtist() {
         if (currentTrackData == null)
             refreshMetadata();
         String artist = currentTrackData.getArtist();
@@ -253,7 +254,7 @@ public class MusicPlayer {
             artist = "Various Artists";
         return artist;
     }
-    private static String getCurrentAlbum() {
+    public static String getCurrentAlbum() {
         if (currentTrackData == null)
             refreshMetadata();
         String album = currentTrackData.getAlbum();
@@ -261,7 +262,12 @@ public class MusicPlayer {
             album = "?";
         return album;
     }
-    private static long getCurrentDuration() {
+    public static Bitmap getCurrentAlbumArt() {
+        if (currentTrackData == null)
+            refreshMetadata();
+        return currentTrackData.getAlbumArt();
+    }
+    public static long getCurrentDuration() {
         if (currentTrackData == null)
             refreshMetadata();
         long duration = 0;
@@ -313,7 +319,7 @@ public class MusicPlayer {
         // Create the notification using the builder.
         NotificationCompat.Builder builder = new NotificationCompat.Builder(OxShellApp.getContext(), CHANNEL_ID)
                 .setSmallIcon(R.drawable.ox_white)
-                .setLargeIcon(currentTrackData.getAlbumArt())
+                .setLargeIcon(getCurrentAlbumArt())
                 .setContentTitle(getCurrentTitle())
                 .setContentText(getCurrentArtist() + " - " + getCurrentAlbum())
                 //.setContentIntent(pendingIntent) // TODO: get this to open the music player activity of the app

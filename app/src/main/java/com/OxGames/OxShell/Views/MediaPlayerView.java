@@ -1,12 +1,8 @@
 package com.OxGames.OxShell.Views;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RectShape;
-import android.os.Build;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
@@ -15,8 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,37 +18,83 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
-import com.OxGames.OxShell.Helpers.InputHandler;
-import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 public class MediaPlayerView extends FrameLayout {
+    public enum MediaButton { back, end, play, pause, seekFwd, seekBck, skipNext, skipPrev }
     private final Context context;
     private BetterTextView titleLabel;
+    private Button backBtn;
+    private Button endBtn;
+    private Button playBtn;
+    private Button seekFwd;
+    private Button skipFwd;
+    private Button seekBck;
+    private Button skipPrv;
+
+    private boolean isPlaying;
+
+    private final List<Consumer<MediaButton>> mediaBtnListeners;
 
     public MediaPlayerView(@NonNull Context context) {
         super(context);
         this.context = context;
+        mediaBtnListeners = new ArrayList<>();
         init();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
+        mediaBtnListeners = new ArrayList<>();
         init();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
+        mediaBtnListeners = new ArrayList<>();
         init();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.context = context;
+        mediaBtnListeners = new ArrayList<>();
         init();
     }
 
-    private void end() {
-        OxShellApp.getCurrentActivity().finish();
+    public void setIsPlaying(boolean onOff) {
+        isPlaying = onOff;
+        playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
+    }
+    public void setTitle(String value) {
+        titleLabel.setText(value);
+    }
+    public void onDestroy() {
+        backBtn.setOnClickListener(null);
+        endBtn.setOnClickListener(null);
+        playBtn.setOnClickListener(null);
+        seekFwd.setOnClickListener(null);
+        skipFwd.setOnClickListener(null);
+        seekBck.setOnClickListener(null);
+        skipPrv.setOnClickListener(null);
+        clearMediaBtnListeners();
+    }
+
+    public void addMediaBtnListener(Consumer<MediaButton> mediaBtnListener) {
+        mediaBtnListeners.add(mediaBtnListener);
+    }
+    public void removeMediaBtnListener(Consumer<MediaButton> mediaBtnListener) {
+        mediaBtnListeners.remove(mediaBtnListener);
+    }
+    public void clearMediaBtnListeners() {
+        mediaBtnListeners.clear();
+    }
+    private void fireMediaBtnEvent(MediaButton btn) {
+        for (Consumer<MediaButton> mediaBtnListener : mediaBtnListeners)
+            mediaBtnListener.accept(btn);
     }
 
     private void init() {
@@ -63,10 +103,9 @@ public class MediaPlayerView extends FrameLayout {
         int actionBarHeight = Math.round(AndroidHelpers.getScaledDpToPixels(context, 64));
         int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3));
         int titleTextSize = Math.round(AndroidHelpers.getScaledSpToPixels(context, 16));
-        //int titleStartMargin = Math.round(AndroidHelpers.getScaledDpToPixels(context, 24));
-        int titleMargins = Math.round(AndroidHelpers.getScaledDpToPixels(context, 16));
-        int backBtnSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 32));
-        int backBtnMargin = (actionBarHeight - backBtnSize) / 2;
+        int smallCushion = Math.round(AndroidHelpers.getScaledDpToPixels(context, 16));
+        int btnSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 32));
+        int btnEdgeMargin = (actionBarHeight - btnSize) / 2;
 
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
@@ -76,17 +115,17 @@ public class MediaPlayerView extends FrameLayout {
 
         FrameLayout customActionBar = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight);
-        layoutParams.gravity = Gravity.TOP | Gravity.START;
+        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         customActionBar.setLayoutParams(layoutParams);
         customActionBar.setBackgroundColor(Color.parseColor("#BB323232"));
+        customActionBar.setFocusable(false);
         addView(customActionBar);
 
         titleLabel = new BetterTextView(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
-        //layoutParams.setMargins(titleMargins, titleMargins, titleMargins, titleMargins);
-        layoutParams.setMarginStart(backBtnSize + backBtnMargin + titleMargins);
-        layoutParams.setMarginEnd(backBtnSize + backBtnMargin + titleMargins);
+        layoutParams.setMarginStart(btnSize + btnEdgeMargin + smallCushion);
+        layoutParams.setMarginEnd(btnSize + btnEdgeMargin + smallCushion);
         titleLabel.setLayoutParams(layoutParams);
         titleLabel.setOverScrollMode(SCROLL_AXIS_VERTICAL);
         titleLabel.setMovementMethod(new ScrollingMovementMethod());
@@ -103,24 +142,74 @@ public class MediaPlayerView extends FrameLayout {
         titleLabel.setTypeface(font);
         customActionBar.addView(titleLabel);
 
-        Button backBtn = new Button(context);
-        layoutParams = new LayoutParams(backBtnSize, backBtnSize);
+        backBtn = new Button(context);
+        layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
-        //layoutParams.setMargins(0, backBtnMargin, 0, 0);
-        layoutParams.setMarginStart(backBtnMargin);
+        layoutParams.setMarginStart(btnEdgeMargin);
         backBtn.setLayoutParams(layoutParams);
         backBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_arrow_back_24));
-        backBtn.setOnClickListener((btn) -> end());
+        backBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.back));
         customActionBar.addView(backBtn);
 
-        Button endBtn = new Button(context);
-        layoutParams = new LayoutParams(backBtnSize, backBtnSize);
+        endBtn = new Button(context);
+        layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-        //layoutParams.setMargins(0, backBtnMargin, 0, 0);
-        layoutParams.setMarginEnd(backBtnMargin);
+        layoutParams.setMarginEnd(btnEdgeMargin);
         endBtn.setLayoutParams(layoutParams);
         endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_close_24));
-        endBtn.setOnClickListener((btn) -> end());
+        endBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.end));
         customActionBar.addView(endBtn);
+
+        FrameLayout controlsBar = new FrameLayout(context);
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight);
+        layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
+        controlsBar.setLayoutParams(layoutParams);
+        controlsBar.setBackgroundColor(Color.parseColor("#BB323232"));
+        controlsBar.setFocusable(false);
+        addView(controlsBar);
+
+        playBtn = new Button(context);
+        layoutParams = new LayoutParams(btnSize, btnSize);
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+        playBtn.setLayoutParams(layoutParams);
+        playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
+        playBtn.setOnClickListener((btn) -> fireMediaBtnEvent(isPlaying ? MediaButton.pause : MediaButton.play));
+        controlsBar.addView(playBtn);
+
+        seekFwd = new Button(context);
+        layoutParams = new LayoutParams(btnSize, btnSize);
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+        layoutParams.setMargins(btnSize + smallCushion, 0, 0,0);
+        seekFwd.setLayoutParams(layoutParams);
+        seekFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_forward_24));
+        seekFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
+        controlsBar.addView(seekFwd);
+
+        skipFwd = new Button(context);
+        layoutParams = new LayoutParams(btnSize, btnSize);
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+        layoutParams.setMargins((btnSize + smallCushion) * 2, 0, 0,0);
+        skipFwd.setLayoutParams(layoutParams);
+        skipFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_next_24));
+        skipFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipNext));
+        controlsBar.addView(skipFwd);
+
+        seekBck = new Button(context);
+        layoutParams = new LayoutParams(btnSize, btnSize);
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+        layoutParams.setMargins(0, 0, btnSize + smallCushion,0);
+        seekBck.setLayoutParams(layoutParams);
+        seekBck.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_rewind_24));
+        seekBck.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
+        controlsBar.addView(seekBck);
+
+        skipPrv = new Button(context);
+        layoutParams = new LayoutParams(btnSize, btnSize);
+        layoutParams.gravity = Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL;
+        layoutParams.setMargins(0, 0, (btnSize + smallCushion) * 2,0);
+        skipPrv.setLayoutParams(layoutParams);
+        skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
+        skipPrv.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
+        controlsBar.addView(skipPrv);
     }
 }

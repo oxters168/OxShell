@@ -69,6 +69,8 @@ public class ResImage {
             resources.put(R.drawable.baseline_close_24, new ResImage("com.OxGames.OxShell:drawable/baseline_close_24", "Cross"));
             resources.put(R.drawable.baseline_hourglass_empty_24, new ResImage("com.OxGames.OxShell:drawable/baseline_hourglass_empty_24", "Hourglass Empty"));
             resources.put(R.drawable.baseline_arrow_back_24, new ResImage("com.OxGames.OxShell:drawable/baseline_arrow_back_24", "Arrow Back"));
+            resources.put(R.drawable.baseline_fast_forward_24, new ResImage("com.OxGames.OxShell:drawable/baseline_fast_forward_24", "Fast Forward"));
+            resources.put(R.drawable.baseline_fast_rewind_24, new ResImage("com.OxGames.OxShell:drawable/baseline_fast_rewind_24", "Fast Rewind"));
         }
     }
 }

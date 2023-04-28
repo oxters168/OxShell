@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-<!--    <root-path name="storage" path="/storage/" />-->
-<!--    <external-path name="storage/emulated/0" path="."/>-->
-<!--    <external-files-path name="storage/emulated/0/Android/data/com.OxGames.OxShell/files" path="."/>-->
-<!--    <cache-path name="data/user/0/com.OxGames.OxShell/cache" path="."/>-->
-<!--    <external-cache-path name="storage/emulated/0/Android/data/com.OxGames.OxShell/cache" path="."/>-->
-<!--    <files-path name="data/user/0/com.OxGames.OxShell/files" path="."/>-->
-    <root-path name="root-path" path="/storage/" />
-    <external-path name="external-path" path="."/>
-    <external-files-path name="external-files-path" path="."/>
-    <cache-path name="cache-path" path="."/>
-    <external-cache-path name="external-cache-path" path="."/>
-    <files-path name="files-path" path="."/>
+    <root-path name="storage" path="/storage/" />
+    <external-path name="storage/emulated/0" path="."/>
+    <external-files-path name="storage/emulated/0/Android/data/com.OxGames.OxShell/files" path="."/>
+    <cache-path name="data/user/0/com.OxGames.OxShell/cache" path="."/>
+    <external-cache-path name="storage/emulated/0/Android/data/com.OxGames.OxShell/cache" path="."/>
+    <files-path name="data/user/0/com.OxGames.OxShell/files" path="."/>
+<!--    <root-path name="root-path" path="/storage/" />-->
+<!--    <external-path name="external-path" path="."/>-->
+<!--    <external-files-path name="external-files-path" path="."/>-->
+<!--    <cache-path name="cache-path" path="."/>-->
+<!--    <external-cache-path name="external-cache-path" path="."/>-->
+<!--    <files-path name="files-path" path="."/>-->
 </paths>
