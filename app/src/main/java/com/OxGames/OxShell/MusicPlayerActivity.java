@@ -33,6 +33,9 @@ public class MusicPlayerActivity extends PagedActivity {
         mpv.setIsPlaying(MusicPlayer.isPlaying());
         mpv.setTitle(MusicPlayer.getCurrentTitle());
 
+        MusicPlayer.addIsPlayingListener(this::onMusicPlayerIsPlaying);
+        MusicPlayer.addMediaItemChangedListener(this::onMusicPlayerMediaChanged);
+
         Log.i("MusicPlayerActivity", "Received data: " + (getIntent() != null ? getIntent().getData() : "null") + " extras: " + (getIntent() != null ? getIntent().getExtras() : "null"));
     }
 
@@ -48,8 +51,16 @@ public class MusicPlayerActivity extends PagedActivity {
     protected void onDestroy() {
         super.onDestroy();
         mpv.onDestroy();
+        MusicPlayer.removeIsPlayingListener(this::onMusicPlayerIsPlaying);
+        MusicPlayer.removeMediaItemChangedListener(this::onMusicPlayerMediaChanged);
     }
 
+    private void onMusicPlayerIsPlaying(boolean onOff) {
+        mpv.setIsPlaying(onOff);
+    }
+    private void onMusicPlayerMediaChanged(int index) {
+        mpv.setTitle(MusicPlayer.getCurrentTitle());
+    }
     private void onMediaButtonPressed(MediaPlayerView.MediaButton btn) {
         switch (btn) {
             case end:

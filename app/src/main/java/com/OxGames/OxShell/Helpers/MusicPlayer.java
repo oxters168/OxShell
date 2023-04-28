@@ -33,6 +33,9 @@ import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class MusicPlayer {
     public static final String PREV_INTENT = "ACTION_SKIP_TO_PREVIOUS";
@@ -54,6 +57,7 @@ public class MusicPlayer {
             setTrackIndex(exo.getCurrentMediaItemIndex());
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
+            fireIsPlayingEvent(exo.isPlaying());
         }
         @Override
         public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
@@ -62,6 +66,7 @@ public class MusicPlayer {
             setTrackIndex(exo.getCurrentMediaItemIndex());
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
+            fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
         }
     };
     private static AudioFocusRequest audioFocusRequest = null;
@@ -69,6 +74,36 @@ public class MusicPlayer {
     private static final int NOTIFICATION_ID = 12345;
     private static final String CHANNEL_ID = "54321";
     private static ExoPlayer exo = null;
+
+    private static final List<Consumer<Boolean>> isPlayingToggledListeners = new ArrayList<>();
+    private static final List<Consumer<Integer>> mediaItemChangedListeners = new ArrayList<>();
+
+    public static void addIsPlayingListener(Consumer<Boolean> isPlayingToggledListener) {
+        isPlayingToggledListeners.add(isPlayingToggledListener);
+    }
+    public static void removeIsPlayingListener(Consumer<Boolean> isPlayingToggledListener) {
+        isPlayingToggledListeners.remove(isPlayingToggledListener);
+    }
+    public static void clearIsPlayingListeners() {
+        isPlayingToggledListeners.clear();
+    }
+    private static void fireIsPlayingEvent(boolean value) {
+        for (Consumer<Boolean> isPlayingToggledListener : isPlayingToggledListeners)
+            isPlayingToggledListener.accept(value);
+    }
+    public static void addMediaItemChangedListener(Consumer<Integer> mediaItemChangedListener) {
+        mediaItemChangedListeners.add(mediaItemChangedListener);
+    }
+    public static void removeMediaItemChangedListener(Consumer<Integer> mediaItemChangedListener) {
+        mediaItemChangedListeners.remove(mediaItemChangedListener);
+    }
+    public static void clearMediaItemChangedListeners() {
+        mediaItemChangedListeners.clear();
+    }
+    private static void fireMediaItemChangedEvent(int value) {
+        for (Consumer<Integer> mediaItemChangedListener : mediaItemChangedListeners)
+            mediaItemChangedListener.accept(value);
+    }
 
     public static void setPlaylist(DataRef... trackLocs) {
         setPlaylist(0, trackLocs);
@@ -132,13 +167,15 @@ public class MusicPlayer {
             setVolume(SettingsKeeper.getMusicVolume());
             if (index != exo.getCurrentMediaItemIndex())
                 exo.seekTo(index, 0);
-            if (!exo.isPlaying())
+            if (!exo.isPlaying()) {
                 exo.play();
+                fireIsPlayingEvent(true);
+            }
 
             refreshMetadata();
             refreshNotificationAndSession(true);
         } else
-            Log.e("MusicPlayer", "Failed to play, exoplayer is null or has no tracks");
+            Log.w("MusicPlayer", "Failed to play, exoplayer is null or has no tracks");
     }
     public static boolean isPlaying() {
         return exo != null && exo.isPlaying();
@@ -151,7 +188,7 @@ public class MusicPlayer {
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
         } else
-            Log.e("MusicPlayer", "Failed to seek to next, exoplayer is null");
+            Log.w("MusicPlayer", "Failed to seek to next, exoplayer is null");
     }
     public static void seekToPrev() {
         if (exo != null) {
@@ -161,45 +198,57 @@ public class MusicPlayer {
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
         } else
-            Log.e("MusicPlayer", "Failed to seek to previous, exoplayer is null");
+            Log.w("MusicPlayer", "Failed to seek to previous, exoplayer is null");
     }
     public static void pause() {
         if (exo != null) {
             exo.pause();
             abandonAudioFocus();
             refreshNotificationAndSession(false);
+            fireIsPlayingEvent(false);
         } else
-            Log.e("MusicPlayer", "Failed to pause, exoplayer is null");
+            Log.w("MusicPlayer", "Failed to pause, exoplayer is null");
     }
     public static void stop() {
-        clearPlaylist();
+        if (exo != null) {
+            boolean wasPlaying = exo.isPlaying();
+            clearPlaylist();
+            if (wasPlaying)
+                fireIsPlayingEvent(false);
+            fireMediaItemChangedEvent(-1);
+        } else
+            Log.w("MusicPlayer", "Failed to stop, exoplayer is null");
     }
     public static void seekTo(long ms) {
         if (exo != null) {
             exo.seekTo(ms);
             refreshNotificationAndSession(isPlaying());
         } else
-            Log.e("MusicPlayer", "Failed to seek, exoplayer is null");
+            Log.w("MusicPlayer", "Failed to seek, exoplayer is null");
     }
     public static void seekForward() {
         if (exo != null) {
             exo.seekForward();
             refreshNotificationAndSession(isPlaying());
+            fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
         } else
-            Log.e("MusicPlayer", "Failed to seek forward, exoplayer is null");
+            Log.w("MusicPlayer", "Failed to seek forward, exoplayer is null");
     }
     public static void seekBack() {
         if (exo != null) {
+            int prevIndex = exo.getCurrentMediaItemIndex();
             exo.seekBack();
             refreshNotificationAndSession(isPlaying());
+            if (prevIndex != exo.getCurrentMediaItemIndex())
+                fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
         } else
-            Log.e("MusicPlayer", "Failed to seek back, exoplayer is null");
+            Log.w("MusicPlayer", "Failed to seek back, exoplayer is null");
     }
     public static void setVolume(float value) {
         if (exo != null)
             exo.setVolume(value);
         else
-            Log.e("MusicPlayer", "Failed to set volume, exoplayer is null");
+            Log.w("MusicPlayer", "Failed to set volume, exoplayer is null");
     }
     public static long getCurrentPosition() {
         if (exo != null)
@@ -293,7 +342,7 @@ public class MusicPlayer {
         try {
             duration = Long.valueOf(currentTrackData.getDuration());
         } catch (Exception e) {
-            Log.e("MusicPlayer", "Failed to retrieve track duration from metadata");
+            Log.w("MusicPlayer", "Failed to retrieve track duration from metadata");
         }
         return duration;
     }

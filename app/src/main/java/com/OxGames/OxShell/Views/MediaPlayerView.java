@@ -83,6 +83,9 @@ public class MediaPlayerView extends FrameLayout {
     public void setTitle(String value) {
         titleLabel.setText(value);
     }
+    public void setPosition(float value) {
+        seekBar.setValue(value);
+    }
     public void onDestroy() {
         backBtn.setOnClickListener(null);
         endBtn.setOnClickListener(null);
@@ -240,7 +243,6 @@ public class MediaPlayerView extends FrameLayout {
         skipPrv.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
         controlsBar.addView(skipPrv);
 
-        // create a Spinner widget
         seekBar = new Slider(context);
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, btnSize);
         params.gravity = Gravity.CENTER;
@@ -260,7 +262,7 @@ public class MediaPlayerView extends FrameLayout {
         seekBar.setTrackActiveTintList(ColorStateList.valueOf(Color.WHITE));
         seekBar.setThumbTintList(ColorStateList.valueOf(Color.WHITE));
         seekBar.setThumbRadius(seekBarThumbSize);
-        seekBar.setHaloRadius(seekBarThumbSize);
+        seekBar.setHaloRadius(seekBarThumbSize * 2);
         controlsBar.addView(seekBar);
     }
 }
