@@ -1,6 +1,8 @@
 package com.OxGames.OxShell;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
@@ -9,11 +11,22 @@ import android.widget.FrameLayout;
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.OxGames.OxShell.Views.MediaPlayerView;
 
 public class MusicPlayerActivity extends PagedActivity {
     private MediaPlayerView mpv;
+    private Handler trackPositionHandler;
+    private Runnable trackPositionListener = new Runnable() {
+        @Override
+        public void run() {
+            if (MusicPlayer.isPlaying()) {
+                setMediaPlayerViewPosition();
+                trackPositionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,9 +45,10 @@ public class MusicPlayerActivity extends PagedActivity {
         mpv.addSeekBarListener(this::onSeekBarSuk);
         mpv.setIsPlaying(MusicPlayer.isPlaying());
         mpv.setTitle(MusicPlayer.getCurrentTitle());
-
         MusicPlayer.addIsPlayingListener(this::onMusicPlayerIsPlaying);
         MusicPlayer.addMediaItemChangedListener(this::onMusicPlayerMediaChanged);
+        MusicPlayer.addSeekEventListener(this::onSeekEvent);
+        trackPositionHandler = new Handler();
 
         Log.i("MusicPlayerActivity", "Received data: " + (getIntent() != null ? getIntent().getData() : "null") + " extras: " + (getIntent() != null ? getIntent().getExtras() : "null"));
     }
@@ -53,13 +67,28 @@ public class MusicPlayerActivity extends PagedActivity {
         mpv.onDestroy();
         MusicPlayer.removeIsPlayingListener(this::onMusicPlayerIsPlaying);
         MusicPlayer.removeMediaItemChangedListener(this::onMusicPlayerMediaChanged);
+        MusicPlayer.removeSeekEventListener(this::onSeekEvent);
+    }
+
+    private void setMediaPlayerViewPosition() {
+        Log.d("MusicPlayerActivity", "Setting position of seekbar");
+        long currentPosition = MusicPlayer.getCurrentPosition();
+        long currentDuration = MusicPlayer.getCurrentDuration();
+        if (currentDuration > 0 && currentPosition != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN)
+            mpv.setPosition(currentPosition / (float)currentDuration);
     }
 
     private void onMusicPlayerIsPlaying(boolean onOff) {
         mpv.setIsPlaying(onOff);
+        if (onOff)
+            trackPositionHandler.post(trackPositionListener);
     }
     private void onMusicPlayerMediaChanged(int index) {
         mpv.setTitle(MusicPlayer.getCurrentTitle());
+        setMediaPlayerViewPosition();
+    }
+    private void onSeekEvent(long position) {
+        setMediaPlayerViewPosition();
     }
     private void onMediaButtonPressed(MediaPlayerView.MediaButton btn) {
         switch (btn) {
@@ -70,19 +99,15 @@ public class MusicPlayerActivity extends PagedActivity {
                 break;
             case play:
                 MusicPlayer.play();
-                mpv.setIsPlaying(true);
                 break;
             case pause:
                 MusicPlayer.pause();
-                mpv.setIsPlaying(false);
                 break;
             case skipNext:
                 MusicPlayer.seekToNext();
-                mpv.setTitle(MusicPlayer.getCurrentTitle());
                 break;
             case skipPrev:
                 MusicPlayer.seekToPrev();
-                mpv.setTitle(MusicPlayer.getCurrentTitle());
                 break;
             case seekFwd:
                 MusicPlayer.seekForward();

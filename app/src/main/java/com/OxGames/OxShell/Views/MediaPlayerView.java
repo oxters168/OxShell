@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.R;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
@@ -84,7 +85,7 @@ public class MediaPlayerView extends FrameLayout {
         titleLabel.setText(value);
     }
     public void setPosition(float value) {
-        seekBar.setValue(value);
+        seekBar.setValue(MathHelpers.clamp(value, seekBar.getValueFrom(), seekBar.getValueTo()));
     }
     public void onDestroy() {
         backBtn.setOnClickListener(null);
