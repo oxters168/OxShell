@@ -24,6 +24,7 @@ import com.appspell.shaderview.log.LibLog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 import java.util.function.Consumer;
 
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
@@ -74,7 +75,8 @@ public class OxShellApp extends Application {
 //    public static OxShellApp getInstance() {
 //        return instance;
 //    }
-    private static PagedActivity currentActivity;
+    //private static PagedActivity currentActivity;
+    private static final Stack<PagedActivity> activityStack = new Stack<>();
     private static AudioManager manager;
 
     public static Context getContext() {
@@ -131,10 +133,11 @@ public class OxShellApp extends Application {
     }
     @Override
     public void onTerminate() {
+        // is not guaranteed to call
         Log.i("OxShellApp", "onTerminate");
         unregisterReceiver(pkgInstallationReceiver);
         unregisterReceiver(musicActionReceiver);
-        currentActivity = null;
+        //currentActivity = null;
         //releaseSession();
         super.onTerminate();
     }
@@ -166,11 +169,18 @@ public class OxShellApp extends Application {
         return inputHandler;
     }
 
-    protected static void setCurrentActivity(PagedActivity activity) {
-        currentActivity = activity;
+//    protected static void setCurrentActivity(PagedActivity activity) {
+//        currentActivity = activity;
+//    }
+    protected static void enteredActivity(PagedActivity activity) {
+        activityStack.add(activity);
+    }
+    protected static PagedActivity popCurrentActivity() {
+        return activityStack.pop();
     }
     public static PagedActivity getCurrentActivity() {
-        return currentActivity;
+        return !activityStack.isEmpty() ? activityStack.peek() : null;
+        //return currentActivity;
     }
 
     public static int getNavBarHeight() {
@@ -218,88 +228,4 @@ public class OxShellApp extends Application {
         Configuration cfg = instance.getResources().getConfiguration();
         return cfg.densityDpi;
     }
-
-//    private MediaSessionCompat session;
-//    public static void setSessionActive(boolean onOff) {
-//        instance.session.setActive(onOff);
-//    }
-//    public static MediaSessionCompat.Token getSessionToken() {
-//        return instance.session.getSessionToken();
-//    }
-//    private void releaseSession() {
-//        if (session != null) {
-//            session.release();
-//            session = null;
-//        }
-//    }
-//    public static void setSessionState(boolean isPlaying) {
-//        PlaybackStateCompat.Builder playbackState = new PlaybackStateCompat.Builder();
-//        playbackState.setActions(PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PLAY | PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_SKIP_TO_NEXT | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS);
-//        playbackState.setState(isPlaying ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN, 1.0f);
-//        instance.session.setPlaybackState(playbackState.build());
-//    }
-//    private void prepareSession() {
-//        session = new MediaSessionCompat(OxShellApp.getContext(), BuildConfig.APP_LABEL);
-//        session.setCallback(new MediaSessionCompat.Callback() {
-//            @Override
-//            public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
-//                Log.d("MusicPlayer", mediaButtonIntent + ", " + (mediaButtonIntent.getExtras() != null ? mediaButtonIntent.getExtras().toString() : "null"));
-//                return super.onMediaButtonEvent(mediaButtonIntent);
-//            }
-//
-//            @Override
-//            public void onPlay() {
-//                super.onPlay();
-//                Log.d("MusicPlayer", "onPlay");
-//            }
-//
-//            @Override
-//            public void onSkipToQueueItem(long id) {
-//                super.onSkipToQueueItem(id);
-//                Log.d("MusicPlayer", "onSkipToQueueItem " + id);
-//            }
-//
-//            @Override
-//            public void onPause() {
-//                super.onPause();
-//                Log.d("MusicPlayer", "onPause");
-//            }
-//
-//            @Override
-//            public void onSkipToNext() {
-//                super.onSkipToNext();
-//                Log.d("MusicPlayer", "onSkipToNext");
-//            }
-//
-//            @Override
-//            public void onSkipToPrevious() {
-//                super.onSkipToPrevious();
-//                Log.d("MusicPlayer", "onSkipToPrevious");
-//            }
-//
-//            @Override
-//            public void onFastForward() {
-//                super.onFastForward();
-//                Log.d("MusicPlayer", "onFastForward");
-//            }
-//
-//            @Override
-//            public void onRewind() {
-//                super.onRewind();
-//                Log.d("MusicPlayer", "onRewind");
-//            }
-//
-//            @Override
-//            public void onStop() {
-//                super.onStop();
-//                Log.d("MusicPlayer", "onStop");
-//            }
-//
-//            @Override
-//            public void onSeekTo(long pos) {
-//                super.onSeekTo(pos);
-//                Log.d("MusicPlayer", "onSeekTo " + pos);
-//            }
-//        });
-//    }
 }

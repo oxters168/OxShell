@@ -226,7 +226,8 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        OxShellApp.setCurrentActivity(this);
+        //OxShellApp.setCurrentActivity(this);
+        OxShellApp.enteredActivity(this);
         refreshAccessibilityInput();
         refreshMusicPlayerInput();
         refreshShowDebugInput();
@@ -266,7 +267,7 @@ public class PagedActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        OxShellApp.setCurrentActivity(this);
+        //OxShellApp.setCurrentActivity(this);
         //ActivityManager.setCurrent(currentPage);
         //goTo(currentPage);
         super.onResume();
@@ -347,9 +348,13 @@ public class PagedActivity extends AppCompatActivity {
     }
     @Override
     protected void onDestroy() {
+        // is not guaranteed to call
         Log.i("PagedActivity", "OnDestroy " + this);
         LogcatHelper.getInstance(this).stop();
         OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
+        OxShellApp.popCurrentActivity();
+        //if (OxShellApp.getCurrentActivity() == null)
+        //    MusicPlayer.stop(); // only ends up calling if music player was opened from outside
         super.onDestroy();
     }
 

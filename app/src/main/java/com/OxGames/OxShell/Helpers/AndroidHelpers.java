@@ -227,6 +227,37 @@ public class AndroidHelpers {
         }
         return displayName;
     }
+
+    public static String getFileNameFromUri(Uri uri) {
+        //boolean exists = false;
+        String fileName = null;
+        Cursor cursor = null;
+        try {
+            //String[] projection = { MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.DISPLAY_NAME };
+            String[] projection = { MediaStore.Files.FileColumns.DISPLAY_NAME };
+            cursor = OxShellApp.getContext().getContentResolver().query(uri, projection, null, null, null);
+
+            if (cursor != null) {
+                //int idIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
+                int nameIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+                while (cursor.moveToNext())
+                    //long fileId = cursor.getLong(idIndex);
+                    fileName = cursor.getString(nameIndex);
+                    //Uri fileUri = ContentUris.withAppendedId(uri, fileId);
+                    //Log.d("AndroidHelpers", fileUri + ": " + fileName);
+//                    if (fileName.endsWith(".gba")) {
+//                        // do something with the file name (e.g. display it in a list)
+//                    }
+                //}
+            }
+        } catch (Exception e) {
+            Log.e("AndroidHelpers", "Failed to query uri: " + e);
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return fileName;
+    }
 //    public static boolean queryUri(Uri uri) {
 //        boolean exists = false;
 //        Cursor cursor = null;

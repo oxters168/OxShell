@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -10,6 +11,8 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 
+import com.OxGames.OxShell.Data.DataLocation;
+import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.MusicPlayer;
@@ -36,6 +39,13 @@ public class MusicPlayerActivity extends PagedActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Uri receivedPath = getIntent().getData();
+        if (receivedPath != null) {
+            Log.d("MusicPlayerActivity", "Received uri, sending to MusicPlayer");
+            MusicPlayer.setPlaylist(DataRef.from(receivedPath, DataLocation.resolverUri));
+            MusicPlayer.play();
+        }
 
         FrameLayout parentView = new FrameLayout(this);
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);

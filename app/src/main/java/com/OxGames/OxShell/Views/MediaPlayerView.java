@@ -137,6 +137,7 @@ public class MediaPlayerView extends FrameLayout {
         int btnSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 32));
         int seekBarThumbSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 5));
         int btnEdgeMargin = (actionBarHeight - btnSize) / 2;
+        int controlsSeparationMargin = btnSize + smallCushion / 2;
 
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
@@ -158,9 +159,12 @@ public class MediaPlayerView extends FrameLayout {
         layoutParams.setMarginStart(btnSize + btnEdgeMargin + smallCushion);
         layoutParams.setMarginEnd(btnSize + btnEdgeMargin + smallCushion);
         titleLabel.setLayoutParams(layoutParams);
+        titleLabel.setIgnoreTouchInput(true);
         titleLabel.setOverScrollMode(SCROLL_AXIS_VERTICAL);
         titleLabel.setMovementMethod(new ScrollingMovementMethod());
-        titleLabel.setEllipsize(TextUtils.TruncateAt.END);
+        titleLabel.setSingleLine(true);
+        titleLabel.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+        titleLabel.setMarqueeRepeatLimit(-1);
         titleLabel.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         titleLabel.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
         titleLabel.setTextColor(context.getColor(R.color.text));
@@ -171,6 +175,7 @@ public class MediaPlayerView extends FrameLayout {
         titleLabel.setFocusable(false);
         Typeface font = SettingsKeeper.getFont();
         titleLabel.setTypeface(font);
+        titleLabel.setSelected(true);
         customActionBar.addView(titleLabel);
 
         backBtn = new Button(context);
@@ -202,7 +207,7 @@ public class MediaPlayerView extends FrameLayout {
         playBtn = new Button(context);
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(0, btnSize + smallCushion, 0, btnEdgeMargin);
+        layoutParams.setMargins(0, controlsSeparationMargin, 0, btnEdgeMargin);
         playBtn.setLayoutParams(layoutParams);
         playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
         playBtn.setOnClickListener((btn) -> fireMediaBtnEvent(isPlaying ? MediaButton.pause : MediaButton.play));
@@ -211,7 +216,7 @@ public class MediaPlayerView extends FrameLayout {
         seekFwd = new Button(context);
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(btnSize + smallCushion, btnSize + smallCushion, 0,btnEdgeMargin);
+        layoutParams.setMargins(btnSize + smallCushion, controlsSeparationMargin, 0,btnEdgeMargin);
         seekFwd.setLayoutParams(layoutParams);
         seekFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_forward_24));
         seekFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
@@ -220,7 +225,7 @@ public class MediaPlayerView extends FrameLayout {
         skipFwd = new Button(context);
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins((btnSize + smallCushion) * 2, btnSize + smallCushion, 0,btnEdgeMargin);
+        layoutParams.setMargins((btnSize + smallCushion) * 2, controlsSeparationMargin, 0,btnEdgeMargin);
         skipFwd.setLayoutParams(layoutParams);
         skipFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_next_24));
         skipFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipNext));
@@ -229,7 +234,7 @@ public class MediaPlayerView extends FrameLayout {
         seekBck = new Button(context);
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(0, btnSize + smallCushion, btnSize + smallCushion,btnEdgeMargin);
+        layoutParams.setMargins(0, controlsSeparationMargin, btnSize + smallCushion,btnEdgeMargin);
         seekBck.setLayoutParams(layoutParams);
         seekBck.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_rewind_24));
         seekBck.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
@@ -238,7 +243,7 @@ public class MediaPlayerView extends FrameLayout {
         skipPrv = new Button(context);
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(0, btnSize + smallCushion, (btnSize + smallCushion) * 2,btnEdgeMargin);
+        layoutParams.setMargins(0, controlsSeparationMargin, (btnSize + smallCushion) * 2,btnEdgeMargin);
         skipPrv.setLayoutParams(layoutParams);
         skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
         skipPrv.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
@@ -247,7 +252,7 @@ public class MediaPlayerView extends FrameLayout {
         seekBar = new Slider(context);
         LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, btnSize);
         params.gravity = Gravity.CENTER;
-        params.setMargins(btnEdgeMargin, btnEdgeMargin, btnEdgeMargin, btnSize + smallCushion);
+        params.setMargins(btnEdgeMargin, btnEdgeMargin, btnEdgeMargin, controlsSeparationMargin);
         seekBar.setLayoutParams(params);
         seekBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override

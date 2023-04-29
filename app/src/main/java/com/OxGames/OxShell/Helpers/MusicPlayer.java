@@ -316,9 +316,10 @@ public class MusicPlayer {
         String title = currentTrackData.getTitle();
         if (title == null || title.isEmpty()) {
             DataRef dataRef = getCurrentDataRef();
-            // TODO: get name from Uri
             if (dataRef.getLocType() == DataLocation.file)
                 title = AndroidHelpers.removeExtension((new File((String)dataRef.getLoc())).getName());
+            else if (dataRef.getLocType() == DataLocation.resolverUri)
+                title = AndroidHelpers.removeExtension(AndroidHelpers.getFileNameFromUri((Uri)dataRef.getLoc()));
             else
                 title = "?";
         }
