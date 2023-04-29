@@ -47,6 +47,7 @@ public class MediaPlayerView extends FrameLayout {
     private Slider seekBar;
 
     private boolean isPlaying;
+    private boolean isSeeking;
 
     private final List<Consumer<MediaButton>> mediaBtnListeners;
     private final List<Consumer<Float>> seekBarListeners;
@@ -88,7 +89,10 @@ public class MediaPlayerView extends FrameLayout {
         titleLabel.setText(value);
     }
     public void setPosition(float value) {
-        seekBar.setValue(MathHelpers.clamp(value, seekBar.getValueFrom(), seekBar.getValueTo()));
+        if (!isSeeking)
+            seekBar.setValue(MathHelpers.clamp(value, seekBar.getValueFrom(), seekBar.getValueTo()));
+        else
+            Log.w("MediaPlayerView", "Failed to set seek bar value since it is being manipulated");
     }
     public void onDestroy() {
         backBtn.setOnClickListener(null);
@@ -287,10 +291,12 @@ public class MediaPlayerView extends FrameLayout {
         seekBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(@NonNull Slider slider) {
+                isSeeking = true;
             }
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
+                isSeeking = false;
                 fireSeekBarEvent(slider.getValue());
             }
         });
