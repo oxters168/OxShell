@@ -1,5 +1,6 @@
 package com.OxGames.OxShell.Views;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -11,6 +12,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -33,9 +35,11 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MediaPlayerView extends FrameLayout {
-    public enum MediaButton { back, end, play, pause, seekFwd, seekBck, skipNext, skipPrev }
+    public enum MediaButton { back, end, play, pause, seekFwd, seekBck, skipNext, skipPrev, fullscreen }
     private final Context context;
     private FrameLayout imageView;
+    private FrameLayout customActionBar;
+    private FrameLayout controlsBar;
     private BetterTextView titleLabel;
     private Button backBtn;
     private Button endBtn;
@@ -48,6 +52,7 @@ public class MediaPlayerView extends FrameLayout {
 
     private boolean isPlaying;
     private boolean isSeeking;
+    private boolean isFullscreen;
 
     private final List<Consumer<MediaButton>> mediaBtnListeners;
     private final List<Consumer<Float>> seekBarListeners;
@@ -94,6 +99,7 @@ public class MediaPlayerView extends FrameLayout {
         else
             Log.w("MediaPlayerView", "Failed to set seek bar value since it is being manipulated");
     }
+    @SuppressLint("ClickableViewAccessibility")
     public void onDestroy() {
         backBtn.setOnClickListener(null);
         endBtn.setOnClickListener(null);
@@ -103,6 +109,9 @@ public class MediaPlayerView extends FrameLayout {
         seekBck.setOnClickListener(null);
         skipPrv.setOnClickListener(null);
         seekBar.clearOnSliderTouchListeners();
+        setOnTouchListener(null);
+        customActionBar.setOnTouchListener(null);
+        controlsBar.setOnTouchListener(null);
         clearMediaBtnListeners();
         clearSeekBarListeners();
     }
@@ -143,7 +152,24 @@ public class MediaPlayerView extends FrameLayout {
             imageView.setBackgroundTintList(null);
         }
     }
+    public void setFullscreen(boolean onOff) {
+        boolean fullscreenChanged = isFullscreen != onOff;
+        isFullscreen = onOff;
+        customActionBar.setVisibility(isFullscreen ? GONE : VISIBLE);
+        controlsBar.setVisibility(isFullscreen ? GONE : VISIBLE);
+        if (fullscreenChanged)
+            fireMediaBtnEvent(MediaButton.fullscreen);
+    }
+    public boolean isFullscreen() {
+        return isFullscreen;
+    }
+    public void refreshSize() {
+        LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
+        setLayoutParams(layoutParams);
+    }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void init() {
         LayoutParams layoutParams;
 
@@ -161,6 +187,12 @@ public class MediaPlayerView extends FrameLayout {
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         setLayoutParams(layoutParams);
         setBackgroundColor(Color.DKGRAY);
+        setOnTouchListener((view, touchEvent) -> {
+            //Log.d("MediaPlayerView", touchEvent.toString());
+            if (touchEvent.getAction() == MotionEvent.ACTION_UP)
+                setFullscreen(!isFullscreen);
+            return true;
+        });
         setFocusable(false);
 
         FrameLayout imageBackdrop = new FrameLayout(context);
@@ -179,12 +211,13 @@ public class MediaPlayerView extends FrameLayout {
         imageBackdrop.addView(imageView);
         setImage(null);
 
-        FrameLayout customActionBar = new FrameLayout(context);
+        customActionBar = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         customActionBar.setLayoutParams(layoutParams);
         customActionBar.setBackgroundColor(Color.parseColor("#BB323232"));
         customActionBar.setFocusable(false);
+        customActionBar.setOnTouchListener((view, touchEvent) -> true);
         addView(customActionBar);
 
         titleLabel = new BetterTextView(context);
@@ -230,12 +263,13 @@ public class MediaPlayerView extends FrameLayout {
         endBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.end));
         customActionBar.addView(endBtn);
 
-        FrameLayout controlsBar = new FrameLayout(context);
+        controlsBar = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight * 2 + smallCushion);
         layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
         controlsBar.setLayoutParams(layoutParams);
         controlsBar.setBackgroundColor(Color.parseColor("#BB323232"));
         controlsBar.setFocusable(false);
+        controlsBar.setOnTouchListener((view, touchEvent) -> true);
         addView(controlsBar);
 
         playBtn = new Button(context);

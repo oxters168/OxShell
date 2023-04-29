@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.DataLocation;
@@ -88,6 +90,15 @@ public class MusicPlayerActivity extends PagedActivity {
         MusicPlayer.removeMediaItemChangedListener(this::onMusicPlayerMediaChanged);
         MusicPlayer.removeSeekEventListener(this::onSeekEvent);
     }
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        refreshSystemUiState();
+    }
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        refreshSystemUiState();
+    }
 
     private void setMediaPlayerViewPosition() {
         //Log.d("MusicPlayerActivity", "Setting position of seekbar");
@@ -99,6 +110,15 @@ public class MusicPlayerActivity extends PagedActivity {
     private void setMediaPlayerViewImage() {
         Bitmap albumArt = MusicPlayer.getCurrentAlbumArt();
         mpv.setImage(albumArt != null ? AndroidHelpers.bitmapToDrawable(this, albumArt) : null);
+    }
+    private void refreshSystemUiState() {
+        Log.d("MusicPlayerActivity", "Refreshing system ui scale");
+        // TODO: figure out why this only works the first time the music player is opened, but never again
+        //SettingsKeeper.setSystemUIState(SettingsKeeper.getSystemUiVisibility(), true, false);
+        SettingsKeeper.setNavBarHidden(true, false);
+        SettingsKeeper.setStatusBarHidden(mpv.isFullscreen(), false);
+        SettingsKeeper.setFullscreen(mpv.isFullscreen(), false);
+        mpv.refreshSize();
     }
 
     private void onMusicPlayerIsPlaying(boolean onOff) {
@@ -144,6 +164,9 @@ public class MusicPlayerActivity extends PagedActivity {
                 break;
             case seekBck:
                 MusicPlayer.seekBack();
+                break;
+            case fullscreen:
+                refreshSystemUiState();
                 break;
         }
     }
