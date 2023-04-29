@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
@@ -22,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
@@ -33,6 +35,7 @@ import java.util.function.Consumer;
 public class MediaPlayerView extends FrameLayout {
     public enum MediaButton { back, end, play, pause, seekFwd, seekBck, skipNext, skipPrev }
     private final Context context;
+    private FrameLayout imageView;
     private BetterTextView titleLabel;
     private Button backBtn;
     private Button endBtn;
@@ -127,6 +130,16 @@ public class MediaPlayerView extends FrameLayout {
             seekBarListener.accept(value);
     }
 
+    public void setImage(Drawable drawable) {
+        if (drawable == null) {
+            imageView.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_headphones_24));
+            imageView.setBackgroundTintList(ColorStateList.valueOf(Color.DKGRAY));
+        } else {
+            imageView.setBackground(drawable);
+            imageView.setBackgroundTintList(null);
+        }
+    }
+
     private void init() {
         LayoutParams layoutParams;
 
@@ -138,12 +151,29 @@ public class MediaPlayerView extends FrameLayout {
         int seekBarThumbSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 5));
         int btnEdgeMargin = (actionBarHeight - btnSize) / 2;
         int controlsSeparationMargin = btnSize + smallCushion / 2;
+        int imageSize = Math.round(Math.min(OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight()) * 0.8f);
 
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         setLayoutParams(layoutParams);
-        setBackgroundColor(Color.GREEN);
+        setBackgroundColor(Color.DKGRAY);
         setFocusable(false);
+
+        FrameLayout imageBackdrop = new FrameLayout(context);
+        layoutParams = new LayoutParams(imageSize, imageSize);
+        layoutParams.gravity = Gravity.CENTER;
+        imageBackdrop.setLayoutParams(layoutParams);
+        imageBackdrop.setBackgroundColor(Color.GRAY);
+        imageBackdrop.setFocusable(false);
+        addView(imageBackdrop);
+
+        imageView = new FrameLayout(context);
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.gravity = Gravity.CENTER;
+        imageView.setLayoutParams(layoutParams);
+        imageView.setFocusable(false);
+        imageBackdrop.addView(imageView);
+        setImage(null);
 
         FrameLayout customActionBar = new FrameLayout(context);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight);

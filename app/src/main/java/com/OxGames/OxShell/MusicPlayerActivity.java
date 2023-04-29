@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import androidx.annotation.Nullable;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.OxGames.OxShell.Views.MediaPlayerView;
@@ -60,6 +62,7 @@ public class MusicPlayerActivity extends PagedActivity {
         mpv.addSeekBarListener(this::onSeekBarSuk);
         mpv.setIsPlaying(MusicPlayer.isPlaying());
         mpv.setTitle(MusicPlayer.getCurrentTitle());
+        setMediaPlayerViewImage();
         setMediaPlayerViewPosition();
         MusicPlayer.addIsPlayingListener(this::onMusicPlayerIsPlaying);
         MusicPlayer.addMediaItemChangedListener(this::onMusicPlayerMediaChanged);
@@ -93,6 +96,10 @@ public class MusicPlayerActivity extends PagedActivity {
         if (currentDuration > 0 && currentPosition != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN)
             mpv.setPosition(currentPosition / (float)currentDuration);
     }
+    private void setMediaPlayerViewImage() {
+        Bitmap albumArt = MusicPlayer.getCurrentAlbumArt();
+        mpv.setImage(albumArt != null ? AndroidHelpers.bitmapToDrawable(this, albumArt) : null);
+    }
 
     private void onMusicPlayerIsPlaying(boolean onOff) {
         mpv.setIsPlaying(onOff);
@@ -107,6 +114,7 @@ public class MusicPlayerActivity extends PagedActivity {
     }
     private void onMusicPlayerMediaChanged(int index) {
         mpv.setTitle(MusicPlayer.getCurrentTitle());
+        setMediaPlayerViewImage();
         setMediaPlayerViewPosition();
     }
     private void onSeekEvent(long position) {
