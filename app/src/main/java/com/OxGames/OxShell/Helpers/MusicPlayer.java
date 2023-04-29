@@ -29,6 +29,7 @@ import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.Metadata;
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.MusicPlayerActivity;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
@@ -385,6 +386,10 @@ public class MusicPlayer {
         NotificationManager notificationManager = OxShellApp.getContext().getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
 
+        Intent openPlayerIntent = new Intent(OxShellApp.getContext(), MusicPlayerActivity.class);
+        openPlayerIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent openPlayerPendingIntent = PendingIntent.getActivity(OxShellApp.getContext(), 0, openPlayerIntent, PendingIntent.FLAG_MUTABLE);
+
         Intent stopIntent = new Intent(STOP_INTENT);
         PendingIntent stopPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, stopIntent, PendingIntent.FLAG_MUTABLE);
         Intent prevIntent = new Intent(PREV_INTENT);
@@ -409,7 +414,7 @@ public class MusicPlayer {
                 .setLargeIcon(getCurrentAlbumArt())
                 .setContentTitle(getCurrentTitle())
                 .setContentText(getCurrentArtist() + " - " + getCurrentAlbum())
-                //.setContentIntent(pendingIntent) // TODO: get this to open the music player activity of the app
+                .setContentIntent(openPlayerPendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setSilent(true)
                 .setStyle(mediaStyle)

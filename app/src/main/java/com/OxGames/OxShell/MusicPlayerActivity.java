@@ -60,6 +60,7 @@ public class MusicPlayerActivity extends PagedActivity {
         mpv.addSeekBarListener(this::onSeekBarSuk);
         mpv.setIsPlaying(MusicPlayer.isPlaying());
         mpv.setTitle(MusicPlayer.getCurrentTitle());
+        setMediaPlayerViewPosition();
         MusicPlayer.addIsPlayingListener(this::onMusicPlayerIsPlaying);
         MusicPlayer.addMediaItemChangedListener(this::onMusicPlayerMediaChanged);
         MusicPlayer.addSeekEventListener(this::onSeekEvent);
