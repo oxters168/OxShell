@@ -71,8 +71,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
-//    private AudioPool musicPool;
-//    private AudioPool movePool;
     private ExoPlayer moveSfx;
     private Consumer<String> pkgInstalledListener = pkgName -> {
         if (pkgName != null) {
@@ -91,114 +89,26 @@ public class HomeView extends XMBView implements Refreshable {
     }
     public HomeView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-//        setLayoutParams(new GridView.LayoutParams(256, 256));
         init();
     }
 
     private void init() {
-//        musicPool = AudioPool.fromAsset("Audio/xmb_musac.mp3", 2);
-//        movePool = AudioPool.fromAsset("Audio/cow_G7.wav", 5);
-        moveSfx = new ExoPlayer.Builder(OxShellApp.getContext()).build();
-        moveSfx.addMediaItem(MediaItem.fromUri("asset:///Audio/cow_G7.wav"));
-        moveSfx.prepare();
         OxShellApp.addPkgInstalledListener(pkgInstalledListener);
         refresh();
     }
-    //private boolean isInHome;
     public void onResume() {
-        //playBgMusic();
-//        isInHome = true;
-//        Handler musicHandler = new Handler(Looper.getMainLooper());
-//        musicHandler.post(new Runnable() {
-//            boolean checkOtherApps;
-//            boolean waitedAFrame;
-//            @Override
-//            public void run() {
-//                if (isInHome) {
-//                    //Log.d("HomeView", "Checking for other apps playing audio");
-//                    if (waitedAFrame) {
-//                        checkOtherApps = false;
-//                        waitedAFrame = false;
-//                        if (!OxShellApp.getAudioManager().isMusicActive())
-//                            playBgMusic();
-//                        else
-//                            Log.d("HomeView", "Another app is playing audio");
-//                        musicHandler.post(this);
-//                        //musicHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
-//                    } else if (checkOtherApps) {
-//                        pauseBgMusic();
-//                        waitedAFrame = true;
-//                        musicHandler.post(this);
-//                        //musicHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
-//                    } else {
-//                        checkOtherApps = true;
-//                        musicHandler.postDelayed(this, MathHelpers.calculateMillisForFps(20));
-//                    }
-//                }
-//            }
-//        });
-//        if (OxShellApp.getAudioManager().isMusicActive()) {
-//
-//        }
-//        AudioFocusRequest.Builder b = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
-//        b.setAcceptsDelayedFocusGain(true);
-//        AudioAttributes.Builder b2 = new AudioAttributes.Builder();
-//        b2.setContentType(AudioAttributes.CONTENT_TYPE_MUSIC);
-//        b.setAudioAttributes(b2.build());
-//        b.setOnAudioFocusChangeListener(new AudioManager.OnAudioFocusChangeListener() {
-//            @Override
-//            public void onAudioFocusChange(int focusChange) {
-//                //Log.d("HomeView", "OnAudioFocusChangeListener " + focusChange);
-//                if (focusChange == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-//                    Log.d("HomeView", "OnAudioFocusChangeListener request granted: " + focusChange);
-//                    //OxShellApp.getAudioManager().requestAudioFocus(b.build());
-//                    //playBgMusic();
-//                } else {
-//                    Log.d("HomeView", "OnAudioFocusChangeListener request denied: " + focusChange);
-//                }
-//            }
-//        });
-//        OxShellApp.getAudioManager().requestAudioFocus(b.build());
-//        OxShellApp.getAudioManager().requestAudioFocus(new AudioManager.OnAudioFocusChangeListener() {
-//            @Override
-//            public void onAudioFocusChange(int focusChange) {
-//                if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-//                    Log.d("HomeView", "OnAudioFocusChangeListener AUDIOFOCUS_LOSS_TRANSIENT || AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK");
-//                } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-//                    Log.d("HomeView", "OnAudioFocusChangeListener AUDIOFOCUS_GAIN");
-//                } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-//                    Log.d("HomeView", "OnAudioFocusChangeListener AUDIOFOCUS_LOSS");
-//                }
-//            }
-//        }, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        moveSfx = new ExoPlayer.Builder(OxShellApp.getContext()).build();
+        moveSfx.addMediaItem(MediaItem.fromUri("asset:///Audio/cow_G7.wav"));
+        moveSfx.prepare();
     }
-//    private void playBgMusic() {
-//        //refreshAudioVolumes();
-//        //musicPool.setVolume(SettingsKeeper.getMusicVolume());
-//        if (musicPool.getActiveCount() > 0)
-//            musicPool.resumeActive();
-//        else
-//            musicPool.playNew(true);
-//    }
-//    private void pauseBgMusic() {
-//        musicPool.pauseActive();
-//    }
     public void onPause() {
-        //isInHome = false;
-        //pauseBgMusic();
+        moveSfx.release();
+        moveSfx = null;
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
-//        musicPool.setPoolSize(0);
-//        movePool.setPoolSize(0);
-        moveSfx.release();
         MusicPlayer.clearPlaylist();
     }
-//    public void refreshAudioVolumes() {
-//        MusicPlayer.setVolume(SettingsKeeper.getMusicVolume());
-//        //musicPool.setVolume(SettingsKeeper.getMusicVolume());
-//        movePool.setVolume(SettingsKeeper.getSfxVolume());
-//    }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
