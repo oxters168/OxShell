@@ -46,7 +46,7 @@ public class MusicPlayerActivity extends PagedActivity {
 
         Uri receivedPath = getIntent().getData();
         if (receivedPath != null) {
-            Log.d("MusicPlayerActivity", "Received uri, sending to MusicPlayer");
+            Log.i("MusicPlayerActivity", "Received data: " + (getIntent() != null ? getIntent().getData() : "null") + " extras: " + (getIntent() != null ? getIntent().getExtras() : "null"));
             MusicPlayer.setPlaylist(DataRef.from(receivedPath, DataLocation.resolverUri));
             MusicPlayer.play();
         }
@@ -70,8 +70,6 @@ public class MusicPlayerActivity extends PagedActivity {
         MusicPlayer.addMediaItemChangedListener(this::onMusicPlayerMediaChanged);
         MusicPlayer.addSeekEventListener(this::onSeekEvent);
         startTrackingPosition();
-
-        Log.i("MusicPlayerActivity", "Received data: " + (getIntent() != null ? getIntent().getData() : "null") + " extras: " + (getIntent() != null ? getIntent().getExtras() : "null"));
     }
 
     @Override
@@ -112,13 +110,12 @@ public class MusicPlayerActivity extends PagedActivity {
         mpv.setImage(albumArt != null ? AndroidHelpers.bitmapToDrawable(this, albumArt) : null);
     }
     private void refreshSystemUiState() {
-        Log.d("MusicPlayerActivity", "Refreshing system ui scale");
-        // TODO: figure out why this only works the first time the music player is opened, but never again
-        //SettingsKeeper.setSystemUIState(SettingsKeeper.getSystemUiVisibility(), true, false);
-        SettingsKeeper.setNavBarHidden(true, false);
-        SettingsKeeper.setStatusBarHidden(mpv.isFullscreen(), false);
-        SettingsKeeper.setFullscreen(mpv.isFullscreen(), false);
-        mpv.refreshSize();
+        if (hasWindowFocus()) {
+            SettingsKeeper.setNavBarHidden(true, false);
+            SettingsKeeper.setStatusBarHidden(mpv.isFullscreen(), false);
+            SettingsKeeper.setFullscreen(mpv.isFullscreen(), false);
+            mpv.refreshSize();
+        }
     }
 
     private void onMusicPlayerIsPlaying(boolean onOff) {

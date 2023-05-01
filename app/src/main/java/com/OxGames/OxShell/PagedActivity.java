@@ -268,6 +268,7 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         //OxShellApp.setCurrentActivity(this);
+        OxShellApp.enteredActivity(this);
         //ActivityManager.setCurrent(currentPage);
         //goTo(currentPage);
         super.onResume();
@@ -275,9 +276,8 @@ public class PagedActivity extends AppCompatActivity {
         prepareOtherViews();
         //settingsDrawer.setShown(isContextDrawerOpen());
         //settingsDrawer.setX(settingsDrawerWidth);
-        //Add an if statement later to have a setting for hiding status bar
         setActionBarHidden(true);
-        SettingsKeeper.reloadCurrentSystemUiState();
+        //SettingsKeeper.reloadCurrentSystemUiState();
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
         //resetShaderViewBg();
@@ -352,7 +352,8 @@ public class PagedActivity extends AppCompatActivity {
         Log.i("PagedActivity", "OnDestroy " + this);
         LogcatHelper.getInstance(this).stop();
         OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
-        OxShellApp.popCurrentActivity();
+        OxShellApp.removeActivityFromHistory(this);
+        //OxShellApp.popCurrentActivity();
         //if (OxShellApp.getCurrentActivity() == null)
         //    MusicPlayer.stop(); // only ends up calling if music player was opened from outside
         super.onDestroy();
@@ -369,10 +370,11 @@ public class PagedActivity extends AppCompatActivity {
     }
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        Log.i("PagedActivity", "OnWindowFocusChanged " + this);
+        Log.i("PagedActivity", "OnWindowFocusChanged " + this + " hasFocus: " + hasFocus);
         super.onWindowFocusChanged(hasFocus);
         setActionBarHidden(true);
-        SettingsKeeper.reloadCurrentSystemUiState();
+        if (hasFocus)
+            SettingsKeeper.reloadCurrentSystemUiState();
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
     }

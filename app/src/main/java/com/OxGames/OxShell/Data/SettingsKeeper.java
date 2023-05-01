@@ -123,7 +123,7 @@ public class SettingsKeeper {
     public static void setSystemUIState(int uiState, boolean applyNow, boolean save) {
         if (applyNow) {
             currentSysUIVisibility = uiState;
-            OxShellApp.getCurrentActivity().getWindow().getDecorView().setSystemUiVisibility(uiState);
+            OxShellApp.setSystemUiVisibility(uiState);
         }
         if (save)
             setValueAndSave(SYSTEM_UI_VISIBILITY, uiState);

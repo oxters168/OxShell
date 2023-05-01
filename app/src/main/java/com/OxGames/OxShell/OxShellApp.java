@@ -23,6 +23,7 @@ import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.appspell.shaderview.log.LibLog;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.Consumer;
@@ -76,7 +77,7 @@ public class OxShellApp extends Application {
 //        return instance;
 //    }
     //private static PagedActivity currentActivity;
-    private static final Stack<PagedActivity> activityStack = new Stack<>();
+    private static final LinkedList<PagedActivity> activityStack = new LinkedList<>();
     private static AudioManager manager;
 
     public static Context getContext() {
@@ -169,18 +170,25 @@ public class OxShellApp extends Application {
         return inputHandler;
     }
 
-//    protected static void setCurrentActivity(PagedActivity activity) {
-//        currentActivity = activity;
-//    }
     protected static void enteredActivity(PagedActivity activity) {
-        activityStack.add(activity);
+        if (activityStack.contains(activity)) {
+            if (activityStack.peekLast() != activity) {
+                activityStack.remove(activity);
+                activityStack.add(activity);
+            }
+        } else
+            activityStack.add(activity);
     }
-    protected static PagedActivity popCurrentActivity() {
-        return activityStack.pop();
+    protected static void removeActivityFromHistory(PagedActivity activity) {
+        activityStack.remove(activity);
     }
     public static PagedActivity getCurrentActivity() {
-        return !activityStack.isEmpty() ? activityStack.peek() : null;
+        return !activityStack.isEmpty() ? activityStack.peekLast() : null;
         //return currentActivity;
+    }
+    public static void setSystemUiVisibility(int state) {
+        for (PagedActivity activity : activityStack)
+            activity.getWindow().getDecorView().setSystemUiVisibility(state);
     }
 
     public static int getNavBarHeight() {
