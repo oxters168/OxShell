@@ -4,25 +4,28 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-//import android.media.session.MediaSession;
 import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
+import androidx.media3.session.MediaSession;
+import androidx.media3.session.MediaSessionService;
+
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
-//import androidx.media.app.NotificationCompat;
 
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
@@ -38,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class MusicPlayer {
+public class MusicPlayer extends MediaSessionService {
     public static final String PREV_INTENT = "ACTION_SKIP_TO_PREVIOUS";
     public static final String NEXT_INTENT = "ACTION_SKIP_TO_NEXT";
     public static final String PLAY_INTENT = "ACTION_PLAY";
@@ -75,6 +78,7 @@ public class MusicPlayer {
     private static final int NOTIFICATION_ID = 12345;
     private static final String CHANNEL_ID = "54321";
     private static ExoPlayer exo = null;
+    private static MusicPlayer instance = null;
 
     private static final List<Consumer<Boolean>> isPlayingToggledListeners = new ArrayList<>();
     private static final List<Consumer<Integer>> mediaItemChangedListeners = new ArrayList<>();
@@ -120,37 +124,18 @@ public class MusicPlayer {
             seekEventListener.accept(value);
     }
 
-    public static void setPlaylist(DataRef... trackLocs) {
-        setPlaylist(0, trackLocs);
-    }
-    public static void setPlaylist(int startPos, DataRef... trackLocs) {
-        boolean hasTracks = trackLocs != null && trackLocs.length > 0;
-        if (hasTracks) {
-            refs = trackLocs;
+    @Override
+    public void onCreate() {
+        Log.d("MusicPlayer", "onCreate");
+        super.onCreate();
+        instance = this;
 
-            if (exo != null) {
-                exo.stop();
-                exo.clearMediaItems();
-            } else {
-                exo = new ExoPlayer.Builder(OxShellApp.getContext()).build();
-                exo.addListener(exoListener);
-            }
-
-            for (DataRef trackLoc : trackLocs)
-                if (trackLoc.getLocType() == DataLocation.file)
-                    exo.addMediaItem(MediaItem.fromUri((String)trackLoc.getLoc()));
-                else if (trackLoc.getLocType() == DataLocation.resolverUri)
-                    exo.addMediaItem(MediaItem.fromUri((Uri)trackLoc.getLoc()));
-            exo.prepare();
-            exo.seekTo(startPos, 0);
-            setTrackIndex(startPos);
-            //Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
-            refreshMetadata();
-            refreshNotificationAndSession(false);
-        } else
-            clearPlaylist();
+        refreshPlaylist();
     }
-    public static void clearPlaylist() {
+    @Override
+    public void onDestroy() {
+        Log.d("MusicPlayer", "onDestroy");
+        super.onDestroy();
         if (exo != null) {
             exo.stop();
             exo.clearMediaItems();
@@ -165,6 +150,71 @@ public class MusicPlayer {
         releaseSession();
     }
 
+    public static void setPlaylist(DataRef... trackLocs) {
+        setPlaylist(0, trackLocs);
+    }
+    public static void setPlaylist(int startPos, DataRef... trackLocs) {
+        boolean hasTracks = trackLocs != null && trackLocs.length > 0;
+        if (hasTracks) {
+            refs = trackLocs;
+            setTrackIndex(startPos);
+
+            if (instance == null)
+                OxShellApp.getContext().startService(new Intent(OxShellApp.getContext(), MusicPlayer.class));
+            else
+                refreshPlaylist();
+        } else
+            clearPlaylist();
+    }
+    private static void refreshPlaylist() {
+        if (exo != null) {
+            exo.stop();
+            exo.clearMediaItems();
+        } else {
+            exo = new ExoPlayer.Builder(instance).build();
+            exo.addListener(exoListener);
+        }
+
+        for (DataRef trackLoc : refs)
+            if (trackLoc.getLocType() == DataLocation.file)
+                exo.addMediaItem(MediaItem.fromUri((String)trackLoc.getLoc()));
+            else if (trackLoc.getLocType() == DataLocation.resolverUri)
+                exo.addMediaItem(MediaItem.fromUri((Uri)trackLoc.getLoc()));
+        exo.prepare();
+        exo.seekTo(trackIndex, 0);
+        //Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
+        refreshMetadata();
+        refreshNotificationAndSession(exo.isPlaying());
+    }
+    public static void clearPlaylist() {
+        if (instance != null)
+            instance.stopSelf();
+    }
+
+    private static void runWhenCreated(Runnable action) {
+        runWhenCreated(action, 3);
+    }
+    private static void runWhenCreated(Runnable action, float ttl) {
+        if (exo == null) {
+            Handler waitHandler = new Handler(Looper.getMainLooper());
+            waitHandler.post(new Runnable() {
+                long startTime = SystemClock.uptimeMillis();
+
+                @Override
+                public void run() {
+                    if (exo == null || exo.getPlaybackState() != ExoPlayer.STATE_READY) {
+                        Log.d("MusicPlayer", "Waiting for service to start");
+                        if (SystemClock.uptimeMillis() - startTime <= ttl * 1000)
+                            waitHandler.postDelayed(this, MathHelpers.calculateMillisForFps(30));
+                        else
+                            Log.w("MusicPlayer", "Failed to run music player action, exo was null for more than " + ttl + " second(s)");
+                    } else
+                        action.run();
+                }
+            });
+        } else
+            action.run();
+    }
     public static void togglePlay() {
         if (isPlaying())
             pause();
@@ -175,39 +225,45 @@ public class MusicPlayer {
         play(trackIndex);
     }
     public static void play(int index) {
-        if (exo != null && exo.getMediaItemCount() > 0) {
-            requestAudioFocus();
+        int indexWhenReady = index;
+        runWhenCreated(() -> {
+            if (indexWhenReady >= 0 && indexWhenReady < exo.getMediaItemCount()) {
+                requestAudioFocus();
 
-            setTrackIndex(index);
-            setVolume(SettingsKeeper.getMusicVolume());
-            if (index != exo.getCurrentMediaItemIndex())
-                exo.seekTo(index, 0);
-            if (!exo.isPlaying()) {
-                exo.play();
-                fireIsPlayingEvent(true);
-            }
+                setTrackIndex(indexWhenReady);
+                setVolume(SettingsKeeper.getMusicVolume());
+                if (indexWhenReady != exo.getCurrentMediaItemIndex())
+                    exo.seekTo(indexWhenReady, 0);
+                if (!exo.isPlaying()) {
+                    exo.play();
+                    fireIsPlayingEvent(true);
+                }
 
-            refreshMetadata();
-            refreshNotificationAndSession(true);
-        } else
-            Log.w("MusicPlayer", "Failed to play, exoplayer is null or has no tracks");
+                refreshMetadata();
+                refreshNotificationAndSession(true);
+            } else
+                Log.w("MusicPlayer", "Failed to play, attempted play " + indexWhenReady + " when exoplayer has " + exo.getMediaItemCount() + " item(s)");
+        });
     }
     public static boolean isPlaying() {
         return exo != null && exo.isPlaying();
     }
     public static void seekToNext() {
-        if (exo != null) {
+        runWhenCreated(() -> {
+            //if (exo != null) {
             exo.seekToNext();
 
             setTrackIndex(exo.getPreviousMediaItemIndex());
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
             fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
-        } else
-            Log.w("MusicPlayer", "Failed to seek to next, exoplayer is null");
+            //} else
+            //    Log.w("MusicPlayer", "Failed to seek to next, exoplayer is null");
+        });
     }
     public static void seekToPrev() {
-        if (exo != null) {
+        runWhenCreated(() -> {
+            //if (exo != null) {
             int prevIndex = exo.getCurrentMediaItemIndex();
             exo.seekToPrevious();
 
@@ -218,56 +274,69 @@ public class MusicPlayer {
                 fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
             else
                 fireSeekEventEvent(getCurrentPosition());
-        } else
-            Log.w("MusicPlayer", "Failed to seek to previous, exoplayer is null");
+            //} else
+            //    Log.w("MusicPlayer", "Failed to seek to previous, exoplayer is null");
+        });
     }
     public static void pause() {
-        if (exo != null) {
+        runWhenCreated(() -> {
+            //if (exo != null) {
             exo.pause();
             abandonAudioFocus();
             refreshNotificationAndSession(false);
             fireIsPlayingEvent(false);
-        } else
-            Log.w("MusicPlayer", "Failed to pause, exoplayer is null");
+            //} else
+            //    Log.w("MusicPlayer", "Failed to pause, exoplayer is null");
+        });
     }
     public static void stop() {
-        if (exo != null) {
+        runWhenCreated(() -> {
+            //if (exo != null) {
             boolean wasPlaying = exo.isPlaying();
             clearPlaylist();
             if (wasPlaying)
                 fireIsPlayingEvent(false);
             fireMediaItemChangedEvent(-1);
-        } else
-            Log.w("MusicPlayer", "Failed to stop, exoplayer is null");
+            //} else
+            //    Log.w("MusicPlayer", "Failed to stop, exoplayer is null");
+        });
     }
     public static void seekTo(long ms) {
-        if (exo != null) {
+        runWhenCreated(() -> {
+            //if (exo != null) {
             exo.seekTo(ms);
             refreshNotificationAndSession(isPlaying());
-        } else
-            Log.w("MusicPlayer", "Failed to seek, exoplayer is null");
+            //} else
+            //    Log.w("MusicPlayer", "Failed to seek, exoplayer is null");
+        });
     }
     public static void seekForward() {
-        if (exo != null) {
+        runWhenCreated(() -> {
+            //if (exo != null) {
             exo.seekForward();
             refreshNotificationAndSession(isPlaying());
             fireSeekEventEvent(getCurrentPosition());
-        } else
-            Log.w("MusicPlayer", "Failed to seek forward, exoplayer is null");
+            //} else
+            //    Log.w("MusicPlayer", "Failed to seek forward, exoplayer is null");
+        });
     }
     public static void seekBack() {
-        if (exo != null) {
+        runWhenCreated(() -> {
+            //if (exo != null) {
             exo.seekBack();
             refreshNotificationAndSession(isPlaying());
             fireSeekEventEvent(getCurrentPosition());
-        } else
-            Log.w("MusicPlayer", "Failed to seek back, exoplayer is null");
+            //} else
+            //    Log.w("MusicPlayer", "Failed to seek back, exoplayer is null");
+        });
     }
     public static void setVolume(float value) {
-        if (exo != null)
+        runWhenCreated(() -> {
+            //if (exo != null)
             exo.setVolume(value);
-        else
-            Log.w("MusicPlayer", "Failed to set volume, exoplayer is null");
+            //else
+            //    Log.w("MusicPlayer", "Failed to set volume, exoplayer is null");
+        });
     }
     public static long getCurrentPosition() {
         if (exo != null && (exo.getPlaybackState() == ExoPlayer.STATE_READY || exo.getPlaybackState() == Player.STATE_BUFFERING))
@@ -372,7 +441,7 @@ public class MusicPlayer {
         showNotification(isPlaying);
     }
     private static void hideNotification() {
-        NotificationManager notificationManager = OxShellApp.getContext().getSystemService(NotificationManager.class);
+        NotificationManager notificationManager = instance.getSystemService(NotificationManager.class);
         notificationManager.cancel(NOTIFICATION_ID);
     }
     private static void showNotification(boolean isPlaying) {
@@ -383,23 +452,23 @@ public class MusicPlayer {
                 NotificationManager.IMPORTANCE_DEFAULT
         );
         channel.setDescription("Music Player Notification Channel");
-        NotificationManager notificationManager = OxShellApp.getContext().getSystemService(NotificationManager.class);
+        NotificationManager notificationManager = instance.getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
 
-        Intent openPlayerIntent = new Intent(OxShellApp.getContext(), MusicPlayerActivity.class);
+        Intent openPlayerIntent = new Intent(instance, MusicPlayerActivity.class);
         openPlayerIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent openPlayerPendingIntent = PendingIntent.getActivity(OxShellApp.getContext(), 0, openPlayerIntent, PendingIntent.FLAG_MUTABLE);
+        PendingIntent openPlayerPendingIntent = PendingIntent.getActivity(instance, 0, openPlayerIntent, PendingIntent.FLAG_MUTABLE);
 
         Intent stopIntent = new Intent(STOP_INTENT);
-        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, stopIntent, PendingIntent.FLAG_MUTABLE);
+        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(instance, 0, stopIntent, PendingIntent.FLAG_MUTABLE);
         Intent prevIntent = new Intent(PREV_INTENT);
-        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, prevIntent, PendingIntent.FLAG_MUTABLE);
+        PendingIntent prevPendingIntent = PendingIntent.getBroadcast(instance, 0, prevIntent, PendingIntent.FLAG_MUTABLE);
         Intent pauseIntent = new Intent(PAUSE_INTENT);
-        PendingIntent pausePendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, pauseIntent, PendingIntent.FLAG_MUTABLE);
+        PendingIntent pausePendingIntent = PendingIntent.getBroadcast(instance, 0, pauseIntent, PendingIntent.FLAG_MUTABLE);
         Intent playIntent = new Intent(PLAY_INTENT);
-        PendingIntent playPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, playIntent, PendingIntent.FLAG_MUTABLE);
+        PendingIntent playPendingIntent = PendingIntent.getBroadcast(instance, 0, playIntent, PendingIntent.FLAG_MUTABLE);
         Intent nextIntent = new Intent(NEXT_INTENT);
-        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(OxShellApp.getContext(), 0, nextIntent, PendingIntent.FLAG_MUTABLE);
+        PendingIntent nextPendingIntent = PendingIntent.getBroadcast(instance, 0, nextIntent, PendingIntent.FLAG_MUTABLE);
 
         // Create a NotificationCompat.MediaStyle object and set its properties
         androidx.media.app.NotificationCompat.MediaStyle mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle()
@@ -409,7 +478,7 @@ public class MusicPlayer {
                 .setCancelButtonIntent(stopPendingIntent);
 
         // Create the notification using the builder.
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(OxShellApp.getContext(), CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(instance, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ox_white)
                 .setLargeIcon(getCurrentAlbumArt())
                 .setContentTitle(getCurrentTitle())
@@ -449,7 +518,7 @@ public class MusicPlayer {
                 .build());
     }
     private static void prepareSession() {
-        session = new MediaSessionCompat(OxShellApp.getContext(), BuildConfig.APP_LABEL);
+        session = new MediaSessionCompat(instance, BuildConfig.APP_LABEL);
         session.setCallback(new MediaSessionCompat.Callback() {
 //            @Override
 //            public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
@@ -522,5 +591,11 @@ public class MusicPlayer {
             }
         });
         session.setActive(true);
+    }
+
+    @Nullable
+    @Override
+    public MediaSession onGetSession(MediaSession.ControllerInfo controllerInfo) {
+        return null;
     }
 }

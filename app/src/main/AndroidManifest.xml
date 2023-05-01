@@ -95,6 +95,14 @@
                 android:resource="@xml/ox_paper" >
             </meta-data>
         </service>
+        <service
+            android:name=".Helpers.MusicPlayer"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService"/>
+            </intent-filter>
+        </service>
 
         <activity
             android:name=".ExplorerActivity"
@@ -142,11 +150,5 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-<!--        <service android:name=".Helpers.MusicPlayer"-->
-<!--            android:exported="false">-->
-<!--            <intent-filter>-->
-<!--                <action android:name="android.media.browse.MediaBrowserService"/>-->
-<!--            </intent-filter>-->
-<!--        </service>-->
     </application>
 </manifest>
