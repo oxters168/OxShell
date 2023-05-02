@@ -4,9 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
@@ -35,12 +33,20 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MediaPlayerView extends FrameLayout {
+    private static final long MS_PER_SEC = 1000L;
+    private static final long MS_PER_MIN = MS_PER_SEC * 60;
+    private static final long MS_PER_HR = MS_PER_MIN * 60;
+    private static final long MS_PER_DAY = MS_PER_HR * 24;
+    private static final long MS_PER_YEAR = MS_PER_DAY * 365;
     public enum MediaButton { back, end, play, pause, seekFwd, seekBck, skipNext, skipPrev, fullscreen }
     private final Context context;
+    private FrameLayout imageBackdrop;
     private FrameLayout imageView;
     private FrameLayout customActionBar;
     private FrameLayout controlsBar;
     private BetterTextView titleLabel;
+    private BetterTextView currentTimeLabel;
+    private BetterTextView totalTimeLabel;
     private Button backBtn;
     private Button endBtn;
     private Button playBtn;
@@ -62,28 +68,28 @@ public class MediaPlayerView extends FrameLayout {
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        init();
+        refreshLayouts();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        init();
+        refreshLayouts();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        init();
+        refreshLayouts();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        init();
+        refreshLayouts();
     }
 
     public void setIsPlaying(boolean onOff) {
@@ -93,11 +99,30 @@ public class MediaPlayerView extends FrameLayout {
     public void setTitle(String value) {
         titleLabel.setText(value);
     }
-    public void setPosition(float value) {
+    public void setSeekBarPosition(float value) {
         if (!isSeeking)
             seekBar.setValue(MathHelpers.clamp(value, seekBar.getValueFrom(), seekBar.getValueTo()));
         else
             Log.w("MediaPlayerView", "Failed to set seek bar value since it is being manipulated");
+    }
+    public void setCurrentTime(long ms) {
+        currentTimeLabel.setText(msToTimestamp(ms));
+    }
+    public void setCurrentDuration(long ms) {
+        totalTimeLabel.setText(msToTimestamp(ms));
+    }
+    private static String msToTimestamp(long ms) {
+        long totalTime = ms;
+        long years = totalTime / MS_PER_YEAR;
+        totalTime %= MS_PER_YEAR;
+        long days = totalTime / MS_PER_DAY;
+        totalTime %= MS_PER_DAY;
+        long hours = totalTime / MS_PER_HR;
+        totalTime %= MS_PER_HR;
+        long minutes = totalTime / MS_PER_MIN;
+        totalTime %= MS_PER_MIN;
+        long seconds = totalTime / MS_PER_SEC;
+        return (years > 0 ? years + ":" : "") + (days > 0 ? (days < 10 ? "00" : (days < 100 ? "0" : "")) + days + ":" : "") + (hours > 0 ? (hours < 10 ? "0" : "") + hours + ":" : "") + (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
     }
     @SuppressLint("ClickableViewAccessibility")
     public void onDestroy() {
@@ -163,182 +188,251 @@ public class MediaPlayerView extends FrameLayout {
     public boolean isFullscreen() {
         return isFullscreen;
     }
-    public void refreshSize() {
-        LayoutParams layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
-        setLayoutParams(layoutParams);
-    }
 
     @SuppressLint("ClickableViewAccessibility")
-    private void init() {
+    public void refreshLayouts() {
         LayoutParams layoutParams;
 
         int actionBarHeight = Math.round(AndroidHelpers.getScaledDpToPixels(context, 64));
         int textOutlineSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 3));
         int titleTextSize = Math.round(AndroidHelpers.getScaledSpToPixels(context, 16));
-        int smallCushion = Math.round(AndroidHelpers.getScaledDpToPixels(context, 16));
+        int medCushion = Math.round(AndroidHelpers.getScaledDpToPixels(context, 16));
+        int smallCushion = Math.round(AndroidHelpers.getScaledDpToPixels(context, 8));
         int btnSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 32));
         int seekBarThumbSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 5));
         int btnEdgeMargin = (actionBarHeight - btnSize) / 2;
-        int controlsSeparationMargin = btnSize + smallCushion / 2;
+        int controlsSeparationMargin = btnSize + medCushion / 2;
         int imageSize = Math.round(Math.min(OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight()) * 0.8f);
+        int timeTextSize = Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
 
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         setLayoutParams(layoutParams);
         setBackgroundColor(Color.DKGRAY);
         setOnTouchListener((view, touchEvent) -> {
-            //Log.d("MediaPlayerView", touchEvent.toString());
+            //Log.d("MediaPlayerView", "encompassingView: " + touchEvent);
             if (touchEvent.getAction() == MotionEvent.ACTION_UP)
                 setFullscreen(!isFullscreen);
             return true;
         });
         setFocusable(false);
 
-        FrameLayout imageBackdrop = new FrameLayout(context);
+        if (imageBackdrop == null) {
+            imageBackdrop = new FrameLayout(context);
+            imageBackdrop.setBackgroundColor(Color.GRAY);
+            imageBackdrop.setFocusable(false);
+            addView(imageBackdrop);
+        }
         layoutParams = new LayoutParams(imageSize, imageSize);
         layoutParams.gravity = Gravity.CENTER;
         imageBackdrop.setLayoutParams(layoutParams);
-        imageBackdrop.setBackgroundColor(Color.GRAY);
-        imageBackdrop.setFocusable(false);
-        addView(imageBackdrop);
 
-        imageView = new FrameLayout(context);
+        if (imageView == null) {
+            imageView = new FrameLayout(context);
+            imageView.setFocusable(false);
+            imageBackdrop.addView(imageView);
+        }
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.CENTER;
         imageView.setLayoutParams(layoutParams);
-        imageView.setFocusable(false);
-        imageBackdrop.addView(imageView);
-        setImage(null);
 
-        customActionBar = new FrameLayout(context);
+        if (customActionBar == null) {
+            customActionBar = new FrameLayout(context);
+            customActionBar.setBackgroundColor(Color.parseColor("#BB323232"));
+            customActionBar.setFocusable(false);
+            customActionBar.setOnTouchListener((view, touchEvent) -> true);
+            addView(customActionBar);
+        }
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         customActionBar.setLayoutParams(layoutParams);
-        customActionBar.setBackgroundColor(Color.parseColor("#BB323232"));
-        customActionBar.setFocusable(false);
-        customActionBar.setOnTouchListener((view, touchEvent) -> true);
-        addView(customActionBar);
 
-        titleLabel = new BetterTextView(context);
+        if (titleLabel == null) {
+            titleLabel = new BetterTextView(context);
+            titleLabel.setIgnoreTouchInput(true);
+            titleLabel.setOverScrollMode(SCROLL_AXIS_VERTICAL);
+            titleLabel.setMovementMethod(new ScrollingMovementMethod());
+            titleLabel.setSingleLine(true);
+            titleLabel.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+            titleLabel.setMarqueeRepeatLimit(-1);
+            titleLabel.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+            titleLabel.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+            titleLabel.setTextColor(context.getColor(R.color.text));
+            titleLabel.setOutlineColor(Color.BLACK);
+            titleLabel.setOutlineSize(textOutlineSize);
+            titleLabel.setTextSize(titleTextSize);
+            titleLabel.setText("Title");
+            titleLabel.setFocusable(false);
+            titleLabel.setTypeface(SettingsKeeper.getFont());
+            titleLabel.setSelected(true);
+            customActionBar.addView(titleLabel);
+        }
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
-        layoutParams.setMarginStart(btnSize + btnEdgeMargin + smallCushion);
-        layoutParams.setMarginEnd(btnSize + btnEdgeMargin + smallCushion);
+        layoutParams.setMarginStart(btnSize + btnEdgeMargin + medCushion);
+        layoutParams.setMarginEnd(btnSize + btnEdgeMargin * 3 + medCushion);
         titleLabel.setLayoutParams(layoutParams);
-        titleLabel.setIgnoreTouchInput(true);
-        titleLabel.setOverScrollMode(SCROLL_AXIS_VERTICAL);
-        titleLabel.setMovementMethod(new ScrollingMovementMethod());
-        titleLabel.setSingleLine(true);
-        titleLabel.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-        titleLabel.setMarqueeRepeatLimit(-1);
-        titleLabel.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        titleLabel.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
-        titleLabel.setTextColor(context.getColor(R.color.text));
-        titleLabel.setOutlineColor(Color.BLACK);
-        titleLabel.setOutlineSize(textOutlineSize);
-        titleLabel.setTextSize(titleTextSize);
-        titleLabel.setText("Title");
-        titleLabel.setFocusable(false);
-        Typeface font = SettingsKeeper.getFont();
-        titleLabel.setTypeface(font);
-        titleLabel.setSelected(true);
-        customActionBar.addView(titleLabel);
 
-        backBtn = new Button(context);
+        if (backBtn == null) {
+            backBtn = new Button(context);
+            backBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_arrow_back_24));
+            backBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.back));
+            customActionBar.addView(backBtn);
+        }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
         layoutParams.setMarginStart(btnEdgeMargin);
         backBtn.setLayoutParams(layoutParams);
-        backBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_arrow_back_24));
-        backBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.back));
-        customActionBar.addView(backBtn);
 
-        endBtn = new Button(context);
+        if (endBtn == null) {
+            endBtn = new Button(context);
+            endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_close_24));
+            endBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.end));
+            customActionBar.addView(endBtn);
+        }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-        layoutParams.setMarginEnd(btnEdgeMargin);
+        layoutParams.setMarginEnd(btnEdgeMargin * 3);
         endBtn.setLayoutParams(layoutParams);
-        endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_close_24));
-        endBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.end));
-        customActionBar.addView(endBtn);
 
-        controlsBar = new FrameLayout(context);
-        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight * 2 + smallCushion);
+        if (controlsBar == null) {
+            controlsBar = new FrameLayout(context);
+            controlsBar.setBackgroundColor(Color.parseColor("#BB323232"));
+            controlsBar.setFocusable(false);
+            controlsBar.setOnTouchListener((view, touchEvent) -> true);
+            addView(controlsBar);
+        }
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, actionBarHeight * 2 + medCushion);
         layoutParams.gravity = Gravity.LEFT | Gravity.BOTTOM;
         controlsBar.setLayoutParams(layoutParams);
-        controlsBar.setBackgroundColor(Color.parseColor("#BB323232"));
-        controlsBar.setFocusable(false);
-        controlsBar.setOnTouchListener((view, touchEvent) -> true);
-        addView(controlsBar);
 
-        playBtn = new Button(context);
+        if (playBtn == null) {
+            playBtn = new Button(context);
+            playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
+            playBtn.setOnClickListener((btn) -> fireMediaBtnEvent(isPlaying ? MediaButton.pause : MediaButton.play));
+            controlsBar.addView(playBtn);
+        }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
         layoutParams.setMargins(0, controlsSeparationMargin, 0, btnEdgeMargin);
         playBtn.setLayoutParams(layoutParams);
-        playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
-        playBtn.setOnClickListener((btn) -> fireMediaBtnEvent(isPlaying ? MediaButton.pause : MediaButton.play));
-        controlsBar.addView(playBtn);
 
-        seekFwd = new Button(context);
+        if (seekFwd == null) {
+            seekFwd = new Button(context);
+            seekFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_forward_24));
+            seekFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
+            controlsBar.addView(seekFwd);
+        }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(btnSize + smallCushion, controlsSeparationMargin, 0,btnEdgeMargin);
+        layoutParams.setMargins(btnSize + medCushion, controlsSeparationMargin, 0,btnEdgeMargin);
         seekFwd.setLayoutParams(layoutParams);
-        seekFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_forward_24));
-        seekFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
-        controlsBar.addView(seekFwd);
 
-        skipFwd = new Button(context);
+        if (skipFwd == null) {
+            skipFwd = new Button(context);
+            skipFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_next_24));
+            skipFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipNext));
+            controlsBar.addView(skipFwd);
+        }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins((btnSize + smallCushion) * 2, controlsSeparationMargin, 0,btnEdgeMargin);
+        layoutParams.setMargins((btnSize + medCushion) * 2, controlsSeparationMargin, 0,btnEdgeMargin);
         skipFwd.setLayoutParams(layoutParams);
-        skipFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_next_24));
-        skipFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipNext));
-        controlsBar.addView(skipFwd);
 
-        seekBck = new Button(context);
+        if (seekBck == null) {
+            seekBck = new Button(context);
+            seekBck.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_rewind_24));
+            seekBck.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
+            controlsBar.addView(seekBck);
+        }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(0, controlsSeparationMargin, btnSize + smallCushion,btnEdgeMargin);
+        layoutParams.setMargins(0, controlsSeparationMargin, btnSize + medCushion,btnEdgeMargin);
         seekBck.setLayoutParams(layoutParams);
-        seekBck.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_rewind_24));
-        seekBck.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
-        controlsBar.addView(seekBck);
 
-        skipPrv = new Button(context);
+        if (skipPrv == null) {
+            skipPrv = new Button(context);
+            skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
+            skipPrv.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
+            controlsBar.addView(skipPrv);
+        }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(0, controlsSeparationMargin, (btnSize + smallCushion) * 2,btnEdgeMargin);
+        layoutParams.setMargins(0, controlsSeparationMargin, (btnSize + medCushion) * 2,btnEdgeMargin);
         skipPrv.setLayoutParams(layoutParams);
-        skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
-        skipPrv.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
-        controlsBar.addView(skipPrv);
 
-        seekBar = new Slider(context);
-        LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, btnSize);
-        params.gravity = Gravity.CENTER;
-        params.setMargins(btnEdgeMargin, btnEdgeMargin, btnEdgeMargin, controlsSeparationMargin);
-        seekBar.setLayoutParams(params);
-        seekBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
-            @Override
-            public void onStartTrackingTouch(@NonNull Slider slider) {
-                isSeeking = true;
-            }
+        if (currentTimeLabel == null) {
+            currentTimeLabel = new BetterTextView(context);
+            currentTimeLabel.setIgnoreTouchInput(true);
+            currentTimeLabel.setSingleLine(true);
+            currentTimeLabel.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+            currentTimeLabel.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+            currentTimeLabel.setTextColor(context.getColor(R.color.text));
+            currentTimeLabel.setOutlineColor(Color.BLACK);
+            currentTimeLabel.setOutlineSize(textOutlineSize);
+            currentTimeLabel.setTextSize(timeTextSize);
+            currentTimeLabel.setText("00:00:00");
+            currentTimeLabel.setFocusable(false);
+            currentTimeLabel.setTypeface(SettingsKeeper.getFont());
+            currentTimeLabel.setSelected(true);
+            controlsBar.addView(currentTimeLabel);
+        }
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, btnSize);
+        layoutParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+        layoutParams.setMargins(0, btnEdgeMargin, 0, controlsSeparationMargin);
+        layoutParams.setMarginStart(btnEdgeMargin);
+        currentTimeLabel.setLayoutParams(layoutParams);
 
-            @Override
-            public void onStopTrackingTouch(@NonNull Slider slider) {
-                isSeeking = false;
-                fireSeekBarEvent(slider.getValue());
-            }
-        });
-        seekBar.setLabelBehavior(LabelFormatter.LABEL_GONE);
-        seekBar.setTrackActiveTintList(ColorStateList.valueOf(Color.WHITE));
-        seekBar.setThumbTintList(ColorStateList.valueOf(Color.WHITE));
-        seekBar.setThumbRadius(seekBarThumbSize);
-        seekBar.setHaloRadius(seekBarThumbSize * 2);
-        controlsBar.addView(seekBar);
+        if (totalTimeLabel == null) {
+            totalTimeLabel = new BetterTextView(context);
+            totalTimeLabel.setIgnoreTouchInput(true);
+            totalTimeLabel.setSingleLine(true);
+            totalTimeLabel.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+            totalTimeLabel.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+            totalTimeLabel.setTextColor(context.getColor(R.color.text));
+            totalTimeLabel.setOutlineColor(Color.BLACK);
+            totalTimeLabel.setOutlineSize(textOutlineSize);
+            totalTimeLabel.setTextSize(timeTextSize);
+            totalTimeLabel.setText("00:00:00");
+            totalTimeLabel.setFocusable(false);
+            totalTimeLabel.setTypeface(SettingsKeeper.getFont());
+            totalTimeLabel.setSelected(true);
+            controlsBar.addView(totalTimeLabel);
+        }
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, btnSize);
+        layoutParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+        layoutParams.setMargins(0, btnEdgeMargin, 0, controlsSeparationMargin);
+        layoutParams.setMarginEnd(btnEdgeMargin);
+        totalTimeLabel.setLayoutParams(layoutParams);
+
+        if (seekBar == null) {
+            seekBar = new Slider(context);
+            seekBar.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+                @Override
+                public void onStartTrackingTouch(@NonNull Slider slider) {
+                    isSeeking = true;
+                }
+
+                @Override
+                public void onStopTrackingTouch(@NonNull Slider slider) {
+                    isSeeking = false;
+                    fireSeekBarEvent(slider.getValue());
+                }
+            });
+            seekBar.setLabelBehavior(LabelFormatter.LABEL_GONE);
+            seekBar.setTrackActiveTintList(ColorStateList.valueOf(Color.WHITE));
+            seekBar.setThumbTintList(ColorStateList.valueOf(Color.WHITE));
+            seekBar.setThumbRadius(seekBarThumbSize);
+            seekBar.setHaloRadius(seekBarThumbSize * 2);
+            controlsBar.addView(seekBar);
+        }
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, btnSize);
+        layoutParams.gravity = Gravity.CENTER;
+        layoutParams.setMargins(0, btnEdgeMargin, 0, controlsSeparationMargin);
+        currentTimeLabel.measure(0, 0);
+        layoutParams.setMarginStart(btnEdgeMargin + currentTimeLabel.getMeasuredWidth() + smallCushion);
+        totalTimeLabel.measure(0, 0);
+        layoutParams.setMarginEnd(btnEdgeMargin + totalTimeLabel.getMeasuredWidth() + smallCushion);
+        seekBar.setLayoutParams(layoutParams);
     }
 }

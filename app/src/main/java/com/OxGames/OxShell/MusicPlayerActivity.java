@@ -103,7 +103,14 @@ public class MusicPlayerActivity extends PagedActivity {
         long currentPosition = MusicPlayer.getCurrentPosition();
         long currentDuration = MusicPlayer.getCurrentDuration();
         if (currentDuration > 0 && currentPosition != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN)
-            mpv.setPosition(currentPosition / (float)currentDuration);
+            mpv.setSeekBarPosition(currentPosition / (float)currentDuration);
+        setMediaPlayerViewTimes();
+    }
+    private void setMediaPlayerViewTimes() {
+        long currentPosition = MusicPlayer.getCurrentPosition();
+        long currentDuration = MusicPlayer.getCurrentDuration();
+        mpv.setCurrentTime(currentPosition);
+        mpv.setCurrentDuration(currentDuration);
     }
     private void setMediaPlayerViewImage() {
         Bitmap albumArt = MusicPlayer.getCurrentAlbumArt();
@@ -114,7 +121,7 @@ public class MusicPlayerActivity extends PagedActivity {
             SettingsKeeper.setNavBarHidden(true, false);
             SettingsKeeper.setStatusBarHidden(mpv.isFullscreen(), false);
             SettingsKeeper.setFullscreen(mpv.isFullscreen(), false);
-            mpv.refreshSize();
+            mpv.refreshLayouts();
         }
     }
 
@@ -169,5 +176,6 @@ public class MusicPlayerActivity extends PagedActivity {
     }
     private void onSeekBarSuk(float value) {
         MusicPlayer.seekTo((long)(MusicPlayer.getCurrentDuration() * value));
+        setMediaPlayerViewTimes();
     }
 }

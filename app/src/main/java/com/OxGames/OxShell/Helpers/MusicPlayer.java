@@ -302,8 +302,8 @@ public class MusicPlayer extends MediaSessionService {
         });
     }
     public static void stop() {
+        Log.d("MusicPlayer", "stop");
         runWhenExoReady(() -> {
-            //Log.d("MusicPlayer", "stop");
             //if (exo != null) {
             boolean wasPlaying = exo.isPlaying();
             clearPlaylist();
