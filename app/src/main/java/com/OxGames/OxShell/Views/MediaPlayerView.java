@@ -4,7 +4,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
@@ -16,10 +18,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
@@ -29,15 +34,12 @@ import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class MediaPlayerView extends FrameLayout {
-    private static final long MS_PER_SEC = 1000L;
-    private static final long MS_PER_MIN = MS_PER_SEC * 60;
-    private static final long MS_PER_HR = MS_PER_MIN * 60;
-    private static final long MS_PER_DAY = MS_PER_HR * 24;
-    private static final long MS_PER_YEAR = MS_PER_DAY * 365;
+    private static final String INPUT_TAG = "MEDIA_PLAYER";
     public enum MediaButton { back, end, play, pause, seekFwd, seekBck, skipNext, skipPrev, fullscreen }
     private final Context context;
     private FrameLayout imageBackdrop;
@@ -68,33 +70,34 @@ public class MediaPlayerView extends FrameLayout {
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        refreshLayouts();
+        init();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        refreshLayouts();
+        init();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        refreshLayouts();
+        init();
     }
     public MediaPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         this.context = context;
         mediaBtnListeners = new ArrayList<>();
         seekBarListeners = new ArrayList<>();
-        refreshLayouts();
+        init();
     }
 
     public void setIsPlaying(boolean onOff) {
         isPlaying = onOff;
-        playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
+        //playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
+        setBgStates(playBtn, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24, Color.WHITE, Color.RED);
     }
     public void setTitle(String value) {
         titleLabel.setText(value);
@@ -106,27 +109,15 @@ public class MediaPlayerView extends FrameLayout {
             Log.w("MediaPlayerView", "Failed to set seek bar value since it is being manipulated");
     }
     public void setCurrentTime(long ms) {
-        currentTimeLabel.setText(msToTimestamp(ms));
+        currentTimeLabel.setText(MathHelpers.msToTimestamp(ms));
     }
     public void setCurrentDuration(long ms) {
-        totalTimeLabel.setText(msToTimestamp(ms));
-    }
-    private static String msToTimestamp(long ms) {
-        long totalTime = ms;
-        long years = totalTime / MS_PER_YEAR;
-        totalTime %= MS_PER_YEAR;
-        long days = totalTime / MS_PER_DAY;
-        totalTime %= MS_PER_DAY;
-        long hours = totalTime / MS_PER_HR;
-        totalTime %= MS_PER_HR;
-        long minutes = totalTime / MS_PER_MIN;
-        totalTime %= MS_PER_MIN;
-        long seconds = totalTime / MS_PER_SEC;
-        return (years > 0 ? years + ":" : "") + (days > 0 ? (days < 10 ? "00" : (days < 100 ? "0" : "")) + days + ":" : "") + (hours > 0 ? (hours < 10 ? "0" : "") + hours + ":" : "") + (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+        totalTimeLabel.setText(MathHelpers.msToTimestamp(ms));
     }
     @SuppressLint("ClickableViewAccessibility")
     public void onDestroy() {
         backBtn.setOnClickListener(null);
+        backBtn.setOnFocusChangeListener(null);
         endBtn.setOnClickListener(null);
         playBtn.setOnClickListener(null);
         seekFwd.setOnClickListener(null);
@@ -189,6 +180,142 @@ public class MediaPlayerView extends FrameLayout {
         return isFullscreen;
     }
 
+    public void onResume() {
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
+            View currentFocused = getCurrentFocusedView();
+            if (currentFocused == null)
+                currentFocused = endBtn;
+            if (currentFocused != seekBar) {
+                currentFocused.clearFocus();
+                getViewLeftOf(currentFocused).requestFocus();
+            } else
+                seekBck.performClick();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
+            View currentFocused = getCurrentFocusedView();
+            if (currentFocused == null)
+                currentFocused = backBtn;
+            if (currentFocused != seekBar) {
+                currentFocused.clearFocus();
+                getViewRightOf(currentFocused).requestFocus();
+            } else
+                seekFwd.performClick();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
+            View currentFocused = getCurrentFocusedView();
+            if (currentFocused == null)
+                currentFocused = playBtn;
+            currentFocused.clearFocus();
+            getViewAbove(currentFocused).requestFocus();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
+            View currentFocused = getCurrentFocusedView();
+            if (currentFocused == null)
+                currentFocused = backBtn;
+            currentFocused.clearFocus();
+            getViewBelow(currentFocused).requestFocus();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
+            View currentView = getCurrentFocusedView();
+            if (currentView != null)
+                currentView.performClick();
+        })).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, backBtn::performClick)).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, endBtn::performClick)).toArray(KeyComboAction[]::new));
+        OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
+    }
+    private View getViewLeftOf(View view) {
+        if (view == endBtn)
+            return backBtn;
+        else if (view == skipFwd)
+            return seekFwd;
+        else if (view == seekFwd)
+            return playBtn;
+        else if (view == playBtn)
+            return seekBck;
+        else if (view == seekBck)
+            return skipPrv;
+        else
+            return view;
+    }
+    private View getViewRightOf(View view) {
+        if (view == backBtn)
+            return endBtn;
+        else if (view == skipPrv)
+            return seekBck;
+        else if (view == seekBck)
+            return playBtn;
+        else if (view == playBtn)
+            return seekFwd;
+        else if (view == seekFwd)
+            return skipFwd;
+        else
+            return view;
+    }
+    private View getViewAbove(View view) {
+        if (view == skipPrv || view == seekBck || view == playBtn || view == seekFwd || view == skipFwd)
+            return seekBar;
+        else if (view == seekBar)
+            return backBtn;
+        else
+            return view;
+    }
+    private View getViewBelow(View view) {
+        if (view == backBtn || view == endBtn)
+            return seekBar;
+        else if (view == seekBar)
+            return playBtn;
+        else
+            return view;
+    }
+    private View getCurrentFocusedView() {
+        if (backBtn.hasFocus())
+            return backBtn;
+        else if (endBtn.hasFocus())
+            return endBtn;
+        else if (seekBar.hasFocus())
+            return seekBar;
+        else if (skipPrv.hasFocus())
+            return skipPrv;
+        else if (seekBck.hasFocus())
+            return seekBck;
+        else if (playBtn.hasFocus())
+            return playBtn;
+        else if (seekFwd.hasFocus())
+            return seekFwd;
+        else if (skipFwd.hasFocus())
+            return skipFwd;
+        else
+            return null;
+    }
+    public void onPause() {
+        OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
+        OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+    }
+
+    private void init() {
+        refreshLayouts();
+    }
+
+    public static void setBgStates(View view, @DrawableRes int icon, @ColorInt int normal, @ColorInt int pressed) {
+        StateListDrawable stateListDrawable = new StateListDrawable();
+        Drawable normalDrawable = ContextCompat.getDrawable(OxShellApp.getContext(), icon);
+        normalDrawable.setColorFilter(normal, PorterDuff.Mode.MULTIPLY);
+        Drawable selectedDrawable = ContextCompat.getDrawable(OxShellApp.getContext(), icon);
+        selectedDrawable.setColorFilter(pressed, PorterDuff.Mode.MULTIPLY);
+        stateListDrawable.addState(SELECTED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(FOCUSED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(PRESSED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(ENABLED_SELECTED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(ENABLED_FOCUSED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(ENABLED_FOCUSED_SELECTED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(PRESSED_SELECTED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(PRESSED_FOCUSED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(PRESSED_ENABLED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(PRESSED_ENABLED_FOCUSED_STATE_SET, selectedDrawable);
+        stateListDrawable.addState(new int[] {}, normalDrawable);
+        view.setBackground(stateListDrawable);
+    }
     @SuppressLint("ClickableViewAccessibility")
     public void refreshLayouts() {
         LayoutParams layoutParams;
@@ -275,7 +402,8 @@ public class MediaPlayerView extends FrameLayout {
 
         if (backBtn == null) {
             backBtn = new Button(context);
-            backBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_arrow_back_24));
+            //backBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_arrow_back_24));
+            setBgStates(backBtn, R.drawable.baseline_arrow_back_24, Color.WHITE, Color.RED);
             backBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.back));
             customActionBar.addView(backBtn);
         }
@@ -286,7 +414,8 @@ public class MediaPlayerView extends FrameLayout {
 
         if (endBtn == null) {
             endBtn = new Button(context);
-            endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_close_24));
+            //endBtn.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_close_24));
+            setBgStates(endBtn, R.drawable.baseline_close_24, Color.WHITE, Color.RED);
             endBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.end));
             customActionBar.addView(endBtn);
         }
@@ -308,9 +437,11 @@ public class MediaPlayerView extends FrameLayout {
 
         if (playBtn == null) {
             playBtn = new Button(context);
-            playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
+            //playBtn.setBackground(ContextCompat.getDrawable(context, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24));
+            setBgStates(playBtn, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24, Color.WHITE, Color.RED);
             playBtn.setOnClickListener((btn) -> fireMediaBtnEvent(isPlaying ? MediaButton.pause : MediaButton.play));
             controlsBar.addView(playBtn);
+            //OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSuperPrimaryInput()).map(combo -> new KeyComboAction(combo, playBtn::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
@@ -319,9 +450,11 @@ public class MediaPlayerView extends FrameLayout {
 
         if (seekFwd == null) {
             seekFwd = new Button(context);
-            seekFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_forward_24));
+            //seekFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_forward_24));
+            setBgStates(seekFwd, R.drawable.baseline_fast_forward_24, Color.WHITE, Color.RED);
             seekFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
             controlsBar.addView(seekFwd);
+            //OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, seekFwd::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
@@ -330,7 +463,8 @@ public class MediaPlayerView extends FrameLayout {
 
         if (skipFwd == null) {
             skipFwd = new Button(context);
-            skipFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_next_24));
+            //skipFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_next_24));
+            setBgStates(skipFwd, R.drawable.baseline_skip_next_24, Color.WHITE, Color.RED);
             skipFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipNext));
             controlsBar.addView(skipFwd);
         }
@@ -341,9 +475,11 @@ public class MediaPlayerView extends FrameLayout {
 
         if (seekBck == null) {
             seekBck = new Button(context);
-            seekBck.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_rewind_24));
+            //seekBck.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_rewind_24));
+            setBgStates(seekBck, R.drawable.baseline_fast_rewind_24, Color.WHITE, Color.RED);
             seekBck.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
             controlsBar.addView(seekBck);
+            //OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, seekBck::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
@@ -352,7 +488,8 @@ public class MediaPlayerView extends FrameLayout {
 
         if (skipPrv == null) {
             skipPrv = new Button(context);
-            skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
+            //skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
+            setBgStates(skipPrv, R.drawable.baseline_skip_previous_24, Color.WHITE, Color.RED);
             skipPrv.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
             controlsBar.addView(skipPrv);
         }
@@ -371,7 +508,7 @@ public class MediaPlayerView extends FrameLayout {
             currentTimeLabel.setOutlineColor(Color.BLACK);
             currentTimeLabel.setOutlineSize(textOutlineSize);
             currentTimeLabel.setTextSize(timeTextSize);
-            currentTimeLabel.setText("00:00:00");
+            currentTimeLabel.setText("0:000:00:00:00");
             currentTimeLabel.setFocusable(false);
             currentTimeLabel.setTypeface(SettingsKeeper.getFont());
             currentTimeLabel.setSelected(true);
@@ -393,7 +530,7 @@ public class MediaPlayerView extends FrameLayout {
             totalTimeLabel.setOutlineColor(Color.BLACK);
             totalTimeLabel.setOutlineSize(textOutlineSize);
             totalTimeLabel.setTextSize(timeTextSize);
-            totalTimeLabel.setText("00:00:00");
+            totalTimeLabel.setText("0:000:00:00:00");
             totalTimeLabel.setFocusable(false);
             totalTimeLabel.setTypeface(SettingsKeeper.getFont());
             totalTimeLabel.setSelected(true);

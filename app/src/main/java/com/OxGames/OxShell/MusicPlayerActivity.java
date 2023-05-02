@@ -81,6 +81,18 @@ public class MusicPlayerActivity extends PagedActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        mpv.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mpv.onPause();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         mpv.onDestroy();
