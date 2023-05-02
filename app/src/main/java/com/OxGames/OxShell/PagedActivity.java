@@ -247,6 +247,7 @@ public class PagedActivity extends AppCompatActivity {
         prepareOtherViews();
         SettingsKeeper.reloadSystemUiState();
         //initBackground();
+        Log.i("PagedActivity", "onPostCreate " + this);
     }
 
     protected void setMarginsFor(boolean statusBar, boolean navBar, int... ids) {
@@ -609,7 +610,7 @@ public class PagedActivity extends AppCompatActivity {
         refreshShaderViewBg(updateContinuously, framerate);
     }
     private void refreshShaderViewBg(boolean updateContinuously, int framerate) {
-        Log.d("Paged Activity", "Shader view null: " + (tvShaderBg == null));
+        Log.d("PagedActivity", "Shader view null: " + (tvShaderBg == null));
         if (tvShaderBg != null) {
             String fragPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "frag.fsh");
             String vertPath = AndroidHelpers.combinePaths(Paths.SHADER_ITEMS_DIR_INTERNAL, "vert.vsh");

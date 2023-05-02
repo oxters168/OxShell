@@ -550,6 +550,7 @@ public class AndroidHelpers {
 
     public static void startActivity(Class<? extends Activity> nextActivity) {
         Intent intent = new Intent(OxShellApp.getCurrentActivity(), nextActivity);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         OxShellApp.getCurrentActivity().startActivity(intent);
     }
 

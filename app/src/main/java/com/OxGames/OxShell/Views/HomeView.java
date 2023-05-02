@@ -72,6 +72,7 @@ import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
     private ExoPlayer moveSfx;
+    private boolean isPaused = false;
     private Consumer<String> pkgInstalledListener = pkgName -> {
         if (pkgName != null) {
             getAdapter().createColumnAt(getAdapter().getColumnCount(), new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)));
@@ -97,11 +98,13 @@ public class HomeView extends XMBView implements Refreshable {
         refresh();
     }
     public void onResume() {
+        isPaused = false;
         moveSfx = new ExoPlayer.Builder(OxShellApp.getContext()).build();
         moveSfx.addMediaItem(MediaItem.fromUri("asset:///Audio/cow_G7.wav"));
         moveSfx.prepare();
     }
     public void onPause() {
+        isPaused = true;
         moveSfx.release();
         moveSfx = null;
     }
@@ -132,6 +135,10 @@ public class HomeView extends XMBView implements Refreshable {
         // this is so that we don't both go into the inner items of an item and try to execute it at the same time
         //if (super.affirmativeAction())
         //    return true;
+        if (isPaused) {
+            Log.w("HomeView", "HomeActivity does not have focus, foregoing affirmativeAction");
+            return false;
+        }
         playMoveSfx();
 
         if (!isInMoveMode()) {
@@ -142,6 +149,7 @@ public class HomeView extends XMBView implements Refreshable {
                 if (selectedItem.type == HomeItem.Type.explorer) {
                     // TODO: show pop up explaining permissions?
                     //ActivityManager.goTo(ActivityManager.Page.explorer);
+                    isPaused = true;
                     AndroidHelpers.startActivity(ExplorerActivity.class);
                     return true;
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
@@ -178,8 +186,9 @@ public class HomeView extends XMBView implements Refreshable {
                         trackLocs.add(DataRef.from(selectedItem.obj, DataLocation.file));
                     //String trackPath = (String)selectedItem.obj;
                     //AudioPool.fromFile(trackPath, 1).play(false);
-                    MusicPlayer.setPlaylist(trackLocs.toArray(new DataRef[0]));
-                    MusicPlayer.play(initialPos);
+                    MusicPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
+                    MusicPlayer.play();
+                    isPaused = true;
                     AndroidHelpers.startActivity(MusicPlayerActivity.class);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addAppOuter) {
@@ -863,14 +872,16 @@ public class HomeView extends XMBView implements Refreshable {
         playMoveSfx();
     }
     private void playMoveSfx() {
-        if (moveSfx.isPlaying() || !OxShellApp.getAudioManager().isMusicActive()) {
-            //refreshAudioVolumes();
-            moveSfx.setVolume(SettingsKeeper.getSfxVolume());
-            moveSfx.seekTo(0);
-            if (!moveSfx.isPlaying())
-                moveSfx.play();
-            //movePool.setVolume(SettingsKeeper.getSfxVolume());
-            //movePool.playNew(false);
+        if (moveSfx != null) { // apparently can still get called after onPause
+            if (moveSfx.isPlaying() || !OxShellApp.getAudioManager().isMusicActive()) {
+                //refreshAudioVolumes();
+                moveSfx.setVolume(SettingsKeeper.getSfxVolume());
+                moveSfx.seekTo(0);
+                if (!moveSfx.isPlaying())
+                    moveSfx.play();
+                //movePool.setVolume(SettingsKeeper.getSfxVolume());
+                //movePool.playNew(false);
+            }
         }
     }
 
