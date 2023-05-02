@@ -136,8 +136,8 @@ public class HomeView extends XMBView implements Refreshable {
         //if (super.affirmativeAction())
         //    return true;
         if (isPaused) {
-            Log.w("HomeView", "HomeActivity does not have focus, foregoing affirmativeAction");
-            return false;
+            //Log.w("HomeView", "HomeActivity does not have focus, foregoing affirmativeAction");
+            return true;
         }
         playMoveSfx();
 
@@ -186,8 +186,10 @@ public class HomeView extends XMBView implements Refreshable {
                         trackLocs.add(DataRef.from(selectedItem.obj, DataLocation.file));
                     //String trackPath = (String)selectedItem.obj;
                     //AudioPool.fromFile(trackPath, 1).play(false);
+                    DataRef currentTrackInPlayer = MusicPlayer.getCurrentTrack();
                     MusicPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
-                    MusicPlayer.play();
+                    if (currentTrackInPlayer == null || trackLocs.size() <= 0 || !currentTrackInPlayer.equals(trackLocs.get(initialPos)))
+                        MusicPlayer.play();
                     isPaused = true;
                     AndroidHelpers.startActivity(MusicPlayerActivity.class);
                     return true;
@@ -820,7 +822,7 @@ public class HomeView extends XMBView implements Refreshable {
                     btns.add(deleteColumnBtn);
                 if (homeItem != null && homeItem.type == HomeItem.Type.addAssoc)
                     btns.add(deleteAssocBtn);
-                if (!isPlaceholder && isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && homeItem.type != HomeItem.Type.explorer)
+                if (!isPlaceholder && isNotSettings && !isColumnHead && !isInnerItem && !hasInnerItems && (homeItem != null && homeItem.type != HomeItem.Type.explorer))
                     btns.add(uninstallBtn);
                 btns.add(cancelBtn);
 

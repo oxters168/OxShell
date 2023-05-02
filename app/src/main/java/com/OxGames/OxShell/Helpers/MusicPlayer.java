@@ -58,8 +58,8 @@ public class MusicPlayer extends MediaSessionService {
         @Override
         public void onPlaybackStateChanged(int playbackState) {
             Player.Listener.super.onPlaybackStateChanged(playbackState);
-            //Log.d("MusicPlayer", "Exo playback state changed: " + playbackState);
-            setTrackIndex(exo.getCurrentMediaItemIndex());
+            Log.d("MusicPlayer", "Exo playback state changed: " + playbackState);
+            //setTrackIndex(exo.getCurrentMediaItemIndex());
             //trackIndex = exo.getCurrentMediaItemIndex();
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
@@ -68,8 +68,9 @@ public class MusicPlayer extends MediaSessionService {
         @Override
         public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
             Player.Listener.super.onMediaItemTransition(mediaItem, reason);
-            //Log.d("MusicPlayer", "Exo media item transitioned: " + reason);
-            setTrackIndex(exo.getCurrentMediaItemIndex());
+            Log.d("MusicPlayer", "Exo media item transitioned: " + reason);
+            if (exo.getPlaybackState() == Player.STATE_READY)
+                setTrackIndex(exo.getCurrentMediaItemIndex());
             //trackIndex = exo.getCurrentMediaItemIndex();
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
@@ -162,7 +163,7 @@ public class MusicPlayer extends MediaSessionService {
         setPlaylist(0, trackLocs);
     }
     public static void setPlaylist(int startPos, DataRef... trackLocs) {
-        //Log.d("MusicPlayer", "Setting playlist");
+        Log.d("MusicPlayer", "Setting playlist");
         boolean hasTracks = trackLocs != null && trackLocs.length > 0;
         if (hasTracks) {
             boolean samePlaylist = Arrays.equals(refs, trackLocs);
@@ -198,7 +199,8 @@ public class MusicPlayer extends MediaSessionService {
                 else if (trackLoc.getLocType() == DataLocation.resolverUri)
                     exo.addMediaItem(MediaItem.fromUri((Uri)trackLoc.getLoc()));
             exo.prepare();
-            exo.seekTo(trackIndex, 0);
+            seekTo(trackIndex, 0);
+            //exo.seekTo(trackIndex, 0);
             //Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
@@ -269,6 +271,7 @@ public class MusicPlayer extends MediaSessionService {
     }
     public static void play(int index) {
         runWhenExoReady(() -> {
+            Log.d("MusicPlayer", "Play track " + index);
             if (index >= 0 && index < exo.getMediaItemCount()) {
                 requestAudioFocus();
 
@@ -302,7 +305,7 @@ public class MusicPlayer extends MediaSessionService {
         });
     }
     public static void stop() {
-        Log.d("MusicPlayer", "stop");
+        //Log.d("MusicPlayer", "stop");
         runWhenExoReady(() -> {
             //if (exo != null) {
             boolean wasPlaying = exo.isPlaying();
@@ -357,6 +360,7 @@ public class MusicPlayer extends MediaSessionService {
     }
     public static void seekTo(int trackIndex, long ms) {
         runWhenExoReady(() -> {
+            Log.d("MusicPlayer", "Seeking to track " + trackIndex);
             int prevIndex = exo.getCurrentMediaItemIndex();
             exo.seekTo(trackIndex, ms);
 
@@ -420,7 +424,11 @@ public class MusicPlayer extends MediaSessionService {
         }
     }
 
+    public static DataRef getCurrentTrack() {
+        return refs != null && refs.length > 0 && trackIndex >= 0 && trackIndex < refs.length ? refs[trackIndex] : null;
+    }
     private static void setTrackIndex(int index) {
+        Log.w("MusicPlayer", "Attempting to set track index from " + trackIndex + " to " + index);
         if (refs == null || refs.length <= 0)
             trackIndex = -1;
         else
@@ -429,7 +437,8 @@ public class MusicPlayer extends MediaSessionService {
     private static DataRef getCurrentDataRef() {
         if (exo == null)
             return null;
-        return refs[MathHelpers.clamp(exo.getCurrentMediaItemIndex(), 0, refs.length - 1)];
+        //return refs[MathHelpers.clamp(exo.getCurrentMediaItemIndex(), 0, refs.length - 1)];
+        return refs[MathHelpers.clamp(trackIndex, 0, refs.length - 1)];
     }
     private static void refreshMetadata() {
         if (exo == null)
