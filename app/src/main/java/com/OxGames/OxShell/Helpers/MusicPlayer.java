@@ -58,7 +58,8 @@ public class MusicPlayer extends MediaSessionService {
         public void onPlaybackStateChanged(int playbackState) {
             Player.Listener.super.onPlaybackStateChanged(playbackState);
             //Log.d("MusicPlayer", "Exo playback state changed: " + playbackState);
-            setTrackIndex(exo.getCurrentMediaItemIndex());
+            //setTrackIndex(exo.getCurrentMediaItemIndex());
+            trackIndex = exo.getCurrentMediaItemIndex();
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
             fireIsPlayingEvent(exo.isPlaying());
@@ -67,7 +68,8 @@ public class MusicPlayer extends MediaSessionService {
         public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
             Player.Listener.super.onMediaItemTransition(mediaItem, reason);
             //Log.d("MusicPlayer", "Exo media item transitioned: " + reason);
-            setTrackIndex(exo.getCurrentMediaItemIndex());
+            //setTrackIndex(exo.getCurrentMediaItemIndex());
+            trackIndex = exo.getCurrentMediaItemIndex();
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
             fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
@@ -148,6 +150,8 @@ public class MusicPlayer extends MediaSessionService {
         abandonAudioFocus();
         hideNotification();
         releaseSession();
+
+        instance = null;
     }
 
     public static void setPlaylist(DataRef... trackLocs) {
@@ -157,12 +161,13 @@ public class MusicPlayer extends MediaSessionService {
         boolean hasTracks = trackLocs != null && trackLocs.length > 0;
         if (hasTracks) {
             refs = trackLocs;
-            setTrackIndex(startPos);
 
             if (instance == null)
                 OxShellApp.getContext().startService(new Intent(OxShellApp.getContext(), MusicPlayer.class));
             else
                 refreshPlaylist();
+
+            setTrackIndex(startPos);
         } else
             clearPlaylist();
     }
@@ -181,7 +186,7 @@ public class MusicPlayer extends MediaSessionService {
             else if (trackLoc.getLocType() == DataLocation.resolverUri)
                 exo.addMediaItem(MediaItem.fromUri((Uri)trackLoc.getLoc()));
         exo.prepare();
-        exo.seekTo(trackIndex, 0);
+        //exo.seekTo(trackIndex, 0);
         //Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
         refreshMetadata();
         refreshNotificationAndSession(exo.isPlaying());
@@ -189,6 +194,8 @@ public class MusicPlayer extends MediaSessionService {
     public static void clearPlaylist() {
         if (instance != null)
             instance.stopSelf();
+        else
+            Log.w("MusicPlayer", "Failed to clear playlist, service instance is null");
     }
 
     private static void runWhenCreated(Runnable action) {
@@ -203,7 +210,6 @@ public class MusicPlayer extends MediaSessionService {
                 @Override
                 public void run() {
                     if (exo == null || exo.getPlaybackState() != ExoPlayer.STATE_READY) {
-                        Log.d("MusicPlayer", "Waiting for service to start");
                         if (SystemClock.uptimeMillis() - startTime <= ttl * 1000)
                             waitHandler.postDelayed(this, MathHelpers.calculateMillisForFps(30));
                         else
@@ -225,15 +231,14 @@ public class MusicPlayer extends MediaSessionService {
         play(trackIndex);
     }
     public static void play(int index) {
-        int indexWhenReady = index;
         runWhenCreated(() -> {
-            if (indexWhenReady >= 0 && indexWhenReady < exo.getMediaItemCount()) {
+            if (index >= 0 && index < exo.getMediaItemCount()) {
                 requestAudioFocus();
 
-                setTrackIndex(indexWhenReady);
+                setTrackIndex(index);
                 setVolume(SettingsKeeper.getMusicVolume());
-                if (indexWhenReady != exo.getCurrentMediaItemIndex())
-                    exo.seekTo(indexWhenReady, 0);
+                //if (trackIndex != exo.getCurrentMediaItemIndex())
+                //    exo.seekTo(trackIndex, 0);
                 if (!exo.isPlaying()) {
                     exo.play();
                     fireIsPlayingEvent(true);
@@ -242,7 +247,7 @@ public class MusicPlayer extends MediaSessionService {
                 refreshMetadata();
                 refreshNotificationAndSession(true);
             } else
-                Log.w("MusicPlayer", "Failed to play, attempted play " + indexWhenReady + " when exoplayer has " + exo.getMediaItemCount() + " item(s)");
+                Log.w("MusicPlayer", "Failed to play, attempted play " + index + " when exoplayer has " + exo.getMediaItemCount() + " item(s)");
         });
     }
     public static boolean isPlaying() {
@@ -253,7 +258,8 @@ public class MusicPlayer extends MediaSessionService {
             //if (exo != null) {
             exo.seekToNext();
 
-            setTrackIndex(exo.getPreviousMediaItemIndex());
+            trackIndex = exo.getCurrentMediaItemIndex();
+            //setTrackIndex(exo.getPreviousMediaItemIndex());
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
             fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
@@ -267,7 +273,8 @@ public class MusicPlayer extends MediaSessionService {
             int prevIndex = exo.getCurrentMediaItemIndex();
             exo.seekToPrevious();
 
-            setTrackIndex(exo.getPreviousMediaItemIndex());
+            trackIndex = exo.getCurrentMediaItemIndex();
+            //setTrackIndex(exo.getPreviousMediaItemIndex());
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
             if (prevIndex != exo.getCurrentMediaItemIndex())
@@ -291,6 +298,7 @@ public class MusicPlayer extends MediaSessionService {
     }
     public static void stop() {
         runWhenCreated(() -> {
+            //Log.d("MusicPlayer", "stop");
             //if (exo != null) {
             boolean wasPlaying = exo.isPlaying();
             clearPlaylist();
@@ -361,10 +369,14 @@ public class MusicPlayer extends MediaSessionService {
     }
 
     private static void setTrackIndex(int index) {
-        if (exo == null)
-            trackIndex = -1;
-        else
+        runWhenCreated(() -> {
+            //if (exo == null)
+            //    trackIndex = -1;
+            //else
             trackIndex = MathHelpers.clamp(index, 0, exo.getMediaItemCount() - 1);
+            if (index != exo.getCurrentMediaItemIndex())
+                exo.seekTo(trackIndex, 0);
+        });
     }
     private static DataRef getCurrentDataRef() {
         if (exo == null)
