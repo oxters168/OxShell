@@ -96,7 +96,7 @@
             </meta-data>
         </service>
         <service
-            android:name=".Helpers.MusicPlayer"
+            android:name=".Helpers.MediaPlayer"
             android:foregroundServiceType="mediaPlayback"
             android:exported="true">
             <intent-filter>
@@ -121,8 +121,6 @@
                 <category android:name="android.intent.category.OPENABLE"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="*/*"/>
-<!--                <data android:mimeType="image/*"/>-->
-<!--                <data android:mimeType="video/*"/>-->
             </intent-filter>
         </activity>
         <activity
@@ -134,6 +132,17 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:scheme="content"/>
                 <data android:mimeType="audio/*"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".VideoPlayerActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="content"/>
+                <data android:mimeType="video/*"/>
             </intent-filter>
         </activity>
         <activity

@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -19,11 +18,9 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.provider.Settings;
@@ -41,8 +38,6 @@ import androidx.core.widget.TextViewCompat;
 
 import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
-import com.OxGames.OxShell.Data.DataLocation;
-import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
@@ -63,6 +58,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -382,6 +378,41 @@ public class AndroidHelpers {
         }
 
         return bitmap;
+    }
+    public static List<String> getFilesInDirWithExt(boolean recursively, String[] extensions, String... dirs) {
+        if (dirs == null || dirs.length <= 0)
+            return null;
+        List<String> allFilePaths = new ArrayList<>();
+        Consumer<String> addIfVideo = (path) -> {
+            String pathCmp = path.toLowerCase();
+            if (Arrays.stream(extensions).anyMatch(pathCmp::endsWith))
+                allFilePaths.add(path);
+        };
+        Consumer<String> lookInsideOf = new Consumer<String>() {
+            @Override
+            public void accept(String path) {
+                //Log.d("HomeItem", "Entering " + path);
+                File f = new File(path);
+                if (f.isDirectory()) {
+                    String[] contents = f.list();
+                    if (contents != null) {
+                        //Log.d("HomeItem", "Contains " + Arrays.toString(contents));
+                        for (String innerPath : contents) {
+                            String fullInnerPath = AndroidHelpers.combinePaths(path, innerPath);
+                            if (AndroidHelpers.isDirectory(fullInnerPath)) {
+                                if (recursively)
+                                    accept(fullInnerPath);
+                            } else
+                                addIfVideo.accept(fullInnerPath);
+                        }
+                    }
+                } else
+                    addIfVideo.accept(path);
+            }
+        };
+        for (String path : dirs)
+            lookInsideOf.accept(path);
+        return allFilePaths;
     }
 
 

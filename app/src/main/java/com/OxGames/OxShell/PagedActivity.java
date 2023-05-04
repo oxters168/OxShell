@@ -30,7 +30,7 @@ import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
-import com.OxGames.OxShell.Helpers.MusicPlayer;
+import com.OxGames.OxShell.Helpers.MediaPlayer;
 import com.OxGames.OxShell.Views.DebugView;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
@@ -40,7 +40,6 @@ import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
@@ -194,12 +193,12 @@ public class PagedActivity extends AppCompatActivity {
 //            InputHandler.removeKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
 //        }
         InputHandler.clearKeyComboActions(MUSIC_PLAYER_INPUT);
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::togglePlay)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::stop)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToNext)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekForward)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekBack)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::togglePlay)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::stop)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekToNext)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekForward)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekBack)).toArray(KeyComboAction[]::new));
         InputHandler.setTagIgnorePriority(MUSIC_PLAYER_INPUT, true);
 //        musicPlayerActions = new ArrayList<>();
 //        Collections.addAll(musicPlayerActions, musicTogglePlayAction);

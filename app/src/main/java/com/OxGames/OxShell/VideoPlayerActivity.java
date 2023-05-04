@@ -25,7 +25,7 @@ import com.OxGames.OxShell.Views.MediaPlayerView;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class MusicPlayerActivity extends PagedActivity {
+public class VideoPlayerActivity extends PagedActivity {
     private MediaPlayerView mpv;
     private Handler trackPositionHandler;
     private final AtomicBoolean isTrackingPosition = new AtomicBoolean(false);
@@ -67,9 +67,11 @@ public class MusicPlayerActivity extends PagedActivity {
         mpv.setTitle(MediaPlayer.getCurrentTitle());
         setMediaPlayerViewImage();
         setMediaPlayerViewPosition();
+        setMediaPlayerViewSurface();
         MediaPlayer.addIsPlayingListener(this::onMusicPlayerIsPlaying);
         MediaPlayer.addMediaItemChangedListener(this::onMusicPlayerMediaChanged);
         MediaPlayer.addSeekEventListener(this::onSeekEvent);
+        MediaPlayer.addMediaPlayerPreparingListener(this::setMediaPlayerViewSurface);
         startTrackingPosition();
     }
 
@@ -85,6 +87,7 @@ public class MusicPlayerActivity extends PagedActivity {
     protected void onResume() {
         super.onResume();
         mpv.onResume();
+        mpv.setVideoMode(true);
     }
 
     @Override
@@ -100,6 +103,7 @@ public class MusicPlayerActivity extends PagedActivity {
         MediaPlayer.removeIsPlayingListener(this::onMusicPlayerIsPlaying);
         MediaPlayer.removeMediaItemChangedListener(this::onMusicPlayerMediaChanged);
         MediaPlayer.removeSeekEventListener(this::onSeekEvent);
+        MediaPlayer.removeMediaPlayerPreparingListener(this::setMediaPlayerViewSurface);
     }
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -111,6 +115,9 @@ public class MusicPlayerActivity extends PagedActivity {
         refreshSystemUiState();
     }
 
+    private void setMediaPlayerViewSurface() {
+        MediaPlayer.setSurfaceView(mpv.getSurfaceView());
+    }
     private void setMediaPlayerViewPosition() {
         //Log.d("MusicPlayerActivity", "Setting position of seekbar");
         long currentPosition = MediaPlayer.getCurrentPosition();

@@ -18,14 +18,12 @@ import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Data.ShortcutsCache;
-import com.OxGames.OxShell.Helpers.InputHandler;
-import com.OxGames.OxShell.Helpers.MusicPlayer;
+import com.OxGames.OxShell.Helpers.MediaPlayer;
 import com.appspell.shaderview.log.LibLog;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 import java.util.function.Consumer;
 
 // source: https://stackoverflow.com/questions/9445661/how-to-get-the-context-from-anywhere
@@ -55,16 +53,16 @@ public class OxShellApp extends Application {
         @Override
         public void onReceive(Context ctxt, Intent intent) {
             Log.d("OxShellApp", "Music action receiver: " + intent + ", " + (intent != null ? intent.getExtras() : "no extras"));
-            if (intent.getAction().equals(MusicPlayer.PREV_INTENT)) {
-                MusicPlayer.seekToPrev();
-            } else if (intent.getAction().equals(MusicPlayer.NEXT_INTENT)) {
-                MusicPlayer.seekToNext();
-            } else if (intent.getAction().equals(MusicPlayer.PLAY_INTENT)) {
-                MusicPlayer.play();
-            } else if (intent.getAction().equals(MusicPlayer.PAUSE_INTENT)) {
-                MusicPlayer.pause();
-            } else if (intent.getAction().equals(MusicPlayer.STOP_INTENT)) {
-                MusicPlayer.stop();
+            if (intent.getAction().equals(MediaPlayer.PREV_INTENT)) {
+                MediaPlayer.seekToPrev();
+            } else if (intent.getAction().equals(MediaPlayer.NEXT_INTENT)) {
+                MediaPlayer.seekToNext();
+            } else if (intent.getAction().equals(MediaPlayer.PLAY_INTENT)) {
+                MediaPlayer.play();
+            } else if (intent.getAction().equals(MediaPlayer.PAUSE_INTENT)) {
+                MediaPlayer.pause();
+            } else if (intent.getAction().equals(MediaPlayer.STOP_INTENT)) {
+                MediaPlayer.stop();
             }
         }
     };
@@ -105,11 +103,11 @@ public class OxShellApp extends Application {
         registerReceiver(pkgInstallationReceiver, intentFilter);
 
         intentFilter = new IntentFilter();
-        intentFilter.addAction(MusicPlayer.PREV_INTENT);
-        intentFilter.addAction(MusicPlayer.NEXT_INTENT);
-        intentFilter.addAction(MusicPlayer.PLAY_INTENT);
-        intentFilter.addAction(MusicPlayer.PAUSE_INTENT);
-        intentFilter.addAction(MusicPlayer.STOP_INTENT);
+        intentFilter.addAction(MediaPlayer.PREV_INTENT);
+        intentFilter.addAction(MediaPlayer.NEXT_INTENT);
+        intentFilter.addAction(MediaPlayer.PLAY_INTENT);
+        intentFilter.addAction(MediaPlayer.PAUSE_INTENT);
+        intentFilter.addAction(MediaPlayer.STOP_INTENT);
         registerReceiver(musicActionReceiver, intentFilter);
 
         //prepareSession();

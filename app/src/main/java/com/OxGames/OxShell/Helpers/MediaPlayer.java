@@ -17,6 +17,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
+import android.view.SurfaceView;
 
 import androidx.media3.session.MediaSession;
 import androidx.media3.session.MediaSessionService;
@@ -42,7 +43,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class MusicPlayer extends MediaSessionService {
+public class MediaPlayer extends MediaSessionService {
     public static final String PREV_INTENT = "ACTION_SKIP_TO_PREVIOUS";
     public static final String NEXT_INTENT = "ACTION_SKIP_TO_NEXT";
     public static final String PLAY_INTENT = "ACTION_PLAY";
@@ -82,13 +83,14 @@ public class MusicPlayer extends MediaSessionService {
     private static final int NOTIFICATION_ID = 12345;
     private static final String CHANNEL_ID = "54321";
     private static ExoPlayer exo = null;
-    private static MusicPlayer instance = null;
+    private static MediaPlayer instance = null;
     private static boolean startingService = false;
     private static Handler exoWaitHandler;
 
     private static final List<Consumer<Boolean>> isPlayingToggledListeners = new ArrayList<>();
     private static final List<Consumer<Integer>> mediaItemChangedListeners = new ArrayList<>();
     private static final List<Consumer<Long>> seekEventListeners = new ArrayList<>();
+    private static final List<Runnable> mediaPlayerPreparingListeners = new ArrayList<>();
 
     public static void addIsPlayingListener(Consumer<Boolean> isPlayingToggledListener) {
         isPlayingToggledListeners.add(isPlayingToggledListener);
@@ -128,6 +130,19 @@ public class MusicPlayer extends MediaSessionService {
     private static void fireSeekEventEvent(long value) {
         for (Consumer<Long> seekEventListener : seekEventListeners)
             seekEventListener.accept(value);
+    }
+    public static void addMediaPlayerPreparingListener(Runnable mediaPlayerPreparingListener) {
+        mediaPlayerPreparingListeners.add(mediaPlayerPreparingListener);
+    }
+    public static void removeMediaPlayerPreparingListener(Runnable mediaPlayerPreparingListener) {
+        mediaPlayerPreparingListeners.remove(mediaPlayerPreparingListener);
+    }
+    public static void clearMediaPlayerPreparingListeners() {
+        mediaPlayerPreparingListeners.clear();
+    }
+    private static void fireMediaPlayerPreparingEvent(int value) {
+        for (Runnable mediaPlayerPreparingListener : mediaPlayerPreparingListeners)
+            mediaPlayerPreparingListener.run();
     }
 
     @Override
@@ -174,7 +189,7 @@ public class MusicPlayer extends MediaSessionService {
                 if (instance == null) {
                     //Log.d("MusicPlayer", "Service not started, starting...");
                     startingService = true;
-                    OxShellApp.getContext().startService(new Intent(OxShellApp.getContext(), MusicPlayer.class));
+                    OxShellApp.getContext().startService(new Intent(OxShellApp.getContext(), MediaPlayer.class));
                 }
                 refreshPlaylist();
             }
@@ -211,6 +226,9 @@ public class MusicPlayer extends MediaSessionService {
             instance.stopSelf();
         else
             Log.w("MusicPlayer", "Failed to clear playlist, service instance is null");
+    }
+    public static void setSurfaceView(SurfaceView surfaceView) {
+        runWhenExoReady(() -> exo.setVideoSurfaceView(surfaceView));
     }
 
     private static void runWhenServiceReady(Runnable action) {
@@ -276,7 +294,7 @@ public class MusicPlayer extends MediaSessionService {
                 requestAudioFocus();
 
                 setTrackIndex(index);
-                setVolume(SettingsKeeper.getMusicVolume());
+                setVolume(SettingsKeeper.getMusicVolume()); // TODO: change to a more appropriate place
                 if (trackIndex != exo.getCurrentMediaItemIndex())
                     seekTo(trackIndex, 0);
                 if (!exo.isPlaying()) {

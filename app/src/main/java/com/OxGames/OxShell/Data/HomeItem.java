@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 import kotlin.jvm.functions.Function2;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, addMusicFolder, addExplorer, app, addAppOuter, addApp, resetHomeItems, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, placeholder, }
+    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, videoTree, videoTrack, addMusicFolder, addVideoFolder, addExplorer, app, addAppOuter, addApp, resetHomeItems, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, placeholder, }
     public Type type;
     public ArrayList<String> extraData;
     //private boolean innerItemsLoaded;
@@ -131,6 +131,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 type == Type.addAppOuter ||
                 type == Type.resetHomeItems ||
                 type == Type.addMusicFolder ||
+                type == Type.addVideoFolder ||
                 type == Type.setImageBg ||
                 type == Type.setShaderBg ||
                 type == Type.setUiScale ||
@@ -223,6 +224,10 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
                 }
             }, getDirsList());
             musicGenThread.start();
+        } else if (type == Type.videoTree) {
+            setInnerItems(generateVideoTree(getDirsList()).toArray(new XMBItem[0]));
+            if (onReloaded != null)
+                onReloaded.run();
         } else if (type == Type.settings) {
             //innerItems = generateSettings();
             setInnerItems(generateSettings().toArray(new XMBItem[0]));
@@ -265,48 +270,23 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         }
         return null;
     }
+    private static List<XMBItem> generateVideoTree(String... dirs) {
+        List<String> allVideoPaths = AndroidHelpers.getFilesInDirWithExt(true, ShortcutsCache.getVideoExtensions(), dirs);
+        HashMap<String, List<String>> sortedVideos = new HashMap<>();
+        for (String videoPath : allVideoPaths) {
+            String parentPath = new File(videoPath).getParent();
+            if (!sortedVideos.containsKey(parentPath))
+                sortedVideos.put(parentPath, new ArrayList<>());
+            sortedVideos.get(parentPath).add(videoPath);
+        }
+        return sortedVideos.entrySet().stream().map(entry -> new XMBItem(null, new File(entry.getKey()).getName(), DataRef.from(ResImage.get(R.drawable.ic_baseline_folder_24).getId(), DataLocation.resource), entry.getValue().stream().map(videoPath -> new HomeItem(videoPath, Type.videoTrack, AndroidHelpers.removeExtension(new File(videoPath).getName()), DataRef.from(ResImage.get(R.drawable.ic_baseline_video_file_24).getId(), DataLocation.resource))).toArray(HomeItem[]::new))).collect(Collectors.toList());
+    }
     private static Thread generateMusicTree(TriConsumer<Integer, Integer, List<XMBItem>> onGenerated, String... dirs) {
         return new Thread(() -> {
             // TODO: include sort type (by folder, by artist, by album, by artist and album)
-            //HashMap<String, ArrayList<String>> allMusicPaths = new HashMap<>();
-            List<String> allMusicPaths = new ArrayList<>();
-            Consumer<String> addIfMusic = (path) -> {
-                String pathCmp = path.toLowerCase();
-                if (pathCmp.endsWith(".mp3") || pathCmp.endsWith(".flac")) {
-                    //Log.d("HomeItem", path + " is music");
-                    // add to music
-                    allMusicPaths.add(path);
-//                    String key = parent != null ? (new File(parent)).getName() : null;
-//                    if (!allMusicPaths.containsKey(key))
-//                        allMusicPaths.put(key, new ArrayList<>());
-//                    allMusicPaths.get(key).add(path);
-                }
-            };
-            Consumer<String> lookInsideOf = new Consumer<String>() {
-                @Override
-                public void accept(String path) {
-                    //Log.d("HomeItem", "Entering " + path);
-                    File f = new File(path);
-                    if (f.isDirectory()) {
-                        String[] contents = f.list();
-                        if (contents != null) {
-                            //Log.d("HomeItem", "Contains " + Arrays.toString(contents));
-                            for (String innerPath : contents) {
-                                String fullInnerPath = AndroidHelpers.combinePaths(path, innerPath);
-                                if (AndroidHelpers.isDirectory(fullInnerPath))
-                                    accept(fullInnerPath);
-                                else
-                                    addIfMusic.accept(fullInnerPath);
-                            }
-                        }
-                    } else
-                        addIfMusic.accept(path);
-                }
-            };
-            for (String path : dirs)
-                lookInsideOf.accept(path);
+            List<String> allMusicPaths = AndroidHelpers.getFilesInDirWithExt(true, ShortcutsCache.getAudioExtensions(), dirs);
 
-            // sorted by folder by default
+            // by default sorted as artist (alphabetically) -> album (by year) -> track (by number)
             List<XMBItem> innerMusic = new ArrayList<>();
             class Track {
                 String trackName;
@@ -430,7 +410,6 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         List<XMBItem> innerInnerSettings = new ArrayList<>();
 
         // TODO: add option to change icon alpha
-        // TODO: add option to reset home items to default
         // TODO: move add association to home settings?
 
         XMBItem currentSettingsItem;
@@ -438,6 +417,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         innerSettings.add(new HomeItem(Type.addExplorer, "Add explorer item to home"));
         innerSettings.add(new HomeItem(Type.addAppOuter, "Add application to home"));
         innerSettings.add(new HomeItem(Type.addMusicFolder, "Add music from directory to home"));
+        innerSettings.add(new HomeItem(Type.addVideoFolder, "Add videos from directory to home"));
         innerSettings.add(new HomeItem(Type.resetHomeItems, "Reset home items to default"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "Home", DataRef.from(ResImage.get(R.drawable.ic_baseline_home_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);

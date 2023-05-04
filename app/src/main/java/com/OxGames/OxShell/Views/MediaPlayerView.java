@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -45,6 +46,7 @@ public class MediaPlayerView extends FrameLayout {
     private final Context context;
     private FrameLayout imageBackdrop;
     private FrameLayout imageView;
+    private SurfaceView surfaceView;
     private FrameLayout customActionBar;
     private FrameLayout controlsBar;
     private BetterTextView titleLabel;
@@ -62,6 +64,7 @@ public class MediaPlayerView extends FrameLayout {
     private boolean isPlaying;
     private boolean isSeeking;
     private boolean isFullscreen;
+    private boolean isVideoMode;
 
     private final List<Consumer<MediaButton>> mediaBtnListeners;
     private final List<Consumer<Float>> seekBarListeners;
@@ -115,6 +118,18 @@ public class MediaPlayerView extends FrameLayout {
     public void setCurrentDuration(long ms) {
         totalTimeLabel.setText(MathHelpers.msToTimestamp(ms));
     }
+    public boolean getVideoMode() {
+        return isVideoMode;
+    }
+    public void setVideoMode(boolean onOff) {
+        isVideoMode = onOff;
+        surfaceView.setVisibility(isVideoMode ? VISIBLE : GONE);
+        imageBackdrop.setVisibility(isVideoMode ? GONE : VISIBLE);
+    }
+    public SurfaceView getSurfaceView() {
+        return surfaceView;
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     public void onDestroy() {
         backBtn.setOnClickListener(null);
@@ -366,6 +381,15 @@ public class MediaPlayerView extends FrameLayout {
         layoutParams.gravity = Gravity.CENTER;
         imageView.setLayoutParams(layoutParams);
 
+        if (surfaceView == null) {
+            surfaceView = new SurfaceView(context);
+            surfaceView.setFocusable(false);
+            addView(surfaceView);
+        }
+        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        layoutParams.gravity = Gravity.CENTER;
+        surfaceView.setLayoutParams(layoutParams);
+
         if (customActionBar == null) {
             customActionBar = new FrameLayout(context);
             customActionBar.setBackgroundColor(Color.parseColor("#BB323232"));
@@ -574,5 +598,7 @@ public class MediaPlayerView extends FrameLayout {
         totalTimeLabel.measure(0, 0);
         layoutParams.setMarginEnd(btnEdgeMargin + totalTimeLabel.getMeasuredWidth() + smallCushion);
         seekBar.setLayoutParams(layoutParams);
+
+        setVideoMode(isVideoMode);
     }
 }

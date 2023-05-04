@@ -47,14 +47,14 @@ import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
-import com.OxGames.OxShell.Helpers.MusicPlayer;
+import com.OxGames.OxShell.Helpers.MediaPlayer;
 import com.OxGames.OxShell.Helpers.Serialaver;
-import com.OxGames.OxShell.HomeActivity;
 import com.OxGames.OxShell.Interfaces.Refreshable;
 import com.OxGames.OxShell.MusicPlayerActivity;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
+import com.OxGames.OxShell.VideoPlayerActivity;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.util.ArrayList;
@@ -116,7 +116,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
-        MusicPlayer.clearPlaylist();
+        MediaPlayer.clearPlaylist();
     }
 
     public void refreshXMBInput() {
@@ -203,14 +203,51 @@ public class HomeView extends XMBView implements Refreshable {
                         trackLocs.add(DataRef.from(selectedItem.obj, DataLocation.file));
                     //String trackPath = (String)selectedItem.obj;
                     //AudioPool.fromFile(trackPath, 1).play(false);
-                    DataRef currentTrackInPlayer = MusicPlayer.getCurrentTrack();
-                    MusicPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
+                    DataRef currentTrackInPlayer = MediaPlayer.getCurrentTrack();
+                    MediaPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
                     if (currentTrackInPlayer == null || trackLocs.size() <= 0 || !currentTrackInPlayer.equals(trackLocs.get(initialPos)))
-                        MusicPlayer.play();
+                        MediaPlayer.play();
                     isPaused = true;
                     AndroidHelpers.startActivity(MusicPlayerActivity.class);
                     return true;
-                } else if (selectedItem.type == HomeItem.Type.addAppOuter) {
+                } else if (selectedItem.type == HomeItem.Type.videoTrack) {
+                    Integer[] position = getPosition();
+                    int initialPos = position[position.length - 1];
+                    List<DataRef> trackLocs = new ArrayList<>();
+                    if (position.length > 2 || position[1] != 0) {
+                        Integer[] parent;
+                        if (position.length > 2) {
+                            parent = new Integer[position.length - 1];
+                            for (int i = 0; i < parent.length; i++)
+                                parent[i] = position[i];
+                        } else {
+                            parent = new Integer[2];
+                            parent[0] = position[0];
+                            parent[1] = 0;
+                        }
+                        int count = position.length > 2 ? getAdapter().getInnerItemCount(parent) : getAdapter().getColumnSize(parent[0]);
+                        //List<DataRef> trackLocs = new ArrayList<>();
+                        for (int i = position.length > 2 ? 0 : 1; i < count + (position.length > 2 ? 0 : 1); i++) {
+                            position[position.length - 1] = i;
+                            Object item = getAdapter().getItem(position);
+                            if (item instanceof HomeItem && ((HomeItem) item).type == HomeItem.Type.videoTrack) {
+                                if (i == initialPos) // this should be fine since we are ++ and we can only be losing items, not gaining
+                                    initialPos = trackLocs.size(); // so it should only set once and it will either be the same or a lesser than value
+                                trackLocs.add(DataRef.from(((HomeItem)item).obj, DataLocation.file));
+                            }
+                        }
+                    } else
+                        trackLocs.add(DataRef.from(selectedItem.obj, DataLocation.file));
+                    //String trackPath = (String)selectedItem.obj;
+                    //AudioPool.fromFile(trackPath, 1).play(false);
+                    DataRef currentTrackInPlayer = MediaPlayer.getCurrentTrack();
+                    MediaPlayer.setPlaylist(initialPos, trackLocs.toArray(new DataRef[0]));
+                    if (currentTrackInPlayer == null || trackLocs.size() <= 0 || !currentTrackInPlayer.equals(trackLocs.get(initialPos)))
+                        MediaPlayer.play();
+                    isPaused = true;
+                    AndroidHelpers.startActivity(VideoPlayerActivity.class);
+                    return true;
+                }  else if (selectedItem.type == HomeItem.Type.addAppOuter) {
                     List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
                     XMBItem[] sortedApps = apps.stream().map(currentPkg -> new HomeItem(currentPkg.activityInfo.packageName, HomeItem.Type.addApp, PackagesCache.getAppLabel(currentPkg))).collect(Collectors.toList()).toArray(new XMBItem[0]);
                     Arrays.sort(sortedApps, Comparator.comparing(o -> o.getTitle().toLowerCase()));
@@ -250,6 +287,41 @@ public class HomeView extends XMBView implements Refreshable {
                         musicHead.addToDirsList(titleInput.getText());
                         getAdapter().createColumnAt(getAdapter().getColumnCount(), musicHead);
                         musicHead.reload(() -> {
+                            save(getItems());
+                            //refresh();
+                        });
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getSuperPrimaryInput());
+                    DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", v -> {
+                        dynamicInput.setShown(false);
+                    }, SettingsKeeper.getCancelInput());
+                    dynamicInput.setItems(new DynamicInputRow(titleInput, selectDirBtn), new DynamicInputRow(okBtn, cancelBtn));
+
+                    dynamicInput.setShown(true);
+                    return true;
+                } else if (selectedItem.type == HomeItem.Type.addVideoFolder) {
+                    PagedActivity currentActivity = OxShellApp.getCurrentActivity();
+                    DynamicInputView dynamicInput = currentActivity.getDynamicInput();
+                    dynamicInput.setTitle("Add Videos from Directory to Home");
+                    DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Path");
+                    DynamicInputRow.ButtonInput selectDirBtn = new DynamicInputRow.ButtonInput("Choose", v -> {
+                        Intent intent = new Intent();
+                        //intent.setPackage(context.getPackageName());
+                        intent.setClass(context, FileChooserActivity.class);
+                        intent.putExtra("AsAuthority", false);
+                        currentActivity.requestResult(intent, result -> {
+                            Log.d("HomeView", result.toString() + ", " + (result.getData() != null ? result.getData().toString() : null) + ", " + (result.getData() != null && result.getData().getExtras() != null ? result.getData().getExtras().toString() : null));
+                            if (result.getResultCode() == Activity.RESULT_OK) {
+                                titleInput.setText(Uri.decode(result.getData().getData().toString()));
+                            }
+                        });
+                    });
+                    DynamicInputRow.ButtonInput okBtn = new DynamicInputRow.ButtonInput("Done", v -> {
+                        // TODO: show some kind of error when input is invalid
+                        HomeItem videosHead = new HomeItem(HomeItem.Type.videoTree, "Videos", DataRef.from(ResImage.get(R.drawable.baseline_video_library_24).getId(), DataLocation.resource));
+                        videosHead.addToDirsList(titleInput.getText());
+                        getAdapter().createColumnAt(getAdapter().getColumnCount(), videosHead);
+                        videosHead.reload(() -> {
                             save(getItems());
                             //refresh();
                         });
@@ -597,7 +669,7 @@ public class HomeView extends XMBView implements Refreshable {
                         SettingsKeeper.setMusicVolume(musicSlider.getValue());
                         SettingsKeeper.setSfxVolume(sfxSlider.getValue());
                         //refreshAudioVolumes();
-                        MusicPlayer.setVolume(SettingsKeeper.getMusicVolume());
+                        MediaPlayer.setVolume(SettingsKeeper.getMusicVolume());
                         moveSfx.setVolume(SettingsKeeper.getSfxVolume());
                         //movePool.setVolume(SettingsKeeper.getSfxVolume());
                         dynamicInput.setShown(false);

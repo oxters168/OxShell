@@ -10,7 +10,6 @@ import android.view.accessibility.AccessibilityEvent;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.InputHandler;
-import com.OxGames.OxShell.Helpers.MusicPlayer;
 
 import java.util.Arrays;
 
@@ -71,7 +70,7 @@ public class AccessService extends AccessibilityService {
     protected boolean onKeyEvent(KeyEvent event) {
         //Log.d("AccessService", event.toString());
         InputHandler.onInputEvent(event);
-        return super.onKeyEvent(event); // since we don't want to block out any input to any other apps
+        return super.onKeyEvent(event); // since we don't want to block out any input to any other apps (since sometimes blocking out only the up and not down can apparently cause the android system to keep sending the down events to the apps)
 //        if (InputHandler.onInputEvent(event, INPUT_TAG) && !InputHandler.isBlockingInput())
 //            return false;
 //        return super.onKeyEvent(event);
