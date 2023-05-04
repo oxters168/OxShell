@@ -180,6 +180,7 @@ public class PagedActivity extends AppCompatActivity {
         InputHandler.clearKeyComboActions(ACCESS_INPUT);
         InputHandler.addKeyComboActions(ACCESS_INPUT, Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(recentsAccessMsg))).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(ACCESS_INPUT, Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(homeAccessMsg))).toArray(KeyComboAction[]::new));
+        InputHandler.setTagIgnorePriority(ACCESS_INPUT, true);
         //accessPopupComboActions = new ArrayList<>();
         //Collections.addAll(accessPopupComboActions, recentsComboAction);
         //Collections.addAll(accessPopupComboActions, homeComboAction);
@@ -199,6 +200,7 @@ public class PagedActivity extends AppCompatActivity {
         InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekForward)).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekBack)).toArray(KeyComboAction[]::new));
+        InputHandler.setTagIgnorePriority(MUSIC_PLAYER_INPUT, true);
 //        musicPlayerActions = new ArrayList<>();
 //        Collections.addAll(musicPlayerActions, musicTogglePlayAction);
 //        Collections.addAll(musicPlayerActions, musicStopAction);
@@ -213,6 +215,7 @@ public class PagedActivity extends AppCompatActivity {
         //    InputHandler.removeKeyComboActions(showDebugAction);
         InputHandler.clearKeyComboActions(DEBUG_INPUT);
         InputHandler.addKeyComboActions(DEBUG_INPUT, Arrays.stream(SettingsKeeper.getShowDebugInput()).map(combo -> new KeyComboAction(combo, () -> getDebugView().setShown(!getDebugView().isDebugShown()))).toArray(KeyComboAction[]::new));
+        InputHandler.setTagIgnorePriority(DEBUG_INPUT, true);
         //InputHandler.addKeyComboActions(showDebugAction);
     }
 

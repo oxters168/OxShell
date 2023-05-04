@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 public class InputHandler {
     private static class ComboActions {
         private boolean enabled;
+        private int priority;
+        private boolean ignorePriority;
         private List<KeyComboAction> comboActions;
 
         private ComboActions() {
@@ -32,7 +34,15 @@ public class InputHandler {
             this(false, comboActions);
         }
         private ComboActions(boolean enabled, KeyComboAction... comboActions) {
+            this(enabled, false, DEFAULT_PRIORITY, comboActions);
+        }
+        private ComboActions(boolean enabled, boolean ignorePriority, KeyComboAction... comboActions) {
+            this(enabled, ignorePriority, DEFAULT_PRIORITY, comboActions);
+        }
+        private ComboActions(boolean enabled, boolean ignorePriority, int priority, KeyComboAction... comboActions) {
             this.enabled = enabled;
+            this.priority = priority;
+            this.ignorePriority = ignorePriority;
             this.comboActions = new ArrayList<>();
             addComboActions(comboActions);
         }
@@ -57,6 +67,7 @@ public class InputHandler {
             enabled = onOff;
         }
     }
+    public static final int DEFAULT_PRIORITY = 0;
     private static final int LISTEN_DELAY = 5;
     public static final String ALWAYS_ON_TAG = "ALWAYS_ON";
     //private static final LinkedList<String> currentTagList = new LinkedList<>(); // the history of tags that have been set as current
@@ -72,6 +83,7 @@ public class InputHandler {
     private static boolean actionHasRun;
     private static int repeatCount;
     private static boolean isBlockingInput;
+    private static int currentPriorityLevel = Integer.MIN_VALUE;
     private static final Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -272,11 +284,35 @@ public class InputHandler {
         return keyComboActions.containsKey(tag);
     }
 
+    public static int getHighestPriority() {
+        int highestValue = Integer.MIN_VALUE;
+        for (ComboActions comboActions : keyComboActions.values())
+            if (comboActions.enabled)
+                highestValue = Math.max(highestValue, comboActions.priority);
+        return highestValue;
+    }
+
+    public static void setTagPriority(String tag, int value) {
+        keyComboActions.get(tag).priority = value;
+    }
+    public static void setTagIgnorePriority(String tag, boolean onOff) {
+        keyComboActions.get(tag).ignorePriority = onOff;
+    }
+    public static void resetCurrentPriorityLevel() {
+        currentPriorityLevel = Integer.MIN_VALUE;
+    }
+    public static void setCurrentPriorityLevel(int value) {
+        currentPriorityLevel = value;
+    }
+    public static int getCurrentPriorityLevel() {
+        return currentPriorityLevel;
+    }
     private static List<KeyComboAction> findComboActions(List<KeyEvent> combo) {
         List<KeyComboAction> fittingActions = new ArrayList<>();
         List<KeyComboAction> searchedActions = new ArrayList<>();
+        int highestEnabledPriority = getHighestPriority();
         for (Map.Entry<String, ComboActions> entrySet : keyComboActions.entrySet())
-            if (entrySet.getValue().enabled) {
+            if (entrySet.getValue().enabled && (entrySet.getValue().ignorePriority || entrySet.getValue().priority >= Math.min(highestEnabledPriority, currentPriorityLevel))) {
                 //Log.d("InputHandler", "Searching in: " + entrySet.getKey() + " -> " + entrySet.getValue().toString());
                 searchedActions.addAll(entrySet.getValue().comboActions);
             }

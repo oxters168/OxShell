@@ -39,6 +39,7 @@ public class AccessService extends AccessibilityService {
 //            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
 //            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekForward)).toArray(KeyComboAction[]::new));
 //            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekBack)).toArray(KeyComboAction[]::new));
+            InputHandler.setTagIgnorePriority(INPUT_TAG, true);
             InputHandler.setTagEnabled(INPUT_TAG, true);
             //}
         }

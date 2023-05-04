@@ -305,6 +305,9 @@ public class PromptView extends FrameLayout implements InputReceiver {
             InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(keycode -> new KeyComboAction(keycode, this::selectLeft)).toArray(KeyComboAction[]::new));
             InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(keycode -> new KeyComboAction(keycode, this::selectRight)).toArray(KeyComboAction[]::new));
             InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(keycode -> new KeyComboAction(keycode, this::pressItem)).toArray(KeyComboAction[]::new));
+            int priorityLevel;
+            InputHandler.setTagPriority(INPUT_TAG, priorityLevel = InputHandler.getHighestPriority() + 1);
+            InputHandler.setCurrentPriorityLevel(priorityLevel);
             InputHandler.setTagEnabled(INPUT_TAG, true);
         } else {
             resetValues();

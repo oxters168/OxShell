@@ -239,6 +239,9 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                     }
                 }
             }
+            int priorityLevel;
+            InputHandler.setTagPriority(INPUT_TAG, priorityLevel = InputHandler.getHighestPriority() + 1);
+            InputHandler.setCurrentPriorityLevel(priorityLevel);
             InputHandler.setTagEnabled(INPUT_TAG, true);
         } else {
             isShown = false;

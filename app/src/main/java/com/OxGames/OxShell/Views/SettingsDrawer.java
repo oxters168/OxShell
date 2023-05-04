@@ -116,6 +116,9 @@ public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
 
             InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> setShown(false))).toArray(KeyComboAction[]::new));
             InputHandler.addKeyComboActions(INPUT_TAG, listView.getKeyComboActions());
+            int priorityLevel;
+            InputHandler.setTagPriority(INPUT_TAG, priorityLevel = InputHandler.getHighestPriority() + 1);
+            InputHandler.setCurrentPriorityLevel(priorityLevel);
             InputHandler.setTagEnabled(INPUT_TAG, true);
         } else {
             //InputHandler.removeTagFromHistory(INPUT_TAG);
