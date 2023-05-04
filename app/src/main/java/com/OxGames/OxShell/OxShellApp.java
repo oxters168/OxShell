@@ -70,7 +70,7 @@ public class OxShellApp extends Application {
     };
 
     private static OxShellApp instance;
-    private static InputHandler inputHandler;
+    //private static InputHandler inputHandler;
     private static List<Consumer<String>> pkgInstalledListeners;
 
 //    public static OxShellApp getInstance() {
@@ -96,7 +96,7 @@ public class OxShellApp extends Application {
         LibLog.INSTANCE.setEnabled(true);
         Log.i("OxShellApp", "onCreate");
 
-        inputHandler = new InputHandler();
+        //inputHandler = new InputHandler();
         pkgInstalledListeners = new ArrayList<>();
 
         IntentFilter intentFilter = new IntentFilter();
@@ -166,9 +166,9 @@ public class OxShellApp extends Application {
         pkgInstalledListeners.clear();
     }
 
-    public static InputHandler getInputHandler() {
-        return inputHandler;
-    }
+//    public static InputHandler getInputHandler() {
+//        return inputHandler;
+//    }
 
     protected static void enteredActivity(PagedActivity activity) {
         if (activityStack.contains(activity)) {

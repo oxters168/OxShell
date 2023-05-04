@@ -32,6 +32,7 @@ import com.OxGames.OxShell.Data.Executable;
 import com.OxGames.OxShell.Data.IntentFlags;
 import com.OxGames.OxShell.Data.IntentPutExtra;
 import com.OxGames.OxShell.Data.KeyCombo;
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.PackagesCache;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.ResImage;
@@ -71,6 +72,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HomeView extends XMBView implements Refreshable {
+    private static final String INPUT_TAG = "XMB_INPUT";
     private ExoPlayer moveSfx;
     private boolean isPaused = false;
     private Consumer<String> pkgInstalledListener = pkgName -> {
@@ -99,18 +101,33 @@ public class HomeView extends XMBView implements Refreshable {
     }
     public void onResume() {
         isPaused = false;
+        refreshXMBInput();
+        InputHandler.setTagEnabled(INPUT_TAG, true);
         moveSfx = new ExoPlayer.Builder(OxShellApp.getContext()).build();
         moveSfx.addMediaItem(MediaItem.fromUri("asset:///Audio/cow_G7.wav"));
         moveSfx.prepare();
     }
     public void onPause() {
         isPaused = true;
+        InputHandler.clearKeyComboActions(INPUT_TAG);
+        InputHandler.setTagEnabled(INPUT_TAG, false);
         moveSfx.release();
         moveSfx = null;
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
         MusicPlayer.clearPlaylist();
+    }
+
+    public void refreshXMBInput() {
+        InputHandler.clearKeyComboActions(INPUT_TAG);
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, this::affirmativeAction)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, this::secondaryAction)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, this::cancelAction)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, this::selectUpperItem)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, this::selectLowerItem)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, this::selectLeftItem)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, this::selectRightItem)).toArray(KeyComboAction[]::new));
     }
 
     @Override
@@ -604,7 +621,7 @@ public class HomeView extends XMBView implements Refreshable {
                     List<DynamicInputRow.TextInput> repeatStartDelayInputs = new ArrayList<>();
                     List<DynamicInputRow.TextInput> repeatDelayInputs = new ArrayList<>();
                     List<DynamicInputRow.ToggleInput> orderedToggles = new ArrayList<>();
-                    InputHandler mainInputter = OxShellApp.getInputHandler();
+                    //InputHandler mainInputter = InputHandler;
                     Consumer<KeyCombo[]>[] refreshDynamicInput = new Consumer[1];
                     AtomicBoolean customizing = new AtomicBoolean(true);
                     // TODO: add ondown/onup options
@@ -620,13 +637,13 @@ public class HomeView extends XMBView implements Refreshable {
                             Runnable endPoll = () -> {
                                 selfBtn.setLabel("Poll");
                                 polling.set(false);
-                                mainInputter.toggleBlockingInput(false);
-                                AccessService.toggleBlockingInput(false);
-                                mainInputter.removeInputListener(pollListener[0]);
+                                InputHandler.toggleBlockingInput(false);
+                                //AccessService.toggleBlockingInput(false);
+                                InputHandler.removeInputListener(pollListener[0]);
                             };
                             pollListener[0] = key_event -> {
-                                keyComboInput.setText(Arrays.stream(mainInputter.getHistory()).map(ev -> keycodes.getOrDefault(ev.getKeyCode(), Integer.toString(ev.getKeyCode()))).collect(Collectors.joining(" + ")));
-                                if (!mainInputter.isDown())
+                                keyComboInput.setText(Arrays.stream(InputHandler.getHistory()).map(ev -> keycodes.getOrDefault(ev.getKeyCode(), Integer.toString(ev.getKeyCode()))).collect(Collectors.joining(" + ")));
+                                if (!InputHandler.isDown())
                                     endPoll.run();
                             };
                             if (!polling.get()) {
@@ -638,17 +655,17 @@ public class HomeView extends XMBView implements Refreshable {
                                     @Override
                                     public void run() {
                                         //Log.d("HomeView", "Checking if timed out");
-                                        if (customizing.get() && polling.get() && !mainInputter.isDown() && SystemClock.uptimeMillis() - startListenTime < pollTtl) {
+                                        if (customizing.get() && polling.get() && !InputHandler.isDown() && SystemClock.uptimeMillis() - startListenTime < pollTtl) {
                                             timeoutHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
                                             return;
                                         }
-                                        if (polling.get() && (!customizing.get() || !mainInputter.isDown()))
+                                        if (polling.get() && (!customizing.get() || !InputHandler.isDown()))
                                             endPoll.run();
                                     }
                                 });
-                                mainInputter.toggleBlockingInput(true);
-                                AccessService.toggleBlockingInput(true);
-                                mainInputter.addInputListener(pollListener[0]);
+                                InputHandler.toggleBlockingInput(true);
+                                //AccessService.toggleBlockingInput(true);
+                                InputHandler.addInputListener(pollListener[0]);
                                 selfBtn.setLabel("Polling..");
                             } else
                                 endPoll.run();
@@ -729,8 +746,7 @@ public class HomeView extends XMBView implements Refreshable {
                         dynamicInput.setShown(false);
                         customizing.set(false);
 
-                        if (OxShellApp.getCurrentActivity() instanceof HomeActivity)
-                            ((HomeActivity)OxShellApp.getCurrentActivity()).refreshXMBInput();
+                        refreshXMBInput();
                         OxShellApp.getCurrentActivity().refreshAccessibilityInput();
                         OxShellApp.getCurrentActivity().refreshMusicPlayerInput();
                         OxShellApp.getCurrentActivity().refreshShowDebugInput();

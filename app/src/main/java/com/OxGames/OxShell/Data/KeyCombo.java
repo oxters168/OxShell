@@ -3,8 +3,12 @@ package com.OxGames.OxShell.Data;
 import android.os.Build;
 import android.view.KeyEvent;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class KeyCombo implements Serializable {
     public static final int shortHoldTime = 200;
@@ -59,6 +63,12 @@ public class KeyCombo implements Serializable {
     }
     public static KeyCombo createUpCombo(int keycode) {
         return new KeyCombo(false, 0, 0, 0, false, new int[] { keycode });
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return Arrays.stream(keycodes).mapToObj(keycode -> KeyEvent.keyCodeToString(keycode)).collect(Collectors.toList()).toString();
     }
 
     public static HashMap<String, Integer> getKeyCodesStringMap() {

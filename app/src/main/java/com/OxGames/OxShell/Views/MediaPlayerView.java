@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
@@ -181,7 +182,7 @@ public class MediaPlayerView extends FrameLayout {
     }
 
     public void onResume() {
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
             View currentFocused = getCurrentFocusedView();
             if (currentFocused == null)
                 currentFocused = endBtn;
@@ -191,7 +192,7 @@ public class MediaPlayerView extends FrameLayout {
             } else
                 seekBck.performClick();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
             View currentFocused = getCurrentFocusedView();
             if (currentFocused == null)
                 currentFocused = backBtn;
@@ -201,28 +202,28 @@ public class MediaPlayerView extends FrameLayout {
             } else
                 seekFwd.performClick();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
             View currentFocused = getCurrentFocusedView();
             if (currentFocused == null)
                 currentFocused = playBtn;
             currentFocused.clearFocus();
             getViewAbove(currentFocused).requestFocus();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
             View currentFocused = getCurrentFocusedView();
             if (currentFocused == null)
                 currentFocused = backBtn;
             currentFocused.clearFocus();
             getViewBelow(currentFocused).requestFocus();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
             View currentView = getCurrentFocusedView();
             if (currentView != null)
                 currentView.performClick();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, backBtn::performClick)).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, endBtn::performClick)).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, backBtn::performClick)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, endBtn::performClick)).toArray(KeyComboAction[]::new));
+        InputHandler.setTagEnabled(INPUT_TAG, true);
     }
     private View getViewLeftOf(View view) {
         if (view == endBtn)
@@ -289,8 +290,9 @@ public class MediaPlayerView extends FrameLayout {
             return null;
     }
     public void onPause() {
-        OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
-        OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+        //InputHandler.removeTagFromHistory(INPUT_TAG);
+        InputHandler.clearKeyComboActions(INPUT_TAG);
+        InputHandler.setTagEnabled(INPUT_TAG, false);
     }
 
     private void init() {
@@ -441,7 +443,7 @@ public class MediaPlayerView extends FrameLayout {
             setBgStates(playBtn, isPlaying ? R.drawable.baseline_pause_24 : R.drawable.baseline_play_arrow_24, Color.WHITE, Color.RED);
             playBtn.setOnClickListener((btn) -> fireMediaBtnEvent(isPlaying ? MediaButton.pause : MediaButton.play));
             controlsBar.addView(playBtn);
-            //OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSuperPrimaryInput()).map(combo -> new KeyComboAction(combo, playBtn::performClick)).toArray(KeyComboAction[]::new));
+            //InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSuperPrimaryInput()).map(combo -> new KeyComboAction(combo, playBtn::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
@@ -454,7 +456,7 @@ public class MediaPlayerView extends FrameLayout {
             setBgStates(seekFwd, R.drawable.baseline_fast_forward_24, Color.WHITE, Color.RED);
             seekFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
             controlsBar.addView(seekFwd);
-            //OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, seekFwd::performClick)).toArray(KeyComboAction[]::new));
+            //InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, seekFwd::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
@@ -479,7 +481,7 @@ public class MediaPlayerView extends FrameLayout {
             setBgStates(seekBck, R.drawable.baseline_fast_rewind_24, Color.WHITE, Color.RED);
             seekBck.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
             controlsBar.addView(seekBck);
-            //OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, seekBck::performClick)).toArray(KeyComboAction[]::new));
+            //InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, seekBck::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;

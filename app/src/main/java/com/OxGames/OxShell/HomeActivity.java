@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Views.HomeView;
 import com.OxGames.OxShell.Views.PromptView;
 import com.OxGames.OxShell.Views.XMBView;
@@ -18,7 +19,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class HomeActivity extends PagedActivity {
-    private static final String XMB_INPUT = "XMB_INPUT";
+    //private static final String XMB_INPUT = "XMB_INPUT";
     View homeView;
     private Consumer<Boolean> onDynamicInputShown = (onOff) -> homeView.setVisibility(onOff ? View.GONE : View.VISIBLE);
 
@@ -42,23 +43,23 @@ public class HomeActivity extends PagedActivity {
 
         setContentView(R.layout.activity_home);
         homeView = findViewById(R.id.home_view);
-        refreshXMBInput();
-        OxShellApp.getInputHandler().setActiveTag(XMB_INPUT);
+        //refreshXMBInput();
+        //InputHandler.setTagEnabled(XMB_INPUT, true);
 
         //HomeManager.init();
         //Log.d("HomeActivity", "onCreate");
     }
 
-    public void refreshXMBInput() {
-        OxShellApp.getInputHandler().clearKeyComboActions(XMB_INPUT);
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).affirmativeAction())).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).secondaryAction())).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).cancelAction())).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectUpperItem())).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectLowerItem())).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectLeftItem())).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectRightItem())).toArray(KeyComboAction[]::new));
-    }
+//    public void refreshXMBInput() {
+//        InputHandler.clearKeyComboActions(XMB_INPUT);
+//        InputHandler.addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).affirmativeAction())).toArray(KeyComboAction[]::new));
+//        InputHandler.addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).secondaryAction())).toArray(KeyComboAction[]::new));
+//        InputHandler.addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).cancelAction())).toArray(KeyComboAction[]::new));
+//        InputHandler.addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectUpperItem())).toArray(KeyComboAction[]::new));
+//        InputHandler.addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectLowerItem())).toArray(KeyComboAction[]::new));
+//        InputHandler.addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectLeftItem())).toArray(KeyComboAction[]::new));
+//        InputHandler.addKeyComboActions(XMB_INPUT, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> ((XMBView)homeView).selectRightItem())).toArray(KeyComboAction[]::new));
+//    }
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
@@ -71,7 +72,8 @@ public class HomeActivity extends PagedActivity {
     protected void onResume() {
         super.onResume();
         getDynamicInput().addShownListener(onDynamicInputShown);
-        refreshXMBInput();
+        //refreshXMBInput();
+        //InputHandler.setTagEnabled(XMB_INPUT, true);
         ((HomeView)homeView).onResume();
         //showAnnoyingDialog();
         //Log.d("HomeActivity", "onResume");
@@ -80,6 +82,7 @@ public class HomeActivity extends PagedActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        //InputHandler.setTagEnabled(XMB_INPUT, false);
         ((HomeView)homeView).onPause();
     }
 
@@ -87,8 +90,9 @@ public class HomeActivity extends PagedActivity {
     protected void onDestroy() {
         super.onDestroy();
         getDynamicInput().removeShownListener(onDynamicInputShown);
-        OxShellApp.getInputHandler().removeTagFromHistory(XMB_INPUT);
-        OxShellApp.getInputHandler().clearKeyComboActions(XMB_INPUT);
+        //InputHandler.removeTagFromHistory(XMB_INPUT);
+        //InputHandler.clearKeyComboActions(XMB_INPUT);
+        //InputHandler.setTagEnabled(XMB_INPUT, false);
         ((HomeView)homeView).onDestroy();
         homeView = null;
         //Log.d("HomeActivity", "onDestroy");

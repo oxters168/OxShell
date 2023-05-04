@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -21,12 +20,10 @@ import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.InputHandler;
-import com.OxGames.OxShell.Interfaces.InputReceiver;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 
 public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
     private static final float SETTINGS_DRAWER_OPEN_Y = 0;
@@ -117,12 +114,13 @@ public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
         if (onOff) {
             listView.setProperPosition(0);
 
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> setShown(false))).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, listView.getKeyComboActions());
-            OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> setShown(false))).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, listView.getKeyComboActions());
+            InputHandler.setTagEnabled(INPUT_TAG, true);
         } else {
-            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
-            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+            //InputHandler.removeTagFromHistory(INPUT_TAG);
+            InputHandler.clearKeyComboActions(INPUT_TAG);
+            InputHandler.setTagEnabled(INPUT_TAG, false);
         }
     }
 //    @Override

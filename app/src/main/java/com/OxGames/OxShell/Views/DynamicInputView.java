@@ -2,13 +2,10 @@ package com.OxGames.OxShell.Views;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
-import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -27,10 +24,7 @@ import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.InputHandler;
-import com.OxGames.OxShell.OxShellApp;
-import com.OxGames.OxShell.PagedActivity;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,7 +48,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
     //private int directionKeyCode = -1;
 
     private final List<Consumer<Boolean>> onShownListeners = new ArrayList<>();
-    private InputHandler inputHandler;
+    //private InputHandler inputHandler;
 
     public void addShownListener(Consumer<Boolean> onShownListener) {
         onShownListeners.add(onShownListener);
@@ -88,7 +82,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
     }
 
     private void init() {
-        inputHandler = new InputHandler();
+        //inputHandler = new InputHandler();
         setShown(false);
         setFocusable(false);
         //setClickable(true); // block out touch input to views behind
@@ -211,9 +205,9 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             SettingsKeeper.setStatusBarHidden(true, false);
 
             int[] index = new int[2];
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP))).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP))).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
                 boolean foundItem = getCurrentlyFocusedItem(index);
                 DynamicInputRow.DynamicInput item;
                 DynamicInputRow.SliderInput innerItem;
@@ -222,7 +216,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                 else
                     moveFocus(KeyEvent.KEYCODE_DPAD_LEFT);
             })).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
                 boolean foundItem = getCurrentlyFocusedItem(index);
                 DynamicInputRow.DynamicInput item;
                 DynamicInputRow.SliderInput innerItem;
@@ -231,7 +225,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                 else
                     moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT);
             })).toArray(KeyComboAction[]::new));
-            OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
                 int[] result = new int[2];
                 if (getCurrentlyFocusedItem(result)) {
                     rows[result[0]].get(result[1]).view.clickItem();
@@ -241,11 +235,11 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                 for (DynamicInputRow.DynamicInput item : row.getAll()) {
                     if (item instanceof DynamicInputRow.ButtonInput) {
                         DynamicInputRow.ButtonInput btn = (DynamicInputRow.ButtonInput) item;
-                        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(btn.getKeyCombos()).map(combo -> new KeyComboAction(combo, btn::executeAction)).toArray(KeyComboAction[]::new));
+                        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(btn.getKeyCombos()).map(combo -> new KeyComboAction(combo, btn::executeAction)).toArray(KeyComboAction[]::new));
                     }
                 }
             }
-            OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
+            InputHandler.setTagEnabled(INPUT_TAG, true);
         } else {
             isShown = false;
             //SettingsKeeper.setSystemUIState(prevUIState, false);
@@ -255,8 +249,9 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                 if (adapter != null)
                     ((DynamicInputAdapter)adapter).clear();
             }
-            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
-            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+            //InputHandler.removeTagFromHistory(INPUT_TAG);
+            InputHandler.clearKeyComboActions(INPUT_TAG);
+            InputHandler.setTagEnabled(INPUT_TAG, false);
 
             // hide soft keyboard whether its shown or not
             InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);

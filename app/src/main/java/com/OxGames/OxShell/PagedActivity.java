@@ -13,7 +13,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.inputmethod.BaseInputConnection;
 import android.widget.FrameLayout;
 
@@ -29,6 +28,7 @@ import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.Helpers.LogcatHelper;
 import com.OxGames.OxShell.Helpers.MusicPlayer;
 import com.OxGames.OxShell.Views.DebugView;
@@ -46,6 +46,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class PagedActivity extends AppCompatActivity {
+    private static final String MUSIC_PLAYER_INPUT = "music_player_input";
+    private static final String ACCESS_INPUT = "accessibility_input";
+    private static final String DEBUG_INPUT = "debug_input";
+
     private final ActivityResultLauncher<Intent> mStartForResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
         result -> {
             if (PagedActivity.this.onReceivedResult != null)
@@ -146,9 +150,9 @@ public class PagedActivity extends AppCompatActivity {
     //private InputHandler inputHandler;
     //private boolean isKeyboardShown;
     //private ViewTreeObserver.OnGlobalLayoutListener keyboardListener;
-    private List<KeyComboAction> accessPopupComboActions;
-    private List<KeyComboAction> musicPlayerActions;
-    KeyComboAction[] showDebugAction;
+    //private List<KeyComboAction> accessPopupComboActions;
+    //private List<KeyComboAction> musicPlayerActions;
+    //KeyComboAction[] showDebugAction;
 
     private static final String homeAccessMsg = "Please enable Ox Shell as an accessibility service. Ox Shell uses your key presses to let you go home even when the app is not in use.";//"Ox Shell needs accessibility permission in order to go home when pressing this key combo";
     private static final String recentsAccessMsg = "Please enable Ox Shell as an accessibility service. Ox Shell uses your key presses to let you view recent apps even when the app is not in use.";//"Ox Shell needs accessibility permission in order to show recent apps when pressing this key combo";
@@ -171,66 +175,51 @@ public class PagedActivity extends AppCompatActivity {
         }
     }
     public void refreshAccessibilityInput() {
-        if (accessPopupComboActions != null)
-            OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
-        KeyComboAction[] recentsComboAction = Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(recentsAccessMsg))).toArray(KeyComboAction[]::new);
-        KeyComboAction[] homeComboAction = Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(homeAccessMsg))).toArray(KeyComboAction[]::new);
-        accessPopupComboActions = new ArrayList<>();
-        Collections.addAll(accessPopupComboActions, recentsComboAction);
-        Collections.addAll(accessPopupComboActions, homeComboAction);
-        OxShellApp.getInputHandler().addKeyComboActions(recentsComboAction);
-        OxShellApp.getInputHandler().addKeyComboActions(homeComboAction);
+        //if (accessPopupComboActions != null)
+        //    InputHandler.removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
+        InputHandler.clearKeyComboActions(ACCESS_INPUT);
+        InputHandler.addKeyComboActions(ACCESS_INPUT, Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(recentsAccessMsg))).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(ACCESS_INPUT, Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, () -> showAccessibilityPopup(homeAccessMsg))).toArray(KeyComboAction[]::new));
+        //accessPopupComboActions = new ArrayList<>();
+        //Collections.addAll(accessPopupComboActions, recentsComboAction);
+        //Collections.addAll(accessPopupComboActions, homeComboAction);
+        //InputHandler.addKeyComboActions(recentsComboAction);
+        //InputHandler.addKeyComboActions(homeComboAction);
     }
     public void refreshMusicPlayerInput() {
-        if (musicPlayerActions != null)
-            OxShellApp.getInputHandler().removeKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
-        KeyComboAction[] musicTogglePlayAction = Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (!AccessService.isEnabled())
-                MusicPlayer.togglePlay();
-        })).toArray(KeyComboAction[]::new);
-        KeyComboAction[] musicStopAction = Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (!AccessService.isEnabled())
-                MusicPlayer.stop();
-        })).toArray(KeyComboAction[]::new);
-        KeyComboAction[] musicSkipNextAction = Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (!AccessService.isEnabled())
-                MusicPlayer.seekToNext();
-        })).toArray(KeyComboAction[]::new);
-        KeyComboAction[] musicSkipPrevAction = Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (!AccessService.isEnabled())
-                MusicPlayer.seekToPrev();
-        })).toArray(KeyComboAction[]::new);
-        KeyComboAction[] musicSeekForwardAction = Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (!AccessService.isEnabled())
-                MusicPlayer.seekForward();
-        })).toArray(KeyComboAction[]::new);
-        KeyComboAction[] musicSeekBackAction = Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, () -> {
-            if (!AccessService.isEnabled())
-                MusicPlayer.seekBack();
-        })).toArray(KeyComboAction[]::new);
-        musicPlayerActions = new ArrayList<>();
-        Collections.addAll(musicPlayerActions, musicTogglePlayAction);
-        Collections.addAll(musicPlayerActions, musicStopAction);
-        Collections.addAll(musicPlayerActions, musicSkipNextAction);
-        Collections.addAll(musicPlayerActions, musicSkipPrevAction);
-        Collections.addAll(musicPlayerActions, musicSeekForwardAction);
-        Collections.addAll(musicPlayerActions, musicSeekBackAction);
-        OxShellApp.getInputHandler().addKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
+//        Log.d("PagedActivity", "Refreshing music player combos");
+//        if (musicPlayerActions != null) {
+//            Log.d("PagedActivity", "Removing music player combos");
+//            InputHandler.removeKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
+//        }
+        InputHandler.clearKeyComboActions(MUSIC_PLAYER_INPUT);
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::togglePlay)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::stop)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToNext)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekForward)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekBack)).toArray(KeyComboAction[]::new));
+//        musicPlayerActions = new ArrayList<>();
+//        Collections.addAll(musicPlayerActions, musicTogglePlayAction);
+//        Collections.addAll(musicPlayerActions, musicStopAction);
+//        Collections.addAll(musicPlayerActions, musicSkipNextAction);
+//        Collections.addAll(musicPlayerActions, musicSkipPrevAction);
+//        Collections.addAll(musicPlayerActions, musicSeekForwardAction);
+//        Collections.addAll(musicPlayerActions, musicSeekBackAction);
+//        InputHandler.addKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
     }
     public void refreshShowDebugInput() {
-        if (showDebugAction != null)
-            OxShellApp.getInputHandler().removeKeyComboActions(showDebugAction);
-        showDebugAction = Arrays.stream(SettingsKeeper.getShowDebugInput()).map(combo -> new KeyComboAction(combo, () -> getDebugView().setShown(!getDebugView().isDebugShown()))).toArray(KeyComboAction[]::new);
-        OxShellApp.getInputHandler().addKeyComboActions(showDebugAction);
+        //if (showDebugAction != null)
+        //    InputHandler.removeKeyComboActions(showDebugAction);
+        InputHandler.clearKeyComboActions(DEBUG_INPUT);
+        InputHandler.addKeyComboActions(DEBUG_INPUT, Arrays.stream(SettingsKeeper.getShowDebugInput()).map(combo -> new KeyComboAction(combo, () -> getDebugView().setShown(!getDebugView().isDebugShown()))).toArray(KeyComboAction[]::new));
+        //InputHandler.addKeyComboActions(showDebugAction);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //OxShellApp.setCurrentActivity(this);
         OxShellApp.enteredActivity(this);
-        refreshAccessibilityInput();
-        refreshMusicPlayerInput();
-        refreshShowDebugInput();
 
         //trySetStartTime();
         super.onCreate(savedInstanceState);
@@ -270,6 +259,13 @@ public class PagedActivity extends AppCompatActivity {
     protected void onResume() {
         //OxShellApp.setCurrentActivity(this);
         OxShellApp.enteredActivity(this);
+
+        refreshAccessibilityInput();
+        InputHandler.setTagEnabled(ACCESS_INPUT, true);
+        refreshMusicPlayerInput();
+        InputHandler.setTagEnabled(MUSIC_PLAYER_INPUT, true);
+        refreshShowDebugInput();
+        InputHandler.setTagEnabled(DEBUG_INPUT, true);
         //ActivityManager.setCurrent(currentPage);
         //goTo(currentPage);
         super.onResume();
@@ -286,11 +282,11 @@ public class PagedActivity extends AppCompatActivity {
         resumeBackground();
 
         // TODO: find less hacky solution to active tag sometimes being null when coming back to Ox Shell
-        if (tagFromPause != null) {
-            if (OxShellApp.getInputHandler().getActiveTag() == null)
-                OxShellApp.getInputHandler().setActiveTag(tagFromPause);
-            tagFromPause = null;
-        }
+//        if (tagFromPause != null) {
+//            if (InputHandler.getActiveTag() == null)
+//                InputHandler.setTagEnabled(tagFromPause);
+//            tagFromPause = null;
+//        }
         Log.i("PagedActivity", "OnResume " + this);
     }
 
@@ -332,13 +328,13 @@ public class PagedActivity extends AppCompatActivity {
         //return isKeyboardShown;
     }
 
-    private String tagFromPause = null;
+    //private String tagFromPause = null;
     @Override
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
         //OxShellApp.setCurrentActivity(null);
         pauseBackground();
-        tagFromPause = OxShellApp.getInputHandler().getActiveTag();
+        //tagFromPause = InputHandler.getActiveTag();
         super.onPause();
     }
     @Override
@@ -352,7 +348,7 @@ public class PagedActivity extends AppCompatActivity {
         // is not guaranteed to call
         Log.i("PagedActivity", "OnDestroy " + this);
         LogcatHelper.getInstance(this).stop();
-        OxShellApp.getInputHandler().removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
+        //InputHandler.removeKeyComboActions(accessPopupComboActions.toArray(new KeyComboAction[0]));
         OxShellApp.removeActivityFromHistory(this);
         //OxShellApp.popCurrentActivity();
         //if (OxShellApp.getCurrentActivity() == null)
@@ -404,8 +400,8 @@ public class PagedActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
         //Log.d("PagedActivity", key_event.toString());
-        String activeTag = OxShellApp.getInputHandler().getActiveTag();
-        DebugView.print("INPUT_DEBUG", "InputTag: " + (activeTag != null ? activeTag : "null"));
+        //String activeTag = InputHandler.getActiveTag();
+        //DebugView.print("INPUT_DEBUG", "InputTag: " + (activeTag != null ? activeTag : "null"));
         boolean isDpadInput = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
         if (isKeyboardShown()) {// && (key_event.getKeyCode() == KeyEvent.KEYCODE_BACK || key_event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_B))
             if (!isDpadInput) {
@@ -415,7 +411,7 @@ public class PagedActivity extends AppCompatActivity {
                 return true;
         }
 
-        if (OxShellApp.getInputHandler().onInputEvent(key_event))
+        if (InputHandler.onInputEvent(key_event))
             return true;
 
         if (!isNonPermissable(key_event)) {

@@ -16,8 +16,8 @@ import java.util.Arrays;
 
 public class AccessService extends AccessibilityService {
     private static AccessService instance;
-    private InputHandler inputHandler;
-    //private static final String INPUT_TAG = "ACCESS_SERVICE";
+    //private InputHandler inputHandler;
+    private static final String INPUT_TAG = "ACCESS_SERVICE";
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();
@@ -27,26 +27,27 @@ public class AccessService extends AccessibilityService {
     }
     public static void refreshInputCombos() {
         if (instance != null) {
-            if (instance.inputHandler == null)
-                instance.inputHandler = new InputHandler();
+            //if (instance.inputHandler == null)
+            //    instance.inputHandler = new InputHandler();
             //if (!instance.inputHandler.tagHasActions(InputHandler.ALWAYS_ON_TAG)) {
-            instance.inputHandler.clearKeyComboActions();
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::togglePlay)).toArray(KeyComboAction[]::new));
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::stop)).toArray(KeyComboAction[]::new));
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToNext)).toArray(KeyComboAction[]::new));
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekForward)).toArray(KeyComboAction[]::new));
-            instance.inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekBack)).toArray(KeyComboAction[]::new));
+            InputHandler.clearKeyComboActions();
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getHomeCombos()).map(combo -> new KeyComboAction(combo, AccessService::goHome)).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getRecentsCombos()).map(combo -> new KeyComboAction(combo, AccessService::showRecentApps)).toArray(KeyComboAction[]::new));
+//            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::togglePlay)).toArray(KeyComboAction[]::new));
+//            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::stop)).toArray(KeyComboAction[]::new));
+//            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToNext)).toArray(KeyComboAction[]::new));
+//            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
+//            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekForward)).toArray(KeyComboAction[]::new));
+//            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MusicPlayer::seekBack)).toArray(KeyComboAction[]::new));
+            InputHandler.setTagEnabled(INPUT_TAG, true);
             //}
         }
     }
 
-    public static void toggleBlockingInput(boolean onOff) {
-        if (instance != null && instance.inputHandler != null)
-            instance.inputHandler.toggleBlockingInput(onOff);
-    }
+//    public static void toggleBlockingInput(boolean onOff) {
+//        if (instance != null && instance.inputHandler != null)
+//            instance.inputHandler.toggleBlockingInput(onOff);
+//    }
 
 //    @Override
 //    public void onDestroy() {
@@ -67,10 +68,12 @@ public class AccessService extends AccessibilityService {
 
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
-        //Log.d("AccessService", event.toString());
-        if (inputHandler.onInputEvent(event) && !inputHandler.isBlockingInput())
-            return true;
-        return super.onKeyEvent(event);
+        Log.d("AccessService", event.toString());
+        InputHandler.onInputEvent(event);
+        return false; // since we don't want to block out any input to any other apps
+//        if (InputHandler.onInputEvent(event, INPUT_TAG) && !InputHandler.isBlockingInput())
+//            return false;
+//        return super.onKeyEvent(event);
     }
 
     public static boolean isEnabled() {

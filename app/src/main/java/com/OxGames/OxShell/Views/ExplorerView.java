@@ -9,13 +9,10 @@ import android.text.InputType;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 
-import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DynamicInputRow;
 import com.OxGames.OxShell.Data.IntentLaunchData;
 import com.OxGames.OxShell.Data.KeyComboAction;
@@ -26,7 +23,7 @@ import com.OxGames.OxShell.Adapters.DetailAdapter;
 import com.OxGames.OxShell.Data.DetailItem;
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.FileChooserActivity;
-import com.OxGames.OxShell.Data.PackagesCache;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
@@ -84,33 +81,34 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
     private void setupInput() {
         //inputHandler = new InputHandler();
         // TODO: add mappings to context options (copy/cut/paste/etc)
-        OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerHighlightInput()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.clearKeyComboActions(INPUT_TAG);
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerHighlightInput()).map(combo -> new KeyComboAction(combo, () -> {
             DetailItem currentItem = (DetailItem)getItemAtPosition(properPosition);
             if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
                 setItemSelected(properPosition, !isItemSelected(properPosition));
             selectNextItem();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
             //if (!OxShellApp.getCurrentActivity().isInAContextMenu())
             goUp();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
             //if (!OxShellApp.getCurrentActivity().isInAContextMenu())
             goBack();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
 //            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
 //                ActivityManager.goTo(ActivityManager.Page.home);
-//                OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
-//                OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+//                InputHandler.removeTagFromHistory(INPUT_TAG);
+//                InputHandler.clearKeyComboActions(INPUT_TAG);
 //            }
-            OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
-            OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+            //InputHandler.removeTagFromHistory(INPUT_TAG);
+            InputHandler.clearKeyComboActions(INPUT_TAG);
+            InputHandler.setTagEnabled(INPUT_TAG, false);
             OxShellApp.getCurrentActivity().finish();
         })).toArray(KeyComboAction[]::new));
-        OxShellApp.getInputHandler().addKeyComboActions(INPUT_TAG, getKeyComboActions());
-        OxShellApp.getInputHandler().setActiveTag(INPUT_TAG);
+        InputHandler.addKeyComboActions(INPUT_TAG, getKeyComboActions());
+        InputHandler.setTagEnabled(INPUT_TAG, true);
     }
 
     @Override
@@ -181,8 +179,9 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         returnIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         OxShellApp.getCurrentActivity().setResult(Activity.RESULT_OK, returnIntent);
         //Log.i("FileChooser", "Called from " + getCallingActivity() + " giving result " + uri);
-        OxShellApp.getInputHandler().removeTagFromHistory(INPUT_TAG);
-        OxShellApp.getInputHandler().clearKeyComboActions(INPUT_TAG);
+        //InputHandler.removeTagFromHistory(INPUT_TAG);
+        InputHandler.clearKeyComboActions(INPUT_TAG);
+        InputHandler.setTagEnabled(INPUT_TAG, false);
         OxShellApp.getCurrentActivity().finish();
     }
 
