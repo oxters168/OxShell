@@ -26,6 +26,7 @@ Ox Shell is a launcher for android. It is an attempt to recreate the feel of a c
 - [ ] Add ftp support to file explorer
 - [ ] Add start menu to file explorer that lists locations and is customizable
 - [ ] Add more default associations
+- [x] Make default generic associations (image/video/audio)
 - [ ] Make a chooser in the create association menu to pick a template from the defaults
 - [ ] Add more default shaders
 - [x] Add UI scale option
@@ -40,7 +41,7 @@ Ox Shell is a launcher for android. It is an attempt to recreate the feel of a c
 - [ ] Make it possible to set values of variables when setting shader as background if the shader has any to be set
 - [ ] Add ability to write a shader directly in app with the ability to preview
 - [ ] Add a video player
-- [ ] Add a music player
+- [x] Add a music player
 - [ ] Add a photo viewer
 - [ ] Make it possible to set the rect of the background image chosen when user setting wallpaper to image
 - [ ] Add a web browser
