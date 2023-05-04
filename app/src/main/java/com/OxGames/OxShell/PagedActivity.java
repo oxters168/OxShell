@@ -408,7 +408,7 @@ public class PagedActivity extends AppCompatActivity {
     }
     @Override
     public boolean dispatchKeyEvent(KeyEvent key_event) {
-        Log.d("PagedActivity", "Received: " + key_event.toString());
+        //Log.d("PagedActivity", "Received: " + key_event.toString());
         //String activeTag = InputHandler.getActiveTag();
         //DebugView.print("INPUT_DEBUG", "InputTag: " + (activeTag != null ? activeTag : "null"));
         boolean isDpadInput = key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_LEFT || key_event.getKeyCode() == KeyEvent.KEYCODE_DPAD_RIGHT;
@@ -420,16 +420,16 @@ public class PagedActivity extends AppCompatActivity {
                 return true;
         }
 
-        Log.d("PagedActivity", "Checking with InputHandler");
+        //Log.d("PagedActivity", "Checking with InputHandler");
         if (InputHandler.onInputEvent(key_event))
             return true;
 
-        Log.d("PagedActivity", "Checking if is permissible");
+        //Log.d("PagedActivity", "Checking if is permissible");
         if (!isNonPermissable(key_event)) {
             Log.d("PagedActivity", "Passing to system: " + key_event);
             return super.dispatchKeyEvent(key_event);
         }
-        Log.d("PagedActivity", "Returning true");
+        //Log.d("PagedActivity", "Returning true");
         return true;
     }
     private boolean isNonPermissable(KeyEvent key_event) {

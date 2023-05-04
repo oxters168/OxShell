@@ -2,6 +2,7 @@ package com.OxGames.OxShell;
 
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -133,6 +134,7 @@ public class MusicPlayerActivity extends PagedActivity {
             SettingsKeeper.setNavBarHidden(true, false);
             SettingsKeeper.setStatusBarHidden(mpv.isFullscreen(), false);
             SettingsKeeper.setFullscreen(mpv.isFullscreen(), false);
+            getWindow().setStatusBarColor(Color.BLACK);
             mpv.refreshLayouts();
         }
     }
