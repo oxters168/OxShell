@@ -182,6 +182,7 @@ public class MediaPlayerView extends FrameLayout {
     }
 
     public void onResume() {
+        InputHandler.clearKeyComboActions(INPUT_TAG);
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
             View currentFocused = getCurrentFocusedView();
             if (currentFocused == null)
@@ -291,7 +292,7 @@ public class MediaPlayerView extends FrameLayout {
     }
     public void onPause() {
         //InputHandler.removeTagFromHistory(INPUT_TAG);
-        InputHandler.clearKeyComboActions(INPUT_TAG);
+        //InputHandler.clearKeyComboActions(INPUT_TAG);
         InputHandler.setTagEnabled(INPUT_TAG, false);
     }
 

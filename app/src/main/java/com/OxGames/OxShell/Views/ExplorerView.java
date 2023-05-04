@@ -53,6 +53,13 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
         init();
     }
 
+    public void onResume() {
+        InputHandler.setTagEnabled(INPUT_TAG, true);
+    }
+    public void onPause() {
+        InputHandler.setTagEnabled(INPUT_TAG, false);
+    }
+
     private void init() {
         //Log.d("ExplorerView", "Creating");
         //SettingsKeeper.hasValue()

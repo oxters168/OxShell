@@ -63,9 +63,9 @@ public class InputHandler {
                 this.comboActions.remove(keyComboAction);
             }
         }
-        private void setEnabled(boolean onOff) {
-            enabled = onOff;
-        }
+//        private void setEnabled(boolean onOff) {
+//            enabled = onOff;
+//        }
     }
     public static final int DEFAULT_PRIORITY = 0;
     private static final int LISTEN_DELAY = 5;
@@ -160,7 +160,7 @@ public class InputHandler {
         //if (eventPassed(event)) {
         if (eventsHistory.contains(event)) {
             //Log.d("InputHandler", "Event passed, skipping");
-            return true;
+            return false; // return false since accessibility service goes first and so returning true would go to PagedActivity which would cause it to block any system inputs like volume up/down
         }
         eventsHistory.add(event);
 
@@ -265,10 +265,11 @@ public class InputHandler {
         return keyComboActions.get(tag).enabled;
     }
     public static void setTagEnabled(String tag, boolean onOff) {
+        //Log.d("InputHandler", "Setting enabled state of " + tag + " to " + onOff);
         if (keyComboActions.containsKey(tag))
-            keyComboActions.get(tag).setEnabled(onOff);
+            keyComboActions.get(tag).enabled = onOff;
         else
-            Log.w("InputHandler", "Failed to set enabled state of " + tag);
+            Log.w("InputHandler", "Failed to set enabled state of " + tag + " to " + onOff);
         //removeTagFromHistory(tag);
         //currentTagList.addLast(tag);
     }

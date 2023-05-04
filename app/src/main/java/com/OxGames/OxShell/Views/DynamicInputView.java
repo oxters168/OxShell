@@ -164,6 +164,13 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
 //
 //    };
 
+    public void onResume() {
+        InputHandler.setTagEnabled(INPUT_TAG, isShown);
+    }
+    public void onPause() {
+        InputHandler.setTagEnabled(INPUT_TAG, false);
+    }
+
     public void setTitle(String value) {
         title.setText(value);
     }

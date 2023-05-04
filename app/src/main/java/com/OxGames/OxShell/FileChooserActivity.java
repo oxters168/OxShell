@@ -6,11 +6,12 @@ import android.view.View;
 import androidx.annotation.Nullable;
 
 import com.OxGames.OxShell.Data.SettingsKeeper;
+import com.OxGames.OxShell.Views.ExplorerView;
 
 import java.util.function.Consumer;
 
 public class FileChooserActivity extends PagedActivity {
-    View explorerView;
+    ExplorerView explorerView;
     private Consumer<Boolean> onDynamicInputShown = (onOff) -> {
         explorerView.setVisibility(onOff ? View.GONE : View.VISIBLE);
     };
@@ -28,6 +29,17 @@ public class FileChooserActivity extends PagedActivity {
         int systemUi = SettingsKeeper.getSystemUiVisibility();
         setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), R.id.explorer_list);
         getDynamicInput().addShownListener(onDynamicInputShown);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        explorerView.onResume();
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        explorerView.onPause();
     }
 
     @Override

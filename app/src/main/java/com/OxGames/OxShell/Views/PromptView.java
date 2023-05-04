@@ -106,6 +106,13 @@ public class PromptView extends FrameLayout implements InputReceiver {
         return Math.round(AndroidHelpers.getScaledSpToPixels(context, 5));
     }
 
+    public void onResume() {
+        InputHandler.setTagEnabled(INPUT_TAG, isShown);
+    }
+    public void onPause() {
+        InputHandler.setTagEnabled(INPUT_TAG, false);
+    }
+
     private void init() {
         isShown = false;
         //inputHandler = new InputHandler();

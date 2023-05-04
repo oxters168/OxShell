@@ -69,9 +69,9 @@ public class AccessService extends AccessibilityService {
 
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
-        Log.d("AccessService", event.toString());
+        //Log.d("AccessService", event.toString());
         InputHandler.onInputEvent(event);
-        return false; // since we don't want to block out any input to any other apps
+        return super.onKeyEvent(event); // since we don't want to block out any input to any other apps
 //        if (InputHandler.onInputEvent(event, INPUT_TAG) && !InputHandler.isBlockingInput())
 //            return false;
 //        return super.onKeyEvent(event);

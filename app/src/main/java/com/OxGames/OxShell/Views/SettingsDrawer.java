@@ -67,6 +67,13 @@ public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
         return true;
     }
 
+    public void onResume() {
+        InputHandler.setTagEnabled(INPUT_TAG, isShown);
+    }
+    public void onPause() {
+        InputHandler.setTagEnabled(INPUT_TAG, false);
+    }
+
     private int getDrawerWidth() {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 200));
     }
