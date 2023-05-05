@@ -40,7 +40,7 @@ Ox Shell is a launcher for android. It is an attempt to recreate the feel of a c
 - [ ] Support ability to have multiple shader files
 - [ ] Make it possible to set values of variables when setting shader as background if the shader has any to be set
 - [ ] Add ability to write a shader directly in app with the ability to preview
-- [ ] Add a video player
+- [x] Add a video player
 - [x] Add a music player
 - [ ] Add a photo viewer
 - [ ] Make it possible to set the rect of the background image chosen when user setting wallpaper to image
