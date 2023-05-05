@@ -1,7 +1,6 @@
 package com.OxGames.OxShell;
 
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,14 +17,13 @@ import androidx.annotation.Nullable;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.SettingsKeeper;
-import com.OxGames.OxShell.Helpers.AndroidHelpers;
 import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.MediaPlayer;
 import com.OxGames.OxShell.Views.MediaPlayerView;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class VideoPlayerActivity extends PagedActivity {
+public class MediaPlayerActivity extends PagedActivity {
     private MediaPlayerView mpv;
     private Handler trackPositionHandler;
     private final AtomicBoolean isTrackingPosition = new AtomicBoolean(false);
@@ -33,6 +31,7 @@ public class VideoPlayerActivity extends PagedActivity {
         @Override
         public void run() {
             if (MediaPlayer.isPlaying()) {
+                mpv.refreshArtworkSize();
                 isTrackingPosition.set(true);
                 setMediaPlayerViewPosition();
                 trackPositionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
@@ -65,7 +64,7 @@ public class VideoPlayerActivity extends PagedActivity {
         mpv.addSeekBarListener(this::onSeekBarSuk);
         mpv.setIsPlaying(MediaPlayer.isPlaying());
         mpv.setTitle(MediaPlayer.getCurrentTitle());
-        setMediaPlayerViewImage();
+//        setMediaPlayerViewImage();
         setMediaPlayerViewPosition();
         setMediaPlayerViewSurface();
         MediaPlayer.addIsPlayingListener(this::onMusicPlayerIsPlaying);
@@ -87,7 +86,8 @@ public class VideoPlayerActivity extends PagedActivity {
     protected void onResume() {
         super.onResume();
         mpv.onResume();
-        mpv.setVideoMode(true);
+        mpv.refreshArtworkSize();
+        //mpv.setVideoMode(true);
     }
 
     @Override
@@ -116,7 +116,7 @@ public class VideoPlayerActivity extends PagedActivity {
     }
 
     private void setMediaPlayerViewSurface() {
-        MediaPlayer.setSurfaceView(mpv.getSurfaceView());
+        MediaPlayer.setPlayerView(mpv.getPlayerView());
     }
     private void setMediaPlayerViewPosition() {
         //Log.d("MusicPlayerActivity", "Setting position of seekbar");
@@ -132,10 +132,10 @@ public class VideoPlayerActivity extends PagedActivity {
         mpv.setCurrentTime(currentPosition);
         mpv.setCurrentDuration(currentDuration);
     }
-    private void setMediaPlayerViewImage() {
-        Bitmap albumArt = MediaPlayer.getCurrentAlbumArt();
-        mpv.setImage(albumArt != null ? AndroidHelpers.bitmapToDrawable(this, albumArt) : null);
-    }
+//    private void setMediaPlayerViewImage() {
+//        Bitmap albumArt = MediaPlayer.getCurrentAlbumArt();
+//        mpv.setImage(albumArt != null ? AndroidHelpers.bitmapToDrawable(this, albumArt) : null);
+//    }
     private void refreshSystemUiState() {
         if (hasWindowFocus()) {
             SettingsKeeper.setNavBarHidden(true, false);
@@ -148,8 +148,11 @@ public class VideoPlayerActivity extends PagedActivity {
 
     private void onMusicPlayerIsPlaying(boolean onOff) {
         mpv.setIsPlaying(onOff);
+        mpv.refreshArtworkSize(); // without this the artwork gets stretched incorrectly
         if (onOff)
             startTrackingPosition();
+        //mpv.setPlayerViewShown(onOff);
+        //mpv.refreshPlayerView();
     }
     private void startTrackingPosition() {
         if (trackPositionHandler == null)
@@ -159,7 +162,9 @@ public class VideoPlayerActivity extends PagedActivity {
     }
     private void onMusicPlayerMediaChanged(int index) {
         mpv.setTitle(MediaPlayer.getCurrentTitle());
-        setMediaPlayerViewImage();
+        mpv.refreshArtworkSize();
+        //mpv.enableArtwork();
+        //setMediaPlayerViewImage();
         setMediaPlayerViewPosition();
     }
     private void onSeekEvent(long position) {

@@ -92,6 +92,7 @@ dependencies {
     //implementation 'androidx.core:core:1.10.0'
     implementation "androidx.media3:media3-exoplayer:1.0.1"
     implementation "androidx.media3:media3-session:1.0.1"
+    implementation "androidx.media3:media3-ui:1.0.1"
     implementation 'androidx.media:media:1.6.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'

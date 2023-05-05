@@ -13,7 +13,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -23,7 +22,11 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.core.content.ContextCompat;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.ui.AspectRatioFrameLayout;
+import androidx.media3.ui.PlayerView;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
@@ -44,9 +47,9 @@ public class MediaPlayerView extends FrameLayout {
     private static final String INPUT_TAG = "MEDIA_PLAYER";
     public enum MediaButton { back, end, play, pause, seekFwd, seekBck, skipNext, skipPrev, fullscreen }
     private final Context context;
-    private FrameLayout imageBackdrop;
-    private FrameLayout imageView;
-    private SurfaceView surfaceView;
+//    private FrameLayout imageBackdrop;
+//    private FrameLayout imageView;
+    private PlayerView playerView;
     private FrameLayout customActionBar;
     private FrameLayout controlsBar;
     private BetterTextView titleLabel;
@@ -118,16 +121,16 @@ public class MediaPlayerView extends FrameLayout {
     public void setCurrentDuration(long ms) {
         totalTimeLabel.setText(MathHelpers.msToTimestamp(ms));
     }
-    public boolean getVideoMode() {
-        return isVideoMode;
-    }
-    public void setVideoMode(boolean onOff) {
-        isVideoMode = onOff;
-        surfaceView.setVisibility(isVideoMode ? VISIBLE : GONE);
-        imageBackdrop.setVisibility(isVideoMode ? GONE : VISIBLE);
-    }
-    public SurfaceView getSurfaceView() {
-        return surfaceView;
+//    public boolean getVideoMode() {
+//        return isVideoMode;
+//    }
+//    public void setVideoMode(boolean onOff) {
+//        isVideoMode = onOff;
+//        playerView.setVisibility(isVideoMode ? VISIBLE : GONE);
+//        imageBackdrop.setVisibility(isVideoMode ? GONE : VISIBLE);
+//    }
+    public PlayerView getPlayerView() {
+        return playerView;
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -175,14 +178,23 @@ public class MediaPlayerView extends FrameLayout {
             seekBarListener.accept(value);
     }
 
-    public void setImage(Drawable drawable) {
-        if (drawable == null) {
-            imageView.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_headphones_24));
-            imageView.setBackgroundTintList(ColorStateList.valueOf(Color.DKGRAY));
-        } else {
-            imageView.setBackground(drawable);
-            imageView.setBackgroundTintList(null);
-        }
+//    public void setImage(Drawable drawable) {
+//        if (drawable == null) {
+//            imageView.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_headphones_24));
+//            imageView.setBackgroundTintList(ColorStateList.valueOf(Color.DKGRAY));
+//        } else {
+//            imageView.setBackground(drawable);
+//            imageView.setBackgroundTintList(null);
+//        }
+//    }
+    @OptIn(markerClass = UnstableApi.class)
+    public void refreshArtworkSize() {
+        // because for some reason the cover art gets stretched incorrectly
+        // sometimes on first time loading the view. And even when called
+        // on play or on media changed, it sometimes does not work first time
+        // so I had to put it in the seek bar position setter code
+        playerView.setUseArtwork(false);
+        playerView.setUseArtwork(true);
     }
     public void setFullscreen(boolean onOff) {
         boolean fullscreenChanged = isFullscreen != onOff;
@@ -314,6 +326,16 @@ public class MediaPlayerView extends FrameLayout {
     private void init() {
         refreshLayouts();
     }
+//    @OptIn(markerClass = UnstableApi.class)
+//    public void setPlayerViewShown(boolean onOff) {
+//        //playerView.setVisibility(onOff ? VISIBLE : GONE);
+////        refreshLayouts();
+////        playerView.setResizeMode(onOff ? AspectRatioFrameLayout.RESIZE_MODE_FIT : AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+//        playerView.setUseArtwork(onOff);
+//    }
+//    public void refreshPlayerView() {
+//        playerView.refreshDrawableState();
+//    }
 
     public static void setBgStates(View view, @DrawableRes int icon, @ColorInt int normal, @ColorInt int pressed) {
         StateListDrawable stateListDrawable = new StateListDrawable();
@@ -347,13 +369,13 @@ public class MediaPlayerView extends FrameLayout {
         int seekBarThumbSize = Math.round(AndroidHelpers.getScaledDpToPixels(context, 5));
         int btnEdgeMargin = (actionBarHeight - btnSize) / 2;
         int controlsSeparationMargin = btnSize + medCushion / 2;
-        int imageSize = Math.round(Math.min(OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight()) * 0.8f);
+        //int imageSize = Math.round(Math.min(OxShellApp.getDisplayWidth(), OxShellApp.getDisplayHeight()) * 0.8f);
         int timeTextSize = Math.round(AndroidHelpers.getScaledSpToPixels(context, 8));
 
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.TOP | Gravity.LEFT;
         setLayoutParams(layoutParams);
-        setBackgroundColor(Color.DKGRAY);
+        setBackgroundColor(Color.BLACK);
         setOnTouchListener((view, touchEvent) -> {
             //Log.d("MediaPlayerView", "encompassingView: " + touchEvent);
             if (touchEvent.getAction() == MotionEvent.ACTION_UP)
@@ -362,33 +384,36 @@ public class MediaPlayerView extends FrameLayout {
         });
         setFocusable(false);
 
-        if (imageBackdrop == null) {
-            imageBackdrop = new FrameLayout(context);
-            imageBackdrop.setBackgroundColor(Color.GRAY);
-            imageBackdrop.setFocusable(false);
-            addView(imageBackdrop);
-        }
-        layoutParams = new LayoutParams(imageSize, imageSize);
-        layoutParams.gravity = Gravity.CENTER;
-        imageBackdrop.setLayoutParams(layoutParams);
+//        if (imageBackdrop == null) {
+//            imageBackdrop = new FrameLayout(context);
+//            imageBackdrop.setBackgroundColor(Color.GRAY);
+//            imageBackdrop.setFocusable(false);
+//            addView(imageBackdrop);
+//        }
+//        layoutParams = new LayoutParams(imageSize, imageSize);
+//        layoutParams.gravity = Gravity.CENTER;
+//        imageBackdrop.setLayoutParams(layoutParams);
+//
+//        if (imageView == null) {
+//            imageView = new FrameLayout(context);
+//            imageView.setFocusable(false);
+//            imageBackdrop.addView(imageView);
+//        }
+//        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+//        layoutParams.gravity = Gravity.CENTER;
+//        imageView.setLayoutParams(layoutParams);
 
-        if (imageView == null) {
-            imageView = new FrameLayout(context);
-            imageView.setFocusable(false);
-            imageBackdrop.addView(imageView);
+        if (playerView == null) {
+            playerView = new PlayerView(context);
+            playerView.setUseController(false);
+            //playerView.setVisibility(GONE);
+            //surfaceView.setFocusable(false);
+            addView(playerView);
         }
+        //playerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
         layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         layoutParams.gravity = Gravity.CENTER;
-        imageView.setLayoutParams(layoutParams);
-
-        if (surfaceView == null) {
-            surfaceView = new SurfaceView(context);
-            surfaceView.setFocusable(false);
-            addView(surfaceView);
-        }
-        layoutParams = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.gravity = Gravity.CENTER;
-        surfaceView.setLayoutParams(layoutParams);
+        playerView.setLayoutParams(layoutParams);
 
         if (customActionBar == null) {
             customActionBar = new FrameLayout(context);
@@ -599,6 +624,6 @@ public class MediaPlayerView extends FrameLayout {
         layoutParams.setMarginEnd(btnEdgeMargin + totalTimeLabel.getMeasuredWidth() + smallCushion);
         seekBar.setLayoutParams(layoutParams);
 
-        setVideoMode(isVideoMode);
+        //setVideoMode(isVideoMode);
     }
 }

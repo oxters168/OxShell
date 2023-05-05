@@ -27,13 +27,14 @@ import androidx.core.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 
 import com.OxGames.OxShell.BuildConfig;
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
 import com.OxGames.OxShell.Data.Metadata;
 import com.OxGames.OxShell.Data.SettingsKeeper;
-import com.OxGames.OxShell.MusicPlayerActivity;
+import com.OxGames.OxShell.MediaPlayerActivity;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class MediaPlayer extends MediaSessionService {
+    private static final String DEBUG_TAG = "MediaPlayer";
     public static final String PREV_INTENT = "ACTION_SKIP_TO_PREVIOUS";
     public static final String NEXT_INTENT = "ACTION_SKIP_TO_NEXT";
     public static final String PLAY_INTENT = "ACTION_PLAY";
@@ -59,7 +61,7 @@ public class MediaPlayer extends MediaSessionService {
         @Override
         public void onPlaybackStateChanged(int playbackState) {
             Player.Listener.super.onPlaybackStateChanged(playbackState);
-            Log.d("MusicPlayer", "Exo playback state changed: " + playbackState);
+            Log.d(DEBUG_TAG, "Exo playback state changed: " + playbackState);
             //setTrackIndex(exo.getCurrentMediaItemIndex());
             //trackIndex = exo.getCurrentMediaItemIndex();
             refreshMetadata();
@@ -69,7 +71,7 @@ public class MediaPlayer extends MediaSessionService {
         @Override
         public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
             Player.Listener.super.onMediaItemTransition(mediaItem, reason);
-            Log.d("MusicPlayer", "Exo media item transitioned: " + reason);
+            Log.d(DEBUG_TAG, "Exo media item transitioned: " + reason);
             if (exo.getPlaybackState() == Player.STATE_READY)
                 setTrackIndex(exo.getCurrentMediaItemIndex());
             //trackIndex = exo.getCurrentMediaItemIndex();
@@ -147,14 +149,14 @@ public class MediaPlayer extends MediaSessionService {
 
     @Override
     public void onCreate() {
-        Log.d("MusicPlayer", "onCreate");
+        Log.d(DEBUG_TAG, "onCreate");
         super.onCreate();
         instance = this;
         startingService = false;
     }
     @Override
     public void onDestroy() {
-        Log.d("MusicPlayer", "onDestroy");
+        Log.d(DEBUG_TAG, "onDestroy");
         super.onDestroy();
         if (exo != null) {
             exo.stop();
@@ -178,7 +180,7 @@ public class MediaPlayer extends MediaSessionService {
         setPlaylist(0, trackLocs);
     }
     public static void setPlaylist(int startPos, DataRef... trackLocs) {
-        Log.d("MusicPlayer", "Setting playlist");
+        Log.d(DEBUG_TAG, "Setting playlist");
         boolean hasTracks = trackLocs != null && trackLocs.length > 0;
         if (hasTracks) {
             boolean samePlaylist = Arrays.equals(refs, trackLocs);
@@ -187,7 +189,7 @@ public class MediaPlayer extends MediaSessionService {
 
             if (!samePlaylist && !startingService) {
                 if (instance == null) {
-                    //Log.d("MusicPlayer", "Service not started, starting...");
+                    //Log.d(DEBUG_TAG, "Service not started, starting...");
                     startingService = true;
                     OxShellApp.getContext().startService(new Intent(OxShellApp.getContext(), MediaPlayer.class));
                 }
@@ -197,9 +199,9 @@ public class MediaPlayer extends MediaSessionService {
             clearPlaylist();
     }
     private static void refreshPlaylist() {
-        //Log.d("MusicPlayer", "Refreshing playlist");
+        //Log.d(DEBUG_TAG, "Refreshing playlist");
         runWhenServiceReady(() -> {
-            //Log.d("MusicPlayer", "Actually refreshing playlist");
+            //Log.d(DEBUG_TAG, "Actually refreshing playlist");
             if (exo != null) {
                 exo.stop();
                 exo.clearMediaItems();
@@ -216,7 +218,7 @@ public class MediaPlayer extends MediaSessionService {
             exo.prepare();
             seekTo(trackIndex, 0);
             //exo.seekTo(trackIndex, 0);
-            //Log.d("MusicPlayer", "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
+            //Log.d(DEBUG_TAG, "Setting playlist with " + trackLocs.length + " item(s), setting pos as " + trackIndex);
             refreshMetadata();
             refreshNotificationAndSession(exo.isPlaying());
         });
@@ -225,10 +227,10 @@ public class MediaPlayer extends MediaSessionService {
         if (instance != null)
             instance.stopSelf();
         else
-            Log.w("MusicPlayer", "Failed to clear playlist, service instance is null");
+            Log.w(DEBUG_TAG, "Failed to clear playlist, service instance is null");
     }
-    public static void setSurfaceView(SurfaceView surfaceView) {
-        runWhenExoReady(() -> exo.setVideoSurfaceView(surfaceView));
+    public static void setPlayerView(PlayerView playerView) {
+        runWhenExoReady(() -> playerView.setPlayer(exo));
     }
 
     private static void runWhenServiceReady(Runnable action) {
@@ -246,7 +248,7 @@ public class MediaPlayer extends MediaSessionService {
                         if (SystemClock.uptimeMillis() - startTime <= ttl * 1000)
                             waitHandler.postDelayed(this, MathHelpers.calculateMillisForFps(30));
                         else
-                            Log.w("MusicPlayer", "Failed to run music player action, service instance was null for more than " + ttl + " second(s)");
+                            Log.w(DEBUG_TAG, "Failed to run music player action, service instance was null for more than " + ttl + " second(s)");
                     } else
                         action.run();
                 }
@@ -270,7 +272,7 @@ public class MediaPlayer extends MediaSessionService {
                         if (SystemClock.uptimeMillis() - startTime <= ttl * 1000)
                             exoWaitHandler.postDelayed(this, MathHelpers.calculateMillisForFps(30));
                         else
-                            Log.w("MusicPlayer", "Failed to run music player action, exo was null for more than " + ttl + " second(s)");
+                            Log.w(DEBUG_TAG, "Failed to run music player action, exo was null for more than " + ttl + " second(s)");
                     } else
                         action.run();
                 }
@@ -289,7 +291,7 @@ public class MediaPlayer extends MediaSessionService {
     }
     public static void play(int index) {
         runWhenExoReady(() -> {
-            Log.d("MusicPlayer", "Play track " + index);
+            Log.d(DEBUG_TAG, "Play track " + index);
             if (index >= 0 && index < exo.getMediaItemCount()) {
                 requestAudioFocus();
 
@@ -305,7 +307,7 @@ public class MediaPlayer extends MediaSessionService {
                 refreshMetadata();
                 refreshNotificationAndSession(true);
             } else
-                Log.w("MusicPlayer", "Failed to play, attempted play " + index + " when exoplayer has " + exo.getMediaItemCount() + " item(s)");
+                Log.w(DEBUG_TAG, "Failed to play, attempted play " + index + " when exoplayer has " + exo.getMediaItemCount() + " item(s)");
         });
     }
     public static boolean isPlaying() {
@@ -319,11 +321,11 @@ public class MediaPlayer extends MediaSessionService {
             refreshNotificationAndSession(false);
             fireIsPlayingEvent(false);
             //} else
-            //    Log.w("MusicPlayer", "Failed to pause, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to pause, exoplayer is null");
         });
     }
     public static void stop() {
-        //Log.d("MusicPlayer", "stop");
+        //Log.d(DEBUG_TAG, "stop");
         runWhenExoReady(() -> {
             //if (exo != null) {
             boolean wasPlaying = exo.isPlaying();
@@ -332,7 +334,7 @@ public class MediaPlayer extends MediaSessionService {
                 fireIsPlayingEvent(false);
             fireMediaItemChangedEvent(-1);
             //} else
-            //    Log.w("MusicPlayer", "Failed to stop, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to stop, exoplayer is null");
         });
     }
     public static void seekToNext() {
@@ -346,7 +348,7 @@ public class MediaPlayer extends MediaSessionService {
             refreshNotificationAndSession(exo.isPlaying());
             fireMediaItemChangedEvent(exo.getCurrentMediaItemIndex());
             //} else
-            //    Log.w("MusicPlayer", "Failed to seek to next, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to seek to next, exoplayer is null");
         });
     }
     public static void seekToPrev() {
@@ -364,7 +366,7 @@ public class MediaPlayer extends MediaSessionService {
             else
                 fireSeekEventEvent(getCurrentPosition());
             //} else
-            //    Log.w("MusicPlayer", "Failed to seek to previous, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to seek to previous, exoplayer is null");
         });
     }
     public static void seekTo(long ms) {
@@ -373,12 +375,12 @@ public class MediaPlayer extends MediaSessionService {
             exo.seekTo(ms);
             refreshNotificationAndSession(isPlaying());
             //} else
-            //    Log.w("MusicPlayer", "Failed to seek, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to seek, exoplayer is null");
         });
     }
     public static void seekTo(int trackIndex, long ms) {
         runWhenExoReady(() -> {
-            Log.d("MusicPlayer", "Seeking to track " + trackIndex);
+            Log.d(DEBUG_TAG, "Seeking to track " + trackIndex);
             int prevIndex = exo.getCurrentMediaItemIndex();
             exo.seekTo(trackIndex, ms);
 
@@ -399,7 +401,7 @@ public class MediaPlayer extends MediaSessionService {
             refreshNotificationAndSession(isPlaying());
             fireSeekEventEvent(getCurrentPosition());
             //} else
-            //    Log.w("MusicPlayer", "Failed to seek forward, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to seek forward, exoplayer is null");
         });
     }
     public static void seekBack() {
@@ -409,7 +411,7 @@ public class MediaPlayer extends MediaSessionService {
             refreshNotificationAndSession(isPlaying());
             fireSeekEventEvent(getCurrentPosition());
             //} else
-            //    Log.w("MusicPlayer", "Failed to seek back, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to seek back, exoplayer is null");
         });
     }
     public static void setVolume(float value) {
@@ -417,7 +419,7 @@ public class MediaPlayer extends MediaSessionService {
             //if (exo != null)
             exo.setVolume(value);
             //else
-            //    Log.w("MusicPlayer", "Failed to set volume, exoplayer is null");
+            //    Log.w(DEBUG_TAG, "Failed to set volume, exoplayer is null");
         });
     }
     public static long getCurrentPosition() {
@@ -446,7 +448,7 @@ public class MediaPlayer extends MediaSessionService {
         return refs != null && refs.length > 0 && trackIndex >= 0 && trackIndex < refs.length ? refs[trackIndex] : null;
     }
     private static void setTrackIndex(int index) {
-        Log.w("MusicPlayer", "Attempting to set track index from " + trackIndex + " to " + index);
+        Log.w(DEBUG_TAG, "Attempting to set track index from " + trackIndex + " to " + index);
         if (refs == null || refs.length <= 0)
             trackIndex = -1;
         else
@@ -518,7 +520,7 @@ public class MediaPlayer extends MediaSessionService {
         try {
             duration = Long.valueOf(currentTrackData.getDuration());
         } catch (Exception e) {
-            Log.w("MusicPlayer", "Failed to retrieve track duration from metadata");
+            Log.w(DEBUG_TAG, "Failed to retrieve track duration from metadata");
         }
         return duration;
     }
@@ -542,7 +544,7 @@ public class MediaPlayer extends MediaSessionService {
         NotificationManager notificationManager = instance.getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);
 
-        Intent openPlayerIntent = new Intent(instance, MusicPlayerActivity.class);
+        Intent openPlayerIntent = new Intent(instance, MediaPlayerActivity.class);
         openPlayerIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent openPlayerPendingIntent = PendingIntent.getActivity(instance, 0, openPlayerIntent, PendingIntent.FLAG_MUTABLE);
 
@@ -609,70 +611,70 @@ public class MediaPlayer extends MediaSessionService {
         session.setCallback(new MediaSessionCompat.Callback() {
 //            @Override
 //            public boolean onMediaButtonEvent(@NonNull Intent mediaButtonIntent) {
-//                Log.d("MusicPlayer", mediaButtonIntent + ", " + (mediaButtonIntent.getExtras() != null ? mediaButtonIntent.getExtras().toString() : "null"));
+//                Log.d(DEBUG_TAG, mediaButtonIntent + ", " + (mediaButtonIntent.getExtras() != null ? mediaButtonIntent.getExtras().toString() : "null"));
 //                return super.onMediaButtonEvent(mediaButtonIntent);
 //            }
 
             @Override
             public void onPlay() {
                 super.onPlay();
-                //Log.d("MusicPlayer", "onPlay");
+                //Log.d(DEBUG_TAG, "onPlay");
                 play();
             }
 
             @Override
             public void onSkipToQueueItem(long id) {
                 super.onSkipToQueueItem(id);
-                //Log.d("MusicPlayer", "onSkipToQueueItem " + id);
+                //Log.d(DEBUG_TAG, "onSkipToQueueItem " + id);
                 play((int)id);
             }
 
             @Override
             public void onPause() {
                 super.onPause();
-                //Log.d("MusicPlayer", "onPause");
+                //Log.d(DEBUG_TAG, "onPause");
                 pause();
             }
 
             @Override
             public void onSkipToNext() {
                 super.onSkipToNext();
-                //Log.d("MusicPlayer", "onSkipToNext");
+                //Log.d(DEBUG_TAG, "onSkipToNext");
                 seekToNext();
             }
 
             @Override
             public void onSkipToPrevious() {
                 super.onSkipToPrevious();
-                //Log.d("MusicPlayer", "onSkipToPrevious");
+                //Log.d(DEBUG_TAG, "onSkipToPrevious");
                 seekToPrev();
             }
 
             @Override
             public void onFastForward() {
                 super.onFastForward();
-                //Log.d("MusicPlayer", "onFastForward");
+                //Log.d(DEBUG_TAG, "onFastForward");
                 seekForward();
             }
 
             @Override
             public void onRewind() {
                 super.onRewind();
-                //Log.d("MusicPlayer", "onRewind");
+                //Log.d(DEBUG_TAG, "onRewind");
                 seekBack();
             }
 
             @Override
             public void onStop() {
                 super.onStop();
-                //Log.d("MusicPlayer", "onStop");
+                //Log.d(DEBUG_TAG, "onStop");
                 stop();
             }
 
             @Override
             public void onSeekTo(long pos) {
                 super.onSeekTo(pos);
-                //Log.d("MusicPlayer", "onSeekTo " + pos);
+                //Log.d(DEBUG_TAG, "onSeekTo " + pos);
                 seekTo((int)pos);
                 refreshNotificationAndSession(isPlaying());
             }

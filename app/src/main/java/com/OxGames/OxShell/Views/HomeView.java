@@ -50,11 +50,10 @@ import com.OxGames.OxShell.Helpers.MathHelpers;
 import com.OxGames.OxShell.Helpers.MediaPlayer;
 import com.OxGames.OxShell.Helpers.Serialaver;
 import com.OxGames.OxShell.Interfaces.Refreshable;
-import com.OxGames.OxShell.MusicPlayerActivity;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
 import com.OxGames.OxShell.R;
-import com.OxGames.OxShell.VideoPlayerActivity;
+import com.OxGames.OxShell.MediaPlayerActivity;
 import com.OxGames.OxShell.Wallpaper.GLWallpaperService;
 
 import java.util.ArrayList;
@@ -208,7 +207,7 @@ public class HomeView extends XMBView implements Refreshable {
                     if (currentTrackInPlayer == null || trackLocs.size() <= 0 || !currentTrackInPlayer.equals(trackLocs.get(initialPos)))
                         MediaPlayer.play();
                     isPaused = true;
-                    AndroidHelpers.startActivity(MusicPlayerActivity.class);
+                    AndroidHelpers.startActivity(MediaPlayerActivity.class);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.videoTrack) {
                     Integer[] position = getPosition();
@@ -245,7 +244,7 @@ public class HomeView extends XMBView implements Refreshable {
                     if (currentTrackInPlayer == null || trackLocs.size() <= 0 || !currentTrackInPlayer.equals(trackLocs.get(initialPos)))
                         MediaPlayer.play();
                     isPaused = true;
-                    AndroidHelpers.startActivity(VideoPlayerActivity.class);
+                    AndroidHelpers.startActivity(MediaPlayerActivity.class);
                     return true;
                 }  else if (selectedItem.type == HomeItem.Type.addAppOuter) {
                     List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
