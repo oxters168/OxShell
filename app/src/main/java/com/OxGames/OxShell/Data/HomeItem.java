@@ -170,7 +170,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     }
 
     public boolean isColumnHead() {
-        return type == Type.musicTree || type == Type.musicFolder || type == Type.musicAlbum || type == Type.musicArtist || type == HomeItem.Type.assoc || type == HomeItem.Type.settings;
+        return type == Type.musicTree || type == Type.videoTree || type == Type.musicFolder || type == Type.musicAlbum || type == Type.musicArtist || type == HomeItem.Type.assoc || type == HomeItem.Type.settings;
     }
 
     @Override
@@ -190,7 +190,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     }
 
     public boolean isReloadable() {
-        return type == Type.assoc || type == Type.musicTree || type == Type.settings;
+        return type == Type.assoc || type == Type.musicTree || type == Type.videoTree || type == Type.settings;
     }
     public void reload(Runnable onReloaded) {
         //Log.d("HomeItem", "reload " + title);
