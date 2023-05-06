@@ -163,11 +163,12 @@ public class XMBItem<T> implements Serializable {
                     int oldIndex = (int)imgRef.imageLoc;
                     int newIndex = oldIndex + (prevVersion > 1 ? 14 : 15);
                     resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
-                    Log.i("HomeView", "Switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                    Log.i("HomeView", "Previous version is " + prevVersion + ", switching out " + oldIndex + " => " + newIndex + " => " + resName);
                 } else {
                     resName = (String)imgRef.imageLoc;
                     if (!resName.startsWith("com.OxGames.OxShell:drawable/"))
                         resName = "com.OxGames.OxShell:drawable/" + resName;
+                    Log.i("HomeView", "Previous version is " + prevVersion + ", switching out " + imgRef.imageLoc + " => " + resName);
                 }
                 iconLoc = DataRef.from(resName, imgRef.dataType);
             }
