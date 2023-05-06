@@ -332,7 +332,7 @@ public class Shader {
         if (secondsElapsed > 60 * 60 * 24) {
             frame = 0;
             startTime = System.currentTimeMillis();
-            prevTime = startTime;
+            prevTime = 0;
             secondsElapsed = 0;
         }
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
