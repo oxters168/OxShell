@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import com.OxGames.OxShell.Helpers.ExplorerBehaviour;
 import com.OxGames.OxShell.OxShellApp;
+import com.OxGames.OxShell.R;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -160,10 +161,11 @@ public class XMBItem<T> implements Serializable {
             if (imgRef.dataType == DataLocation.resource) {
                 String resName;
                 if (prevVersion < 5) {
-                    int oldIndex = (int)imgRef.imageLoc;
-                    int newIndex = oldIndex + (prevVersion > 1 ? 14 : 15);
-                    resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
-                    Log.i("HomeView", "Previous version is " + prevVersion + ", switching out " + oldIndex + " => " + newIndex + " => " + resName);
+                    int oldIndex = (int)imgRef.imageLoc - (prevVersion > 1 ? 1 : 0);
+                    resName = ResImage.oldResIdToNewId(oldIndex);
+//                    int newIndex = oldIndex + (prevVersion > 1 ? 14 : 15);
+//                    resName = OxShellApp.getCurrentActivity().getResources().getResourceName(newIndex);
+                    Log.i("HomeView", "Previous version is " + prevVersion + ", switching out " + oldIndex + " => " + resName);
                 } else {
                     resName = (String)imgRef.imageLoc;
                     if (!resName.startsWith("com.OxGames.OxShell:drawable/"))
@@ -182,6 +184,7 @@ public class XMBItem<T> implements Serializable {
             }
         }
     }
+
     public DataRef getImgRef() {
         return (DataRef)iconLoc;
     }

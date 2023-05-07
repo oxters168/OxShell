@@ -1,5 +1,8 @@
 package com.OxGames.OxShell.Data;
 
+import android.util.Log;
+
+import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
 import java.util.HashMap;
@@ -73,5 +76,93 @@ public class ResImage {
             resources.put(R.drawable.baseline_fast_forward_24, new ResImage("com.OxGames.OxShell:drawable/baseline_fast_forward_24", "Fast Forward"));
             resources.put(R.drawable.baseline_fast_rewind_24, new ResImage("com.OxGames.OxShell:drawable/baseline_fast_rewind_24", "Fast Rewind"));
         }
+    }
+
+    public static String oldResIdToNewId(int id) {
+        switch (id) {
+            case(2131165323):
+                // Accessibility
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_accessibility_24);
+            case(2131165324):
+                // Plus Circle
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_add_circle_outline_24);
+            case(2131165328):
+                // Cross Circle
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_cancel_24);
+            case(2131165326):
+                // Stars
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_auto_awesome_24);
+            case(2131165327):
+                // Block
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_block_24);
+            case(2131165329):
+                // Checkmark
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_check_24);
+            case(2131165330):
+                // Construction
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_construction_24);
+            case(2131165331):
+                // Folder
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_folder_24);
+            case(2131165332):
+                // Message Bubbles
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_forum_24);
+            case(2131165333):
+                // Directional Pad
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_games_24);
+            case(2131165334):
+                // Headphones
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_headphones_24);
+            case(2131165335):
+                // Crossed Image
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_hide_image_24);
+            case(2131165336):
+                // Home
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_home_24);
+            case(2131165337):
+                // Image
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_image_24);
+            case(2131165338):
+                // Map
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_map_24);
+            case(2131165339):
+                // Film
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_movie_24);
+            case(2131165340):
+                // Newspaper
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_newspaper_24);
+            case(2131165341):
+                // Camera
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_photo_camera_24);
+            case(2131165342):
+                // Question Mark
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_question_mark_24);
+            case(2131165343):
+                // Send Puzzle Piece
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_send_time_extension_24);
+            case(2131165344):
+                // Cog
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_settings_24);
+            case(2131165345):
+                // Source Folder
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_source_24);
+            case(2131165325):
+                // Audio File
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_audio_file_24);
+            case(2131165346):
+                // Video File
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_video_file_24);
+            case(2131165347):
+                // List
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_view_list_24);
+            case(2131165348):
+                // Suitcase
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_work_24);
+            case(2131165306):
+                // Info
+                return OxShellApp.getContext().getResources().getResourceName(R.drawable.baseline_info_24);
+        }
+        Log.w("ResImage", id + " not from version 1");
+        return OxShellApp.getContext().getResources().getResourceName(R.drawable.ic_baseline_question_mark_24);
     }
 }
