@@ -658,7 +658,7 @@ public class HomeView extends XMBView implements Refreshable {
                 } else if (selectedItem.type == HomeItem.Type.setAudioVolume) {
                     DynamicInputView dynamicInput = OxShellApp.getCurrentActivity().getDynamicInput();
                     dynamicInput.setTitle("Set Volume Levels");
-                    DynamicInputRow.Label musicLabel = new DynamicInputRow.Label("Music Volume");
+                    DynamicInputRow.Label musicLabel = new DynamicInputRow.Label("Media Volume");
                     musicLabel.setGravity(Gravity.LEFT | Gravity.BOTTOM);
                     DynamicInputRow.SliderInput musicSlider = new DynamicInputRow.SliderInput(0, 1, SettingsKeeper.getMusicVolume(), 0.01f, null);
                     DynamicInputRow.Label sfxLabel = new DynamicInputRow.Label("SFX Volume");
