@@ -128,7 +128,7 @@ public class LogcatHelper {
                         continue;
                     }
                     if (out != null && line.contains(String.valueOf(pid))) {
-                        out.write((getDateEN() + "  " + line + "\n").getBytes());
+                        out.write((getDateEN() + line + "\n").getBytes());
                     }
                 }
 
@@ -169,7 +169,7 @@ public class LogcatHelper {
     }
 
     public static String getDateEN() {
-        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat format1 = new SimpleDateFormat("yyyy-");
         String date1 = format1.format(new Date(System.currentTimeMillis()));
         return date1;
     }
