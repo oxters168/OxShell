@@ -37,6 +37,7 @@ public class SettingsKeeper {
     public static final String MUSIC_PLAYER_SKIP_PREV_INPUT = "music_player_skip_prev_input";
     public static final String MUSIC_PLAYER_SEEK_FORWARD_INPUT = "music_player_seek_forward_input";
     public static final String MUSIC_PLAYER_SEEK_BACK_INPUT = "music_player_seek_back_input";
+    public static final String MUSIC_PLAYER_FULLSCREEN_INPUT = "music_player_fullscreen_input";
     public static final String NAVIGATE_UP = "navigate_up";
     public static final String NAVIGATE_DOWN = "navigate_down";
     public static final String NAVIGATE_LEFT = "navigate_left";
@@ -314,6 +315,8 @@ public class SettingsKeeper {
                 return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_B) };
             case (MUSIC_PLAYER_SEEK_BACK_INPUT):
                 return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_X) };
+            case (MUSIC_PLAYER_FULLSCREEN_INPUT):
+                return new KeyCombo[] { KeyCombo.createUpCombo(true, KeyEvent.KEYCODE_BUTTON_R1, KeyEvent.KEYCODE_BUTTON_START) };
             case (CANCEL_INPUT):
                 return new KeyCombo[] { KeyCombo.createUpCombo(KeyEvent.KEYCODE_BUTTON_B), KeyCombo.createUpCombo(KeyEvent.KEYCODE_BACK), KeyCombo.createUpCombo(KeyEvent.KEYCODE_ESCAPE) };
             case (HOME_COMBOS):
@@ -423,6 +426,13 @@ public class SettingsKeeper {
             setValueAndSave(MUSIC_PLAYER_SEEK_BACK_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_SEEK_BACK_INPUT));
 
         return ((KeyCombo[])getValue(MUSIC_PLAYER_SEEK_BACK_INPUT));
+    }
+    public static KeyCombo[] getMusicPlayerFullscreenInput() {
+        // create default if not existing
+        if (!hasValue(MUSIC_PLAYER_FULLSCREEN_INPUT))
+            setValueAndSave(MUSIC_PLAYER_FULLSCREEN_INPUT, getDefaultInputValueFor(MUSIC_PLAYER_FULLSCREEN_INPUT));
+
+        return ((KeyCombo[])getValue(MUSIC_PLAYER_FULLSCREEN_INPUT));
     }
     public static KeyCombo[] getCancelInput() {
         // create default if not existing

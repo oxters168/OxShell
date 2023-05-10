@@ -1,5 +1,6 @@
 package com.OxGames.OxShell;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
@@ -46,8 +47,10 @@ public class MediaPlayerActivity extends PagedActivity {
         super.onCreate(savedInstanceState);
 
         Uri receivedPath = getIntent().getData();
-        if (receivedPath != null) {
+        boolean receivedUri = receivedPath != null;
+        if (receivedUri) {
             Log.i("MusicPlayerActivity", "Received data: " + (getIntent() != null ? getIntent().getData() : "null") + " extras: " + (getIntent() != null ? getIntent().getExtras() : "null"));
+            //getContentResolver().takePersistableUriPermission(receivedPath, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             MediaPlayer.setPlaylist(DataRef.from(receivedPath, DataLocation.resolverUri));
             MediaPlayer.play();
         }
@@ -65,6 +68,7 @@ public class MediaPlayerActivity extends PagedActivity {
         mpv.addSeekBarListener(this::onSeekBarSuk);
         mpv.setIsPlaying(MediaPlayer.isPlaying());
         mpv.setTitle(MediaPlayer.getCurrentTitle());
+        mpv.setBackBtnVisible(!receivedUri);
 //        setMediaPlayerViewImage();
         setMediaPlayerViewPosition();
         setMediaPlayerViewSurface();

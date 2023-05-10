@@ -455,7 +455,8 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_SKIP_PREV_INPUT, Type.setControls, "Change skip to previous input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_SEEK_FORWARD_INPUT, Type.setControls, "Change seek forward input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_SEEK_BACK_INPUT, Type.setControls, "Change seek back input"));
-        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "Music Player", DataRef.from(ResImage.get(R.drawable.ic_baseline_headphones_24).getId(), DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
+        innerInnerSettings.add(new HomeItem(SettingsKeeper.MUSIC_PLAYER_FULLSCREEN_INPUT, Type.setControls, "Change fullscreen input"));
+        innerSettings.add(new HomeItem(Type.nonDescriptSetting, "Media Player", DataRef.from(ResImage.get(R.drawable.ic_baseline_headphones_24).getId(), DataLocation.resource), innerInnerSettings.toArray(new XMBItem[0])));
         innerInnerSettings.clear();
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_UP_INPUT, Type.setControls, "Change go up input"));
         innerInnerSettings.add(new HomeItem(SettingsKeeper.EXPLORER_GO_BACK_INPUT, Type.setControls, "Change go back input"));

@@ -25,7 +25,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
 import androidx.core.content.ContextCompat;
 import androidx.media3.common.util.UnstableApi;
-import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
 
 import com.OxGames.OxShell.Data.KeyComboAction;
@@ -58,16 +57,16 @@ public class MediaPlayerView extends FrameLayout {
     private Button backBtn;
     private Button endBtn;
     private Button playBtn;
-    private Button seekFwd;
-    private Button skipFwd;
-    private Button seekBck;
-    private Button skipPrv;
+    private Button seekFwdBtn;
+    private Button skipFwdBtn;
+    private Button seekBckBtn;
+    private Button skipPrvBtn;
+    private Button fullscreenBtn;
     private Slider seekBar;
 
     private boolean isPlaying;
     private boolean isSeeking;
     private boolean isFullscreen;
-    private boolean isVideoMode;
 
     private final List<Consumer<MediaButton>> mediaBtnListeners;
     private final List<Consumer<Float>> seekBarListeners;
@@ -139,10 +138,10 @@ public class MediaPlayerView extends FrameLayout {
         backBtn.setOnFocusChangeListener(null);
         endBtn.setOnClickListener(null);
         playBtn.setOnClickListener(null);
-        seekFwd.setOnClickListener(null);
-        skipFwd.setOnClickListener(null);
-        seekBck.setOnClickListener(null);
-        skipPrv.setOnClickListener(null);
+        seekFwdBtn.setOnClickListener(null);
+        skipFwdBtn.setOnClickListener(null);
+        seekBckBtn.setOnClickListener(null);
+        skipPrvBtn.setOnClickListener(null);
         seekBar.clearOnSliderTouchListeners();
         setOnTouchListener(null);
         customActionBar.setOnTouchListener(null);
@@ -201,53 +200,75 @@ public class MediaPlayerView extends FrameLayout {
         isFullscreen = onOff;
         customActionBar.setVisibility(isFullscreen ? GONE : VISIBLE);
         controlsBar.setVisibility(isFullscreen ? GONE : VISIBLE);
+        refreshArtworkSize();
         if (fullscreenChanged)
             fireMediaBtnEvent(MediaButton.fullscreen);
     }
     public boolean isFullscreen() {
         return isFullscreen;
     }
+    public void setBackBtnVisible(boolean onOff) {
+        backBtn.setVisibility(onOff ? VISIBLE : GONE);
+    }
 
     public void onResume() {
         InputHandler.clearKeyComboActions(INPUT_TAG);
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
-            View currentFocused = getCurrentFocusedView();
-            if (currentFocused == null)
-                currentFocused = endBtn;
-            if (currentFocused != seekBar) {
-                currentFocused.clearFocus();
-                getViewLeftOf(currentFocused).requestFocus();
+            if (!isFullscreen()) {
+                View currentFocused = getCurrentFocusedView();
+                if (currentFocused == null)
+                    currentFocused = endBtn;
+                if (currentFocused != seekBar) {
+                    currentFocused.clearFocus();
+                    getViewLeftOf(currentFocused).requestFocus();
+                } else
+                    seekBckBtn.performClick();
             } else
-                seekBck.performClick();
+                setFullscreen(false);
         })).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
-            View currentFocused = getCurrentFocusedView();
-            if (currentFocused == null)
-                currentFocused = backBtn;
-            if (currentFocused != seekBar) {
-                currentFocused.clearFocus();
-                getViewRightOf(currentFocused).requestFocus();
+            if (!isFullscreen()) {
+                View currentFocused = getCurrentFocusedView();
+                if (currentFocused == null)
+                    currentFocused = backBtn;
+                if (currentFocused != seekBar) {
+                    currentFocused.clearFocus();
+                    getViewRightOf(currentFocused).requestFocus();
+                } else
+                    seekFwdBtn.performClick();
             } else
-                seekFwd.performClick();
+                setFullscreen(false);
         })).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
-            View currentFocused = getCurrentFocusedView();
-            if (currentFocused == null)
-                currentFocused = playBtn;
-            currentFocused.clearFocus();
-            getViewAbove(currentFocused).requestFocus();
+            if (!isFullscreen()) {
+                View currentFocused = getCurrentFocusedView();
+                if (currentFocused == null)
+                    currentFocused = playBtn;
+                currentFocused.clearFocus();
+                getViewAbove(currentFocused).requestFocus();
+            } else
+                setFullscreen(false);
         })).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
-            View currentFocused = getCurrentFocusedView();
-            if (currentFocused == null)
-                currentFocused = backBtn;
-            currentFocused.clearFocus();
-            getViewBelow(currentFocused).requestFocus();
+            if (!isFullscreen()) {
+                View currentFocused = getCurrentFocusedView();
+                if (currentFocused == null)
+                    currentFocused = backBtn;
+                currentFocused.clearFocus();
+                getViewBelow(currentFocused).requestFocus();
+            } else
+                setFullscreen(false);
         })).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
-            View currentView = getCurrentFocusedView();
-            if (currentView != null)
-                currentView.performClick();
+            if (!isFullscreen()) {
+                View currentView = getCurrentFocusedView();
+                if (currentView != null)
+                    currentView.performClick();
+            } else
+                setFullscreen(false);
+        })).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerFullscreenInput()).map(combo -> new KeyComboAction(combo, () -> {
+            setFullscreen(!isFullscreen());
         })).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, backBtn::performClick)).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, endBtn::performClick)).toArray(KeyComboAction[]::new));
@@ -256,33 +277,37 @@ public class MediaPlayerView extends FrameLayout {
     private View getViewLeftOf(View view) {
         if (view == endBtn)
             return backBtn;
-        else if (view == skipFwd)
-            return seekFwd;
-        else if (view == seekFwd)
+        else if (view == fullscreenBtn)
+            return skipFwdBtn;
+        else if (view == skipFwdBtn)
+            return seekFwdBtn;
+        else if (view == seekFwdBtn)
             return playBtn;
         else if (view == playBtn)
-            return seekBck;
-        else if (view == seekBck)
-            return skipPrv;
+            return seekBckBtn;
+        else if (view == seekBckBtn)
+            return skipPrvBtn;
         else
             return view;
     }
     private View getViewRightOf(View view) {
         if (view == backBtn)
             return endBtn;
-        else if (view == skipPrv)
-            return seekBck;
-        else if (view == seekBck)
+        else if (view == skipPrvBtn)
+            return seekBckBtn;
+        else if (view == seekBckBtn)
             return playBtn;
         else if (view == playBtn)
-            return seekFwd;
-        else if (view == seekFwd)
-            return skipFwd;
+            return seekFwdBtn;
+        else if (view == seekFwdBtn)
+            return skipFwdBtn;
+        else if (view == skipFwdBtn)
+            return fullscreenBtn;
         else
             return view;
     }
     private View getViewAbove(View view) {
-        if (view == skipPrv || view == seekBck || view == playBtn || view == seekFwd || view == skipFwd)
+        if (view == skipPrvBtn || view == seekBckBtn || view == playBtn || view == seekFwdBtn || view == skipFwdBtn || view == fullscreenBtn)
             return seekBar;
         else if (view == seekBar)
             return backBtn;
@@ -304,16 +329,18 @@ public class MediaPlayerView extends FrameLayout {
             return endBtn;
         else if (seekBar.hasFocus())
             return seekBar;
-        else if (skipPrv.hasFocus())
-            return skipPrv;
-        else if (seekBck.hasFocus())
-            return seekBck;
+        else if (skipPrvBtn.hasFocus())
+            return skipPrvBtn;
+        else if (seekBckBtn.hasFocus())
+            return seekBckBtn;
         else if (playBtn.hasFocus())
             return playBtn;
-        else if (seekFwd.hasFocus())
-            return seekFwd;
-        else if (skipFwd.hasFocus())
-            return skipFwd;
+        else if (seekFwdBtn.hasFocus())
+            return seekFwdBtn;
+        else if (skipFwdBtn.hasFocus())
+            return skipFwdBtn;
+        else if (fullscreenBtn.hasFocus())
+            return fullscreenBtn;
         else
             return null;
     }
@@ -500,55 +527,67 @@ public class MediaPlayerView extends FrameLayout {
         layoutParams.setMargins(0, controlsSeparationMargin, 0, btnEdgeMargin);
         playBtn.setLayoutParams(layoutParams);
 
-        if (seekFwd == null) {
-            seekFwd = new Button(context);
+        if (seekFwdBtn == null) {
+            seekFwdBtn = new Button(context);
             //seekFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_forward_24));
-            setBgStates(seekFwd, R.drawable.baseline_fast_forward_24, Color.WHITE, Color.RED);
-            seekFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
-            controlsBar.addView(seekFwd);
+            setBgStates(seekFwdBtn, R.drawable.baseline_fast_forward_24, Color.WHITE, Color.RED);
+            seekFwdBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekFwd));
+            controlsBar.addView(seekFwdBtn);
             //InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, seekFwd::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(btnSize + medCushion, controlsSeparationMargin, 0,btnEdgeMargin);
-        seekFwd.setLayoutParams(layoutParams);
+        layoutParams.setMargins(btnSize + medCushion, controlsSeparationMargin, 0, btnEdgeMargin);
+        seekFwdBtn.setLayoutParams(layoutParams);
 
-        if (skipFwd == null) {
-            skipFwd = new Button(context);
+        if (skipFwdBtn == null) {
+            skipFwdBtn = new Button(context);
             //skipFwd.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_next_24));
-            setBgStates(skipFwd, R.drawable.baseline_skip_next_24, Color.WHITE, Color.RED);
-            skipFwd.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipNext));
-            controlsBar.addView(skipFwd);
+            setBgStates(skipFwdBtn, R.drawable.baseline_skip_next_24, Color.WHITE, Color.RED);
+            skipFwdBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipNext));
+            controlsBar.addView(skipFwdBtn);
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins((btnSize + medCushion) * 2, controlsSeparationMargin, 0,btnEdgeMargin);
-        skipFwd.setLayoutParams(layoutParams);
+        layoutParams.setMargins((btnSize + medCushion) * 2, controlsSeparationMargin, 0, btnEdgeMargin);
+        skipFwdBtn.setLayoutParams(layoutParams);
 
-        if (seekBck == null) {
-            seekBck = new Button(context);
+        if (seekBckBtn == null) {
+            seekBckBtn = new Button(context);
             //seekBck.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_fast_rewind_24));
-            setBgStates(seekBck, R.drawable.baseline_fast_rewind_24, Color.WHITE, Color.RED);
-            seekBck.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
-            controlsBar.addView(seekBck);
+            setBgStates(seekBckBtn, R.drawable.baseline_fast_rewind_24, Color.WHITE, Color.RED);
+            seekBckBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.seekBck));
+            controlsBar.addView(seekBckBtn);
             //InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, seekBck::performClick)).toArray(KeyComboAction[]::new));
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(0, controlsSeparationMargin, btnSize + medCushion,btnEdgeMargin);
-        seekBck.setLayoutParams(layoutParams);
+        layoutParams.setMargins(0, controlsSeparationMargin, btnSize + medCushion, btnEdgeMargin);
+        seekBckBtn.setLayoutParams(layoutParams);
 
-        if (skipPrv == null) {
-            skipPrv = new Button(context);
+        if (skipPrvBtn == null) {
+            skipPrvBtn = new Button(context);
             //skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
-            setBgStates(skipPrv, R.drawable.baseline_skip_previous_24, Color.WHITE, Color.RED);
-            skipPrv.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
-            controlsBar.addView(skipPrv);
+            setBgStates(skipPrvBtn, R.drawable.baseline_skip_previous_24, Color.WHITE, Color.RED);
+            skipPrvBtn.setOnClickListener((btn) -> fireMediaBtnEvent(MediaButton.skipPrev));
+            controlsBar.addView(skipPrvBtn);
         }
         layoutParams = new LayoutParams(btnSize, btnSize);
         layoutParams.gravity = Gravity.CENTER;
-        layoutParams.setMargins(0, controlsSeparationMargin, (btnSize + medCushion) * 2,btnEdgeMargin);
-        skipPrv.setLayoutParams(layoutParams);
+        layoutParams.setMargins(0, controlsSeparationMargin, (btnSize + medCushion) * 2, btnEdgeMargin);
+        skipPrvBtn.setLayoutParams(layoutParams);
+
+        if (fullscreenBtn == null) {
+            fullscreenBtn = new Button(context);
+            //skipPrv.setBackground(ContextCompat.getDrawable(context, R.drawable.baseline_skip_previous_24));
+            setBgStates(fullscreenBtn, R.drawable.baseline_fullscreen_24, Color.WHITE, Color.RED);
+            fullscreenBtn.setOnClickListener((btn) -> setFullscreen(true));
+            controlsBar.addView(fullscreenBtn);
+        }
+        layoutParams = new LayoutParams(btnSize, btnSize);
+        layoutParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
+        layoutParams.setMargins(0, controlsSeparationMargin, btnEdgeMargin, btnEdgeMargin);
+        fullscreenBtn.setLayoutParams(layoutParams);
 
         if (currentTimeLabel == null) {
             currentTimeLabel = new BetterTextView(context);

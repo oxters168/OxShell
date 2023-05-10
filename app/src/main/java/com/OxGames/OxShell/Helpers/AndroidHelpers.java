@@ -579,9 +579,9 @@ public class AndroidHelpers {
 //        ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.INSTALL_PACKAGES }, WRITE_EXTERNAL_STORAGE);
     }
 
-    public static void startActivity(Class<? extends Activity> nextActivity) {
+    public static void startActivity(Class<? extends Activity> nextActivity, int flags) {
         Intent intent = new Intent(OxShellApp.getCurrentActivity(), nextActivity);
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.setFlags(flags);
         OxShellApp.getCurrentActivity().startActivity(intent);
     }
 

@@ -52,6 +52,7 @@ public class MediaPlayer extends MediaSessionService {
     public static final String PAUSE_INTENT = "ACTION_PAUSE";
     public static final String STOP_INTENT = "ACTION_STOP";
 
+    private static DataRef currentTrackDataRef;
     private static Metadata currentTrackData;
     private static int trackIndex = 0;
     private static MediaSessionCompat session = null;
@@ -165,6 +166,7 @@ public class MediaPlayer extends MediaSessionService {
             exo.release();
             exo = null;
         }
+        currentTrackDataRef = null;
         currentTrackData = null;
         refs = null;
 
@@ -457,14 +459,21 @@ public class MediaPlayer extends MediaSessionService {
     private static DataRef getCurrentDataRef() {
         if (exo == null)
             return null;
+        Log.d("MediaPlayer", "trackIndex: " + trackIndex + " refsNull: " + (refs == null) + " refsLength: " + (refs != null ? refs.length : 0));
         //return refs[MathHelpers.clamp(exo.getCurrentMediaItemIndex(), 0, refs.length - 1)];
         return refs[MathHelpers.clamp(trackIndex, 0, refs.length - 1)];
     }
     private static void refreshMetadata() {
         if (exo == null)
             currentTrackData = null;
-        else
-            currentTrackData = Metadata.getMediaMetadata(getCurrentDataRef());
+        else {
+            // so we don't keep loading the metadata when its already loaded
+            DataRef current = getCurrentDataRef();
+            if (current != null && !current.equals(currentTrackDataRef)) {
+                currentTrackDataRef = current;
+                currentTrackData = Metadata.getMediaMetadata(current);
+            }
+        }
     }
     public static String getCurrentTitle() {
         if (exo == null)
@@ -472,16 +481,20 @@ public class MediaPlayer extends MediaSessionService {
         if (currentTrackData == null)
             refreshMetadata();
 
-        String title = currentTrackData.getTitle();
-        if (title == null || title.isEmpty()) {
-            DataRef dataRef = getCurrentDataRef();
-            if (dataRef.getLocType() == DataLocation.file)
-                title = AndroidHelpers.removeExtension((new File((String)dataRef.getLoc())).getName());
-            else if (dataRef.getLocType() == DataLocation.resolverUri)
-                title = AndroidHelpers.removeExtension(AndroidHelpers.getFileNameFromUri((Uri)dataRef.getLoc()));
-            else
-                title = "?";
-        }
+        String title = null;
+        if (currentTrackData != null) {
+            title = currentTrackData.getTitle();
+            if (title == null || title.isEmpty()) {
+                DataRef dataRef = getCurrentDataRef();
+                if (dataRef.getLocType() == DataLocation.file)
+                    title = AndroidHelpers.removeExtension((new File((String) dataRef.getLoc())).getName());
+                else if (dataRef.getLocType() == DataLocation.resolverUri)
+                    title = AndroidHelpers.removeExtension(AndroidHelpers.getFileNameFromUri((Uri) dataRef.getLoc()));
+                else
+                    title = "?";
+            }
+        } else
+            Log.w("MediaPlayer", "Attempting to retrieve metadata when none exist");
         return title;
     }
     public static String getCurrentArtist() {
@@ -489,9 +502,13 @@ public class MediaPlayer extends MediaSessionService {
             return null;
         if (currentTrackData == null)
             refreshMetadata();
-        String artist = currentTrackData.getArtist();
-        if (artist == null || artist.isEmpty())
-            artist = "Various Artists";
+        String artist = null;
+        if (currentTrackData != null) {
+            artist = currentTrackData.getArtist();
+            if (artist == null || artist.isEmpty())
+                artist = "Various Artists";
+        } else
+            Log.w("MediaPlayer", "Attempting to retrieve metadata when none exist");
         return artist;
     }
     public static String getCurrentAlbum() {
@@ -499,9 +516,13 @@ public class MediaPlayer extends MediaSessionService {
             return null;
         if (currentTrackData == null)
             refreshMetadata();
-        String album = currentTrackData.getAlbum();
-        if (album == null || album.isEmpty())
-            album = "Other";
+        String album = null;
+        if (currentTrackData != null) {
+            album = currentTrackData.getAlbum();
+            if (album == null || album.isEmpty())
+                album = "Other";
+        } else
+            Log.w("MediaPlayer", "Attempting to retrieve metadata when none exist");
         return album;
     }
     public static Bitmap getCurrentAlbumArt() {
@@ -509,7 +530,7 @@ public class MediaPlayer extends MediaSessionService {
             return null;
         if (currentTrackData == null)
             refreshMetadata();
-        return currentTrackData.getAlbumArt();
+        return currentTrackData != null ? currentTrackData.getAlbumArt() : null;
     }
     public static long getCurrentDuration() {
         if (exo == null)

@@ -166,7 +166,7 @@ public class HomeView extends XMBView implements Refreshable {
                     // TODO: show pop up explaining permissions?
                     //ActivityManager.goTo(ActivityManager.Page.explorer);
                     isPaused = true;
-                    AndroidHelpers.startActivity(ExplorerActivity.class);
+                    AndroidHelpers.startActivity(ExplorerActivity.class, Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     return true;
 //            HomeActivity.GetInstance().GoTo(HomeActivity.Page.explorer);
                 } else if (selectedItem.type == HomeItem.Type.app) {
@@ -207,7 +207,7 @@ public class HomeView extends XMBView implements Refreshable {
                     if (currentTrackInPlayer == null || trackLocs.size() <= 0 || !currentTrackInPlayer.equals(trackLocs.get(initialPos)))
                         MediaPlayer.play();
                     isPaused = true;
-                    AndroidHelpers.startActivity(MediaPlayerActivity.class);
+                    AndroidHelpers.startActivity(MediaPlayerActivity.class, Intent.FLAG_ACTIVITY_SINGLE_TOP);// | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.videoTrack) {
                     Integer[] position = getPosition();
@@ -244,7 +244,7 @@ public class HomeView extends XMBView implements Refreshable {
                     if (currentTrackInPlayer == null || trackLocs.size() <= 0 || !currentTrackInPlayer.equals(trackLocs.get(initialPos)))
                         MediaPlayer.play();
                     isPaused = true;
-                    AndroidHelpers.startActivity(MediaPlayerActivity.class);
+                    AndroidHelpers.startActivity(MediaPlayerActivity.class, Intent.FLAG_ACTIVITY_SINGLE_TOP);// | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     return true;
                 }  else if (selectedItem.type == HomeItem.Type.addAppOuter) {
                     List<ResolveInfo> apps = PackagesCache.getLaunchableInstalledPackages();
