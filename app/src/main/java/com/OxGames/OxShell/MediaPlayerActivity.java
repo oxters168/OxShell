@@ -27,11 +27,12 @@ public class MediaPlayerActivity extends PagedActivity {
     private MediaPlayerView mpv;
     private Handler trackPositionHandler;
     private final AtomicBoolean isTrackingPosition = new AtomicBoolean(false);
+    private boolean isPaused;
     private final Runnable trackPositionListener = new Runnable() {
         @Override
         public void run() {
-            if (MediaPlayer.isPlaying()) {
-                mpv.refreshArtworkSize();
+            if (MediaPlayer.isPlaying() && !isPaused) {
+                //mpv.refreshArtworkSize(); // major slow down for some tracks
                 isTrackingPosition.set(true);
                 setMediaPlayerViewPosition();
                 trackPositionHandler.postDelayed(this, MathHelpers.calculateMillisForFps(60));
@@ -85,8 +86,10 @@ public class MediaPlayerActivity extends PagedActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        isPaused = false;
         mpv.onResume();
         mpv.refreshArtworkSize();
+        startTrackingPosition();
         //mpv.setVideoMode(true);
     }
 
@@ -94,6 +97,7 @@ public class MediaPlayerActivity extends PagedActivity {
     protected void onPause() {
         super.onPause();
         mpv.onPause();
+        isPaused = true;
     }
 
     @Override
@@ -157,8 +161,10 @@ public class MediaPlayerActivity extends PagedActivity {
     private void startTrackingPosition() {
         if (trackPositionHandler == null)
             trackPositionHandler = new Handler();
-        if (!isTrackingPosition.get())
+        if (!isTrackingPosition.get()) {
+            isTrackingPosition.set(true);
             trackPositionHandler.post(trackPositionListener);
+        }
     }
     private void onMusicPlayerMediaChanged(int index) {
         mpv.setTitle(MediaPlayer.getCurrentTitle());

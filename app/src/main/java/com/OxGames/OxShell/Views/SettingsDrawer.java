@@ -110,7 +110,7 @@ public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
         float settingsDrawerOpenX = OxShellApp.getDisplayWidth() - getWidth();
         float settingsDrawerClosedX = OxShellApp.getDisplayWidth();
         float xDist = (isShown ? settingsDrawerOpenX : settingsDrawerClosedX) - getX();
-        float yDist = (isShown ? SETTINGS_DRAWER_OPEN_Y : SETTINGS_DRAWER_CLOSED_Y) - getY();
+        float yDist = ((LayoutParams)getLayoutParams()).topMargin - getY();
         float alphaDist = (isShown ? 1 : 0) - getAlpha();
         long duration = Math.round(SETTINGS_DRAWER_ANIM_TIME * (Math.abs(xDist) / Math.abs(settingsDrawerClosedX - settingsDrawerOpenX)));
         //Log.d("SettingsDrawer", "Settings view open: " + isShown + " x: " + getX() + " xdist: " + xDist + " ydist: " + yDist + " alphadist: " + alphaDist + " duration: " + duration);

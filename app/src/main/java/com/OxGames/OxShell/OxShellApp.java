@@ -187,6 +187,7 @@ public class OxShellApp extends Application {
     public static void setSystemUiVisibility(int state) {
         for (PagedActivity activity : activityStack)
             activity.getWindow().getDecorView().setSystemUiVisibility(state);
+        getCurrentActivity().refreshOtherViewsMargins();
     }
 
     public static int getNavBarHeight() {

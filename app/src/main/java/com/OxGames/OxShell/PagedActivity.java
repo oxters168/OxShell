@@ -372,6 +372,7 @@ public class PagedActivity extends AppCompatActivity {
         prepareOtherViews();
         //getStatusBarHeight();
         //settingsDrawer.setShown(isContextDrawerOpen());
+        refreshOtherViewsMargins();
     }
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -382,6 +383,7 @@ public class PagedActivity extends AppCompatActivity {
             SettingsKeeper.reloadCurrentSystemUiState();
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
+        refreshOtherViewsMargins();
     }
 
     // TODO: add joystick controls
@@ -473,6 +475,14 @@ public class PagedActivity extends AppCompatActivity {
 //    public boolean isDynamicInputShown() {
 //        return inputViewOpen;
 //    }
+    public void refreshOtherViewsMargins() {
+        int systemUi = SettingsKeeper.getSystemUiVisibility();
+        if (settingsDrawer != null)
+            setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), settingsDrawer);
+        if (debugView != null)
+            setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), debugView);
+        //settingsDrawer.refreshLayouts();
+    }
     public boolean isInAContextMenu() {
         return prompt.isPromptShown() || settingsDrawer.isDrawerOpen() || dynamicInput.isOverlayShown();
     }
@@ -487,6 +497,8 @@ public class PagedActivity extends AppCompatActivity {
         prompt.setShown(prompt.isPromptShown());
         initDebugView();
         debugView.setShown(debugView.isDebugShown());
+
+        refreshOtherViewsMargins();
     }
     private void initDynamicInputView() {
         dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);
