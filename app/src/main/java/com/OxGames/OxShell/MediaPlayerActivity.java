@@ -1,6 +1,5 @@
 package com.OxGames.OxShell;
 
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
@@ -28,11 +27,12 @@ public class MediaPlayerActivity extends PagedActivity {
     private MediaPlayerView mpv;
     private Handler trackPositionHandler;
     private final AtomicBoolean isTrackingPosition = new AtomicBoolean(false);
-    private boolean isPaused;
+    private boolean trackPosition;
     private final Runnable trackPositionListener = new Runnable() {
         @Override
         public void run() {
-            if (MediaPlayer.isPlaying() && !isPaused) {
+            // if this stops running and device is asleep, android will kill the MediaPlayer service
+            if (MediaPlayer.isPlaying() && trackPosition) {
                 //mpv.refreshArtworkSize(); // major slow down for some tracks
                 isTrackingPosition.set(true);
                 setMediaPlayerViewPosition();
@@ -83,16 +83,16 @@ public class MediaPlayerActivity extends PagedActivity {
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
-        int systemUi = SettingsKeeper.getSystemUiVisibility();
+        int systemUi = SettingsKeeper.getCurrentSysUIState();
         setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), mpv);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        isPaused = false;
         mpv.onResume();
         mpv.refreshArtworkSize();
+        setMediaPlayerViewPosition();
         startTrackingPosition();
         //mpv.setVideoMode(true);
     }
@@ -100,13 +100,15 @@ public class MediaPlayerActivity extends PagedActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        // probably best to keep trackPosition to true even when paused so android does not kill the MediaPlayer service
+        trackPosition = false;
         mpv.onPause();
-        isPaused = true;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        trackPosition = false;
         mpv.onDestroy();
         MediaPlayer.removeIsPlayingListener(this::onMusicPlayerIsPlaying);
         MediaPlayer.removeMediaItemChangedListener(this::onMusicPlayerMediaChanged);
@@ -167,6 +169,7 @@ public class MediaPlayerActivity extends PagedActivity {
             trackPositionHandler = new Handler();
         if (!isTrackingPosition.get()) {
             isTrackingPosition.set(true);
+            trackPosition = true;
             trackPositionHandler.post(trackPositionListener);
         }
     }

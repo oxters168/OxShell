@@ -9,8 +9,10 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.InputDevice;
 
 import androidx.annotation.NonNull;
 
@@ -129,6 +131,8 @@ public class OxShellApp extends Application {
         SettingsKeeper.incrementTimesLoaded();
 
         getDisplayInfo();
+
+        logInputDevices();
     }
     @Override
     public void onTerminate() {
@@ -152,6 +156,24 @@ public class OxShellApp extends Application {
     public void onLowMemory() {
         Log.e("OxShellApp", "Low memory");
         super.onLowMemory();
+    }
+
+    private static void logInputDevices() {
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice device = InputDevice.getDevice(id);
+            Log.d("OxShellApp",
+                (device != null ?
+                device +
+                "  describeContents: " + device.describeContents() +
+                "\n  controllerNum: " + device.getControllerNumber() +
+                "\n  vendorId: " + device.getVendorId() +
+                "\n  productId: " + device.getProductId() +
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 ? "\n  isEnabled: " + device.isEnabled() : "") +
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? "\n  isExternal: " + device.isExternal() : "") +
+                "\n  isVirtual: " + device.isVirtual()
+                : "Input Device " + id + " is null")
+            );
+        }
     }
 
     public static void addPkgInstalledListener(Consumer<String> listener) {
@@ -185,9 +207,11 @@ public class OxShellApp extends Application {
         //return currentActivity;
     }
     public static void setSystemUiVisibility(int state) {
-        for (PagedActivity activity : activityStack)
+        for (PagedActivity activity : activityStack) {
             activity.getWindow().getDecorView().setSystemUiVisibility(state);
-        getCurrentActivity().refreshOtherViewsMargins();
+            activity.refreshOtherViews();
+        }
+        //getCurrentActivity().refreshOtherViewsMargins();
     }
 
     public static int getNavBarHeight() {

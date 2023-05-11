@@ -26,6 +26,7 @@ import android.provider.OpenableColumns;
 import android.provider.Settings;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.InputDevice;
 import android.view.View;
 import android.widget.TextView;
 
@@ -577,6 +578,31 @@ public class AndroidHelpers {
 //        PagedActivity currentActivity = OxShellApp.getCurrentActivity();
 //        currentActivity.addOneTimePermissionListener(WRITE_EXTERNAL_STORAGE, onResult);
 //        ActivityCompat.requestPermissions(currentActivity, new String[]{ Manifest.permission.INSTALL_PACKAGES }, WRITE_EXTERNAL_STORAGE);
+    }
+
+    public static boolean isGamepadConnected() {
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice device = InputDevice.getDevice(id);
+            if (device != null && !device.isVirtual() && (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD)
+                return true;
+        }
+        return false;
+    }
+    public static boolean isKeyboardConnected() {
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice device = InputDevice.getDevice(id);
+            if (device != null && !device.isVirtual() && (device.getSources() & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD && device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC)
+                return true;
+        }
+        return false;
+    }
+    public static boolean isTouchScreenConnected() {
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice device = InputDevice.getDevice(id);
+            if (device != null && !device.isVirtual() && (device.getSources() & InputDevice.SOURCE_TOUCHSCREEN) == InputDevice.SOURCE_TOUCHSCREEN)
+                return true;
+        }
+        return false;
     }
 
     public static void startActivity(Class<? extends Activity> nextActivity, int flags) {

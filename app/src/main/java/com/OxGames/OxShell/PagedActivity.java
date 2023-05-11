@@ -35,6 +35,7 @@ import com.OxGames.OxShell.Views.DebugView;
 import com.OxGames.OxShell.Views.DynamicInputView;
 import com.OxGames.OxShell.Views.PromptView;
 import com.OxGames.OxShell.Views.SettingsDrawer;
+import com.OxGames.OxShell.Views.TooltipBar;
 import com.appspell.shaderview.ShaderView;
 import com.appspell.shaderview.gl.params.ShaderParamsBuilder;
 
@@ -131,6 +132,7 @@ public class PagedActivity extends AppCompatActivity {
     private static final int DYNAMIC_INPUT_ID = View.generateViewId();
     private static final int PROMPT_ID = View.generateViewId();
     private static final int DEBUG_VIEW_ID = View.generateViewId();
+    private static final int TOOLTIP_BAR_VIEW_ID = View.generateViewId();
 
     private ShaderView tvShaderBg;
     private FrameLayout tvImageBg;
@@ -143,6 +145,7 @@ public class PagedActivity extends AppCompatActivity {
     private SettingsDrawer settingsDrawer;
     private PromptView prompt;
     private DebugView debugView;
+    private TooltipBar tooltipBarView;
 
     //private int systemUIVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
 
@@ -379,7 +382,7 @@ public class PagedActivity extends AppCompatActivity {
         prepareOtherViews();
         //getStatusBarHeight();
         //settingsDrawer.setShown(isContextDrawerOpen());
-        refreshOtherViewsMargins();
+        refreshOtherViews();
     }
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
@@ -390,7 +393,7 @@ public class PagedActivity extends AppCompatActivity {
             SettingsKeeper.reloadCurrentSystemUiState();
         //setNavBarHidden(true);
         //setStatusBarHidden(true);
-        refreshOtherViewsMargins();
+        refreshOtherViews();
     }
 
     // TODO: add joystick controls
@@ -475,20 +478,16 @@ public class PagedActivity extends AppCompatActivity {
         //dispatchKeyEvent(new KeyEvent(eventTime, eventTime, action, keyeventcode, 0));
     }
 
-//    public void showDynamicInput(boolean onOff) {
-//        inputViewOpen = onOff;
-//        dynamicInputView.setVisibility(inputViewOpen ? View.VISIBLE : View.GONE);
-//    }
-//    public boolean isDynamicInputShown() {
-//        return inputViewOpen;
-//    }
-    public void refreshOtherViewsMargins() {
-        int systemUi = SettingsKeeper.getSystemUiVisibility();
+    public void refreshOtherViews() {
+        int systemUi = SettingsKeeper.getCurrentSysUIState();
         if (settingsDrawer != null)
             setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), settingsDrawer);
         if (debugView != null)
             setMarginsFor(SettingsKeeper.hasStatusBarVisible(systemUi), SettingsKeeper.hasNavBarVisible(systemUi), debugView);
-        //settingsDrawer.refreshLayouts();
+        if (tooltipBarView != null) {
+            tooltipBarView.refreshViews();
+            setMarginsFor(false, SettingsKeeper.hasNavBarVisible(systemUi), tooltipBarView);
+        }
     }
     public boolean isInAContextMenu() {
         return prompt.isPromptShown() || settingsDrawer.isDrawerOpen() || dynamicInput.isOverlayShown();
@@ -502,10 +501,12 @@ public class PagedActivity extends AppCompatActivity {
         dynamicInput.setShown(dynamicInput.isOverlayShown());
         initPromptView();
         prompt.setShown(prompt.isPromptShown());
+        initTooltipBarView();
+        // TODO: set tooltip bar shown based on settings
         initDebugView();
         debugView.setShown(debugView.isDebugShown());
 
-        refreshOtherViewsMargins();
+        refreshOtherViews();
     }
     private void initDynamicInputView() {
         dynamicInput = parentView.findViewById(DYNAMIC_INPUT_ID);
@@ -541,6 +542,15 @@ public class PagedActivity extends AppCompatActivity {
             debugView = new DebugView(this);
             debugView.setId(DEBUG_VIEW_ID);
             parentView.addView(debugView);
+        }
+    }
+    private void initTooltipBarView() {
+        tooltipBarView = parentView.findViewById(TOOLTIP_BAR_VIEW_ID);
+        if (tooltipBarView == null) {
+            Log.d("PagedActivity", "Tooltip bar view not found, creating...");
+            tooltipBarView = new TooltipBar(this);
+            tooltipBarView.setId(TOOLTIP_BAR_VIEW_ID);
+            parentView.addView(tooltipBarView);
         }
     }
     public DynamicInputView getDynamicInput() {

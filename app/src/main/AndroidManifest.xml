@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <!-- for the wake lock in the media player service -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <!-- I believe this defines what kinds of apps we request for QUERY_ALL_PACKAGES -->
     <queries>

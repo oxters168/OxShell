@@ -1,17 +1,22 @@
 package com.OxGames.OxShell.Helpers;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -57,6 +62,7 @@ public class MediaPlayer extends MediaSessionService {
     private static int trackIndex = 0;
     private static MediaSessionCompat session = null;
     private static DataRef[] refs = null;
+    private static Notification notification = null;
 
     private static final Player.Listener exoListener = new Player.Listener() {
         @Override
@@ -148,11 +154,21 @@ public class MediaPlayer extends MediaSessionService {
             mediaPlayerPreparingListener.run();
     }
 
+    private static PowerManager.WakeLock wakeLock;
+    private static final String WAKE_LOG_TAG = BuildConfig.APPLICATION_ID + ":WakeLock";
+
     @Override
     public void onCreate() {
         Log.d(DEBUG_TAG, "onCreate");
         super.onCreate();
         instance = this;
+        PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOG_TAG);
+        refreshNotificationAndSession(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
+        else
+            startForeground(NOTIFICATION_ID, notification);
         startingService = false;
     }
     @Override
@@ -170,6 +186,10 @@ public class MediaPlayer extends MediaSessionService {
         currentTrackData = null;
         refs = null;
 
+        if (wakeLock.isHeld())
+            wakeLock.release();
+        else
+            Log.w(DEBUG_TAG, "Failed to release wake lock since it was not held");
         abandonAudioFocus();
         hideNotification();
         releaseSession();
@@ -193,7 +213,7 @@ public class MediaPlayer extends MediaSessionService {
                 if (instance == null) {
                     //Log.d(DEBUG_TAG, "Service not started, starting...");
                     startingService = true;
-                    OxShellApp.getContext().startService(new Intent(OxShellApp.getContext(), MediaPlayer.class));
+                    OxShellApp.getContext().startForegroundService(new Intent(OxShellApp.getContext(), MediaPlayer.class));
                 }
                 refreshPlaylist();
             }
@@ -226,6 +246,7 @@ public class MediaPlayer extends MediaSessionService {
         });
     }
     public static void clearPlaylist() {
+        Log.d(DEBUG_TAG, "Clearing playlist");
         if (instance != null)
             instance.stopSelf();
         else
@@ -318,6 +339,7 @@ public class MediaPlayer extends MediaSessionService {
     public static void pause() {
         runWhenExoReady(() -> {
             //if (exo != null) {
+            Log.d(DEBUG_TAG, "pause");
             exo.pause();
             abandonAudioFocus();
             refreshNotificationAndSession(false);
@@ -327,9 +349,9 @@ public class MediaPlayer extends MediaSessionService {
         });
     }
     public static void stop() {
-        //Log.d(DEBUG_TAG, "stop");
         runWhenExoReady(() -> {
             //if (exo != null) {
+            Log.d(DEBUG_TAG, "stop");
             boolean wasPlaying = exo.isPlaying();
             clearPlaylist();
             if (wasPlaying)
@@ -603,7 +625,7 @@ public class MediaPlayer extends MediaSessionService {
                 .addAction(R.drawable.baseline_close_24, "Stop", stopPendingIntent)
                 .setOngoing(true);
 
-        notificationManager.notify(NOTIFICATION_ID, builder.build());
+        notificationManager.notify(NOTIFICATION_ID, notification = builder.build());
     }
 
     private static void releaseSession() {

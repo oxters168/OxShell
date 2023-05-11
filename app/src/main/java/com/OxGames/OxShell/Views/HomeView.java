@@ -115,7 +115,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
-        MediaPlayer.clearPlaylist();
+        //MediaPlayer.clearPlaylist();
     }
 
     public void refreshXMBInput() {
@@ -626,6 +626,7 @@ public class HomeView extends XMBView implements Refreshable {
                         SettingsKeeper.setUiScale(uiScale);
                         SettingsKeeper.setTextScale(textScale);
                         refresh();
+                        OxShellApp.getCurrentActivity().refreshOtherViews();
                         dynamicInput.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     DynamicInputRow.ButtonInput cancelBtn = new DynamicInputRow.ButtonInput("Cancel", self -> dynamicInput.setShown(false), SettingsKeeper.getCancelInput());
