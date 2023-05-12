@@ -308,10 +308,10 @@ public class PromptView extends FrameLayout implements InputReceiver {
             updatePosition();
             rearrangeViews();
             if (!isAnyBtnSet())
-                InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(keycode -> new KeyComboAction(keycode, () -> setShown(false))).toArray(KeyComboAction[]::new));
-            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(keycode -> new KeyComboAction(keycode, this::selectLeft)).toArray(KeyComboAction[]::new));
-            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(keycode -> new KeyComboAction(keycode, this::selectRight)).toArray(KeyComboAction[]::new));
-            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(keycode -> new KeyComboAction(keycode, this::pressItem)).toArray(KeyComboAction[]::new));
+                InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(keycode -> new KeyComboAction(keycode, () -> setShown(false), "Close prompt")).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(keycode -> new KeyComboAction(keycode, this::selectLeft, "Navigate left")).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(keycode -> new KeyComboAction(keycode, this::selectRight, "Navigate right")).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(keycode -> new KeyComboAction(keycode, this::pressItem, "Make selection")).toArray(KeyComboAction[]::new));
             int priorityLevel;
             InputHandler.setTagPriority(INPUT_TAG, priorityLevel = InputHandler.getHighestPriority() + 1);
             InputHandler.setCurrentPriorityLevel(priorityLevel);
@@ -361,26 +361,35 @@ public class PromptView extends FrameLayout implements InputReceiver {
         imgData = resourceId;
     }
     public void setStartBtn(String text, Runnable onClick, KeyCombo... keycodes) {
+        setStartBtn(text, null, onClick, keycodes);
+    }
+    public void setStartBtn(String text, String actionDesc, Runnable onClick, KeyCombo... keycodes) {
         isStartBtnSet = true;
         startBtnTxt = text;
         startBtnAction = onClick;
-        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, startBtnAction)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, startBtnAction, actionDesc)).toArray(KeyComboAction[]::new));
 //        if (keycodes != null)
 //            Collections.addAll(startBtnKeys, keycodes);
     }
     public void setMiddleBtn(String text, Runnable onClick, KeyCombo... keycodes) {
+        setMiddleBtn(text, null, onClick, keycodes);
+    }
+    public void setMiddleBtn(String text, String actionDesc, Runnable onClick, KeyCombo... keycodes) {
         isMiddleBtnSet = true;
         middleBtnTxt = text;
         middleBtnAction = onClick;
-        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, middleBtnAction)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, middleBtnAction, actionDesc)).toArray(KeyComboAction[]::new));
 //        if (keycodes != null)
 //            Collections.addAll(middleBtnKeys, keycodes);
     }
     public void setEndBtn(String text, Runnable onClick, KeyCombo... keycodes) {
+        setEndBtn(text, null, onClick, keycodes);
+    }
+    public void setEndBtn(String text, String actionDesc, Runnable onClick, KeyCombo... keycodes) {
         isEndBtnSet = true;
         endBtnTxt = text;
         endBtnAction = onClick;
-        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, endBtnAction)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(keycodes).map(keycode -> new KeyComboAction(keycode, endBtnAction, actionDesc)).toArray(KeyComboAction[]::new));
         //if (keycodes != null)
         //    Collections.addAll(endBtnKeys, keycodes);
     }

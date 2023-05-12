@@ -24,6 +24,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.OxGames.OxShell.Data.InputType;
 import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.Paths;
 import com.OxGames.OxShell.Data.SettingsKeeper;
@@ -196,19 +197,19 @@ public class PagedActivity extends AppCompatActivity {
 //            InputHandler.removeKeyComboActions(musicPlayerActions.toArray(new KeyComboAction[0]));
 //        }
         InputHandler.clearKeyComboActions(MUSIC_PLAYER_INPUT);
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::togglePlay)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::stop)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekToNext)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekToPrev)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekForward)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekBack)).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerTogglePlayInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::togglePlay, "Play/pause media")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerStopInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::stop, "Stop media")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipNextInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekToNext, "Skip to next media track")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSkipPrevInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekToPrev, "Skip to previous media track")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekForwardInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekForward, "Seek forward in current media track")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerSeekBackInput()).map(combo -> new KeyComboAction(combo, MediaPlayer::seekBack, "Seek back in current media track")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(MUSIC_PLAYER_INPUT, Arrays.stream(SettingsKeeper.getMusicPlayerFullscreenInput()).map(combo -> new KeyComboAction(combo, () -> {
             if (MediaPlayer.isPlaying() && (!(this instanceof MediaPlayerActivity) || !hasWindowFocus())) {
 
             //} else {
                 AndroidHelpers.startActivity(MediaPlayerActivity.class, Intent.FLAG_ACTIVITY_SINGLE_TOP);// | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             }
-        })).toArray(KeyComboAction[]::new));
+        }, "Toggle media player fullscreen or open media player")).toArray(KeyComboAction[]::new));
         InputHandler.setTagIgnorePriority(MUSIC_PLAYER_INPUT, true);
 //        musicPlayerActions = new ArrayList<>();
 //        Collections.addAll(musicPlayerActions, musicTogglePlayAction);
@@ -286,6 +287,7 @@ public class PagedActivity extends AppCompatActivity {
         settingsDrawer.onResume();
         dynamicInput.onResume();
         prompt.onResume();
+        tooltipBarView.onResume();
         //settingsDrawer.setShown(isContextDrawerOpen());
         //settingsDrawer.setX(settingsDrawerWidth);
         setActionBarHidden(true);
@@ -296,13 +298,15 @@ public class PagedActivity extends AppCompatActivity {
         applyTvBg();
         resumeBackground();
 
-        // TODO: find less hacky solution to active tag sometimes being null when coming back to Ox Shell
-//        if (tagFromPause != null) {
-//            if (InputHandler.getActiveTag() == null)
-//                InputHandler.setTagEnabled(tagFromPause);
-//            tagFromPause = null;
-//        }
+        InputHandler.addKeyCombosChangedListener(this::onKeyCombosChanged);
+
         Log.i("PagedActivity", "OnResume " + this);
+    }
+
+    private void onKeyCombosChanged(String tag) {
+        tooltipBarView.setShownInputType(InputType.Touch);
+        tooltipBarView.refreshInputs();
+        //tooltipBarView.refreshViews();
     }
 
     @Override
@@ -348,10 +352,12 @@ public class PagedActivity extends AppCompatActivity {
     protected void onPause() {
         Log.i("PagedActivity", "OnPause " + this);
         //OxShellApp.setCurrentActivity(null);
+        InputHandler.removeKeyCombosChangedListener(this::onKeyCombosChanged);
         pauseBackground();
         settingsDrawer.onPause();
         dynamicInput.onPause();
         prompt.onPause();
+        tooltipBarView.onPause();
         //tagFromPause = InputHandler.getActiveTag();
         super.onPause();
     }

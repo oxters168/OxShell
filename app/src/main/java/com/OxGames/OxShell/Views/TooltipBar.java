@@ -3,10 +3,12 @@ package com.OxGames.OxShell.Views;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,21 +23,30 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.OxGames.OxShell.Data.DataLocation;
 import com.OxGames.OxShell.Data.DataRef;
+import com.OxGames.OxShell.Data.InputType;
+import com.OxGames.OxShell.Data.KeyComboAction;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.Helpers.AndroidHelpers;
+import com.OxGames.OxShell.Helpers.InputHandler;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.R;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class TooltipBar extends FrameLayout {
+    private static final int speedScroll = 10000; // Adjust this value to control how long to wait between scrolls (in ms)
+    private int count;
     private final Context context;
     private BetterTextView descriptionText;
     private FrameLayout inputDisplay;
     private NonConsumableRecyclerView inputTipsRecycler;
     private int barHeight;
+
+    private InputType currentInputType;
+    private final Handler scrollHandler = new Handler();
 
     public TooltipBar(@NonNull Context context) {
         super(context);
@@ -67,6 +78,89 @@ public class TooltipBar extends FrameLayout {
     public int getEdgeMargins() {
         return Math.round(AndroidHelpers.getScaledDpToPixels(context, 4));
     }
+
+    public void setShownInputType(InputType inputType) {
+        this.currentInputType = inputType;
+    }
+    public void refreshInputs() {
+        List<InputTip> tips = new ArrayList<>();
+        if (currentInputType != InputType.Touch) {
+            InputHandler.ComboActions[] allCombos = InputHandler.getAllCombos();
+            for (InputHandler.ComboActions actions : allCombos) {
+                if (InputHandler.isTagEnabled(actions.tag)) {
+                    for (KeyComboAction action : actions.getActions()) {
+                        if (action.actionDesc != null) {
+                            // add action since it has a description
+                            List<DataRef> iconRefs = new ArrayList<>();
+                            // TODO: figure out a good way to exclude combos that do not comply with current input type but still include unknown inputs of that type
+                            for (int key : action.keyCombo.getKeys()) {
+                                if (currentInputType == InputType.Keyboard)
+                                    iconRefs.add(AndroidHelpers.keyboardKeyToIconRef(key));
+                                else
+                                    iconRefs.add(AndroidHelpers.gamepadKeyToIconRef(key, currentInputType));
+                            }
+                            if (iconRefs.size() > 0)
+                                tips.add(InputTip.of(action.actionDesc, iconRefs.toArray(new DataRef[0])));
+                        }
+                    }
+                }
+            }
+        } else {
+            // set to touch inputs
+            // TODO: figure out way for touch input tips to be relevant to where user is (which is what tag enabling/disabling is meant to do for non-touch but does not seem to be)
+            tips.add(InputTip.of("Make selection", new DataRef[] { DataRef.from("Image/inputs/asset_touch_up.png", DataLocation.asset) }));
+            tips.add(InputTip.of("Open context menu", new DataRef[] { DataRef.from("Image/inputs/asset_touch_down_hold.png", DataLocation.asset) }));
+            tips.add(InputTip.of("Navigate left", new DataRef[] { DataRef.from("Image/inputs/asset_touch_drag_right.png", DataLocation.asset) }));
+            tips.add(InputTip.of("Navigate right", new DataRef[] { DataRef.from("Image/inputs/asset_touch_drag_left.png", DataLocation.asset) }));
+            tips.add(InputTip.of("Navigate up", new DataRef[] { DataRef.from("Image/inputs/asset_touch_drag_down.png", DataLocation.asset) }));
+            tips.add(InputTip.of("Navigate down", new DataRef[] { DataRef.from("Image/inputs/asset_touch_drag_up.png", DataLocation.asset) }));
+        }
+        setInputTips(tips.size() > 0 ? tips.toArray(new InputTip[0]) : null);
+    }
+    private void setInputTips(InputTip... tips) {
+        stopScroll();
+        inputTipsRecycler.setAdapter(tips != null ? new InputTipsRecyclerAdapter(tips) : null);
+        if (tips != null) {
+            //((InputTipsRecyclerAdapter)inputTipsRecycler.getAdapter()).refreshViews();
+            //inputTipsRecycler.scrollToPosition(0);
+            startScroll();
+        }
+    }
+    private void startScroll() {
+        stopScroll(); // just in case it is on
+        count = 1;
+        inputTipsRecycler.scrollToPosition(0);
+        scrollHandler.postDelayed(scrollRunnable, speedScroll);
+    }
+    private void resumeScroll() {
+        stopScroll(); // just in case it is on
+        inputTipsRecycler.scrollToPosition(count);
+        scrollHandler.postDelayed(scrollRunnable, speedScroll);
+    }
+    private void stopScroll() {
+        scrollHandler.removeCallbacks(scrollRunnable);
+    }
+    private Runnable scrollRunnable = new Runnable() {
+        //int count = 1;
+        @Override
+        public void run() {
+            if (count >= inputTipsRecycler.getAdapter().getItemCount())
+                count = 0;
+            if (count < inputTipsRecycler.getAdapter().getItemCount()) {
+                //((InputTipsRecyclerAdapter)inputTipsRecycler.getAdapter()).setSelected(count);
+                inputTipsRecycler.smoothScrollToPosition(count++);
+                scrollHandler.postDelayed(this, speedScroll);
+            }
+        }
+    };
+
+    public void onPause() {
+        stopScroll();
+    }
+    public void onResume() {
+        resumeScroll();
+    }
+
     public void refreshViews() {
         int textSize = getTextSize();
         int textOutlineSize = getTextOutlineSize();
@@ -124,53 +218,16 @@ public class TooltipBar extends FrameLayout {
             inputDisplay.addView(inputTipsRecycler);
             // when using a regular RecyclerView, this can be used to stop scrolling with touch input
             // but it will stop the touch events from reaching the view below
-//        inputsHolderPanel.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
-//            @Override
-//            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
-//                // true: consume touch event
-//                // false: dispatch touch event
-//                return true;
-//            }
-//        });
-            // TODO: turn off/on this runnable when leaving/entering the activity
-            // Enable auto-scrolling behavior
-            final int speedScroll = 10000; // Adjust this value to control how long to wait between scrolls
-            final Handler handler = new Handler();
-            final Runnable runnable = new Runnable() {
-                int count = 1; // since the recycler view already starts at 0
-
-                @Override
-                public void run() {
-                    if (count >= inputTipsRecycler.getAdapter().getItemCount())
-                        count = 0;
-                    if (count < inputTipsRecycler.getAdapter().getItemCount()) {
-                        //((InputTipsRecyclerAdapter)inputTipsRecycler.getAdapter()).setSelected(count);
-                        inputTipsRecycler.smoothScrollToPosition(count++);
-                        handler.postDelayed(this, speedScroll);
-                    }
-                }
-            };
-            handler.postDelayed(runnable, speedScroll);
-
-            // for testing
-//        InputTip[] inputTips = new InputTip[20];
-//        for (int i = 0; i < inputTips.length; i++)
-//            inputTips[i] = InputTip.of(DataRef.from("Image/inputs/asset_touch_down_hold.png", DataLocation.asset), "Open context menu");
-            inputTipsRecycler.setAdapter(new InputTipsRecyclerAdapter(
-                    InputTip.of(DataRef.from("Image/inputs/asset_touch_up.png", DataLocation.asset), "Select current item"),
-                    InputTip.of(DataRef.from("Image/inputs/asset_touch_drag_left.png", DataLocation.asset), "Select next item on right"),
-                    InputTip.of(DataRef.from("Image/inputs/asset_touch_drag_right.png", DataLocation.asset), "Select next item on left"),
-                    InputTip.of(DataRef.from("Image/inputs/asset_touch_drag_up.png", DataLocation.asset), "Select next item below"),
-                    InputTip.of(DataRef.from("Image/inputs/asset_touch_drag_down.png", DataLocation.asset), "Select next item above"),
-                    InputTip.of(DataRef.from("Image/inputs/asset_touch_down_hold.png", DataLocation.asset), "Open context menu")
-            ));
+//            inputsHolderPanel.addOnItemTouchListener(new RecyclerView.SimpleOnItemTouchListener() {
+//                @Override
+//                public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+//                    // true: consume touch event
+//                    // false: dispatch touch event
+//                    return true;
+//                }
+//            });
         }
-        if (inputTipsRecycler.getAdapter() != null)
-            ((InputTipsRecyclerAdapter)inputTipsRecycler.getAdapter()).refreshViews();
     }
-//    public void refreshViews() {
-//        refreshDescAndInputSizes();
-//    }
 
     private void refreshDescAndInputSizes() {
         int edgeMargins = getEdgeMargins();
@@ -189,21 +246,32 @@ public class TooltipBar extends FrameLayout {
     }
 
     public static class InputTip {
-        private final DataRef img;
+        private final DataRef[][] img;
         private final String actionDesc;
 
-        private InputTip(DataRef img, String actionDesc) {
+        private InputTip(String actionDesc, DataRef[]... img) {
             this.img = img;
             this.actionDesc = actionDesc;
         }
 
-        public static InputTip of(DataRef img, String actionDesc) {
-            return new InputTip(img, actionDesc);
+        public static InputTip of(String actionDesc, DataRef[]... img) {
+            return new InputTip(actionDesc, img);
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return actionDesc + "\n" + (img != null ? img.length : 0);
         }
     }
     private class InputTipView extends LinearLayout {
-        private ImageView img;
+//        private ImageView img;
         private BetterTextView actionDesc;
+        private final ArrayDeque<ImageView> unusedImgs = new ArrayDeque<>();
+        private final ArrayDeque<ImageView> usedImgs = new ArrayDeque<>();
+        private final ArrayDeque<BetterTextView> unusedSlashes = new ArrayDeque<>();
+        private final ArrayDeque<BetterTextView> usedSlashes = new ArrayDeque<>();
+        private InputTip inputTip;
 
         public InputTipView(@NonNull Context context) {
             super(context);
@@ -223,20 +291,41 @@ public class TooltipBar extends FrameLayout {
         }
 
         private void refresh() {
-            LayoutParams params;
-
-            if (img == null) {
-                img = new ImageView(context);
-                img.setFocusable(false);
-                addView(img);
+            //Log.d("TooltipBar", "Refreshing tip view, input tip null: " + (inputTip == null));
+            returnImgs();
+            returnSlashes();
+            if (inputTip != null && inputTip.img != null) {
+                for (int i = 0; i < inputTip.img.length; i++) {
+                    for (int j = 0; j < inputTip.img[i].length; j++) {
+                        // add img
+                        ImageView img = getImg();
+                        inputTip.img[i][j].getImage(img::setImageDrawable);
+//                    removeView(img);
+//                    addView(img);
+                        if (j < inputTip.img[i].length - 1) {
+                            // add plus
+                            BetterTextView plus = getSlash();
+                            plus.setText("+");
+//                        removeView(plus);
+//                        addView(plus);
+                        }
+                    }
+                    if (i < inputTip.img.length - 1) {
+                        // add slash
+                        BetterTextView slash = getSlash();
+                        slash.setText("/");
+//                    removeView(slash);
+//                    addView(slash);
+                    }
+                }
             }
-            params = new LayoutParams(barHeight - getEdgeMargins() * 2, barHeight - getEdgeMargins() * 2);
-            params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
-            img.setLayoutParams(params);
+            refreshActionDesc();
+        }
 
+        private void refreshActionDesc() {
             if (actionDesc == null) {
                 actionDesc = new BetterTextView(context);
-                params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 params.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
                 actionDesc.setLayoutParams(params);
                 actionDesc.setFocusable(false);
@@ -251,21 +340,99 @@ public class TooltipBar extends FrameLayout {
                 actionDesc.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
                 actionDesc.setTextColor(context.getColor(R.color.text));
                 actionDesc.setOutlineColor(Color.BLACK);
-                actionDesc.setText("Action Description");
+                //actionDesc.setText("Action Description");
                 actionDesc.setFocusable(false);
                 actionDesc.setTypeface(SettingsKeeper.getFont());
-                addView(actionDesc);
+                //addView(actionDesc);
             }
+            removeView(actionDesc);
+            addView(actionDesc);
+            actionDesc.setText(inputTip != null ? inputTip.actionDesc : "Action Description");
             actionDesc.setOutlineSize(getTextOutlineSize());
             actionDesc.setTextSize(getTextSize());
         }
+        private void returnImgs() {
+            for (int i = 0; i < usedImgs.size(); i++) {
+                ImageView img = usedImgs.pop();
+                //img.setVisibility(GONE);
+                removeView(img);
+                unusedImgs.add(img);
+            }
+        }
+        private void createImgs(int amount) {
+            for (int i = 0; i < amount; i++) {
+                ImageView img = new ImageView(context);
+                img.setFocusable(false);
+                //addView(img);
+                //img.setVisibility(GONE);
+                unusedImgs.add(img);
+            }
+        }
+        private ImageView getImg() {
+            if (unusedImgs.isEmpty())
+                createImgs(5);
+            ImageView img = unusedImgs.pop();
+            usedImgs.add(img);
+            LayoutParams params = new LayoutParams(barHeight - getEdgeMargins() * 2, barHeight - getEdgeMargins() * 2);
+            params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+            img.setLayoutParams(params);
+            //img.setVisibility(VISIBLE);
+            addView(img);
+            return img;
+        }
+        private void returnSlashes() {
+            for (int i = 0; i < usedSlashes.size(); i++) {
+                BetterTextView slash = usedSlashes.pop();
+                //slash.setVisibility(GONE);
+                removeView(slash);
+                unusedSlashes.add(slash);
+            }
+        }
+        private void createSlashes(int amount) {
+            for (int i = 0; i < amount; i++) {
+                BetterTextView newSlash = new BetterTextView(context);
+                LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                params.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
+                newSlash.setLayoutParams(params);
+                newSlash.setFocusable(false);
+                newSlash.setIgnoreTouchInput(true);
+//            newSlash.setOverScrollMode(SCROLL_AXIS_VERTICAL);
+//            newSlash.setMovementMethod(new ScrollingMovementMethod());
+//            newSlash.setEllipsize(TextUtils.TruncateAt.MARQUEE);
+//            newSlash.setMarqueeRepeatLimit(-1);
+//            newSlash.setSelected(true);
+                newSlash.setSingleLine(true);
+                newSlash.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+                newSlash.setTextAlignment(View.TEXT_ALIGNMENT_GRAVITY);
+                newSlash.setTextColor(context.getColor(R.color.text));
+                newSlash.setOutlineColor(Color.BLACK);
+                newSlash.setText("/");
+                newSlash.setFocusable(false);
+                newSlash.setTypeface(SettingsKeeper.getFont());
+                //addView(newSlash);
+                unusedSlashes.add(newSlash);
+            }
+        }
+        private BetterTextView getSlash() {
+            if (unusedSlashes.isEmpty())
+                createSlashes(5);
+            BetterTextView slash = unusedSlashes.pop();
+            usedSlashes.add(slash);
+            //slash.setVisibility(VISIBLE);
+            addView(slash);
+            return slash;
+        }
 
-        public void setImg(Drawable img) {
-            this.img.setImageDrawable(img);
+        public void setInputTip(InputTip inputTip) {
+            //Log.d("TooltipBar", "Setting input tip to: " + inputTip);
+            this.inputTip = inputTip;
         }
-        public void setActionDesc(String actionDesc) {
-            this.actionDesc.setText(actionDesc);
-        }
+//        public void setImg(Drawable img) {
+//            this.img.setImageDrawable(img);
+//        }
+//        public void setActionDesc(String actionDesc) {
+//            this.actionDesc.setText(actionDesc);
+//        }
         public void setSelected(boolean onOff) {
             this.actionDesc.setSelected(onOff);
         }
@@ -278,8 +445,9 @@ public class TooltipBar extends FrameLayout {
         }
         public void bindItem(InputTip item) {
             InputTipView inputTipView = (InputTipView)itemView;
-            item.img.getImage(inputTipView::setImg);
-            inputTipView.setActionDesc(item.actionDesc);
+            inputTipView.setInputTip(item);
+//            item.img.getImage(inputTipView::setImg);
+//            inputTipView.setActionDesc(item.actionDesc);
             //((DynamicInputItemView)itemView).setInputItem(item);
         }
         public void refresh() {
@@ -347,12 +515,12 @@ public class TooltipBar extends FrameLayout {
             return items.size();
         }
 
-        // TODO: readjust when orientation changes
         @Override
         public void onBindViewHolder(@NonNull InputTipViewHolder holder, int position) {
             //Log.d("InputRowAdapter", "Placing item @" + position + " in row");
             InputTip item = items.get(position);
             holder.bindItem(item);
+            holder.refresh();
 //            refreshHolder(holder);
         }
 
@@ -365,6 +533,7 @@ public class TooltipBar extends FrameLayout {
         }
 
         public void refreshViews() {
+            //Log.d("TooltipBar", "Refreshing recycler's views");
             for (InputTipViewHolder holder : viewHolders)
                 holder.refresh();
         }
@@ -373,45 +542,5 @@ public class TooltipBar extends FrameLayout {
                 viewHolders.get(i).setSelected(i == index);
             }
         }
-//        public void refreshItems() {
-//            for (RowViewHolder holder : viewHolders)
-//                refreshHolder(holder);
-//        }
-//        private void refreshHolder(RowViewHolder holder) {
-//            int maxVisibleItems = Math.min(MAX_VISIBLE_ITEMS, items.size());
-//            DynamicInputRow.DynamicInput item = ((DynamicInputItemView)holder.itemView).getInputItem();
-//            int relativeIndex = item.col % maxVisibleItems;
-//            // TODO: don't consider items that are not visible
-//            int currentVisibleItems = Math.min(MAX_VISIBLE_ITEMS, items.size() - (item.col - relativeIndex));
-//            //int maxWidth = Math.round((rowWidth - ((currentVisibleItems - 1) * paddingPx)) / (float)currentVisibleItems);
-//            int buttonPx = Math.round(AndroidHelpers.getScaledDpToPixels(context, BUTTON_DIP));
-//            int maxWidth;
-//            if (item.inputType == DynamicInputRow.DynamicInput.InputType.button || item.inputType == DynamicInputRow.DynamicInput.InputType.image)
-//                maxWidth = buttonPx;
-//            else {
-//                maxWidth = Math.round(rowWidth / (float)currentVisibleItems);
-//                // of the visible items alongside us, figure out which ones are buttons and use that information to more properly set the width
-//                int visibleBtnCount = 0;
-//                for (int i = 0; i < currentVisibleItems; i++) {
-//                    DynamicInputRow.DynamicInput currentItem = items.get(item.col + (i - relativeIndex));
-//                    if (currentItem.inputType == DynamicInputRow.DynamicInput.InputType.button || currentItem.inputType == DynamicInputRow.DynamicInput.InputType.image)
-//                        visibleBtnCount++;
-//                }
-//                if (visibleBtnCount > 0)
-//                    maxWidth = Math.round((rowWidth - (visibleBtnCount * buttonPx)) / (float) (currentVisibleItems - visibleBtnCount));
-//                //maxWidth = Math.round((rowWidth - (visibleBtnCount * buttonPx) - ((currentVisibleItems - 1) * paddingPx)) / (float) (currentVisibleItems - visibleBtnCount));
-//            }
-//
-//            int paddingPx = Math.round(AndroidHelpers.getScaledDpToPixels(context, PADDING));
-//            //Log.d("InputRowAdapter", "Parent width at " + rowWidth + " current visible items: " + currentVisibleItems + " current item width: " + maxWidth + " resummed: " + (maxWidth * currentVisibleItems + (currentVisibleItems - 1) * paddingPx));
-//            holder.setWidth(maxWidth);
-//            //holder.setPadding(0, 0, relativeIndex < currentVisibleItems - 1 ? paddingPx : 0, 0);
-//            holder.setPadding(0, 0, item.col < items.size() - 1 ? paddingPx : 0, 0);
-//        }
-//
-//        public void setRowWidth(int width) {
-//            //Log.d("InputRowAdapter", "Row width set to " + width);
-//            this.rowWidth = width;
-//        }
     }
 }

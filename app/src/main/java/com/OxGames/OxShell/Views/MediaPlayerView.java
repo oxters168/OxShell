@@ -225,7 +225,7 @@ public class MediaPlayerView extends FrameLayout {
                     seekBckBtn.performClick();
             } else
                 setFullscreen(false);
-        })).toArray(KeyComboAction[]::new));
+        }, "Navigate left (seek back when on bar)")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
             if (!isFullscreen()) {
                 View currentFocused = getCurrentFocusedView();
@@ -238,7 +238,7 @@ public class MediaPlayerView extends FrameLayout {
                     seekFwdBtn.performClick();
             } else
                 setFullscreen(false);
-        })).toArray(KeyComboAction[]::new));
+        }, "Navigate right (seek forward when on bar)")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> {
             if (!isFullscreen()) {
                 View currentFocused = getCurrentFocusedView();
@@ -248,7 +248,7 @@ public class MediaPlayerView extends FrameLayout {
                 getViewAbove(currentFocused).requestFocus();
             } else
                 setFullscreen(false);
-        })).toArray(KeyComboAction[]::new));
+        }, "Navigate up")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> {
             if (!isFullscreen()) {
                 View currentFocused = getCurrentFocusedView();
@@ -258,7 +258,7 @@ public class MediaPlayerView extends FrameLayout {
                 getViewBelow(currentFocused).requestFocus();
             } else
                 setFullscreen(false);
-        })).toArray(KeyComboAction[]::new));
+        }, "Navigate down")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
             if (!isFullscreen()) {
                 View currentView = getCurrentFocusedView();
@@ -266,12 +266,12 @@ public class MediaPlayerView extends FrameLayout {
                     currentView.performClick();
             } else
                 setFullscreen(false);
-        })).toArray(KeyComboAction[]::new));
+        }, "Make selection")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getMusicPlayerFullscreenInput()).map(combo -> new KeyComboAction(combo, () -> {
             setFullscreen(!isFullscreen());
-        })).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, backBtn::performClick)).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, endBtn::performClick)).toArray(KeyComboAction[]::new));
+        }, "Toggle fullscreen")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, backBtn::performClick, "Minimize media player")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, endBtn::performClick, "Exit and stop media player")).toArray(KeyComboAction[]::new));
         InputHandler.setTagEnabled(INPUT_TAG, true);
     }
     private View getViewLeftOf(View view) {

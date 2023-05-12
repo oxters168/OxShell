@@ -53,13 +53,13 @@ public class SlideTouchListView extends ListView implements InputReceiver, Refre
 //        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, this::selectPrevItem)).toArray(KeyComboAction[]::new));
 //        inputHandler.addKeyComboActions(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, this::selectNextItem)).toArray(KeyComboAction[]::new));
     }
-    public KeyComboAction[] getKeyComboActions() {
-        List<KeyComboAction> keyComboActions = Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, this::primaryAction)).collect(Collectors.toList());
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, this::secondaryAction)).collect(Collectors.toList()));
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, this::selectPrevItem)).collect(Collectors.toList()));
-        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, this::selectNextItem)).collect(Collectors.toList()));
-        return keyComboActions.toArray(new KeyComboAction[0]);
-    }
+//    public KeyComboAction[] getKeyComboActions() {
+//        List<KeyComboAction> keyComboActions = Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, this::primaryAction, "Make selection")).collect(Collectors.toList());
+//        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, this::secondaryAction)).collect(Collectors.toList()));
+//        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, this::selectPrevItem, "Navigate up")).collect(Collectors.toList()));
+//        keyComboActions.addAll(Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, this::selectNextItem, "Navigate down")).collect(Collectors.toList()));
+//        return keyComboActions.toArray(new KeyComboAction[0]);
+//    }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {

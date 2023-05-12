@@ -21,25 +21,27 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class InputHandler {
-    private static class ComboActions {
+    public static class ComboActions {
+        public final String tag;
         private boolean enabled;
         private int priority;
         private boolean ignorePriority;
         private List<KeyComboAction> comboActions;
 
-        private ComboActions() {
-            this(false);
+        private ComboActions(String tag) {
+            this(tag, false);
         }
-        private ComboActions(KeyComboAction... comboActions) {
-            this(false, comboActions);
+        private ComboActions(String tag, KeyComboAction... comboActions) {
+            this(tag, false, comboActions);
         }
-        private ComboActions(boolean enabled, KeyComboAction... comboActions) {
-            this(enabled, false, DEFAULT_PRIORITY, comboActions);
+        private ComboActions(String tag, boolean enabled, KeyComboAction... comboActions) {
+            this(tag, enabled, false, DEFAULT_PRIORITY, comboActions);
         }
-        private ComboActions(boolean enabled, boolean ignorePriority, KeyComboAction... comboActions) {
-            this(enabled, ignorePriority, DEFAULT_PRIORITY, comboActions);
+        private ComboActions(String tag, boolean enabled, boolean ignorePriority, KeyComboAction... comboActions) {
+            this(tag, enabled, ignorePriority, DEFAULT_PRIORITY, comboActions);
         }
-        private ComboActions(boolean enabled, boolean ignorePriority, int priority, KeyComboAction... comboActions) {
+        private ComboActions(String tag, boolean enabled, boolean ignorePriority, int priority, KeyComboAction... comboActions) {
+            this.tag = tag;
             this.enabled = enabled;
             this.priority = priority;
             this.ignorePriority = ignorePriority;
@@ -63,6 +65,9 @@ public class InputHandler {
                 this.comboActions.remove(keyComboAction);
             }
         }
+        public KeyComboAction[] getActions() {
+            return comboActions.toArray(new KeyComboAction[0]);
+        }
 //        private void setEnabled(boolean onOff) {
 //            enabled = onOff;
 //        }
@@ -77,6 +82,7 @@ public class InputHandler {
     private static final List<KeyEvent> keysHistory = new ArrayList<>();
     private static final List<KeyEvent> eventsHistory = new ArrayList<>();
     private static final List<Consumer<KeyEvent>> inputListeners = new ArrayList<>();
+    private static final List<Consumer<String>> keyCombosChangedListeners = new ArrayList<>();
     //private final List<KeyEvent> altKeysHistory;
     private static final Handler handler = new Handler(Looper.getMainLooper());
     private static long downStartTime;
@@ -136,6 +142,20 @@ public class InputHandler {
         for (Consumer<KeyEvent> iL : new ArrayList<>(inputListeners))
             iL.accept(event);
     }
+    public static void addKeyCombosChangedListener(Consumer<String> onKeyCombosChangedEvent) {
+        keyCombosChangedListeners.add(onKeyCombosChangedEvent);
+    }
+    public static void removeKeyCombosChangedListener(Consumer<String> onKeyCombosChangedEvent) {
+        keyCombosChangedListeners.remove(onKeyCombosChangedEvent);
+    }
+    public static void clearKeyCombosChangedListeners() {
+        keyCombosChangedListeners.clear();
+    }
+    private static void fireKeyCombosChangedListeners(String tag) {
+        for (Consumer<String> kccL : new ArrayList<>(keyCombosChangedListeners))
+            kccL.accept(tag);
+    }
+
     public static KeyEvent[] getHistory() {
         return keysHistory.toArray(new KeyEvent[0]);
     }
@@ -238,11 +258,15 @@ public class InputHandler {
         return actionHasRun;
     }
 
+    public static ComboActions[] getAllCombos() {
+        return keyComboActions.values().toArray(new ComboActions[0]);
+    }
     public static void addKeyComboActions(String tag, KeyComboAction... keyComboActions) {
         if (!InputHandler.keyComboActions.containsKey(tag))
-            InputHandler.keyComboActions.put(tag, new ComboActions(tag.equals(ALWAYS_ON_TAG), keyComboActions));
+            InputHandler.keyComboActions.put(tag, new ComboActions(tag, tag.equals(ALWAYS_ON_TAG), keyComboActions));
         else
             InputHandler.keyComboActions.get(tag).addComboActions(keyComboActions);
+        fireKeyCombosChangedListeners(tag);
         //Log.d("InputHandler", tag + " -> " + InputHandler.keyComboActions.get(tag).toString());
     }
     public static void addKeyComboActions(KeyComboAction... keyComboActions) {
@@ -266,9 +290,10 @@ public class InputHandler {
     }
     public static void setTagEnabled(String tag, boolean onOff) {
         //Log.d("InputHandler", "Setting enabled state of " + tag + " to " + onOff);
-        if (keyComboActions.containsKey(tag))
+        if (keyComboActions.containsKey(tag)) {
             keyComboActions.get(tag).enabled = onOff;
-        else
+            fireKeyCombosChangedListeners(tag);
+        } else
             Log.w("InputHandler", "Failed to set enabled state of " + tag + " to " + onOff);
         //removeTagFromHistory(tag);
         //currentTagList.addLast(tag);

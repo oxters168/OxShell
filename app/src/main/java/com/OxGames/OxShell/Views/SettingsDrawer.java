@@ -121,8 +121,11 @@ public class SettingsDrawer extends FrameLayout {// implements InputReceiver {
         if (onOff) {
             listView.setProperPosition(0);
 
-            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> setShown(false))).toArray(KeyComboAction[]::new));
-            InputHandler.addKeyComboActions(INPUT_TAG, listView.getKeyComboActions());
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getCancelInput()).map(combo -> new KeyComboAction(combo, () -> setShown(false), "Close context menu")).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, listView::primaryAction, "Make selection")).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, listView::selectPrevItem, "Navigate up")).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, listView::selectNextItem, "Navigate down")).toArray(KeyComboAction[]::new));
+            // InputHandler.addKeyComboActions(INPUT_TAG, listView.getKeyComboActions());
             int priorityLevel;
             InputHandler.setTagPriority(INPUT_TAG, priorityLevel = InputHandler.getHighestPriority() + 1);
             InputHandler.setCurrentPriorityLevel(priorityLevel);

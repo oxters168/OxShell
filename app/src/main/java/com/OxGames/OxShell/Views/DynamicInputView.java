@@ -212,8 +212,8 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
             SettingsKeeper.setStatusBarHidden(true, false);
 
             int[] index = new int[2];
-            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP))).toArray(KeyComboAction[]::new));
-            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN))).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_UP), "Navigate up")).toArray(KeyComboAction[]::new));
+            InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, () -> moveFocus(KeyEvent.KEYCODE_DPAD_DOWN), "Navigate down")).toArray(KeyComboAction[]::new));
             InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateLeft()).map(combo -> new KeyComboAction(combo, () -> {
                 boolean foundItem = getCurrentlyFocusedItem(index);
                 DynamicInputRow.DynamicInput item;
@@ -222,7 +222,7 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                     innerItem.setValue(innerItem.getValue() - innerItem.getStepSize());
                 else
                     moveFocus(KeyEvent.KEYCODE_DPAD_LEFT);
-            })).toArray(KeyComboAction[]::new));
+            }, "Navigate left")).toArray(KeyComboAction[]::new));
             InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateRight()).map(combo -> new KeyComboAction(combo, () -> {
                 boolean foundItem = getCurrentlyFocusedItem(index);
                 DynamicInputRow.DynamicInput item;
@@ -231,18 +231,18 @@ public class DynamicInputView extends FrameLayout {// implements InputReceiver {
                     innerItem.setValue(innerItem.getValue() + innerItem.getStepSize());
                 else
                     moveFocus(KeyEvent.KEYCODE_DPAD_RIGHT);
-            })).toArray(KeyComboAction[]::new));
+            }, "Navigate right")).toArray(KeyComboAction[]::new));
             InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, () -> {
                 int[] result = new int[2];
                 if (getCurrentlyFocusedItem(result)) {
                     rows[result[0]].get(result[1]).view.clickItem();
                 }
-            })).toArray(KeyComboAction[]::new));
+            }, "Make selection")).toArray(KeyComboAction[]::new));
             for (DynamicInputRow row : rows) {
                 for (DynamicInputRow.DynamicInput item : row.getAll()) {
                     if (item instanceof DynamicInputRow.ButtonInput) {
-                        DynamicInputRow.ButtonInput btn = (DynamicInputRow.ButtonInput) item;
-                        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(btn.getKeyCombos()).map(combo -> new KeyComboAction(combo, btn::executeAction)).toArray(KeyComboAction[]::new));
+                        DynamicInputRow.ButtonInput btn = (DynamicInputRow.ButtonInput)item;
+                        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(btn.getKeyCombos()).map(combo -> new KeyComboAction(combo, btn::executeAction, btn.actionDesc)).toArray(KeyComboAction[]::new));
                     }
                 }
             }

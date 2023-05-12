@@ -27,6 +27,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -39,6 +40,9 @@ import androidx.core.widget.TextViewCompat;
 
 import com.OxGames.OxShell.AccessService;
 import com.OxGames.OxShell.BuildConfig;
+import com.OxGames.OxShell.Data.DataLocation;
+import com.OxGames.OxShell.Data.DataRef;
+import com.OxGames.OxShell.Data.InputType;
 import com.OxGames.OxShell.Data.SettingsKeeper;
 import com.OxGames.OxShell.OxShellApp;
 import com.OxGames.OxShell.PagedActivity;
@@ -588,6 +592,179 @@ public class AndroidHelpers {
         }
         return false;
     }
+    public static boolean isGamepadKey(int keycode) {
+        return keycode == KeyEvent.KEYCODE_BUTTON_A ||
+                keycode == KeyEvent.KEYCODE_BUTTON_B ||
+                keycode == KeyEvent.KEYCODE_BUTTON_C ||
+                keycode == KeyEvent.KEYCODE_BUTTON_X ||
+                keycode == KeyEvent.KEYCODE_BUTTON_Y ||
+                keycode == KeyEvent.KEYCODE_BUTTON_Z ||
+                keycode == KeyEvent.KEYCODE_BUTTON_L1 ||
+                keycode == KeyEvent.KEYCODE_BUTTON_L2 ||
+                keycode == KeyEvent.KEYCODE_BUTTON_R1 ||
+                keycode == KeyEvent.KEYCODE_BUTTON_R2 ||
+                keycode == KeyEvent.KEYCODE_BUTTON_THUMBL ||
+                keycode == KeyEvent.KEYCODE_BUTTON_THUMBR ||
+                keycode == KeyEvent.KEYCODE_BUTTON_SELECT ||
+                keycode == KeyEvent.KEYCODE_BUTTON_START ||
+                keycode == KeyEvent.KEYCODE_DPAD_UP ||
+                keycode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                keycode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                keycode == KeyEvent.KEYCODE_DPAD_RIGHT;
+    }
+    public static DataRef gamepadKeyToIconRef(int keycode, InputType gpType) {
+        switch (keycode) {
+            case(KeyEvent.KEYCODE_BUTTON_A):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_cross.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_a.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_b.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_a.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_B):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_circle.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_b.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_a.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_b.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_C):
+                return DataRef.from("Image/inputs/asset_gen_c.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_X):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_square.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_x.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_y.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_x.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_Y):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_triangle.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_y.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_x.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_y.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_Z):
+                return DataRef.from("Image/inputs/asset_gen_z.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_L1):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_l1.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_lb.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_l.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_l1.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_L2):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_l2.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_lt.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_zl.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_l2.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_R1):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_r1.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_rb.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_r.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_r1.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_R2):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_r2.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_rt.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_zr.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_r2.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_THUMBL):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_lstick.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_lstick.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_lstick.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_lstick.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_THUMBR):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_rstick.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_rstick.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_rstick.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_rstick.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_SELECT):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_share.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_view.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_share.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_select.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BUTTON_START):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_options.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_menu.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_minus.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_start.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_UP):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_dpad_up.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_dpad_up.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_dpad_up.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_dpad_up.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_DOWN):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_dpad_down.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_dpad_down.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_dpad_down.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_dpad_down.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_LEFT):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_dpad_left.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_dpad_left.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_dpad_left.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_dpad_left.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_RIGHT):
+                if (gpType == InputType.Playstation)
+                    return DataRef.from("Image/inputs/asset_ps_dpad_right.png", DataLocation.asset);
+                else if (gpType == InputType.Xbox)
+                    return DataRef.from("Image/inputs/asset_xbox_dpad_right.png", DataLocation.asset);
+                else if (gpType == InputType.Switch)
+                    return DataRef.from("Image/inputs/asset_switch_dpad_right.png", DataLocation.asset);
+                else
+                    return DataRef.from("Image/inputs/asset_gen_dpad_right.png", DataLocation.asset);
+        }
+        return DataRef.from("Image/inputs/asset_gen_empty.png", DataLocation.asset); // TODO: add keycode on top
+    }
     public static boolean isKeyboardConnected() {
         for (int id : InputDevice.getDeviceIds()) {
             InputDevice device = InputDevice.getDevice(id);
@@ -595,6 +772,238 @@ public class AndroidHelpers {
                 return true;
         }
         return false;
+    }
+    public static boolean isKeyboardKey(int keycode) {
+        return keycode == KeyEvent.KEYCODE_ESCAPE ||
+                keycode == KeyEvent.KEYCODE_F1 ||
+                keycode == KeyEvent.KEYCODE_F2 ||
+                keycode == KeyEvent.KEYCODE_F3 ||
+                keycode == KeyEvent.KEYCODE_F4 ||
+                keycode == KeyEvent.KEYCODE_F5 ||
+                keycode == KeyEvent.KEYCODE_F6 ||
+                keycode == KeyEvent.KEYCODE_F7 ||
+                keycode == KeyEvent.KEYCODE_F8 ||
+                keycode == KeyEvent.KEYCODE_F9 ||
+                keycode == KeyEvent.KEYCODE_F10 ||
+                keycode == KeyEvent.KEYCODE_F11 ||
+                keycode == KeyEvent.KEYCODE_F12 ||
+                keycode == KeyEvent.KEYCODE_FORWARD_DEL ||
+                keycode == KeyEvent.KEYCODE_GRAVE ||
+                keycode == KeyEvent.KEYCODE_1 ||
+                keycode == KeyEvent.KEYCODE_2 ||
+                keycode == KeyEvent.KEYCODE_3 ||
+                keycode == KeyEvent.KEYCODE_4 ||
+                keycode == KeyEvent.KEYCODE_5 ||
+                keycode == KeyEvent.KEYCODE_6 ||
+                keycode == KeyEvent.KEYCODE_7 ||
+                keycode == KeyEvent.KEYCODE_8 ||
+                keycode == KeyEvent.KEYCODE_9 ||
+                keycode == KeyEvent.KEYCODE_0 ||
+                keycode == KeyEvent.KEYCODE_MINUS ||
+                keycode == KeyEvent.KEYCODE_EQUALS ||
+                keycode == KeyEvent.KEYCODE_DEL ||
+                keycode == KeyEvent.KEYCODE_TAB ||
+                keycode == KeyEvent.KEYCODE_LEFT_BRACKET ||
+                keycode == KeyEvent.KEYCODE_RIGHT_BRACKET ||
+                keycode == KeyEvent.KEYCODE_BACKSLASH ||
+                keycode == KeyEvent.KEYCODE_SEMICOLON ||
+                keycode == KeyEvent.KEYCODE_APOSTROPHE ||
+                keycode == KeyEvent.KEYCODE_ENTER ||
+                keycode == KeyEvent.KEYCODE_SHIFT_LEFT ||
+                keycode == KeyEvent.KEYCODE_COMMA ||
+                keycode == KeyEvent.KEYCODE_PERIOD ||
+                keycode == KeyEvent.KEYCODE_SLASH ||
+                keycode == KeyEvent.KEYCODE_SHIFT_RIGHT ||
+                keycode == KeyEvent.KEYCODE_CTRL_LEFT ||
+                keycode == KeyEvent.KEYCODE_ALT_LEFT ||
+                keycode == KeyEvent.KEYCODE_SPACE ||
+                keycode == KeyEvent.KEYCODE_ALT_RIGHT ||
+                keycode == KeyEvent.KEYCODE_CTRL_RIGHT ||
+                keycode == KeyEvent.KEYCODE_DPAD_LEFT ||
+                keycode == KeyEvent.KEYCODE_DPAD_RIGHT ||
+                keycode == KeyEvent.KEYCODE_DPAD_UP ||
+                keycode == KeyEvent.KEYCODE_DPAD_DOWN ||
+                keycode == KeyEvent.KEYCODE_A ||
+                keycode == KeyEvent.KEYCODE_B ||
+                keycode == KeyEvent.KEYCODE_C ||
+                keycode == KeyEvent.KEYCODE_D ||
+                keycode == KeyEvent.KEYCODE_E ||
+                keycode == KeyEvent.KEYCODE_F ||
+                keycode == KeyEvent.KEYCODE_G ||
+                keycode == KeyEvent.KEYCODE_H ||
+                keycode == KeyEvent.KEYCODE_I ||
+                keycode == KeyEvent.KEYCODE_J ||
+                keycode == KeyEvent.KEYCODE_K ||
+                keycode == KeyEvent.KEYCODE_L ||
+                keycode == KeyEvent.KEYCODE_M ||
+                keycode == KeyEvent.KEYCODE_N ||
+                keycode == KeyEvent.KEYCODE_O ||
+                keycode == KeyEvent.KEYCODE_P ||
+                keycode == KeyEvent.KEYCODE_Q ||
+                keycode == KeyEvent.KEYCODE_R ||
+                keycode == KeyEvent.KEYCODE_S ||
+                keycode == KeyEvent.KEYCODE_T ||
+                keycode == KeyEvent.KEYCODE_U ||
+                keycode == KeyEvent.KEYCODE_V ||
+                keycode == KeyEvent.KEYCODE_W ||
+                keycode == KeyEvent.KEYCODE_X ||
+                keycode == KeyEvent.KEYCODE_Y ||
+                keycode == KeyEvent.KEYCODE_Z;
+    }
+    public static DataRef keyboardKeyToIconRef(int keycode) {
+        switch (keycode) {
+            case(KeyEvent.KEYCODE_ESCAPE):
+                return DataRef.from("Image/inputs/asset_kb_esc.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F1):
+                return DataRef.from("Image/inputs/asset_kb_f1.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F2):
+                return DataRef.from("Image/inputs/asset_kb_f2.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F3):
+                return DataRef.from("Image/inputs/asset_kb_f3.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F4):
+                return DataRef.from("Image/inputs/asset_kb_f4.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F5):
+                return DataRef.from("Image/inputs/asset_kb_f5.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F6):
+                return DataRef.from("Image/inputs/asset_kb_f6.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F7):
+                return DataRef.from("Image/inputs/asset_kb_f7.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F8):
+                return DataRef.from("Image/inputs/asset_kb_f8.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F9):
+                return DataRef.from("Image/inputs/asset_kb_f9.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F10):
+                return DataRef.from("Image/inputs/asset_kb_f10.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F11):
+                return DataRef.from("Image/inputs/asset_kb_f11.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F12):
+                return DataRef.from("Image/inputs/asset_kb_f12.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_FORWARD_DEL):
+                return DataRef.from("Image/inputs/asset_kb_del.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_GRAVE):
+                return DataRef.from("Image/inputs/asset_kb_grave.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_1):
+                return DataRef.from("Image/inputs/asset_kb_1.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_2):
+                return DataRef.from("Image/inputs/asset_kb_2.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_3):
+                return DataRef.from("Image/inputs/asset_kb_3.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_4):
+                return DataRef.from("Image/inputs/asset_kb_4.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_5):
+                return DataRef.from("Image/inputs/asset_kb_5.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_6):
+                return DataRef.from("Image/inputs/asset_kb_6.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_7):
+                return DataRef.from("Image/inputs/asset_kb_7.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_8):
+                return DataRef.from("Image/inputs/asset_kb_8.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_9):
+                return DataRef.from("Image/inputs/asset_kb_9.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_0):
+                return DataRef.from("Image/inputs/asset_kb_0.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_MINUS):
+                return DataRef.from("Image/inputs/asset_kb_dash.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_EQUALS):
+                return DataRef.from("Image/inputs/asset_kb_equal.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DEL):
+                return DataRef.from("Image/inputs/asset_kb_backspace.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_TAB):
+                return DataRef.from("Image/inputs/asset_kb_tab.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_LEFT_BRACKET):
+                return DataRef.from("Image/inputs/asset_kb_open_bracket.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_RIGHT_BRACKET):
+                return DataRef.from("Image/inputs/asset_kb_close_bracket.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_BACKSLASH):
+                return DataRef.from("Image/inputs/asset_kb_bslash.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_SEMICOLON):
+                return DataRef.from("Image/inputs/asset_kb_semicolon.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_APOSTROPHE):
+                return DataRef.from("Image/inputs/asset_kb_apostrophe.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_ENTER):
+                return DataRef.from("Image/inputs/asset_kb_enter.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_SHIFT_LEFT):
+                return DataRef.from("Image/inputs/asset_kb_lshift.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_COMMA):
+                return DataRef.from("Image/inputs/asset_kb_comma.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_PERIOD):
+                return DataRef.from("Image/inputs/asset_kb_period.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_SLASH):
+                return DataRef.from("Image/inputs/asset_kb_fslash.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_SHIFT_RIGHT):
+                return DataRef.from("Image/inputs/asset_kb_rshift.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_CTRL_LEFT):
+                return DataRef.from("Image/inputs/asset_kb_lctrl.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_ALT_LEFT):
+                return DataRef.from("Image/inputs/asset_kb_lalt.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_SPACE):
+                return DataRef.from("Image/inputs/asset_kb_space.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_ALT_RIGHT):
+                return DataRef.from("Image/inputs/asset_kb_ralt.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_CTRL_RIGHT):
+                return DataRef.from("Image/inputs/asset_kb_rctrl.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_LEFT):
+                return DataRef.from("Image/inputs/asset_kb_arrow_left.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_RIGHT):
+                return DataRef.from("Image/inputs/asset_kb_arrow_right.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_UP):
+                return DataRef.from("Image/inputs/asset_kb_arrow_up.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_DPAD_DOWN):
+                return DataRef.from("Image/inputs/asset_kb_arrow_down.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_A):
+                return DataRef.from("Image/inputs/asset_kb_a.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_B):
+                return DataRef.from("Image/inputs/asset_kb_b.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_C):
+                return DataRef.from("Image/inputs/asset_kb_c.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_D):
+                return DataRef.from("Image/inputs/asset_kb_d.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_E):
+                return DataRef.from("Image/inputs/asset_kb_e.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_F):
+                return DataRef.from("Image/inputs/asset_kb_f.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_G):
+                return DataRef.from("Image/inputs/asset_kb_g.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_H):
+                return DataRef.from("Image/inputs/asset_kb_h.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_I):
+                return DataRef.from("Image/inputs/asset_kb_i.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_J):
+                return DataRef.from("Image/inputs/asset_kb_j.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_K):
+                return DataRef.from("Image/inputs/asset_kb_k.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_L):
+                return DataRef.from("Image/inputs/asset_kb_l.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_M):
+                return DataRef.from("Image/inputs/asset_kb_m.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_N):
+                return DataRef.from("Image/inputs/asset_kb_n.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_O):
+                return DataRef.from("Image/inputs/asset_kb_o.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_P):
+                return DataRef.from("Image/inputs/asset_kb_p.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_Q):
+                return DataRef.from("Image/inputs/asset_kb_q.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_R):
+                return DataRef.from("Image/inputs/asset_kb_r.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_S):
+                return DataRef.from("Image/inputs/asset_kb_s.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_T):
+                return DataRef.from("Image/inputs/asset_kb_t.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_U):
+                return DataRef.from("Image/inputs/asset_kb_u.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_V):
+                return DataRef.from("Image/inputs/asset_kb_v.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_W):
+                return DataRef.from("Image/inputs/asset_kb_w.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_X):
+                return DataRef.from("Image/inputs/asset_kb_x.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_Y):
+                return DataRef.from("Image/inputs/asset_kb_y.png", DataLocation.asset);
+            case(KeyEvent.KEYCODE_Z):
+                return DataRef.from("Image/inputs/asset_kb_z.png", DataLocation.asset);
+        }
+        return DataRef.from("Image/inputs/asset_kb_empty.png", DataLocation.asset); // TODO: place keycode on top
     }
     public static boolean isTouchScreenConnected() {
         for (int id : InputDevice.getDeviceIds()) {

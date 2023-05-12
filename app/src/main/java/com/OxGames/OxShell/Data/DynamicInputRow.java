@@ -163,20 +163,28 @@ public class DynamicInputRow {
     public static class ButtonInput extends DynamicInput {
         private String label;
         private Consumer<ButtonInput> onClick;
+        public final String actionDesc;
 
 //        private boolean isKeycodeSet;
 //        private int keycode;
         private List<KeyCombo> keyCombos;
 
-        public ButtonInput(String label, Consumer<ButtonInput> onClick) {
+        public ButtonInput(String label, String actionDesc, Consumer<ButtonInput> onClick) {
             this.inputType = InputType.button;
             this.label = label;
+            this.actionDesc = actionDesc;
             this.onClick = onClick;
             keyCombos = new ArrayList<>();
         }
-        public ButtonInput(String label, Consumer<ButtonInput> onClick, KeyCombo... keyCombos) {
-            this(label, onClick);
+        public ButtonInput(String label, Consumer<ButtonInput> onClick) {
+            this(label, null, onClick);
+        }
+        public ButtonInput(String label, String actionDesc, Consumer<ButtonInput> onClick, KeyCombo... keyCombos) {
+            this(label, actionDesc, onClick);
             Collections.addAll(this.keyCombos, keyCombos);
+        }
+        public ButtonInput(String label, Consumer<ButtonInput> onClick, KeyCombo... keyCombos) {
+            this(label, null, onClick, keyCombos);
         }
 
         public Consumer<ButtonInput> getOnClick() {

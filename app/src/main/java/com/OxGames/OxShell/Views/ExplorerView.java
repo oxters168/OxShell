@@ -94,15 +94,15 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             if (currentItem.obj != null && !currentItem.leftAlignedText.equals(".."))
                 setItemSelected(properPosition, !isItemSelected(properPosition));
             selectNextItem();
-        })).toArray(KeyComboAction[]::new));
+        }, "Highlight selection")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoUpInput()).map(combo -> new KeyComboAction(combo, () -> {
             //if (!OxShellApp.getCurrentActivity().isInAContextMenu())
             goUp();
-        })).toArray(KeyComboAction[]::new));
+        }, "Go up a directory")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerGoBackInput()).map(combo -> new KeyComboAction(combo, () -> {
             //if (!OxShellApp.getCurrentActivity().isInAContextMenu())
             goBack();
-        })).toArray(KeyComboAction[]::new));
+        }, "Go back a directory")).toArray(KeyComboAction[]::new));
         InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getExplorerExitInput()).map(combo -> new KeyComboAction(combo, () -> {
 //            if (ActivityManager.getCurrent() != ActivityManager.Page.chooser) {
 //                ActivityManager.goTo(ActivityManager.Page.home);
@@ -113,8 +113,12 @@ public class ExplorerView extends SlideTouchListView {//implements PermissionsLi
             InputHandler.clearKeyComboActions(INPUT_TAG);
             InputHandler.setTagEnabled(INPUT_TAG, false);
             OxShellApp.getCurrentActivity().finish();
-        })).toArray(KeyComboAction[]::new));
-        InputHandler.addKeyComboActions(INPUT_TAG, getKeyComboActions());
+        }, "Exit explorer")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getPrimaryInput()).map(combo -> new KeyComboAction(combo, this::primaryAction, "Make selection")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getSecondaryInput()).map(combo -> new KeyComboAction(combo, this::secondaryAction, "Open context menu")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateUp()).map(combo -> new KeyComboAction(combo, this::selectPrevItem, "Navigate up")).toArray(KeyComboAction[]::new));
+        InputHandler.addKeyComboActions(INPUT_TAG, Arrays.stream(SettingsKeeper.getNavigateDown()).map(combo -> new KeyComboAction(combo, this::selectNextItem, "Navigate down")).toArray(KeyComboAction[]::new));
+        //InputHandler.addKeyComboActions(INPUT_TAG, getKeyComboActions());
         InputHandler.setTagEnabled(INPUT_TAG, true);
     }
 
