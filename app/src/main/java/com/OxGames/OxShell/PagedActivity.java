@@ -287,7 +287,8 @@ public class PagedActivity extends AppCompatActivity {
         settingsDrawer.onResume();
         dynamicInput.onResume();
         prompt.onResume();
-        tooltipBarView.onResume();
+        if (tooltipBarView != null)
+            tooltipBarView.onResume();
         //settingsDrawer.setShown(isContextDrawerOpen());
         //settingsDrawer.setX(settingsDrawerWidth);
         setActionBarHidden(true);
@@ -304,9 +305,11 @@ public class PagedActivity extends AppCompatActivity {
     }
 
     private void onKeyCombosChanged(String tag) {
-        tooltipBarView.setShownInputType(InputType.Touch);
-        tooltipBarView.refreshInputs();
-        //tooltipBarView.refreshViews();
+        if (tooltipBarView != null) {
+            tooltipBarView.setShownInputType(InputType.Touch);
+            tooltipBarView.refreshInputs();
+            //tooltipBarView.refreshViews();
+        }
     }
 
     @Override
@@ -357,7 +360,8 @@ public class PagedActivity extends AppCompatActivity {
         settingsDrawer.onPause();
         dynamicInput.onPause();
         prompt.onPause();
-        tooltipBarView.onPause();
+        if (tooltipBarView != null)
+            tooltipBarView.onPause();
         //tagFromPause = InputHandler.getActiveTag();
         super.onPause();
     }
@@ -507,7 +511,7 @@ public class PagedActivity extends AppCompatActivity {
         dynamicInput.setShown(dynamicInput.isOverlayShown());
         initPromptView();
         prompt.setShown(prompt.isPromptShown());
-        initTooltipBarView();
+        // initTooltipBarView();
         // TODO: set tooltip bar shown based on settings
         initDebugView();
         debugView.setShown(debugView.isDebugShown());
