@@ -80,20 +80,20 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     }
 
     @Override
-    public void getIcon(Consumer<Drawable> onIconLoaded) {
+    public void getIcon(Consumer<Bitmap> onIconLoaded) {
         //Drawable icon = null;
         //if (type == Type.explorer)
         //    onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_source_24));
         if (type == Type.addApp)// || type == Type.app)
-            PackagesCache.requestPackageIcon((String) obj, drawable -> onIconLoaded.accept(icon = drawable));
+            PackagesCache.requestPackageIcon((String) obj, drawable -> onIconLoaded.accept(icon = AndroidHelpers.drawableToBitmap(drawable)));
         else if (isInnerSettingType(type))
-            onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
+            onIconLoaded.accept(icon = AndroidHelpers.bitmapFromResource(OxShellApp.getContext(), R.drawable.ic_baseline_construction_24));
         //else if (type == Type.assocExe)
         //    onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), R.drawable.ic_baseline_auto_awesome_24));
         else if (type == Type.addAssoc) {// || type == Type.assoc) {
             IntentLaunchData intent = ShortcutsCache.getIntent((UUID)obj);
             if (intent != null)
-                intent.getImgRef().getImage(onIconLoaded);
+                intent.getImgRef().getImageAsBitmap(onIconLoaded);
                 //PackagesCache.requestPackageIcon(intent.getPackageName(), drawable -> onIconLoaded.accept(icon = drawable));
                 //onIconLoaded.accept(icon = PackagesCache.getPackageIcon(intent.getPackageName()));
             else

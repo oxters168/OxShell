@@ -2,6 +2,7 @@ package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -243,11 +244,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 if (prevItem != null) {
 //                img.setImageDrawable(QUESTION_MARK_DRAWABLE);
 //                highlight.setImageDrawable(QUESTION_MARK_DRAWABLE);
-                    prevItem.getIcon((Consumer<Drawable>) drawable -> {
+                    prevItem.getIcon((Consumer<Bitmap>) drawable -> {
                         if (drawable != null) {
                             //img.setBackground(drawable);
-                            img.setImageDrawable(drawable);
-                            highlight.setBackground(drawable.getConstantState().newDrawable());
+                            img.setImageBitmap(drawable);
+                            // highlight.setBackground(drawable.getConstantState().newDrawable());
                         } else {
                             //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                             img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
