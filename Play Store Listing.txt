@@ -1,0 +1,26 @@
+Introducing Ox Shell for Android, a sleek and intuitive home screen experience inspired by the iconic look of a classic video game system. With Ox Shell, you can enjoy easy access to all your favorite apps and games, all while enjoying a visually stunning interface that's sure to impress.
+
+-- XMB --
+Ox Shell features a horizontal scrolling menu that allows you to quickly navigate through your apps and games. You can easily customize your home screen with your favorite apps and emulators, and the launcher's intuitive design ensures that everything is easy to find and access.
+
+-- Gamepad Support --
+One of the core features of Ox Shell is its ability to be navigated through with a gamepad. You can even open the app switcher using a gamepad (accessibility permission must be enabled for this feature). The launcher also supports intuitive touch controls.
+
+-- Live Wallpaper --
+Ox Shell can be used as a live wallpaper service. It allows you to pick from a couple of built-in options or even to set up your own shaders as your device's background. On top of that Ox Shell also doubles as a file explorer. Allowing you to copy, cut, rename files, and more.
+
+-- File Browser --
+Another core feature of Ox Shell is that it is also a file browser. Ox Shell helps you manage your files by giving you the ability to copy, cut, paste, rename, and delete nearly any file you'd like. You can also launch files into their respective apps if you have created an association for them. Ox Shell comes built-in with associations for images, video, and audio. The file browser also lets you easily install any apk on your device.
+
+-- Associations --
+Ox Shell gives you the ability to create associations for different file types. Using these associations, you can add a list of launchables directly to your home menu. In essence this allows Ox Shell to be an emulation front end and more.
+
+-- Music Player --
+The music player in Ox Shell is fully functional. Add any folder from your file system to your home menu and Ox Shell will automatically sort them by artist then album. Ox Shell supports playback controls through the notification center. On top of that, Ox Shell supports customizable shortcuts to control music playback.
+
+-- Video Player --
+Similar to the music player, Ox Shell is capable of playing videos directly from your home menu. Simply add a folder from your file system to your home menu and watch your media to your heart's content. You can also play videos directly from the file browser or even from a separate app.
+
+So if you're looking for a home screen experience that's both beautiful and functional, Ox Shell is the perfect choice. With its sleek design, customizable options, and powerful performance, it's the perfect way to take your Android experience to the next level.
+
+You can build Ox Shell yourself using the github project at https://github.com/oxters168/OxShell
