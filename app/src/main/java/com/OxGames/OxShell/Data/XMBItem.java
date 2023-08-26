@@ -25,7 +25,7 @@ public class XMBItem<T> implements Serializable {
     //protected DataRef iconLoc;
     protected List<XMBItem> innerItems;
 
-    protected transient Bitmap icon;
+    protected transient Drawable icon;
     private transient List<Runnable> valuesChangedListeners;
     private transient List<Runnable> innerItemsChangedListeners;
 
@@ -107,9 +107,9 @@ public class XMBItem<T> implements Serializable {
         });
     }
 
-    public void getIcon(Consumer<Bitmap> onIconLoaded) {
+    public void getIcon(Consumer<Drawable> onIconLoaded) {
         if (icon == null && iconLoc != null) {
-            ((DataRef)iconLoc).getImageAsBitmap(img -> onIconLoaded.accept(icon = img));
+            ((DataRef)iconLoc).getImage(img -> onIconLoaded.accept(icon = img));
             //onIconLoaded.accept(icon = ((DataRef)iconLoc).getImage());
 //            if (iconLoc instanceof Integer) {
 //                onIconLoaded.accept(icon = ContextCompat.getDrawable(OxShellApp.getContext(), (Integer)iconLoc));

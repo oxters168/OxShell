@@ -244,11 +244,11 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
                 if (prevItem != null) {
 //                img.setImageDrawable(QUESTION_MARK_DRAWABLE);
 //                highlight.setImageDrawable(QUESTION_MARK_DRAWABLE);
-                    prevItem.getIcon((Consumer<Bitmap>) drawable -> {
+                    prevItem.getIcon((Consumer<Drawable>) drawable -> {
                         if (drawable != null) {
                             //img.setBackground(drawable);
-                            img.setImageBitmap(drawable);
-                            // highlight.setBackground(drawable.getConstantState().newDrawable());
+                            img.setImageDrawable(drawable);
+                            highlight.setBackground(drawable.getConstantState().newDrawable());
                         } else {
                             //img.setBackground(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
                             img.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_baseline_question_mark_24));
