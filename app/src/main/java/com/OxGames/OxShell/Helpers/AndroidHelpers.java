@@ -327,7 +327,7 @@ public class AndroidHelpers {
         createPathIfNotExist(path);
         try {
             FileOutputStream out = new FileOutputStream(path);
-            bm.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            bm.compress(Bitmap.CompressFormat.PNG, 100, out);
             out.flush();
             out.close();
         } catch(Exception e) { Log.e("AndroidHelpers", e.toString()); }
