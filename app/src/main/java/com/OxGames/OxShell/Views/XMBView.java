@@ -1401,9 +1401,9 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 //Log.d("XMBView", "OnShift [" + fromColIndex + ", " + fromRowIndex + "] => " + toColIndex);
                 //boolean isInColumn = (!columnMode || moveLocalIndex > 0) && catHasSubItems(fromColIndex);
                 boolean isInColumn = moveLocalIndex > 0 && catHasSubItems(fromColIndex);
-                // -1 to move out of the 0th column, columnCount - 2 to not go past the settings
+                // -1 to move out of the 0th column
                 int nextColIndex = Math.min(Math.max(toColIndex, isInColumn ? -1 : 0), adapter.getColumnCount() - (isInColumn ? 0 : 1));
-                //Log.d("XMBView", "Attempting to move right from " + moveColIndex + " to " + nextColIndex + ", in column: " + isInColumn);
+                // Log.d("XMBView", "Attempting to move from [" + fromColIndex + "," + fromRowIndex + "] to " + nextColIndex + ", in column: " + isInColumn);
                 if (fromColIndex != nextColIndex) {
                     nextColIndex = Math.max(nextColIndex, 0);
                     boolean nextIsColumn = adapter.canPlaceItemsIn(nextColIndex, 0);//adapter.isColumnHead(nextColIndex, 0);
@@ -1422,7 +1422,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                             setColIndex = fromColIndex;
                         }
                     }
-                    if (nextIsColumn && adapter.getColumnSize(nextColIndex) == 0)
+                    // Log.d("XMBView", "Next index: [" + nextColIndex + ", " + nextLocalIndex + "] Next is column: " + nextIsColumn + " Next column size: " + adapter.getColumnSize(nextColIndex));
+                    if (!isInColumn && nextIsColumn && adapter.getColumnSize(nextColIndex) == 0)
                         nextLocalIndex = 1;
 
                     //getViewHolder(fromColIndex, fromRowIndex).setDirty();
