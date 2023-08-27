@@ -77,6 +77,33 @@ public class DataRef implements Serializable {
             onIconLoaded.accept(null);
     }
 
+    public void getImageAsBitmap(Consumer<Bitmap> onIconLoaded) {
+        if (locType == DataLocation.resource) {
+            try {
+                int resId = OxShellApp.getCurrentActivity().getResources().getIdentifier((String)loc, "drawable", BuildConfig.APPLICATION_ID);
+                onIconLoaded.accept(AndroidHelpers.bitmapFromResource(OxShellApp.getContext(), resId));
+            } catch (Exception e) {
+                Log.e("ImageRef", "Failed to find resource " + loc + ": " + e);
+                onIconLoaded.accept(AndroidHelpers.bitmapFromResource(OxShellApp.getContext(), R.drawable.ic_baseline_question_mark_24));
+            }
+        }
+        else if (locType == DataLocation.asset)
+            onIconLoaded.accept(AndroidHelpers.readAssetAsBitmap(OxShellApp.getContext(), (String)loc));
+        else if (locType == DataLocation.pkg)
+            PackagesCache.requestPackageIcon((String)loc, (icon) -> { onIconLoaded.accept(AndroidHelpers.drawableToBitmap(icon));});
+        else if (locType == DataLocation.file)
+            onIconLoaded.accept(AndroidHelpers.bitmapFromFile((String)loc));
+        else if (locType == DataLocation.resolverUri)
+            onIconLoaded.accept(AndroidHelpers.readResolverUriAsBitmap(OxShellApp.getContext(), (Uri)loc));
+        else if (locType == DataLocation.self) {
+            if (loc instanceof Drawable)
+                onIconLoaded.accept(AndroidHelpers.drawableToBitmap((Drawable)loc));
+            else if (loc instanceof Bitmap)
+                onIconLoaded.accept((Bitmap)loc);
+        } else
+            onIconLoaded.accept(null);
+    }
+
     public Typeface getFont() {
         if (locType == DataLocation.resource || locType == DataLocation.resolverUri)
             throw new UnsupportedOperationException("Failed to reference font, resources and resolver uris are not supported at the moment");
