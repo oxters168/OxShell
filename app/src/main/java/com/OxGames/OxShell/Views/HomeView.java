@@ -391,6 +391,10 @@ public class HomeView extends XMBView implements Refreshable {
                         }, "logs.zip");
                     } else
                         Toast.makeText(currentActivity, "No logs to save", Toast.LENGTH_LONG).show();
+                } else if (selectedItem.type == HomeItem.Type.privacyPolicy) {
+                    IntentLaunchData privacyPolicyIntent = IntentLaunchData.createFromAction(Intent.ACTION_DEFAULT, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    privacyPolicyIntent.setDataType(IntentLaunchData.DataType.Uri);
+                    privacyPolicyIntent.launch("https://oxgames.co/#/privacy-policy-oxshell");
                 } else if (selectedItem.type == HomeItem.Type.addAssoc) {
                     PagedActivity currentActivity = OxShellApp.getCurrentActivity();
                     DynamicInputView dynamicInput = currentActivity.getDynamicInput();

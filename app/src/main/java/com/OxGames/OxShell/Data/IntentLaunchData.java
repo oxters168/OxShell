@@ -294,7 +294,7 @@ public class IntentLaunchData implements Serializable {
         if (dataType == DataType.Uri) {
             //final Uri uri = AndroidHelpers.uriFromPath(data);
             //OxShellApp.getCurrentActivity().grantUriPermission(targetPkg, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-            return AndroidHelpers.uriFromPath(data);
+            return data.contains("://") ? Uri.parse(data) : AndroidHelpers.uriFromPath(data);
         }
         if (dataType == DataType.AbsolutePath) {
 //            String updatedData = data;

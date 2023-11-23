@@ -30,7 +30,40 @@ import java.util.stream.Collectors;
 import kotlin.jvm.functions.Function2;
 
 public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
-    public enum Type { explorer, musicTree, musicFolder, musicArtist, musicAlbum, musicTrack, videoTree, videoTrack, addMusicFolder, addVideoFolder, addExplorer, app, addAppOuter, addApp, resetHomeItems, assoc, addAssocOuter, addAssoc, createAssoc, assocExe, setImageBg, setShaderBg, setUiScale, setSystemUi, setAudioVolume, settings, nonDescriptSetting, setControls, appInfo, saveLogs, placeholder, }
+    public enum Type {
+        explorer,
+        musicTree,
+        musicFolder,
+        musicArtist,
+        musicAlbum,
+        musicTrack,
+        videoTree,
+        videoTrack,
+        addMusicFolder,
+        addVideoFolder,
+        addExplorer,
+        app,
+        addAppOuter,
+        addApp,
+        resetHomeItems,
+        assoc,
+        addAssocOuter,
+        addAssoc,
+        createAssoc,
+        assocExe,
+        setImageBg,
+        setShaderBg,
+        setUiScale,
+        setSystemUi,
+        setAudioVolume,
+        settings,
+        nonDescriptSetting,
+        setControls,
+        appInfo,
+        saveLogs,
+        privacyPolicy,
+        placeholder,
+    }
     public Type type;
     public ArrayList<String> extraData;
     //private boolean innerItemsLoaded;
@@ -127,6 +160,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
     public static boolean isInnerSettingType(Type type) {
         return type == Type.appInfo ||
                 type == Type.saveLogs ||
+                type == Type.privacyPolicy ||
                 type == Type.addExplorer ||
                 type == Type.addAppOuter ||
                 type == Type.resetHomeItems ||
@@ -479,6 +513,7 @@ public class HomeItem<T> extends XMBItem<T> implements DirsCarrier {
         innerSettings.clear();
         innerSettings.add(new HomeItem(Type.appInfo, "App info"));
         innerSettings.add(new HomeItem(Type.saveLogs, "Save logs to file"));
+        innerSettings.add(new HomeItem(Type.privacyPolicy, "Privacy Policy"));
         currentSettingsItem = new HomeItem(Type.nonDescriptSetting, "About", DataRef.from(ResImage.get(R.drawable.baseline_info_24).getId(), DataLocation.resource), innerSettings.toArray(new XMBItem[0]));
         settingsItems.add(currentSettingsItem);
         return settingsItems;
