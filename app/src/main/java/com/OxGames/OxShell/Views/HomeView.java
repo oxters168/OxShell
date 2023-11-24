@@ -80,6 +80,12 @@ public class HomeView extends XMBView implements Refreshable {
             save(getItems());
         }
     };
+    private Consumer<String> pkgUninstalledListener = pkgName -> {
+        if (pkgName != null) {
+            removePkg(pkgName);
+            save(getItems());
+        }
+    };
 
     public HomeView(Context context) {
         super(context);
@@ -96,6 +102,7 @@ public class HomeView extends XMBView implements Refreshable {
 
     private void init() {
         OxShellApp.addPkgInstalledListener(pkgInstalledListener);
+        OxShellApp.addPkgUninstalledListener(pkgUninstalledListener);
         refresh();
     }
     public void onResume() {
@@ -115,6 +122,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
     public void onDestroy() {
         OxShellApp.removePkgInstalledListener(pkgInstalledListener);
+        OxShellApp.removePkgUninstalledListener(pkgUninstalledListener);
         //MediaPlayer.clearPlaylist();
     }
 
@@ -938,9 +946,10 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     public void deleteSelection() {
-        Integer[] position = getPosition();
-        //((XMBItem)getAdapter().getItem(position)).clearImgCache();
-        getAdapter().removeSubItem(position[0], position[1]);
+//        Integer[] position = getPosition();
+//        //((XMBItem)getAdapter().getItem(position)).clearImgCache();
+//        getAdapter().removeSubItem(position[0], position[1]);
+        getAdapter().removeItem(getPosition());
         save(getItems());
         refresh();
     }
@@ -1014,12 +1023,49 @@ public class HomeView extends XMBView implements Refreshable {
         save(getItems());
     }
 
+    public void removePkg(String pkgName) {
+        //Log.d("HomeView", "Getting items");
+        ArrayList<Object> items = getAdapter().getItems();
+        ArrayList<Integer> position = new ArrayList<>();
+        Consumer<XMBItem> goInto = new Consumer<XMBItem>() {
+            @Override
+            public void accept(XMBItem xmbItem) {
+                for (int j = xmbItem.getInnerItemCount() - 1; j >= 0; j--) {
+                    position.add(j);
+
+                    XMBItem innerItem = xmbItem.getInnerItem(j);
+                    //Log.d("HomeView", "Found " + innerItem.getTitle() + ", " + (innerItem instanceof HomeItem ? ((HomeItem)innerItem).type : "xmbItem"));
+                    if (!innerItem.hasInnerItems()) {
+                        if (innerItem instanceof HomeItem && ((HomeItem)innerItem).type == HomeItem.Type.app && pkgName.equalsIgnoreCase((String)innerItem.obj)) {
+                            // remove item if it is the package
+                            getAdapter().removeItem(position.toArray(new Integer[0]));
+                        }
+                    } else
+                        accept(innerItem);
+
+                    position.remove(position.size() - 1);
+                }
+            }
+        };
+        for (int i = items.size() - 1; i >= 0; i--) {
+            XMBItem item = (XMBItem)items.get(i);
+            position.clear();
+            position.add(i);
+            //Log.d("HomeView", "Found " + item.getTitle());
+            if (!item.hasInnerItems()) {
+                if (item instanceof HomeItem && ((HomeItem)item).type == HomeItem.Type.app && pkgName.equalsIgnoreCase((String)item.obj)) {
+                    // remove item if it is the package
+                    getAdapter().removeItem(position.toArray(new Integer[0]));
+                }
+            } else
+                goInto.accept(item);
+        }
+    }
     // TODO: remove assoc inner items
     public ArrayList<XMBItem> getItems() {
         //Log.d("HomeView", "Getting items");
         ArrayList<Object> items = getAdapter().getItems();
         ArrayList<XMBItem> casted = new ArrayList<>();
-        //items.remove(items.size() - 1); // remove the settings
         BiConsumer<XMBItem, XMBItem> clearIfNeeded = (xmbItem, parent) -> {
             if (xmbItem instanceof HomeItem) {
                 //Log.d("HomeView", "Clearing " + xmbItem.getTitle());
@@ -1691,7 +1737,8 @@ public class HomeView extends XMBView implements Refreshable {
         //XMBItem colHead = ((XMBItem)getAdapter().getItem(getPosition()[0], 0));
         //colHead.clearImgCache();
         //colHead.clearInnerItemImgCache(true);
-        getAdapter().removeColumnAt(getPosition()[0]); // this calls release on the item already
+//        getAdapter().removeColumnAt(getPosition()[0]); // this calls release on the item already
+        getAdapter().removeItem(getPosition()[0]);
         save(getItems());
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
@@ -1716,7 +1763,7 @@ public class HomeView extends XMBView implements Refreshable {
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn editColumnBtn = new SettingsDrawer.ContextBtn("Edit Column", () -> {
-        showItemEditor("Edit Column", (XMBItem)getAdapter().getItem(getPosition()[0], 0));
+        showItemEditor("Edit Column", (XMBItem)getAdapter().getItem(getPosition()[0]));
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });
     SettingsDrawer.ContextBtn createColumnBtn = new SettingsDrawer.ContextBtn("Create Column", () -> {
@@ -1730,8 +1777,8 @@ public class HomeView extends XMBView implements Refreshable {
     SettingsDrawer.ContextBtn uninstallBtn = new SettingsDrawer.ContextBtn("Uninstall App", () ->
     {
         uninstallSelection((result) -> {
-            if (result.getResultCode() == Activity.RESULT_OK)
-                deleteSelection();
+//            if (result.getResultCode() == Activity.RESULT_OK)
+//                deleteSelection();
         });
         OxShellApp.getCurrentActivity().getSettingsDrawer().setShown(false);
     });

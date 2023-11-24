@@ -34,15 +34,26 @@ public class OxShellApp extends Application {
         @Override
         public void onReceive(Context ctxt, Intent intent) {
         String pkgName = null;
-        if (intent != null && intent.getData() != null)
+        boolean isUninstallEvent = false;
+        if (intent != null && intent.getData() != null) {
             pkgName = intent.getData().getEncodedSchemeSpecificPart();
+            String action = intent.getAction();
+            if (action != null)
+                isUninstallEvent = action.equals(Intent.ACTION_PACKAGE_REMOVED);
+        }
         try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(pkgName, 0);
-            if (packageInfo.firstInstallTime == packageInfo.lastUpdateTime) {
-                // This is the first installation of the package
-                for (Consumer<String> listener : pkgInstalledListeners)
+            if (isUninstallEvent) {
+                for (Consumer<String> listener : pkgUninstalledListeners)
                     if (listener != null)
                         listener.accept(pkgName);
+            } else {
+                PackageInfo packageInfo = getPackageManager().getPackageInfo(pkgName, 0);
+                if (packageInfo.firstInstallTime == packageInfo.lastUpdateTime) {
+                    // This is the first installation of the package
+                    for (Consumer<String> listener : pkgInstalledListeners)
+                        if (listener != null)
+                            listener.accept(pkgName);
+                }
             }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e("OxShellApp", "Could not find package: " + e);
@@ -72,6 +83,7 @@ public class OxShellApp extends Application {
     private static OxShellApp instance;
     //private static InputHandler inputHandler;
     private static List<Consumer<String>> pkgInstalledListeners;
+    private static List<Consumer<String>> pkgUninstalledListeners;
 
 //    public static OxShellApp getInstance() {
 //        return instance;
@@ -98,11 +110,17 @@ public class OxShellApp extends Application {
 
         //inputHandler = new InputHandler();
         pkgInstalledListeners = new ArrayList<>();
+        pkgUninstalledListeners = new ArrayList<>();
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         intentFilter.addDataScheme("package");
         registerReceiver(pkgInstallationReceiver, intentFilter);
+//        intentFilter = new IntentFilter();
+//        intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+//        intentFilter.addDataScheme("package");
+//        registerReceiver(pkgInstallationReceiver, intentFilter);
 
         intentFilter = new IntentFilter();
         intentFilter.addAction(MediaPlayer.PREV_INTENT);
@@ -184,6 +202,15 @@ public class OxShellApp extends Application {
     }
     public static void clearPkgInstalledListeners() {
         pkgInstalledListeners.clear();
+    }
+    public static void addPkgUninstalledListener(Consumer<String> listener) {
+        pkgUninstalledListeners.add(listener);
+    }
+    public static void removePkgUninstalledListener(Consumer<String> listener) {
+        pkgUninstalledListeners.remove(listener);
+    }
+    public static void clearPkgUninstalledListeners() {
+        pkgUninstalledListeners.clear();
     }
 
 //    public static InputHandler getInputHandler() {
