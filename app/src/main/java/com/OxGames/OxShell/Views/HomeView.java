@@ -76,7 +76,8 @@ public class HomeView extends XMBView implements Refreshable {
     private boolean isPaused = false;
     private Consumer<String> pkgInstalledListener = pkgName -> {
         if (pkgName != null) {
-            getAdapter().createColumnAt(getAdapter().getColumnCount(), new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)));
+            getAdapter().addItem(new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)), getAdapter().getColumnCount());
+//            getAdapter().createColumnAt(getAdapter().getColumnCount(), new HomeItem(pkgName, HomeItem.Type.app, PackagesCache.getAppLabel(pkgName), DataRef.from(pkgName, DataLocation.pkg)));
             save(getItems());
         }
     };
@@ -261,13 +262,15 @@ public class HomeView extends XMBView implements Refreshable {
                     selectedItem.setInnerItems(sortedApps);
                 } else if (selectedItem.type == HomeItem.Type.addApp) {
                     Adapter adapter = getAdapter();
-                    adapter.createColumnAt(adapter.getColumnCount(), new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle(), DataRef.from(selectedItem.obj, DataLocation.pkg)));
+                    adapter.addItem(new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle(), DataRef.from(selectedItem.obj, DataLocation.pkg)), adapter.getColumnCount());
+//                    adapter.createColumnAt(adapter.getColumnCount(), new HomeItem(selectedItem.obj, HomeItem.Type.app, selectedItem.getTitle(), DataRef.from(selectedItem.obj, DataLocation.pkg)));
                     Toast.makeText(OxShellApp.getCurrentActivity(), selectedItem.getTitle() + " added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
                 } else if (selectedItem.type == HomeItem.Type.addExplorer) {
                     Adapter adapter = getAdapter();
-                    adapter.createColumnAt(adapter.getColumnCount(), new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
+                    adapter.addItem(new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)), adapter.getColumnCount());
+//                    adapter.createColumnAt(adapter.getColumnCount(), new HomeItem(HomeItem.Type.explorer, "Explorer", DataRef.from(ResImage.get(R.drawable.ic_baseline_source_24).getId(), DataLocation.resource)));
                     Toast.makeText(OxShellApp.getCurrentActivity(), "Explorer added to home", Toast.LENGTH_SHORT).show();
                     save(getItems());
                     return true;
@@ -292,7 +295,8 @@ public class HomeView extends XMBView implements Refreshable {
                         // TODO: show some kind of error when input is invalid
                         HomeItem musicHead = new HomeItem(HomeItem.Type.musicTree, "Music", DataRef.from(ResImage.get(R.drawable.baseline_library_music_24).getId(), DataLocation.resource));
                         musicHead.addToDirsList(titleInput.getText());
-                        getAdapter().createColumnAt(getAdapter().getColumnCount(), musicHead);
+                        getAdapter().addItem(musicHead, getAdapter().getColumnCount());
+//                        getAdapter().createColumnAt(getAdapter().getColumnCount(), musicHead);
                         musicHead.reload(() -> {
                             save(getItems());
                             //refresh();
@@ -327,7 +331,8 @@ public class HomeView extends XMBView implements Refreshable {
                         // TODO: show some kind of error when input is invalid
                         HomeItem videosHead = new HomeItem(HomeItem.Type.videoTree, "Videos", DataRef.from(ResImage.get(R.drawable.baseline_video_library_24).getId(), DataLocation.resource));
                         videosHead.addToDirsList(titleInput.getText());
-                        getAdapter().createColumnAt(getAdapter().getColumnCount(), videosHead);
+                        getAdapter().addItem(videosHead, getAdapter().getColumnCount());
+//                        getAdapter().createColumnAt(getAdapter().getColumnCount(), videosHead);
                         videosHead.reload(() -> {
                             save(getItems());
                             //refresh();
@@ -423,7 +428,8 @@ public class HomeView extends XMBView implements Refreshable {
                         //HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc, launchData != null ? launchData.getDisplayName() : "Missing", launchData != null ? DataRef.from(launchData.getPackageName(), DataLocation.pkg) : null);
                         HomeItem assocItem = new HomeItem(selectedItem.obj, HomeItem.Type.assoc, launchData != null ? launchData.getDisplayName() : "Missing", launchData != null ? launchData.getImgRef() : null);
                         assocItem.addToDirsList(titleInput.getText());
-                        adapter.createColumnAt(adapter.getColumnCount(), assocItem);
+                        adapter.addItem(assocItem, adapter.getColumnCount());
+//                        adapter.createColumnAt(adapter.getColumnCount(), assocItem);
                         assocItem.reload(() -> save(getItems()));
                         //save(getItems());
                         dynamicInput.setShown(false);
@@ -881,7 +887,7 @@ public class HomeView extends XMBView implements Refreshable {
                 for (int i = 0; i < parentPos.length; i++)
                     parentPos[i] = position[i];
                 //boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
-                boolean hasColumnHead = getAdapter().isColumnHead(position[0], 0);
+                boolean hasColumnHead = getAdapter().isColumnHead(position[0]);
                 boolean isColumnHead = getAdapter().isColumnHead(position);
                 boolean hasInnerItems = getAdapter().hasInnerItems(position);
                 boolean isInnerItem = position.length > 2;
@@ -961,15 +967,21 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     @Override
-    protected void onShiftHorizontally(int fromColIndex, int fromRowIndex, int toColIndex) {
-        super.onShiftHorizontally(fromColIndex, fromRowIndex, toColIndex);
+    protected void onShifted(int amount, Integer... fromPos) {
+        super.onShifted(amount, fromPos);
         playMoveSfx();
     }
-    @Override
-    protected void onShiftVertically(int fromColIndex, int fromLocalIndex, int toLocalIndex) {
-        super.onShiftVertically(fromColIndex, fromLocalIndex, toLocalIndex);
-        playMoveSfx();
-    }
+
+//    @Override
+//    protected void onShiftHorizontally(int amount, Integer... position) {
+//        super.onShiftHorizontally(amount, position);
+//        playMoveSfx();
+//    }
+//    @Override
+//    protected void onShiftVertically(int amount, Integer... position) {
+//        super.onShiftVertically(amount, position);
+//        playMoveSfx();
+//    }
     private void playMoveSfx() {
         if (moveSfx != null) { // apparently can still get called after onPause
             if (moveSfx.isPlaying() || !OxShellApp.getAudioManager().isMusicActive()) {
@@ -1019,7 +1031,7 @@ public class HomeView extends XMBView implements Refreshable {
     }
 
     @Override
-    protected void onAppliedMove(int fromColIndex, int fromLocalIndex, int toColIndex, int toLocalIndex) {
+    protected void onAppliedMove(Integer[] fromIndex, Integer[] toIndex) {
         save(getItems());
     }
 
@@ -1669,7 +1681,8 @@ public class HomeView extends XMBView implements Refreshable {
                 toBeEdited.setTitle(itemTitle.length() > 0 ? itemTitle : "Unnamed");
                 toBeEdited.setImgRef(imgRef);
             } else
-                getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, itemTitle.length() > 0 ? itemTitle : "Unnamed", imgRef));
+                getAdapter().addItem(new XMBItem(null, itemTitle.length() > 0 ? itemTitle : "Unnamed", imgRef), getPosition()[0]);
+//                getAdapter().createColumnAt(getPosition()[0], new XMBItem(null, itemTitle.length() > 0 ? itemTitle : "Unnamed", imgRef));
             save(getItems());
             refresh();
             dynamicInput.setShown(false);

@@ -31,6 +31,7 @@ import com.OxGames.OxShell.Views.BetterTextView;
 import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -117,13 +118,18 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public Object getItem(Integer... position) {
+        // XMBView uses null for empty
         XMBItem current = null;
         if (position != null && position.length > 0) {
             int index = position[0];
-            current = items.get(index);
-            for (int i = 1; i < position.length; i++) {
-                index = position[i];
-                current = current.getInnerItem(index);
+            if (index >= 0 && index < items.size()) {
+                current = items.get(index);
+                for (int i = 1; i < position.length; i++) {
+                    index = position[i];
+                    if (index < 0 || index >= current.getInnerItemCount())
+                        return null;
+                    current = current.getInnerItem(index);
+                }
             }
         }
         return current;
@@ -287,144 +293,205 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
         this.font = font;
     }
 
+//    @Override
+//    protected void shiftItemUp(Integer... position) {
+//        // skip if attempting to shift up a column item
+//        if (position.length > 1) {
+//            // skip if we are already the first item
+//            if (position[position.length - 1] > 0) {
+//                XMBItem toBeMoved = (XMBItem)getItem(position);
+//                Integer[] newPos = position.clone();
+//                newPos[newPos.length - 1] = newPos[newPos.length - 1] - 1;
+//                removeItem(false, position);
+//                addItem(toBeMoved, newPos);
+//            }
+//        }
+//    }
+//    @Override
+//    protected void shiftItemDown(Integer... position) {
+//        // skip if attempting to shift down a column item
+//        if (position.length > 1) {
+//            XMBItem parent = (XMBItem)getItem(getParentIndex(position));
+//            // skip if we are already the last item
+//            if (position[position.length - 1] < parent.getInnerItemCount() - 1) {
+//                XMBItem toBeMoved = (XMBItem)getItem(position);
+//                Integer[] newPos = position.clone();
+//                newPos[newPos.length - 1] = newPos[newPos.length - 1] + 1;
+//                removeItem(false, position);
+//                addItem(toBeMoved, newPos);
+//            }
+//        }
+//    }
     @Override
-    protected void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
-        // Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
-        //XMBItem toBeMoved = items.get(toBeMovedColIndex).getInnerItem(toBeMovedLocalIndex - 1);
-        XMBItem toBeMoved = (XMBItem)getItem(toBeMovedColIndex, toBeMovedLocalIndex);
-        if (createColumn) {
-//            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex, false);
-            removeItem(false, toBeMovedColIndex, toBeMovedLocalIndex);
-            createColumnAt(moveToColIndex, toBeMoved);
-        } else {
-            addSubItem(moveToColIndex, moveToLocalIndex, toBeMoved);
-//            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex, false);
-            removeItem(false, toBeMovedColIndex, toBeMovedLocalIndex);
+    protected Integer[] shiftItemVertically(int amount, Integer... position) {
+//        Log.d("XMBAdapter", "Attempting to move " + Arrays.toString(position) + " by " + amount);
+        Integer[] newPos = position.clone();
+        // skip if attempting to shift down a column item
+        if (position.length > 1) {
+            XMBItem parent = (XMBItem)getItem(XMBView.getParentIndex(position));
+            int nextInnerIndex = position[position.length - 1] + amount;
+            // clamp the value
+            nextInnerIndex = Math.min(Math.max(nextInnerIndex, 0), parent.getInnerItemCount() - 1);
+            // skip if we are already at the new position
+            if (nextInnerIndex != position[position.length - 1]) {
+                XMBItem toBeMoved = (XMBItem)getItem(position);
+                newPos[newPos.length - 1] = nextInnerIndex;
+                removeItem(false, position);
+                addItem(toBeMoved, newPos);
+            }
         }
+        return newPos;
     }
-    @Override
-    protected void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
-        //XMBItem toBeMoved = items.get(startColIndex).getInnerItem(fromLocalIndex - 1);
-        XMBItem toBeMoved = (XMBItem)getItem(startColIndex, fromLocalIndex);
-//        removeSubItem(startColIndex, fromLocalIndex, false);
-        removeItem(false, startColIndex, fromLocalIndex);
-        addSubItem(startColIndex, toLocalIndex, toBeMoved);
-    }
-    @Override
-    public void addSubItem(int columnIndex, int localIndex, Object toBeAdded) {
-        XMBItem item = items.get(columnIndex);
-        if (item.getInnerItemCount() <= 0)
-            item.add((XMBItem)toBeAdded);
-        else
-            item.add(localIndex - 1, (XMBItem)toBeAdded);
-        fireSubItemAddedEvent(columnIndex, localIndex);
+    protected Integer[] shiftItemHorizontally(int amount, Integer... position) {
+        Integer[] newPos = position.clone();
+        // inner items cannot be moved horizontally
+        if (position.length <= 2) {
+            XMBItem toBeMoved = (XMBItem)getItem(position);
+            int nextColIndex = position[0];
+            int direction = Math.round(1 * Math.signum(amount));
+            boolean inColumn = position.length > 1;
+            for (int i = 0; i < Math.abs(amount); i++) {
+                if (inColumn) {
+                    // since we are currently in a column, then our next position should not be
+                    inColumn = false;
+                    // only when moving to the right should we add to nextColIndex, since items are shifted to the right
+                    if (direction > 0) {
+                        nextColIndex += direction;
+                    }
+                } else {
+                    // items.size() rather than items.size() - 1 since we want to be able to reach the very end
+                    nextColIndex = Math.min(Math.max(nextColIndex + direction, 0), items.size());
+                    // if we shifted horizontally from the outside, we would want to go into a column if it exists
+                    // but if the next item is not a column, then we pass over it
+                    inColumn = isColumnHead(nextColIndex);
+                }
+            }
+            if (inColumn) {
+                // if final position is in column, then place self at top
+                newPos = new Integer[] { nextColIndex, 0 };
+            } else {
+                // if final position is outside column, then index appropriately
+                newPos = new Integer[] { nextColIndex };
+            }
+            if (direction < 0) {
+                removeItem(false, position);
+                addItem(toBeMoved, newPos);
+            } else {
+                addItem(toBeMoved, newPos);
+                removeItem(false, position);
+            }
+        }
+        return newPos;
     }
 //    @Override
-//    public void removeSubItem(int columnIndex, int localIndex) {
-//        removeSubItem(columnIndex, localIndex, true);
-//    }
-//    private void removeSubItem(int columnIndex, int localIndex, boolean dispose) {
-//        //Log.d("XMBAdapter", "Attempting to remove sub item from [" + columnIndex + ", " + localIndex + "]");
-//        // the local index is expected to be 0 for the column head then anything greater is an inner item, and since they are in a list of their own, we need to subtract by 1 to account for that
-//        if (localIndex > 0) {
-////            XMBItem toBeRemoved = items.get(columnIndex).getInnerItem(localIndex - 1);
-////            if (toBeRemoved != null && dispose) {
-////                //toBeRemoved.clearImgCache();
-////                //toBeRemoved.applyToInnerItems((Consumer<XMBItem>)XMBItem::clearImgCache, true);
-////                toBeRemoved.release();
-////            }
-//            items.get(columnIndex).remove(localIndex - 1, dispose);
-//            fireSubItemRemovedEvent(columnIndex, localIndex);
+//    protected void shiftItemHorizontally(int toBeMovedColIndex, int toBeMovedLocalIndex, int moveToColIndex, int moveToLocalIndex, boolean createColumn) {
+//        // Log.d("XMBAdapter", "Moving item [" + toBeMovedColIndex + ", " + toBeMovedLocalIndex + "] => [" + moveToColIndex + ", " + moveToLocalIndex + "] Create column: " + createColumn);
+//        //XMBItem toBeMoved = items.get(toBeMovedColIndex).getInnerItem(toBeMovedLocalIndex - 1);
+//        XMBItem toBeMoved = (XMBItem)getItem(toBeMovedColIndex, toBeMovedLocalIndex);
+//        if (createColumn) {
+////            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex, false);
+//            removeItem(false, toBeMovedColIndex, toBeMovedLocalIndex);
+//            addItem(toBeMoved, moveToColIndex);
+////            createColumnAt(moveToColIndex, toBeMoved);
+//        } else {
+////            addSubItem(moveToColIndex, moveToLocalIndex, toBeMoved);
+//            addItem(toBeMoved, moveToColIndex, moveToLocalIndex);
+////            removeSubItem(toBeMovedColIndex, toBeMovedLocalIndex, false);
+//            removeItem(false, toBeMovedColIndex, toBeMovedLocalIndex);
 //        }
-//        if (localIndex == 0)
-//            removeColumnAt(columnIndex, dispose);
-//            //removeColIfEmpty(columnIndex);
 //    }
+//    @Override
+//    protected void shiftItemVertically(int startColIndex, int fromLocalIndex, int toLocalIndex) {
+//        //XMBItem toBeMoved = items.get(startColIndex).getInnerItem(fromLocalIndex - 1);
+//        XMBItem toBeMoved = (XMBItem)getItem(startColIndex, fromLocalIndex);
+////        removeSubItem(startColIndex, fromLocalIndex, false);
+//        removeItem(false, startColIndex, fromLocalIndex);
+//        addItem(toBeMoved, startColIndex, toLocalIndex);
+////        addSubItem(startColIndex, toLocalIndex, toBeMoved);
+//    }
+//    @Override
+//    public void addSubItem(int columnIndex, int localIndex, Object toBeAdded) {
+//        XMBItem item = items.get(columnIndex);
+//        if (item.getInnerItemCount() <= 0)
+//            item.add((XMBItem)toBeAdded);
+//        else
+//            item.add(localIndex, (XMBItem)toBeAdded);
+//        fireSubItemAddedEvent(columnIndex, localIndex);
+//    }
+    @Override
+    public void addItem(Object toBeAdded, Integer... position) {
+        if (position.length == 1) {
+            // add column
+            items.add(position[0], (XMBItem)toBeAdded);
+        } else {
+            // add sub-item or inner item
+            Integer[] parent = XMBView.getParentIndex(position);
+            XMBItem item = (XMBItem)getItem(parent);
+            item.add(position[position.length - 1], (XMBItem)toBeAdded);
+//            fireSubItemAddedEvent(columnIndex, localIndex);
+        }
+        fireItemAddedEvent(position);
+    }
     @Override
     public void removeItem(Integer... position) {
         removeItem(true, position);
     }
     public void removeItem(boolean dispose, Integer... position) {
+        XMBItem toBeRemoved = null;
         if (position.length > 1) {
             // remove sub-item or inner item
-            Integer[] parent = new Integer[position.length - 1];
-            for (int i = 0; i < parent.length; i++) {
-                parent[i] = position[i];
-            }
-            ((XMBItem)getItem(parent)).remove(position[position.length - 1]);
+            Integer[] parentIndex = XMBView.getParentIndex(position);
+            XMBItem parent = ((XMBItem)getItem(parentIndex));
+            toBeRemoved = parent.getInnerItem(position[position.length - 1]);
+            parent.remove(position[position.length - 1]);
         } else {
             // remove column
             int columnIndex = position[0];
-            XMBItem toBeRemoved = items.get(columnIndex);
-            if (toBeRemoved != null && dispose)
-                toBeRemoved.release();
+            toBeRemoved = items.get(columnIndex);
             items.remove(columnIndex);
         }
+        if (toBeRemoved != null && dispose)
+            toBeRemoved.release();
         fireItemRemoved(position);
     }
-    @Override
-    public void createColumnAt(int columnIndex, Object head) {
-        //ArrayList<XMBItem> newColumn = new ArrayList<>();
-        //newColumn.add((XMBItem)head);
-        items.add(columnIndex, (XMBItem)head);
-        fireColumnAddedEvent(columnIndex);
-        fireSubItemAddedEvent(columnIndex, 0);
-    }
 //    @Override
-//    public void removeColumnAt(int columnIndex) {
-//        removeColumnAt(columnIndex, true);
+//    public void createColumnAt(int columnIndex, Object head) {
+//        //ArrayList<XMBItem> newColumn = new ArrayList<>();
+//        //newColumn.add((XMBItem)head);
+//        items.add(columnIndex, (XMBItem)head);
+//        fireColumnAddedEvent(columnIndex);
+//        fireSubItemAddedEvent(columnIndex, 0);
 //    }
-//    private void removeColumnAt(int columnIndex, boolean dispose) {
-//        XMBItem toBeRemoved = items.get(columnIndex);
-//        if (toBeRemoved != null && dispose)
-//            toBeRemoved.release();
-//        items.remove(columnIndex);
-//        fireColumnRemovedEvent(columnIndex);
-//    }
-
-//    @Override
-//    public void shiftColumnTo(int fromColIndex, int toColIndex) {
-//        Log.d("XMBAdapter", "Shifting " + fromColIndex + " => " + toColIndex);
-//        XMBItem origItems = items.get(fromColIndex);
-//        if (toColIndex > fromColIndex) {
-//            items.add(toColIndex + 1, origItems);
-//            items.remove(fromColIndex);
-//        } else {
-//            items.remove(fromColIndex);
-//            items.add(toColIndex, origItems);
-//        }
-//        fireColumnShiftedEvent(fromColIndex, toColIndex);
-//    }
-
-//    private void removeColIfEmpty(int columnIndex) {
-//        if (items.get(columnIndex).getInnerItemCount() <= 0)
-//            removeColumnAt(columnIndex);
-//    }
-    private void fireColumnAddedEvent(int columnIndex) {
+    private void fireItemAddedEvent(Integer... position) {
         for (XMBAdapterListener listener : listeners)
             if (listener != null)
-                listener.onColumnAdded(columnIndex);
+                listener.onItemAdded(position);
     }
+//    private void fireColumnAddedEvent(int columnIndex) {
+//        for (XMBAdapterListener listener : listeners)
+//            if (listener != null)
+//                listener.onColumnAdded(columnIndex);
+//    }
 //    private void fireColumnRemovedEvent(int columnIndex) {
 //        for (XMBAdapterListener listener : listeners)
 //            if (listener != null)
 //                listener.onColumnRemoved(columnIndex);
 //    }
-    private void fireSubItemAddedEvent(int columnIndex, int localIndex) {
-        for (XMBAdapterListener listener : listeners)
-            if (listener != null)
-                listener.onSubItemAdded(columnIndex, localIndex);
-    }
+//    private void fireSubItemAddedEvent(int columnIndex, int localIndex) {
+//        for (XMBAdapterListener listener : listeners)
+//            if (listener != null)
+//                listener.onSubItemAdded(columnIndex, localIndex);
+//    }
 //    private void fireSubItemRemovedEvent(int columnIndex, int localIndex) {
 //        for (XMBAdapterListener listener : listeners)
 //            if (listener != null)
 //                listener.onSubItemRemoved(columnIndex, localIndex);
 //    }
-    private void fireColumnShiftedEvent(int fromColIndex, int toColIndex) {
-        for (XMBAdapterListener listener : listeners)
-            if (listener != null)
-                listener.onColumnShifted(fromColIndex, toColIndex);
-    }
+//    private void fireColumnShiftedEvent(int fromColIndex, int toColIndex) {
+//        for (XMBAdapterListener listener : listeners)
+//            if (listener != null)
+//                listener.onColumnShifted(fromColIndex, toColIndex);
+//    }
     private void fireInnerItemsChangedEvent(Integer... position) {
         for (XMBAdapterListener listener : listeners)
             if (listener != null)
