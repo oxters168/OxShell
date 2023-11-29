@@ -212,6 +212,8 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
     @Override
     public int getInnerItemCount(Integer... position) {
+        if (position == null || position.length == 0)
+            return getColumnCount();
         XMBItem current = (XMBItem)getItem(position);
         return hasInnerItems(position) ? current.getInnerItemCount() : 0;
     }

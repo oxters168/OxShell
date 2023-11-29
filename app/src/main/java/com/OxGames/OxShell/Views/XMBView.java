@@ -47,10 +47,12 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 //    private final Stack<Float> posShift;
 //    private final Stack<Float> prevPosShift;
     // keeps track of where we were in each item so when we go back to it, it is still the same
+    private final HashMap<Integer, Float> currentShifts;
     private final HashMap<Integer, Float> prevShifts;
     // how deep to travel in prevShifts to create our current position
     // 0=colItems 1=subItems 2=1stInnerItems ...
     private int currentDepth;
+    private int prevDepth;
 
     private float fullItemAlpha = 1f; // the alpha value of the item(s) selected
     private float translucentItemAlpha = 0.33f; // the alpha value of the item(s) not in selection
@@ -146,10 +148,11 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         goneItemViews = new Stack<>();
         goneInnerItemViews = new Stack<>();
         usedViews = new HashMap<>();
-        catPos = new ArrayList<>();
-        innerItemEntryPos = new Stack<>();
-        innerItemVerPos = new Stack<>();
-        posShift = new Stack<>();
+        //catPos = new ArrayList<>();
+        //innerItemEntryPos = new Stack<>();
+        //innerItemVerPos = new Stack<>();
+        //posShift = new Stack<>();
+        currentShifts = new HashMap<>();
         prevShifts = new HashMap<>();
         moveIndex = new Stack<>();
         origMoveIndex = new Stack<>();
@@ -276,7 +279,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
     public void setAdapter(Adapter adapter) {
 //        this.catPos.clear();
-        this.prevShifts.clear();
+        this.currentShifts.clear();
         if (this.adapter != null)
             this.adapter.removeListener(adapterListener);
         this.adapter = adapter;
@@ -290,9 +293,12 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 //        this.rowIndex = (adapter != null && adapter.getColumnCount() > 0 && adapter.getColumnSize(this.colIndex) > 0) ? 1 : 0;
 //        this.rowIndex = 0;
         removeViews();
-        for (int i = 0; i < adapter.getColumnCount(); i++)
-            this.catPos.add(0f);
-        setShiftXAndY(0, 0, true);
+        this.currentDepth = 0;
+        this.currentShifts.clear();
+        this.prevShifts.clear();
+        //for (int i = 0; i < adapter.getColumnCount(); i++)
+        //    this.catPos.add(0f);
+        //setShiftXAndY(0, 0, true);
     }
     public Adapter getAdapter() {
         return adapter;
@@ -318,279 +324,178 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         // how far apart each item is from center to center
         return itemSize + verSpacing;
     }
-
-    private int xToIndex(float xValue) {
-        // finds the column index closest to the current x value
-        return Math.round((xValue * (adapter.getColumnCount() - 1) * getHorShiftOffset()) / getHorShiftOffset());
-    }
-    private int clampColIndex(int colIndex) {
-        return Math.min(Math.max(colIndex, 0), adapter.getColumnCount() - 1);
-    }
-    private float toNearestColumn(float xValue) {
-        // finds the column index nearest to the pixel location then turns the index back into pixel location
-        return xToIndex(xValue) * getHorShiftOffset();
-    }
-//    private void setShiftXAndY(float xValue, float yValue, boolean instant) {
-//        boolean xChanged = Math.abs(shiftX - xValue) > EPSILON;
-//        if (xChanged)
-//            shiftX = Math.min(Math.max(xValue, 0), (adapter.getColumnCount() - 1) * getHorShiftOffset());
-//        int colIndex = xToIndex(shiftX);
-//
-//        float shiftY = catPos.get(colIndex);
-//        boolean yChanged = Math.abs(shiftY - yValue) > EPSILON;
-//        if (yChanged) {
-//            shiftY = clampYValue(yValue, colIndex);
-//            catPos.set(colIndex, shiftY);
-//        }
-//
-//        int localIndex = yToIndex(shiftY, colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
-//        boolean changed = this.colIndex != colIndex || this.rowIndex != localIndex;
-//        if (changed) {
-////            this.prevColIndex = this.colIndex;
-//            this.colIndex = colIndex;
-//            this.rowIndex = localIndex;
-//        }
-//        setViews(changed, instant);
-//    }
-    private void setShiftX(float xValue) {
-        if (adapter == null)
-            return;
-        if (!isInsideItem()) {
-            float shiftX = posShift.firstElement();
-            if (Math.abs(shiftX - xValue) > EPSILON) {
-                Integer[] prevPos = getPosition();
-                shiftX = Math.min(Math.max(xValue, 0), (adapter.getColumnCount() - 1) * getHorShiftOffset());
-                int moveColIndex = xToIndex(xValue);
-                if (xValue < 0)
-                    moveColIndex = -1; // just for touch input since the amount a user can move by per frame is not enough to move a whole index
-                else if (xValue > getShiftX(adapter.getColumnCount() - 1))
-                    moveColIndex = adapter.getColumnCount(); // just for touch input since the amount a user can move by per frame is not enough to move a whole index
-                int properColIndex = clampColIndex(moveColIndex);
-                int currentColIndex = xToIndex(shiftX);
-                boolean changed = properColIndex != currentColIndex;
-                int newRowIndex = getCachedIndexOfCat(properColIndex);
-
-                int fromColIndex = currentColIndex;
-//                int fromRowIndex = this.rowIndex;
-                int toColIndex = moveColIndex;
-                boolean moveChanged = changed || (moveMode && currentColIndex != moveColIndex);
-                if (changed) {
-                    catPos.set(properColIndex, getShiftY(newRowIndex, properColIndex));
-//                    this.prevColIndex = this.colIndex;
-                    this.colIndex = properColIndex;
-                    this.rowIndex = newRowIndex;
-                }
-                if (moveChanged)
-                    onShifted(toColIndex - fromColIndex, prevPos);
-//                    onShiftHorizontally(toColIndex - fromColIndex, prevPos);
-                setViews(moveChanged, false);
-            }
-        }
-    }
-    private float getShiftX(int colIndex) {
-        return colIndex * getHorShiftOffset();
-    }
-    private void setShiftXToNearestColumn() {
-        setShiftX(toNearestColumn(posShift.firstElement()));
-    }
-    private void shiftX(float amount) {
-        setShiftX(posShift.firstElement() + amount);
-    }
-    private void shiftXDisc(int amount) {
-        if (Math.abs(amount) > 0) {
-            int currentColIndex = xToIndex(posShift.firstElement());
-            //Log.d("XMBView", "Shifting by " + amount + " from " + currentColIndex);
-            // get the offset column's local index then convert it to x position
-            setShiftX(getShiftX(currentColIndex + amount));
-        }
-    }
-    private float clampYValue(float yValue, int colIndex) {
-        //return Math.min(Math.max(yValue, 0), (getColTraversableCount(colIndex) - 1) * getVerShiftOffset());
-        return Math.min(Math.max(yValue, 0), (adapter.getColumnSize(colIndex) - 1) * getVerShiftOffset());
-    }
-    private int shiftValToIndex(float shiftValue, Integer... parentIndex) {
-        // finds the item index closest to the given shift value within the parent index
-        // shift value is expected to be given between 0 and 1 inclusive
-        if (parentIndex.length > 1) {
-            // inner items
-            return Math.round((shiftValue * (adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerItemSize + innerVerSpacing)) / (innerItemSize + innerVerSpacing));
+    private float getOffsetSize(Integer... parentIndex) {
+        float offsetSize;
+        if (parentIndex == null || parentIndex.length == 0) {
+            // column items
+            offsetSize = getHorShiftOffset();
         } else if (parentIndex.length == 1) {
             // sub-items
-//            return Math.round((shiftValue * (adapter.getColumnCount() - 1) * getHorShiftOffset()) / getHorShiftOffset());
+            offsetSize = getVerShiftOffset();
         } else {
-            // column items
-            return Math.round((shiftValue * (adapter.getColumnCount() - 1) * getHorShiftOffset()) / getHorShiftOffset());
+            // inner items
+            offsetSize = (innerItemSize + innerVerSpacing);
         }
+        return offsetSize;
+    }
+    // finds the child index closest to the given shift value within the parent index
+    // shift value is expected to be given between 0 and 1 inclusive
+    private int shiftValToIndex(float shiftValue, Integer... parentIndex) {
+        float offsetSize = getOffsetSize(parentIndex);
+        return Math.round((shiftValue * (adapter.getInnerItemCount(parentIndex) - 1) * offsetSize) / offsetSize);
+    }
+    // converts the given child index to the shift value it would be within the parent index
+    // shift value is returned as between 0 and 1 inclusive
+    private float indexToShiftVal(int index, Integer... parentIndex) {
+        return normalizeValue(index * getOffsetSize(parentIndex), parentIndex);
+    }
+    private float normalizeValue(float value, Integer... parentIndex) {
+        return value / ((adapter.getInnerItemCount(parentIndex) - 1) * getOffsetSize(parentIndex));
+    }
+    private void shiftBy(float amount, Integer... parentIndex) {
+        float currentShift = getShiftOf(parentIndex);
+        setShiftOf(currentShift + amount, parentIndex);
+    }
+    private void shiftByDisc(int amount, Integer... parentIndex) {
+        setShiftOf(
+            indexToShiftVal(
+            shiftValToIndex(
+                    getShiftOf(parentIndex),
+                    parentIndex
+                ) + amount,
+                parentIndex
+            ),
+            parentIndex
+        );
+    }
+    private int getHashOf(Integer... index) {
+        int indexHash;
+        if (index != null && index.length > 0)
+            indexHash = MathHelpers.hash(index);
+        else
+            indexHash = MathHelpers.hash(ROOT_INDEX);
+        return indexHash;
+    }
+    private float getPrevShiftOf(Integer... parentIndex) {
+        int parentHash = getHashOf(parentIndex);
+        float prevShift = 0;
+        if (prevShifts.containsKey(parentHash))
+            prevShift = prevShifts.get(parentHash);
+        return prevShift;
+    }
+    private float getShiftOf(Integer... parentIndex) {
+        int parentHash = getHashOf(parentIndex);
+        float currentShift = 0;
+        if (currentShifts.containsKey(parentHash))
+            currentShift = currentShifts.get(parentHash);
+        return currentShift;
+    }
+    private void setShiftOfToNearestChild(Integer... parentIndex) {
+        setShiftOf(
+            indexToShiftVal(
+                shiftValToIndex(
+                    getShiftOf(parentIndex),
+                    parentIndex),
+                parentIndex
+            ),
+            parentIndex
+        );
     }
     // sets the shift amount of the children of the given index
     // shift values are clamped between 0 and 1 inclusive
     private void setShiftOf(float shiftValue, Integer... parentIndex) {
 //        float clampedShift = MathHelpers.clamp(shiftValue, 0, 1);
-        float prevShift = 0;
-        if (parentIndex.length > 1) {
-            // inner items
-            if (prevShifts.containsKey(parentIndex))
-                prevShift = prevShifts.get(parentIndex);
-            if (Math.abs(prevShift - shiftValue) > EPSILON) {
-                Integer[] prevPos = getPosition();
-//                float adjustedY = Math.min(Math.max(yValue, 0), (adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerItemSize + innerVerSpacing));
-                innerItemVerPos.pop();
-                innerItemVerPos.push(adjustedY);
-                Integer[] nextPos = getPosition();
-                if (!prevPos[prevPos.length - 1].equals(nextPos[nextPos.length - 1]))
-                    onShifted(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
-//                    onShiftVertically(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
-                setViews(false, false);
+        float prevShift = getShiftOf(parentIndex);
+        if (Math.abs(prevShift - shiftValue) > EPSILON) {
+            Integer[] prevPos = getPosition();
+            int parentHash = getHashOf(parentIndex);
+            prevShifts.put(parentHash, prevShift);
+            currentShifts.put(parentHash, MathHelpers.clamp(shiftValue, 0, 1));
+            prevDepth = currentDepth;
+            if (!isInsideItem()) {
+                // if we are not currently inside an item then set our depth based on
+                // whether the cat we are currently on has any sub-items or not
+                currentDepth = adapter.hasInnerItems(shiftValToIndex(getShiftOf())) ? 1 : 0;
             }
-        } else if (parentIndex.length == 1) {
-            // sub-items
-        } else {
-            // cat items
-            int rootHash = MathHelpers.hash(ROOT_INDEX);
-            if (prevShifts.containsKey(rootHash))
-                prevShift = prevShifts.get(rootHash);
-            if (Math.abs(shiftValue - prevShift) > EPSILON) {
-                Integer[] prevPos = getPosition();
-//                    prevShift = Math.min(Math.max(xValue, 0), (adapter.getColumnCount() - 1) * getHorShiftOffset());
-                int moveColIndex = xToIndex(shiftValue);
-                if (shiftValue < 0)
-                    moveColIndex = -1; // just for touch input since the amount a user can move by per frame is not enough to move a whole index
-                else if (shiftValue > 1)
-                    moveColIndex = adapter.getColumnCount(); // just for touch input since the amount a user can move by per frame is not enough to move a whole index
-                int properColIndex = clampColIndex(moveColIndex);
-                int currentColIndex = xToIndex(prevShift);
-                boolean changed = properColIndex != currentColIndex;
-                int newRowIndex = getCachedIndexOfCat(properColIndex);
+            Integer[] newPos = getPosition();
+            boolean changed = !isSamePosition(newPos, prevPos);
+            if (changed)
+                onShifted(newPos[newPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
+            setViews(changed, false);
+        }
 
-                int fromColIndex = currentColIndex;
-//                int fromRowIndex = this.rowIndex;
-                int toColIndex = moveColIndex;
-                boolean moveChanged = changed || (moveMode && currentColIndex != moveColIndex);
-                if (changed) {
-                    catPos.set(properColIndex, getShiftY(newRowIndex, properColIndex));
-//                    this.prevColIndex = this.colIndex;
-                    this.colIndex = properColIndex;
-                    this.rowIndex = newRowIndex;
-                }
-                if (moveChanged)
-                    onShifted(toColIndex - fromColIndex, prevPos);
-//                    onShiftHorizontally(toColIndex - fromColIndex, prevPos);
-                setViews(moveChanged, false);
-            }
-        }
+//        if (parentIndex.length > 1) {
+//            // inner items
+//            if (Math.abs(prevShift - shiftValue) > EPSILON) {
+//                Integer[] prevPos = getPosition();
+////                float adjustedY = Math.min(Math.max(yValue, 0), (adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerItemSize + innerVerSpacing));
+//                innerItemVerPos.pop();
+//                innerItemVerPos.push(adjustedY);
+//                Integer[] nextPos = getPosition();
+//                if (!prevPos[prevPos.length - 1].equals(nextPos[nextPos.length - 1]))
+//                    onShifted(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
+////                    onShiftVertically(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
+//                setViews(false, false);
+//            }
+//        } else if (parentIndex.length == 1) {
+//            // sub-items
+//            if (Math.abs(prevShift - shiftValue) > EPSILON) {
+//                Integer[] prevPos = getPosition();
+//                float newYValue = clampYValue(shiftValue, colIndex);
+//                catPos.set(colIndex, newYValue);
+//                int currentCol = this.colIndex;
+//                // if the shifted column is the one we are currently on
+//                if (currentCol == colIndex) {
+//                    int newLocalIndex = yToIndex(newYValue, colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
+//                    boolean changed = newLocalIndex != this.rowIndex;
+//                    if (changed) {
+////                        int prevLocalIndex = getLocalIndex();
+////                        this.prevColIndex = this.colIndex;
+//                        this.colIndex = colIndex;
+//                        this.rowIndex = newLocalIndex;
+//                        onShifted(newLocalIndex - prevPos[prevPos.length - 1], prevPos);
+////                        onShiftVertically(newLocalIndex - prevPos[prevPos.length - 1], prevPos);
+//                    }
+//                    setViews(changed, false);
+//                }
+//            }
+//        } else {
+//            // cat items
+//            if (Math.abs(shiftValue - prevShift) > EPSILON) {
+//                Integer[] prevPos = getPosition();
+////                    prevShift = Math.min(Math.max(xValue, 0), (adapter.getColumnCount() - 1) * getHorShiftOffset());
+//                int moveColIndex = xToIndex(shiftValue);
+//                if (shiftValue < 0)
+//                    moveColIndex = -1; // just for touch input since the amount a user can move by per frame is not enough to move a whole index
+//                else if (shiftValue > 1)
+//                    moveColIndex = adapter.getColumnCount(); // just for touch input since the amount a user can move by per frame is not enough to move a whole index
+//                int properColIndex = clampColIndex(moveColIndex);
+//                int currentColIndex = xToIndex(prevShift);
+//                boolean changed = properColIndex != currentColIndex;
+//                int newRowIndex = getCachedIndexOfCat(properColIndex);
+//
+//                int fromColIndex = currentColIndex;
+////                int fromRowIndex = this.rowIndex;
+//                int toColIndex = moveColIndex;
+//                boolean moveChanged = changed || (moveMode && currentColIndex != moveColIndex);
+//                if (changed) {
+//                    catPos.set(properColIndex, getShiftY(newRowIndex, properColIndex));
+////                    this.prevColIndex = this.colIndex;
+//                    this.colIndex = properColIndex;
+//                    this.rowIndex = newRowIndex;
+//                }
+//                if (moveChanged)
+//                    onShifted(toColIndex - fromColIndex, prevPos);
+////                    onShiftHorizontally(toColIndex - fromColIndex, prevPos);
+//                setViews(moveChanged, false);
+//            }
+//        }
     }
-    private void setShiftY(float yValue, int colIndex) {
-        //Log.d("XMBView", "Shift Y " + colIndex + ", " + yValue);
-        if (!isInsideItem()) {
-            float shiftY = catPos.get(colIndex);
-            if (Math.abs(shiftY - yValue) > EPSILON) {
-                Integer[] prevPos = getPosition();
-                float newYValue = clampYValue(yValue, colIndex);
-                catPos.set(colIndex, newYValue);
-                int currentCol = this.colIndex;
-                // if the shifted column is the one we are currently on
-                if (currentCol == colIndex) {
-                    int newLocalIndex = yToIndex(newYValue, colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
-                    boolean changed = newLocalIndex != this.rowIndex;
-                    if (changed) {
-//                        int prevLocalIndex = getLocalIndex();
-//                        this.prevColIndex = this.colIndex;
-                        this.colIndex = colIndex;
-                        this.rowIndex = newLocalIndex;
-                        onShifted(newLocalIndex - prevPos[prevPos.length - 1], prevPos);
-//                        onShiftVertically(newLocalIndex - prevPos[prevPos.length - 1], prevPos);
-                    }
-                    setViews(changed, false);
-                }
-            }
-        } else {
-            float currentY = innerItemVerPos.peek();
-            //Log.d("XMBView", "Attempting to move vertically when inside an item from " + currentY + " to " + yValue);
-            if (Math.abs(currentY - yValue) > EPSILON) {
-                Integer[] prevPos = getPosition();
-                float adjustedY = Math.min(Math.max(yValue, 0), (adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerItemSize + innerVerSpacing));
-                innerItemVerPos.pop();
-                innerItemVerPos.push(adjustedY);
-                Integer[] nextPos = getPosition();
-                if (!prevPos[prevPos.length - 1].equals(nextPos[nextPos.length - 1]))
-                    onShifted(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
-//                    onShiftVertically(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
-                setViews(false, false);
-            }
-        }
-    }
-    private float getShiftY(int localIndex, int colIndex) {
-        // determines the pixel position of the sub-item within the given column
-//        if (catHasSubItems(colIndex))
-//            localIndex -= 1; // since we don't want to count the column head
-        //return getVerShiftOffset() * Math.min(Math.max(localIndex, 0), getColTraversableCount(colIndex));
-        return getVerShiftOffset() * Math.min(Math.max(localIndex, 0), adapter.getColumnSize(colIndex));
-    }
-    private void shiftY(float amount, int colIndex) {
-        //Log.d("XMBView", "Shift Y on " + colIndex + " by " + amount);
-        float origAmount;
-        if (isInsideItem())
-            origAmount = innerItemVerPos.peek();
-        else
-            origAmount = catPos.get(colIndex);
-        setShiftY(origAmount + amount, colIndex);
-    }
-//    private int innerYToIndex(float yValue, Integer... parentIndex) {
-//        // finds the inner index closest to the current y value then clamps it to be within the proper range
-//        return Math.min(Math.max(Math.round(yValue / (innerItemSize + innerVerSpacing)), 0), adapter.getInnerItemCount(parentIndex) - 1);
-//    }
-//    private int innerYToIndex() {
-//        return innerYToIndex(posShift.peek(), getEntryPosition());
-////        return innerYToIndex(innerItemVerPos.peek(), getEntryPosition());
-//    }
     public boolean isInsideItem() {
-        return currentDepth > 0;
+        return currentDepth > 1;
 //        return posShift.size() > 2;
     //        return innerItemVerPos.size() > 0;
     }
-    private int yToIndex(float yValue, Integer... parentIndex) {
-        if (parentIndex.length > 1) {
-            // finds the inner index closest to the current y value then clamps it to be within the proper range
-            return Math.min(Math.max(Math.round(yValue / (innerItemSize + innerVerSpacing)), 0), adapter.getInnerItemCount(parentIndex) - 1);
-        } else {
-            // finds the local index closest to the current y value then clamps it to be within the proper range
-            int colIndex = parentIndex[0];
-            boolean hasSubItems = catHasSubItems(colIndex);
-            return Math.min(Math.max(Math.round(yValue / getVerShiftOffset()), 0), adapter.getColumnSize(colIndex) - (hasSubItems ? 1 : 0));
-        }
-    }
-    private void setShiftYToNearestItem(int colIndex) {
-        if (colIndex < 0 || colIndex >= catPos.size())
-            return;
-        setShiftY(toNearestColumnItem(catPos.get(colIndex), colIndex), colIndex);
-    }
-    private float toNearestColumnItem(float yValue, int colIndex) {
-        // finds the local index nearest to the pixel location then turns the index back into pixel location
-        float nearestY;
-        if (isInsideItem())
-            nearestY = innerYToIndex() * (innerItemSize + innerVerSpacing);
-        else
-            nearestY = yToIndex(yValue, colIndex) * getVerShiftOffset();
-        return nearestY;
-    }
-    private void shiftYDisc(int amount) {
-        //Log.d("XMBView", "Moving vertically from " + this.rowIndex + " on " + this.colIndex + " by " + amount);
-        shiftYDisc(this.colIndex, this.rowIndex, amount);
-    }
-    private void shiftYDisc(int colIndex, int localIndex, int amount) {
-        if (Math.abs(amount) > 0) {
-            if (!isInsideItem()) {
-                setShiftY(getShiftY(localIndex + amount, colIndex), colIndex);
-            } else {
-                float nextY = Math.min(Math.max(innerYToIndex() + amount, 0), adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerVerSpacing + innerItemSize);
-                setShiftY(nextY, -1);
-            }
-        }
-    }
-//    private int getColTraversableCount(int colIndex) {
-//        int columnSize = adapter.getColumnSize(colIndex);
-//        return columnSize - (columnSize > 0 ? 1 : 0);
-//    }
 
     private float touchMarginTop = 50;
     private float touchMarginLeft = 50;
@@ -616,8 +521,10 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private float momentumY = 0;
     private float prevY = 0;
     //private float minDiffY = 10f;
-    private int startTouchColIndex = 0;
-    private int startTouchRowIndex = 0;
+    //private int startTouchColIndex = 0;
+    //private int startTouchRowIndex = 0;
+    private int startTouchIndex = 0;
+    private Integer[] startEntryIndex = null;
     private boolean longPressed = false;
     private boolean isPressing = false;
 
@@ -645,6 +552,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             prevX = startTouchX;
             prevY = startTouchY;
             touchInsideBorders = startTouchX > touchMarginLeft && startTouchX < OxShellApp.getDisplayWidth() - touchMarginRight && startTouchY > touchMarginTop && startTouchY < OxShellApp.getDisplayHeight() - touchMarginBottom;
+            startEntryIndex = getEntryPosition();
             if (touchInsideBorders) {
                 stopMomentum();
                 Handler longPressHandler = new Handler();
@@ -669,17 +577,21 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             float currentY = ev.getRawY();
             // only acknowledge moving horizontally if we're not inside an item
             if (!touchVer && !touchHor && Math.abs(currentX - startTouchX) >= touchDeadzone && !isInsideItem()) {
-                startTouchColIndex = this.colIndex;
-                startTouchRowIndex = this.rowIndex;
+                startTouchIndex = getPosition()[0];
+                //startTouchColIndex = this.colIndex;
+                //startTouchRowIndex = this.rowIndex;
                 touchMoveDir = Math.signum(currentX - startTouchX);
                 touchMoveStartTime = SystemClock.uptimeMillis();
                 pseudoStartX = touchMoveDir * touchDeadzone + startTouchX;
                 touchHor = true;
             }
             // only acknowledge moving vertically if there are items to move vertically through
-            if (!touchHor && !touchVer && Math.abs(currentY - startTouchY) >= touchDeadzone && (isInsideItem() || catHasSubItems(colIndex))) {
-                startTouchColIndex = this.colIndex;
-                startTouchRowIndex = this.rowIndex;
+            //if (!touchHor && !touchVer && Math.abs(currentY - startTouchY) >= touchDeadzone && (isInsideItem() || catHasSubItems(colIndex))) {
+            if (!touchHor && !touchVer && Math.abs(currentY - startTouchY) >= touchDeadzone && adapter.hasInnerItems(startEntryIndex)) {
+                Integer[] position = getPosition();
+                startTouchIndex = position[position.length - 1];
+                //startTouchColIndex = this.colIndex;
+                //startTouchRowIndex = this.rowIndex;
                 touchMoveDir = Math.signum(currentY - startTouchY);
                 touchMoveStartTime = SystemClock.uptimeMillis();
                 pseudoStartY = touchMoveDir * touchDeadzone + startTouchY;
@@ -693,15 +605,14 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     touchMoveStartTime = SystemClock.uptimeMillis();
                 }
                 float diffX = prevX - currentX;
-                //if (Math.abs(diffX) >= minDiffX) {
-                    shiftX(diffX);// * 0.2f);
-                    if (this.colIndex != startTouchColIndex) {
-                        // if the index changed then set our drag start value to be where we are right now
-                        pseudoStartX = currentX;
-                        startTouchColIndex = this.colIndex;
-                    }
-                    //prevX = currentX;
-                //}
+                //shiftX(diffX);// * 0.2f);
+                shiftBy(normalizeValue(diffX));
+                if (getPosition()[0] != startTouchIndex) {
+                    // if the index changed then set our drag start value to be where we are right now
+                    pseudoStartX = currentX;
+                    startTouchIndex = getPosition()[0];
+                    //startTouchColIndex = this.colIndex;
+                }
             }// else
             prevX = currentX;
             if (touchVer) {
@@ -711,15 +622,15 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     touchMoveStartTime = SystemClock.uptimeMillis();
                 }
                 float diffY = prevY - currentY;
-                //if (Math.abs(diffY) >= minDiffY) {
-                    shiftY(diffY, startTouchColIndex);
-                    if (this.rowIndex != startTouchRowIndex) {
-                        // if the index changed then set our drag start value to be where we are right now
-                        pseudoStartY = currentY;
-                        startTouchRowIndex = this.rowIndex;
-                    }
-                    //prevY = currentY;
-                //}
+                //shiftY(diffY, startTouchColIndex);
+                shiftBy(normalizeValue(diffY, startEntryIndex), startEntryIndex);
+                Integer[] position = getPosition();
+                if (position[position.length - 1] != startTouchIndex) {
+                    // if the index changed then set our drag start value to be where we are right now
+                    pseudoStartY = currentY;
+                    startTouchIndex = position[position.length - 1];
+                    //startTouchRowIndex = this.rowIndex;
+                }
             }// else
             prevY = currentY;
         } else if (ev.getAction() == MotionEvent.ACTION_UP && touchInsideBorders) {
@@ -742,12 +653,13 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                     momentumHandler.post(momentumRunner);
             } else {
                 if (touchHor)
-                    setShiftXToNearestColumn();
+                    setShiftOfToNearestChild();
                 if (touchVer)
-                    setShiftYToNearestItem(colIndex);
+                    setShiftOfToNearestChild(startEntryIndex);
             }
             touchHor = false;
             touchVer = false;
+            startEntryIndex = null;
         }
         return true;
     }
@@ -776,7 +688,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 else
                     momentumX = Math.min(momentumX + momentumDeceleration * (milliInterval / 1000f), 0);
                 // get the difference between the items passed to see what should be applied this moment
-                shiftX(momentumOffsetX);
+                shiftBy(normalizeValue(momentumOffsetX));
+                //shiftX(momentumOffsetX);
             }
             if (hasMomentumY) {
                 // calculate travel distance based on current momentum
@@ -788,13 +701,15 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 else
                     momentumY = Math.min(momentumY + momentumDeceleration * (milliInterval / 1000f), 0);
                 // get the difference between the items passed to see what should be applied this moment
-                shiftY(momentumOffsetY, XMBView.this.colIndex);
+                Integer[] entryIndex = getEntryPosition();
+                shiftBy(normalizeValue(momentumOffsetY, entryIndex), entryIndex);
+                //shiftY(momentumOffsetY, XMBView.this.colIndex);
             }
             if (hasMomentumX || hasMomentumY) {
                 momentumHandler.postDelayed(this, milliInterval);
             } else {
-                setShiftXToNearestColumn();
-                setShiftYToNearestItem(XMBView.this.colIndex);
+                setShiftOfToNearestChild();
+                setShiftOfToNearestChild(getEntryPosition());
             }
         }
     };
@@ -844,7 +759,9 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         // indexChanged is true when currentIndex actually changes and false when otherwise
         // it is used to know when to apply fade transitions
         if (adapter != null && adapter.getItemCount(false) > 0) {
-            int startX = getStartX() - Math.round(shiftX);
+            float rootShift = getShiftOf();
+
+            int startX = getStartX() - Math.round(rootShift);
             int startY = getStartY();
             int horShiftOffset = Math.round(getHorShiftOffset());
             int verShiftOffset = Math.round(getVerShiftOffset());
@@ -870,8 +787,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     private void drawCategories(List<Integer> usedHashes, boolean indexChanged, int startXInt, int startYInt, int horShiftOffsetInt, boolean instant) {
         int viewWidth = getWidth();
         int viewHeight = getHeight();
-        int origColIndex = this.colIndex;
-        int prevColIndex = this.prevColIndex;
+        int origColIndex = shiftValToIndex(getShiftOf());
+        int prevColIndex = shiftValToIndex(getPrevShiftOf());
 
         for (int colIndex = 0; colIndex < adapter.getColumnCount(); colIndex++) {
             calcCatRect(startXInt, startYInt, horShiftOffsetInt, colIndex, reusableRect);
@@ -903,8 +820,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
     }
     private void drawItems(List<Integer> usedHashes, boolean indexChanged, boolean instant, int startXInt, int startYInt, int horShiftOffsetInt, int verShiftOffsetInt) {
-        int origColIndex = this.colIndex;
-//        int prevColIndex = this.prevColIndex;
+        int origColIndex = shiftValToIndex(getShiftOf());
+        int prevColIndex = shiftValToIndex(getPrevShiftOf());
         int viewWidth = getWidth();
         int viewHeight = getHeight();
         for (int itemColIndex = 0; itemColIndex < adapter.getColumnCount(); itemColIndex++) {
@@ -997,7 +914,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         if (isCat)
             z = CAT_Z;
         viewHolder.itemView.setTranslationZ(z);
-        boolean isOurCat = isCat && itemPosition[0] == this.colIndex;
+        boolean isOurCat = isCat && itemPosition[0] == currentPosition[0];
         viewHolder.setHighlighted(moveMode && isSamePosition(moveIndex.toArray(new Integer[0]), itemPosition));
         viewHolder.setHideTitle(isInsideItem() && isPartOfPosition && !isSelection);
         float itemAlpha = ((isPartOfPosition && !isCat) || (!isInsideItem() && isOurCat) || isInnerItem) ? fullItemAlpha : (isInsideItem() ? innerItemOverlayTranslucent : translucentItemAlpha);
@@ -1209,9 +1126,8 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 
     // calculates the item's rect with the text below the item
     private void calcCatRect(int startX, int startY, int horShiftOffset, int colIndex, Rect rect) {
-        Integer[] entryPos = getEntryPosition();
         // get the horizontal pixel position of the item (using getStartX() instead of startX because startX has shiftX in it)
-        int expX = (isInsideItem() && isPartOfPosition(getPosition(), colIndex, 0) ? getStartX() + innerItemEntryPos.size() * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);//getColIndexFromTotal(totalIndex));
+        int expX = (isInsideItem() && isPartOfPosition(getPosition(), colIndex, 0) ? getStartX() + (currentDepth - 1) * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);//getColIndexFromTotal(totalIndex));
         // the vertical pixel position is the same since the categories go along a straight line
         int expY = startY;
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
@@ -1221,28 +1137,44 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
     }
     // calculates the item's rect size with the text to the right of the item
     private void calcItemRect(int startX, int startY, int horShiftOffset, int verShiftOffset, int colIndex, int localIndex, Rect rect) {
+        Integer[] entryPos = getEntryPosition();
+        int entryHash = MathHelpers.hash(entryPos);
+        float shiftVal = 0;
+        if (currentShifts.containsKey(entryHash))
+            shiftVal = currentShifts.get(entryHash);
+        int itemCatIndex = shiftValToIndex(shiftVal, entryPos);
+
         boolean isPartOfInsideItem = isPartOfPosition(getPosition(), colIndex, localIndex);
         // get the index of what is actually highlighted currently within the column
-        int itemCatIndex = getCachedIndexOfCat(colIndex);
+        //int itemCatIndex = getCachedIndexOfCat(colIndex);
         int halfCatDiff = Math.round(Math.abs(catSize - itemSize) / 2f);
         // get the horizontal pixel position of the item (using getStartX() instead of startX because startX has shiftX in it)
-        int expX = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? getStartX() + innerItemEntryPos.size() * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);
+        int expX = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? getStartX() + (currentDepth - 1) * -Math.round(innerItemSize + innerHorSpacing) : startX + horShiftOffset * colIndex);
         // get the vertical pixel position of the item (localIndex is set to -1 since this is a sub-item)
-        int expY = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? startY : Math.round((startY - catPos.get(colIndex)) + verShiftOffset * (localIndex - 0) + ((localIndex - 0) >= itemCatIndex ? catSize + adapter.getTextSize() + subItemGap : 0)));
+        int expY = halfCatDiff + (isInsideItem() && isPartOfInsideItem ? startY : Math.round((startY - shiftVal) + verShiftOffset * (localIndex - 0) + ((localIndex - 0) >= itemCatIndex ? catSize + adapter.getTextSize() + subItemGap : 0)));
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
         int right = expX + itemSize;// + textCushion + rect.width();
         int bottom = expY + itemSize;
         rect.set(expX, expY, right, bottom);
     }
     private void calcInnerItemRect(Rect rect, int startX, int startY, int horSpacing, int verSpacing, Integer... position) {
+        Integer[] entryPos = getEntryPosition();
+        int entryHash = MathHelpers.hash(entryPos);
+        float shiftVal = 0;
+        if (currentShifts.containsKey(entryHash))
+            shiftVal = currentShifts.get(entryHash);
+
         int halfCatDiff = Math.round(Math.abs(catSize - innerItemSize) / 2f);
 
-        int discX = ((position.length - 2) - innerItemEntryPos.size());
+        //int discX = ((position.length - 2) - innerItemEntryPos.size());
+        int discX = ((position.length - 2) - (currentDepth - 1));
         // get the horizontal pixel position of the item
         int expX = startX + halfCatDiff + discX * innerItemSize + (discX + 1) * horSpacing; // discX + 1 so that the first inner items can be offset as well
-        boolean isCurrentInner = (position.length - 2) > innerItemEntryPos.size();
+        //boolean isCurrentInner = (position.length - 2) > innerItemEntryPos.size();
+        boolean isCurrentInner = (position.length - 2) > (currentDepth - 1);
         // get the vertical pixel position of the item
-        int expY = startY + halfCatDiff + (isCurrentInner ? position[position.length - 1] * (innerItemSize + verSpacing) - Math.round(innerItemVerPos.peek()) : 0);
+        //int expY = startY + halfCatDiff + (isCurrentInner ? position[position.length - 1] * (innerItemSize + verSpacing) - Math.round(innerItemVerPos.peek()) : 0);
+        int expY = startY + halfCatDiff + (isCurrentInner ? position[position.length - 1] * (innerItemSize + verSpacing) - Math.round(shiftVal) : 0);
         // get the right and bottom values of the item relative to the left and top values and apply them to the rect
         int right = expX + innerItemSize;// + textCushion + rect.width();
         int bottom = expY + innerItemSize;
@@ -1257,24 +1189,40 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         return adapter != null && adapter.getColumnSize(colIndex) > 0;
     }
 
-//    protected void setIndex(int colIndex, int localIndex, boolean instant) {
-//        if ((colIndex != this.colIndex || localIndex != this.rowIndex) && adapter.getItemCount(false) > 0)
-//            setShiftXAndY(getShiftX(colIndex), getShiftY(localIndex, colIndex), instant);
-//    }
+    protected void setPosition(Integer... position) {
+        prevShifts.clear();
+        prevShifts.putAll(currentShifts);
+        prevDepth = currentDepth;
+        currentDepth = position.length;
+        Stack<Integer> builtPos = new Stack<>();
+        for (int i = 0; i < position.length; i++) {
+            Integer[] currentEntry = builtPos.toArray(new Integer[0]);
+            int parentHash = MathHelpers.hash(currentEntry);
+            currentShifts.put(parentHash, indexToShiftVal(position[i], currentEntry));
+            builtPos.push(position[i]);
+        }
+        setViews(isSamePosition(getPosition(), getPrevPosition()), isSamePosition(getEntryPosition(), getPrevEntryPosition()));
+    }
+    protected Integer[] getPrevPosition() {
+        return getPositionOf(prevShifts, prevDepth);
+    }
     protected Integer[] getPosition() {
+        return getPositionOf(currentShifts, currentDepth);
+    }
+    private Integer[] getPositionOf(HashMap<Integer, Float> shifts, int depth) {
         Stack<Integer> position = new Stack<>();
         int root_hash = MathHelpers.hash(ROOT_INDEX);
-        if (prevShifts.containsKey(root_hash)) {
-            position.push(shiftValToIndex(prevShifts.get(root_hash)));
+        if (shifts.containsKey(root_hash)) {
+            position.push(shiftValToIndex(shifts.get(root_hash)));
         } else {
             position.push(0);
         }
         
         Integer[] posArr = position.toArray(new Integer[0]);
-        for (int i = 0; i < currentDepth; i++) {
+        for (int i = 0; i < depth; i++) {
             int currentHash = MathHelpers.hash(posArr);
-            if (prevShifts.containsKey(currentHash)) {
-                position.push(shiftValToIndex(prevShifts.get(posArr), posArr));
+            if (shifts.containsKey(currentHash)) {
+                position.push(shiftValToIndex(shifts.get(posArr), posArr));
             } else {
                 position.push(0);
             }
@@ -1282,21 +1230,27 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         }
         return posArr;
     }
+    protected Integer[] getPrevEntryPosition() {
+        return getEntryPositionOf(prevShifts, prevDepth);
+    }
     protected Integer[] getEntryPosition() {
-        if (currentDepth > 0) {
+        return getEntryPositionOf(currentShifts, currentDepth);
+    }
+    private Integer[] getEntryPositionOf(HashMap<Integer, Float> shifts, int depth) {
+        if (depth > 0) {
             Stack<Integer> entryPos = new Stack<>();
             int root_hash = MathHelpers.hash(ROOT_INDEX);
-            if (prevShifts.containsKey(root_hash)) {
-                entryPos.push(shiftValToIndex(prevShifts.get(root_hash)));
+            if (shifts.containsKey(root_hash)) {
+                entryPos.push(shiftValToIndex(shifts.get(root_hash)));
             } else {
                 entryPos.push(0);
             }
 
             Integer[] posArr = entryPos.toArray(new Integer[0]);
-            for (int i = 0; i < currentDepth - 1; i++) {
+            for (int i = 0; i < depth - 1; i++) {
                 int currentHash = MathHelpers.hash(posArr);
-                if (prevShifts.containsKey(currentHash)) {
-                    entryPos.push(shiftValToIndex(prevShifts.get(posArr), posArr));
+                if (shifts.containsKey(currentHash)) {
+                    entryPos.push(shiftValToIndex(shifts.get(posArr), posArr));
                 } else {
                     entryPos.push(0);
                 }
@@ -1307,98 +1261,30 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             return new Integer[0];
         }
     }
-//    protected Integer[] getPosition() {
-//        int root_hash = MathHelpers.hash(ROOT_INDEX);
-//        if (prevShifts.containsKey(root_hash)) {
-//            Stack<Integer> position = new Stack<>();
-//            position.push(shiftValToIndex(prevShifts.get(root_hash)));
-//            Integer[] posArr = position.toArray(new Integer[0]);
-//            while (adapter.hasInnerItems(posArr)) {
-//                int current_hash = MathHelpers.hash(posArr);
-//                if (prevShifts.containsKey(current_hash)) {
-//                    position.push(shiftValToIndex(prevShifts.get(current_hash), posArr));
-//                    posArr = position.toArray(new Integer[0]);
-//                } else {
-//                    position.push(0);
-//                    posArr = position.toArray(new Integer[0]);
-//                    break;
-//                }
-//            }
-//            return posArr;
-//        } else {
-//            return new Integer[] { 0 };
-//        }
-//    }
-//    protected Integer[] getPosition() {
-//        Integer[] position;
-//        if (isInsideItem()) {
-//            position = new Integer[innerItemEntryPos.size() + 3]; // 2 for colIndex and rowIndex and 1 for the local index within the current item
-//            //innerItemEntryPos.copyInto(position);
-//            position[0] = this.colIndex;
-//            position[1] = this.rowIndex;
-//            if (innerItemEntryPos.size() > 0) {
-//                //Stack<Integer> entryClone = (Stack<Integer>)innerItemEntryPos.clone();
-//                //for (int i = position.length - 2; i > 1; i--)
-//                //    position[i] = entryClone.pop();
-//                for (int i = 0; i < innerItemEntryPos.size(); i++)
-//                    position[i + 2] = innerItemEntryPos.get(i);
-//            }
-//            int nextEntry = innerYToIndex();//Arrays.copyOf(innerItemEntryPos.toArray(), innerItemEntryPos.size(), Integer[].class));
-//            position[position.length - 1] = nextEntry;
-//        } else {
-//            //int colIndex = getColIndex();
-//            //int localIndex = getLocalIndex() + (catHasSubItems(colIndex) ? 1 : 0);
-//            if (catHasSubItems(colIndex)) {
-//                position = new Integer[] { colIndex, rowIndex };//getTotalIndexFromTraversable(currentIndex) };
-//            } else {
-//                position = new Integer[] { colIndex };//getTotalIndexFromTraversable(currentIndex) };
-//            }
-//
-//        }
-//        return position;
-//    }
-//    protected Integer[] getEntryPosition() {
-//        Integer[] position = null;
-//        if (isInsideItem()) {
-//            position = new Integer[innerItemEntryPos.size() + 2]; // 2 for colIndex and rowIndex and 1 for the local index within the current item
-//            //innerItemEntryPos.copyInto(position);
-//            position[0] = this.colIndex;
-//            position[1] = this.rowIndex;
-//            if (innerItemEntryPos.size() > 0) {
-//                Stack<Integer> entryClone = (Stack<Integer>)innerItemEntryPos.clone();
-//                for (int i = position.length - 1; i > 1; i--)
-//                    position[i] = entryClone.pop();
-//            }
-//        } else
-//            position = new Integer[] { this.colIndex };
-//        return position;
-//    }
-//    protected int getColIndex() {
-//        return this.colIndex;
-//    }
-//    protected int getLocalIndex() {
-//        return this.rowIndex;
-//    }
-
-    private int getCachedIndexOfCat(int colIndex) {
-        return yToIndex(catPos.get(colIndex), colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
-    }
 
     public void selectLowerItem() {
         stopMomentum();
-        shiftYDisc(1);
+        if (currentDepth >= 1)
+            shiftByDisc(1, getEntryPosition());
+        //shiftYDisc(1);
     }
     public void selectUpperItem() {
         stopMomentum();
-        shiftYDisc(-1);
+        if (currentDepth >= 1)
+            shiftByDisc(-1, getEntryPosition());
+        //shiftYDisc(-1);
     }
     public void selectRightItem() {
         stopMomentum();
-        shiftXDisc(1);
+        if (currentDepth <= 1)
+            shiftByDisc(1);
+        //shiftXDisc(1);
     }
     public void selectLeftItem() {
         stopMomentum();
-        shiftXDisc(-1);
+        if (currentDepth <= 1)
+            shiftByDisc(-1);
+        //shiftXDisc(-1);
     }
     public boolean affirmativeAction() {
         stopMomentum();
@@ -1407,14 +1293,14 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             return true;
         } else {
             Integer[] position = getPosition();
-            int nextEntry = position[position.length - 1]; // this has to come before the mapping since it is what is pushed into innerItemEntryPos and we want to keep total index in there, not the mapped index
+            //int nextEntry = position[position.length - 1]; // this has to come before the mapping since it is what is pushed into innerItemEntryPos and we want to keep total index in there, not the mapped index
             //position[0] = mapTotalIndex(position[0]);
             boolean hasInnerItems = adapter.hasInnerItems(position);
 
             if (hasInnerItems) {
                 int posHash = MathHelpers.hash(position);
-                if (!prevShifts.containsKey(posHash))
-                    prevShifts.put(posHash, 0f);
+                if (!currentShifts.containsKey(posHash))
+                    currentShifts.put(posHash, 0f);
                 currentDepth++;
 //                if (isInsideItem())
 //                    innerItemEntryPos.push(nextEntry);
@@ -1517,20 +1403,4 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
             }
         }
     }
-//    protected void onShiftHorizontally(int amount, Integer... position) {
-//        //Log.d("XMBView", Arrays.toString(getPosition()));
-//        if (moveMode) {
-//            Integer[] newPos = adapter.shiftItemHorizontally(amount, moveIndex.toArray(new Integer[0]));
-//            moveIndex.clear();
-//            moveIndex.addAll(Arrays.asList(newPos));
-//        }
-//    }
-//    protected void onShiftVertically(int amount, Integer... position) {
-//        //Log.d("XMBView", Arrays.toString(getPosition()));
-//        if (moveMode && moveIndex.size() > 1) {
-//            Integer[] newPos = adapter.shiftItemVertically(amount, position);
-//            moveIndex.clear();
-//            moveIndex.addAll(Arrays.asList(newPos));
-//        }
-//    }
 }
