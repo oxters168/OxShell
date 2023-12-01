@@ -196,7 +196,7 @@ public class HomeView extends XMBView implements Refreshable {
                             parent[0] = position[0];
                             parent[1] = 0;
                         }
-                        int count = position.length > 2 ? getAdapter().getInnerItemCount(parent) : getAdapter().getColumnSize(parent[0]);
+                        int count = position.length > 2 ? getAdapter().getChildCount(parent) : getAdapter().getColumnSize(parent[0]);
                         //List<DataRef> trackLocs = new ArrayList<>();
                         for (int i = position.length > 2 ? 0 : 1; i < count + (position.length > 2 ? 0 : 1); i++) {
                             position[position.length - 1] = i;
@@ -233,7 +233,7 @@ public class HomeView extends XMBView implements Refreshable {
                             parent[0] = position[0];
                             parent[1] = 0;
                         }
-                        int count = position.length > 2 ? getAdapter().getInnerItemCount(parent) : getAdapter().getColumnSize(parent[0]);
+                        int count = position.length > 2 ? getAdapter().getChildCount(parent) : getAdapter().getColumnSize(parent[0]);
                         //List<DataRef> trackLocs = new ArrayList<>();
                         for (int i = position.length > 2 ? 0 : 1; i < count + (position.length > 2 ? 0 : 1); i++) {
                             position[position.length - 1] = i;
@@ -889,7 +889,7 @@ public class HomeView extends XMBView implements Refreshable {
                 //boolean isNotSettings = position[0] < (getAdapter().getColumnCount() - 1);
                 boolean hasColumnHead = getAdapter().isColumnHead(position[0]);
                 boolean isColumnHead = getAdapter().isColumnHead(position);
-                boolean hasInnerItems = getAdapter().hasInnerItems(position);
+                boolean hasInnerItems = getAdapter().hasChildren(position);
                 boolean isInnerItem = position.length > 2;
                 XMBItem selectedItem = (XMBItem)getSelectedItem();
                 XMBItem parentItem = (XMBItem)getAdapter().getItem(parentPos);

@@ -2,7 +2,6 @@ package com.OxGames.OxShell.Adapters;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -31,7 +30,6 @@ import com.OxGames.OxShell.Views.BetterTextView;
 import com.OxGames.OxShell.Views.XMBView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -205,17 +203,17 @@ public class XMBAdapter extends XMBView.Adapter<XMBAdapter.XMBViewHolder> {
     }
 
     @Override
-    public boolean hasInnerItems(Integer... position) {
+    public boolean hasChildren(Integer... position) {
         XMBItem current = (XMBItem)getItem(position);
         //Log.d("XMBView", "Checking if " + current.title + " has inner items? " + current.hasInnerItems());
-        return (position.length == 2 || position.length > 2) && (current != null && current.hasInnerItems());
+        return current != null && current.hasInnerItems();
     }
     @Override
-    public int getInnerItemCount(Integer... position) {
+    public int getChildCount(Integer... position) {
         if (position == null || position.length == 0)
             return getColumnCount();
         XMBItem current = (XMBItem)getItem(position);
-        return hasInnerItems(position) ? current.getInnerItemCount() : 0;
+        return hasChildren(position) ? current.getInnerItemCount() : 0;
     }
 
     public class XMBViewHolder extends XMBView.ViewHolder {
