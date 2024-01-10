@@ -294,6 +294,7 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
 //        this.rowIndex = 0;
         removeViews();
         this.currentDepth = 0;
+        this.prevDepth = 0;
         this.currentShifts.clear();
         this.prevShifts.clear();
         //for (int i = 0; i < adapter.getColumnCount(); i++)
@@ -428,73 +429,6 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 onShifted(newPos[newPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
             setViews(changed, false);
         }
-
-//        if (parentIndex.length > 1) {
-//            // inner items
-//            if (Math.abs(prevShift - shiftValue) > EPSILON) {
-//                Integer[] prevPos = getPosition();
-////                float adjustedY = Math.min(Math.max(yValue, 0), (adapter.getInnerItemCount(getEntryPosition()) - 1) * (innerItemSize + innerVerSpacing));
-//                innerItemVerPos.pop();
-//                innerItemVerPos.push(adjustedY);
-//                Integer[] nextPos = getPosition();
-//                if (!prevPos[prevPos.length - 1].equals(nextPos[nextPos.length - 1]))
-//                    onShifted(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
-////                    onShiftVertically(nextPos[nextPos.length - 1] - prevPos[prevPos.length - 1], prevPos);
-//                setViews(false, false);
-//            }
-//        } else if (parentIndex.length == 1) {
-//            // sub-items
-//            if (Math.abs(prevShift - shiftValue) > EPSILON) {
-//                Integer[] prevPos = getPosition();
-//                float newYValue = clampYValue(shiftValue, colIndex);
-//                catPos.set(colIndex, newYValue);
-//                int currentCol = this.colIndex;
-//                // if the shifted column is the one we are currently on
-//                if (currentCol == colIndex) {
-//                    int newLocalIndex = yToIndex(newYValue, colIndex);// + (catHasSubItems(colIndex) ? 1 : 0);
-//                    boolean changed = newLocalIndex != this.rowIndex;
-//                    if (changed) {
-////                        int prevLocalIndex = getLocalIndex();
-////                        this.prevColIndex = this.colIndex;
-//                        this.colIndex = colIndex;
-//                        this.rowIndex = newLocalIndex;
-//                        onShifted(newLocalIndex - prevPos[prevPos.length - 1], prevPos);
-////                        onShiftVertically(newLocalIndex - prevPos[prevPos.length - 1], prevPos);
-//                    }
-//                    setViews(changed, false);
-//                }
-//            }
-//        } else {
-//            // cat items
-//            if (Math.abs(shiftValue - prevShift) > EPSILON) {
-//                Integer[] prevPos = getPosition();
-////                    prevShift = Math.min(Math.max(xValue, 0), (adapter.getColumnCount() - 1) * getHorShiftOffset());
-//                int moveColIndex = xToIndex(shiftValue);
-//                if (shiftValue < 0)
-//                    moveColIndex = -1; // just for touch input since the amount a user can move by per frame is not enough to move a whole index
-//                else if (shiftValue > 1)
-//                    moveColIndex = adapter.getColumnCount(); // just for touch input since the amount a user can move by per frame is not enough to move a whole index
-//                int properColIndex = clampColIndex(moveColIndex);
-//                int currentColIndex = xToIndex(prevShift);
-//                boolean changed = properColIndex != currentColIndex;
-//                int newRowIndex = getCachedIndexOfCat(properColIndex);
-//
-//                int fromColIndex = currentColIndex;
-////                int fromRowIndex = this.rowIndex;
-//                int toColIndex = moveColIndex;
-//                boolean moveChanged = changed || (moveMode && currentColIndex != moveColIndex);
-//                if (changed) {
-//                    catPos.set(properColIndex, getShiftY(newRowIndex, properColIndex));
-////                    this.prevColIndex = this.colIndex;
-//                    this.colIndex = properColIndex;
-//                    this.rowIndex = newRowIndex;
-//                }
-//                if (moveChanged)
-//                    onShifted(toColIndex - fromColIndex, prevPos);
-////                    onShiftHorizontally(toColIndex - fromColIndex, prevPos);
-//                setViews(moveChanged, false);
-//            }
-//        }
     }
     public boolean isInsideItem() {
         return currentDepth > 1;
@@ -1186,6 +1120,11 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
         return adapter.getItem(getPosition());
     }
 
+    public void clearShiftCache() {
+        prevShifts.clear();
+        currentShifts.clear();
+    }
+
     protected void setPosition(Integer... position) {
         prevShifts.clear();
         prevShifts.putAll(currentShifts);
@@ -1393,10 +1332,12 @@ public class XMBView extends ViewGroup {// implements InputReceiver {//, Refresh
                 Integer[] newPos = adapter.shiftItemVertically(amount, fromPos);
                 moveIndex.clear();
                 moveIndex.addAll(Arrays.asList(newPos));
+                setPosition(newPos);
             } else {
                 Integer[] newPos = adapter.shiftItemHorizontally(amount, moveIndex.toArray(new Integer[0]));
                 moveIndex.clear();
                 moveIndex.addAll(Arrays.asList(newPos));
+                setPosition(newPos);
             }
         }
     }

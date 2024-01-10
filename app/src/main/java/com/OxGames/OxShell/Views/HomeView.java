@@ -366,6 +366,7 @@ public class HomeView extends XMBView implements Refreshable {
                     prompt.setStartBtn("Yes", () -> {
                         save(createDefaultItems());
                         refresh();
+                        setPosition(0);
                         prompt.setShown(false);
                     }, SettingsKeeper.getSuperPrimaryInput());
                     prompt.setEndBtn("No", () -> {
@@ -1025,6 +1026,7 @@ public class HomeView extends XMBView implements Refreshable {
         setAdapter(new XMBAdapter(getContext(), items));
         setFont(SettingsKeeper.getFont());
         setPosition(cachedPos);
+        //clearShiftCache();
         Log.i("HomeView", "Time to load home items: " + ((SystemClock.uptimeMillis() - loadHomeStart) / 1000f) + "s");
     }
 
