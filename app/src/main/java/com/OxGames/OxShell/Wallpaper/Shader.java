@@ -56,7 +56,7 @@ public class Shader {
 
     private int targetFPS = 30;
     private long startTime;
-    private int frame;
+    private unsigned int frame;
     private long prevTime;
 
     private FloatBuffer quadVertices;
@@ -325,15 +325,16 @@ public class Shader {
 
         frame++;
         long currentTime = System.currentTimeMillis() - startTime;
-        float secondsElapsed = (currentTime) / 1000f; // will be input into shader as iTime
-        float deltaTime = (currentTime - prevTime) / 1000f;
-        float fps = 1 / deltaTime;
+        double secondsElapsed = (currentTime) / 1000.0; // will be input into shader as iTime
+        double deltaTime = (currentTime - prevTime) / 1000.0;
+        double fps = 1 / deltaTime;
         prevTime = currentTime;
-        if (secondsElapsed > 60 * 60 * 24) {
+        if (secondsElapsed > 60 * 60 * 24 || Double.isNaN(fps) || Double.isNan(deltaTime)) {
             frame = 0;
             startTime = System.currentTimeMillis();
             prevTime = 0;
             secondsElapsed = 0;
+            fps = 60.0;
         }
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
         LocalDateTime localDateTime = LocalDateTime.now();
