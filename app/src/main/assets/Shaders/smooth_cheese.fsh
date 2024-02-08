@@ -1,4 +1,4 @@
-
+#version 300 es
 
 /*
  * Title: Smooth Cheese
@@ -14,8 +14,6 @@
  *   but thanks for attributing your source code when deriving from this sample 
  *   with a following link: https://www.shadertoy.com/view/XsX3zB )
  */
-
-#version 300 es
 
 precision highp float;
 
@@ -87,16 +85,15 @@ float simplex3d(vec3 p) {
 	 return dot(d, vec4(52.0));
 }
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
+void main()
 {
-	vec2 p = fragCoord.xy/iResolution.x;
+	vec2 p = textureCoord;
 	vec3 p3 = vec3(p, iTime*0.015)+vec3(iTime*0.015,0.0,0.0);
 	
 	float value = pow(abs(simplex3d(p3*2.0)),1.5);
-    float red = 0.5 + 0.5*simplex3d(p3*2.0 + 38274.9);
-    float green = abs(0.2+0.5*simplex3d(p3*2.0 + 3824.9));
-    float blue = abs(simplex3d(p3*2.0 + 98274.9));
+	float red = 0.5 + 0.5*simplex3d(p3*2.0 + 38274.9);
+	float green = abs(0.2+0.5*simplex3d(p3*2.0 + 3824.9));
+	float blue = abs(simplex3d(p3*2.0 + 98274.9));
 	
 	fragColor = vec4(sqrt(value*vec3(red, green, blue)), 1.0);
-	return;
 }
