@@ -325,16 +325,16 @@ public class Shader {
 
         frame++;
         long currentTime = System.currentTimeMillis() - startTime;
-        float secondsElapsed = (currentTime) / 1000.0; // will be input into shader as iTime
-        float deltaTime = (currentTime - prevTime) / 1000.0;
+        float secondsElapsed = (currentTime) / 1000f; // will be input into shader as iTime
+        float deltaTime = (currentTime - prevTime) / 1000f;
         float fps = 1 / deltaTime;
         prevTime = currentTime;
-        if (secondsElapsed > 60 * 60 * 24 || Double.isNaN(fps) || Double.isNan(deltaTime)) {
+        if (secondsElapsed > 60 * 60 * 24 || Float.isNaN(fps) || Float.isNaN(deltaTime)) {
             frame = 0;
             startTime = System.currentTimeMillis();
             prevTime = 0;
             secondsElapsed = 0;
-            fps = 60.0;
+            fps = 60f;
         }
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
         LocalDateTime localDateTime = LocalDateTime.now();
