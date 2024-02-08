@@ -56,7 +56,7 @@ public class Shader {
 
     private int targetFPS = 30;
     private long startTime;
-    private unsigned int frame;
+    private int frame;
     private long prevTime;
 
     private FloatBuffer quadVertices;
@@ -325,9 +325,9 @@ public class Shader {
 
         frame++;
         long currentTime = System.currentTimeMillis() - startTime;
-        double secondsElapsed = (currentTime) / 1000.0; // will be input into shader as iTime
-        double deltaTime = (currentTime - prevTime) / 1000.0;
-        double fps = 1 / deltaTime;
+        float secondsElapsed = (currentTime) / 1000.0; // will be input into shader as iTime
+        float deltaTime = (currentTime - prevTime) / 1000.0;
+        float fps = 1 / deltaTime;
         prevTime = currentTime;
         if (secondsElapsed > 60 * 60 * 24 || Double.isNaN(fps) || Double.isNan(deltaTime)) {
             frame = 0;
