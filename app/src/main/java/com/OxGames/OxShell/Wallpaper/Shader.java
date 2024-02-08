@@ -329,11 +329,12 @@ public class Shader {
         float deltaTime = (currentTime - prevTime) / 1000f;
         float fps = 1 / deltaTime;
         prevTime = currentTime;
-        if (secondsElapsed > 60 * 60 * 24) {
+        if (secondsElapsed > 60 * 60 * 24 || Float.isNaN(fps) || Float.isNaN(deltaTime)) {
             frame = 0;
             startTime = System.currentTimeMillis();
             prevTime = 0;
             secondsElapsed = 0;
+            fps = 60f;
         }
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
         LocalDateTime localDateTime = LocalDateTime.now();
