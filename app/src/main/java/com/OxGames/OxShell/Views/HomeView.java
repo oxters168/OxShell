@@ -483,8 +483,8 @@ public class HomeView extends XMBView implements Refreshable {
                     List<String> options = new ArrayList<>();
                     options.add("Blue Dune");
                     options.add("The Other Dune");
-                    //if (!AndroidHelpers.isRunningOnTV())
-                        options.add("Planet");
+                    options.add("Smooth Cheese");
+                    options.add("Planet");
                     options.add("Custom");
                     //DynamicInputRow.TextInput titleInput = new DynamicInputRow.TextInput("Fragment Shader Path");
                     AtomicReference<Uri> permittedUri = new AtomicReference<>();
@@ -561,6 +561,11 @@ public class HomeView extends XMBView implements Refreshable {
                             readyForPreview = true;
                         }
                         else if (dropdown.getIndex() == 2) {
+                            backupExistingShader.run();
+                            AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/smooth_cheese.fsh"));
+                            readyForPreview = true;
+                        }
+                        else if (dropdown.getIndex() == 3) {
                             backupExistingShader.run();
                             AndroidHelpers.writeToFile(fragDest, AndroidHelpers.readAssetAsString(context, "Shaders/planet.fsh"));
                             //Log.d("HomeView", "Saving channel0 to " + channel0Dest);
