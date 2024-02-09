@@ -12,9 +12,11 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    if (keystoreProperties != null) {
-        signingConfigs {
-            release {
+    compileSdk 33
+
+    signingConfigs {
+        release {
+            if (keystoreProperties != null) {
                 storeFile file(keystoreProperties['storeFile'])
                 storePassword keystoreProperties['storePassword']
                 keyAlias keystoreProperties['keyAlias']
@@ -22,8 +24,6 @@ android {
             }
         }
     }
-    compileSdkVersion 33
-    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.OxGames.OxShell"
