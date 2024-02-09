@@ -12,18 +12,16 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    if (keystoreProperties != null) {
-        signingConfigs {
-            release {
-                storeFile file(keystoreProperties['storeFile'])
-                storePassword keystoreProperties['storePassword']
-                keyAlias keystoreProperties['keyAlias']
-                keyPassword keystoreProperties['keyPassword']
-            }
+    compileSdk 33
+
+    signingConfigs {
+        release {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
         }
     }
-
-    compileSdk 33
 
     defaultConfig {
         applicationId "com.OxGames.OxShell"
@@ -69,7 +67,6 @@ android {
             //manifestPlaceholders = [appLabel: appLabelValue]
         }
         debug {
-            signingConfig signingConfigs.debug
             //minifyEnabled true
             debuggable true
         }
