@@ -22,8 +22,8 @@ android {
             }
         }
     }
-    compileSdkVersion 33
-    buildToolsVersion "30.0.3"
+
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.OxGames.OxShell"
@@ -69,6 +69,7 @@ android {
             //manifestPlaceholders = [appLabel: appLabelValue]
         }
         debug {
+            signingConfig signingConfigs.debug
             //minifyEnabled true
             debuggable true
         }
